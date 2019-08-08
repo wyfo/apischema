@@ -1,6 +1,6 @@
 # APISchema
 
-Another Python API schema handling through typing annotation; light, simple, flexible.
+Another Python API schema handling through typing annotation; light, simple, powerful.
 
 ## Getting Started
 
@@ -97,8 +97,13 @@ def test():
     print(from_data(B[int], {}))
     print(from_data(B[int], {"a": 0}))
     print(from_data(B[int], {"a": [1, 2]}))
-    with pytest.raises(ValidationError):
-        print(from_data(B[str], {"a": [1, 2]}))
+    with pytest.raises(ValidationError) as err:
+        print(from_data(B[int], {"a": [1, 2, 2]}))
+    print(err.value)
+    with pytest.raises(ValidationError) as err:
+        print(from_data(B[str], {"a": ["", 0, 1]}))
+    print(err.value)
+
 ```
 
 With *spec*:
