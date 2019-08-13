@@ -4,7 +4,7 @@ with open("README.md") as f:
     README = f.read()
 
 setup(
-    name='apischema',
+    name='pyapischema',
     url="https://github.com/wyfo/apischema",
     author="Joseph Perez",
     author_email="joperez@hotmail.fr",
@@ -12,9 +12,9 @@ setup(
                 " light, simple, powerful.",
     long_description=README,
     long_description_content_type="text/markdown",
-    version='0.1.0',
-    packages=find_packages(include=["src"]),
-    install_requires=["pyhumps"],
+    version='1.0.0',
+    packages=find_packages(include=["apischema"]),
+    install_requires=["tmv", "pyhumps"],
     classifiers=[
         "Programming Language :: Python :: 3.7",
     ],

@@ -4,9 +4,8 @@ from contextlib import contextmanager
 from typing import (Any, Dict, Iterable, Iterator, List, Mapping, Tuple, Type,
                     TypeVar)
 
-from src.errors import WRONG_TYPE
-from src.validator import (Error, ErrorMsg, Validator)
-from src.visitor import Path
+from apischema.errors import WRONG_TYPE
+from apischema.validator import Error, ErrorMsg, Path, Validator
 
 Cls = TypeVar("Cls")
 

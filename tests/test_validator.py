@@ -5,9 +5,9 @@ from unittest.mock import Mock
 
 from pytest import mark, raises
 
-from src.validator import (PartialValidator, Validator, ValidatorMock,
-                           validate,
-                           validators)
+from apischema.validator import (PartialValidator, Validator, ValidatorMock,
+                                 validate,
+                                 validators)
 
 
 @dataclass

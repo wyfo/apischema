@@ -4,8 +4,8 @@ from unittest.mock import Mock
 
 from pytest import fixture, mark, raises
 
-from src.validation import Validation, ValidationError
-from src.validator import Error
+from apischema.validation import Validation, ValidationError
+from apischema.validator import Error
 
 
 @fixture

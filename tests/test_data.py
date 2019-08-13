@@ -7,13 +7,13 @@ from uuid import UUID as BaseUUID, uuid4
 from pytest import mark, raises
 from typing_extensions import Literal
 
-from src.data import from_data, to_data
-from src.field import field
-from src.model import Model
-from src.null import null_values
-from src.spec import NumSpec, SpecClass
-from src.validation import ValidationError
-from src.validator import validate
+from apischema.data import from_data, to_data
+from apischema.field import field
+from apischema.model import Model
+from apischema.null import null_values
+from apischema.spec import NumSpec, SpecClass
+from apischema.validation import ValidationError
+from apischema.validator import validate
 
 
 class UUID(BaseUUID, Model[str]):
@@ -91,6 +91,11 @@ def test_union(data, expected):
 @mark.parametrize("data", [0, None])
 def test_union_error(data):
     error(Union[str, SimpleClass], data)
+
+
+def test_union_value_error():
+    with raises(ValueError):
+        print(to_data(Union[str, List[str]], True))
 
 
 @mark.parametrize("cls, data", [

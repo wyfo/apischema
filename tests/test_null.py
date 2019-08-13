@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from src.null import null_values, set_null_values
+from apischema.null import null_values, set_null_values
 
 
 @dataclass

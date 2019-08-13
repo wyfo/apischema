@@ -3,7 +3,7 @@ from inspect import getmembers
 from re import fullmatch
 from typing import Any, Mapping, Optional, Type, TypeVar, Union, cast
 
-from src.validator import ValidationResult, Validator
+from apischema.validator import ValidationResult, Validator
 
 SPEC_FIELD = "__spec__"
 
@@ -143,6 +143,7 @@ class SpecClass:
 def spec_from_dict(spec: Mapping[str, Any]) -> Spec:
     if "title_" in spec and "title" not in spec:
         spec = dict(spec)
+        # noinspection PyUnresolvedReferences
         spec["title"] = spec.pop("title_")
     simple_spec_fields = {f.name for f in fields(Spec)}
     match = []

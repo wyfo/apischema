@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import TypeVar
 from uuid import UUID as BaseUUID, uuid4
 
-from src.model import Model, get_model
+from apischema.model import Model, get_model
 
 
 class UUID(BaseUUID, Model[str]):

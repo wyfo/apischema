@@ -3,19 +3,21 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, fields, is_dataclass
 from enum import Enum
 from typing import (Any, Dict, Iterable, Mapping, Optional, Sequence, Set,
-                    Type, Union, get_type_hints)
+                    Type, Union)
 
-from src.data import to_data
-from src.errors import UNION_PATH
-from src.field import NoDefault, field, get_aliased, get_default, has_default
-from src.model import Model, get_model
-from src.spec import Spec, get_spec
-from src.types import Primitive, type_name
-from src.utils import camelize
-from src.visitor import Path, Visitor
+import humps
+from tmv import Primitive
 
+from apischema.data import to_data
+from apischema.field import (NoDefault, field, get_aliased, get_default,
+                             has_default)
+from apischema.model import Model, get_model
+from apischema.spec import Spec, get_spec
 # TODO: handle default
 # TODO fix broken specs
+from apischema.types import is_resolved, resolve_types
+from apischema.visitor import Aliaser, Visitor, camel_case_aliaser
+
 Number = Union[int, float]
 
 
@@ -87,88 +89,40 @@ def ref(name: str) -> Schema:
     return Schema(ref=f"#/components/schemas/{name}")
 
 
+# noinspection PyAbstractClass
 class SchemaBuilder(Visitor[Schema, Optional[Spec]]):
-    def __init__(self, camel_case=True, spec_key="spec"):
-        super().__init__()
+    def __init__(self, spec_key="spec",
+                 aliaser: Optional[Aliaser] = humps.camelize):
+        super().__init__(aliaser)
         self.schemas: Set[str] = set()
-        self.camel_case = camel_case
         self.spec_key = spec_key
 
-    def with_class_context(self, cls: Type, ctx: Optional[Spec],
-                           path: Path) -> Optional[Spec]:
-        return merge_specs(get_spec(cls), ctx)
+    def primitive(self, cls: Primitive, spec: Optional[Spec]) -> Schema:
+        return Schema(type=PRIMITIVE_TYPES_MAP[cls],
+                      **opt_dict(spec))
 
-    def any(self, spec: Optional[Spec], path: Path) -> Schema:
-        return Schema(**asdict(spec or Spec()))
-
-    def model(self, cls: Type[Model], spec: Optional[Spec],
-              path: Path) -> Schema:
-        return self.visit(get_model(cls), spec, path)
-
-    def optional(self, value: Type, spec: Optional[Spec],
-                 path: Path) -> Schema:
-        tmp = self.visit(value, spec, path)
+    def optional(self, value: Type, spec: Optional[Spec]) -> Schema:
+        tmp = self.visit(value, spec)
         tmp.nullable = True
         return tmp
 
     def union(self, alternatives: Iterable[Type],
-              spec: Optional[Spec], path: Path) -> Schema:
-        return Schema(any_of=[
-            self.visit(cls, spec,
-                       (*path, UNION_PATH.format(index=i, cls=type_name(cls))))
-            for i, cls in enumerate(alternatives)])
+              spec: Optional[Spec]) -> Schema:
+        return Schema(any_of=[self.visit(cls, spec) for cls in alternatives])
 
     def iterable(self, cls: Type[Iterable], value_type: Type,
-                 spec: Optional[Spec], path: Path) -> Schema:
+                 spec: Optional[Spec]) -> Schema:
         return Schema(type="array",
-                      items=self.visit(value_type, None, (*path, "items")),
+                      items=self.visit(value_type, None),
                       **opt_dict(spec))
 
     def mapping(self, key_type: Type, value_type: Type,
-                spec: Optional[Spec], path: Path) -> Schema:
+                spec: Optional[Spec]) -> Schema:
         return Schema(type="object",
-                      additional_properties=self.visit(value_type, None,
-                                                       (*path, "properties")),
+                      additional_properties=self.visit(value_type, None),
                       **opt_dict(spec))
 
-    def primitive(self, cls: Primitive, spec: Optional[Spec],
-                  path: Path) -> Schema:
-        return Schema(type=PRIMITIVE_TYPES_MAP[cls],
-                      **opt_dict(spec))
-
-    def dataclass(self, cls: Type, spec: Optional[Spec], path: Path) -> Schema:
-        assert is_dataclass(cls)
-        if cls.__name__ in self.schemas:
-            return ref(cls.__name__)
-        self.schemas.add(cls.__name__)
-        type_hints = get_type_hints(cls)
-        properties = {}
-        # noinspection PyDataclass
-        for field in fields(cls):  # noqa F402
-            alias = camelize(get_aliased(field), self.camel_case)
-            schema = self.visit(type_hints[field.name],
-                                getattr(field, self.spec_key, None),
-                                (*path, alias))
-            try:
-                schema.default = to_data(type_hints[field.name],
-                                         get_default(field))
-            except NoDefault:
-                pass
-            properties[alias] = schema
-        # noinspection PyDataclass,PyShadowingNames
-        return Schema(type="object",
-                      required=[camelize(get_aliased(field), self.camel_case)
-                                for field in fields(cls)
-                                if not has_default(field)],
-                      properties=properties,
-                      **opt_dict(spec))
-
-    def enum(self, cls: Type[Enum], spec: Optional[Spec],
-             path: Path) -> Schema:
-        return self.literal([elt.value for elt in cls], spec, path)
-
-    def literal(self, values: Sequence[Any], spec: Optional[Spec],
-                path: Path) -> Schema:
+    def literal(self, values: Sequence[Any], spec: Optional[Spec]) -> Schema:
         types = set(map(type, values))
         type_ = None
         one_of = None
@@ -178,6 +132,40 @@ class SchemaBuilder(Visitor[Schema, Optional[Spec]]):
             type_ = next(iter(types)).__name__
         return Schema(type=type_, enum=values, one_of=one_of)
 
+    def custom(self, cls: Type[Model], spec: Optional[Spec]) -> Schema:
+        spec = merge_specs(get_spec(cls), spec)
+        return self.visit(get_model(cls), spec)
 
-def build_schema(cls: Type, camel_case=True, spec_key="spec") -> Schema:
-    return SchemaBuilder(camel_case, spec_key).visit(cls, None, ())
+    def dataclass(self, cls: Type, spec: Optional[Spec]) -> Schema:
+        assert is_dataclass(cls)
+        if cls.__name__ in self.schemas:
+            return ref(cls.__name__)
+        self.schemas.add(cls.__name__)
+        if not is_resolved(cls):
+            resolve_types(cls)
+        properties = {}
+        # noinspection PyDataclass
+        for field in fields(cls):  # noqa F402
+            alias = self.aliaser(get_aliased(field))
+            schema = self.visit(field.type,
+                                getattr(field, self.spec_key, None))
+            try:
+                schema.default = to_data(field.type, get_default(field))
+            except NoDefault:
+                pass
+            properties[alias] = schema
+        # noinspection PyDataclass,PyShadowingNames
+        return Schema(type="object",
+                      required=[self.aliaser(get_aliased(field))
+                                for field in fields(cls)
+                                if not has_default(field)],
+                      properties=properties,
+                      **opt_dict(spec))
+
+    def enum(self, cls: Type[Enum], spec: Optional[Spec]) -> Schema:
+        return self.literal([elt.value for elt in cls], spec)
+
+
+def build_schema(cls: Type, camel_case=True) -> Schema:
+    aliaser = camel_case_aliaser(camel_case)
+    return SchemaBuilder(aliaser=aliaser).visit(cls, None)

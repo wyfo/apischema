@@ -8,11 +8,10 @@ from types import FunctionType
 from typing import (Any, Callable, ClassVar, Collection, Dict, Iterable, Tuple,
                     Type, TypeVar, Union, overload)
 
-from src.visitor import Path
-
 MOCK_FIELDS_FIELD = "__mock_fields__"
 MOCK_CLS_FIELD = "__mock_cls__"
 
+Path = Tuple[str, ...]
 ErrorMsg = str
 Error = Union[ErrorMsg, Tuple[Union[str, Path], ErrorMsg]]
 ValidationResult = Iterable[Error]

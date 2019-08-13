@@ -1,8 +1,9 @@
 from pytest import mark, raises
 
-from src.model import Model
-from src.spec import (ArraySpec, NumSpec, ObjectSpec, Spec, SpecClass, StrSpec,
-                      get_spec, spec_from_dict)
+from apischema.model import Model
+from apischema.spec import (ArraySpec, NumSpec, ObjectSpec, Spec, SpecClass,
+                            StrSpec,
+                            get_spec, spec_from_dict)
 
 
 def test_spec_validators():

@@ -4,9 +4,9 @@ Another Python API schema handling through typing annotation; light, simple, pow
 
 ## Getting Started
 
-This README is a draft.
-The project is not yet available on Pypi. You can still clone the project to use it.
-Run the tests with *tox*.
+Install with `pip install pyapischema` (I'm currently claiming `apischema` name on PyPi).
+Use it following example below 
+
 
 ## Examples
 
@@ -17,10 +17,10 @@ import uuid
 from dataclasses import dataclass
 from typing import Iterator, Sequence
 
-from src.data import from_data, to_data
-from src.model import Model
-from src.schema import build_schema
-from src.validator import Error, validate
+from apischema.data import from_data, to_data
+from apischema.model import Model
+from apischema.schema import build_schema
+from apischema.validator import Error, validate
 
 
 class UUID(Model[str], uuid.UUID):
@@ -56,10 +56,10 @@ from typing import List, TypeVar, Union, Iterator, Generic
 
 import pytest
 
-from src.data import from_data
-from src.model import Model
-from src.validation import ValidationError
-from src.validator import Error, validate
+from apischema.data import from_data
+from apischema.model import Model
+from apischema.validation import ValidationError
+from apischema.validator import Error, validate
 
 T = TypeVar("T")
 
@@ -110,11 +110,11 @@ With *spec*:
 ```Python
 from dataclasses import dataclass
 
-from src.data import from_data, to_data
-from src.field import field
-from src.model import Model
-from src.schema import Schema, build_schema
-from src.spec import NumSpec, SpecClass
+from apischema.data import from_data, to_data
+from apischema.field import field
+from apischema.model import Model
+from apischema.schema import Schema, build_schema
+from apischema.spec import NumSpec, SpecClass
 
 
 class ShortString(Model[str], SpecClass, str):

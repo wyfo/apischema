@@ -1,29 +1,20 @@
-from typing import AbstractSet, List, NewType, Sequence, Set, TypeVar
+from __future__ import annotations
 
-from pytest import mark
+from dataclasses import dataclass, fields
+from typing import Optional
 
-from src.types import iterable_type, type_name
-
-
-@mark.parametrize("cls, expected", [
-    (List[str], list),
-    (Sequence[str], tuple),
-    (AbstractSet[str], frozenset),
-    (Set[str], set),
-])
-def test_iterable_type(cls, expected):
-    # noinspection PyUnresolvedReferences
-    assert iterable_type(cls.__origin__) == expected
+from apischema.types import is_resolved, resolve_types
 
 
-T = TypeVar("T")
+@dataclass
+class Dataclass:
+    a: Optional[Dataclass]
 
 
-@mark.parametrize("cls, expected", [
-    (int, "int"),
-    (List[str], "List"),
-    (T, "T"),
-    (NewType("int2", int), "int2")
-])
-def test_type_name(cls, expected):
-    assert type_name(cls) == expected
+def test_resolve_types():
+    assert not is_resolved(Dataclass)
+    assert fields(Dataclass)[0].type == "Optional[Dataclass]"
+
+    resolve_types(Dataclass)
+    assert is_resolved(Dataclass)
+    assert fields(Dataclass)[0].type == Optional[Dataclass]
