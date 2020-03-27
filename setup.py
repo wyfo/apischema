@@ -3,19 +3,21 @@ from setuptools import find_packages, setup
 with open("README.md") as f:
     README = f.read()
 
+# cannot use Cython because of https://github.com/cython/cython/issues/3537
 setup(
-    name='pyapischema',
+    name='apischema',
     url="https://github.com/wyfo/apischema",
     author="Joseph Perez",
     author_email="joperez@hotmail.fr",
-    description="Another Python API schema handling through typing annotation;"
-                " light, simple, powerful.",
+    description="Another Python API schema handling and JSON (de)serialization "
+                "through typing annotation; light, simple, powerful.",
     long_description=README,
     long_description_content_type="text/markdown",
-    version='1.0.0',
+    version='0.1.0',
     packages=find_packages(include=["apischema"]),
-    install_requires=["tmv", "pyhumps"],
     classifiers=[
-        "Programming Language :: Python :: 3.7",
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
+    python_requires='>=3.7'
 )

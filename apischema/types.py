@@ -1,18 +1,81 @@
-from dataclasses import fields, is_dataclass
-from typing import Type, get_type_hints
+import collections.abc
+import sys
+from typing import (AbstractSet, Any, Collection, Dict, Iterable, List, Mapping,
+                    MutableSequence, Sequence, Set, Tuple, Union)
 
-TYPES_RESOLVED_FIELD = "__types_resolved__"
+Number = Union[int, float]
+
+PRIMITIVE_TYPE = {str, int, bool, float, type(None)}
+
+# Hack before PEP 585 ...
+ITERABLE_TYPES = {
+    collections.abc.Iterable:        tuple,
+    collections.abc.Collection:      tuple,
+    collections.abc.Sequence:        tuple,
+    tuple:                           tuple,
+    collections.abc.MutableSequence: list,
+    list:                            list,
+    collections.abc.Set:             frozenset,
+    frozenset:                       frozenset,
+    collections.abc.MutableSet:      set,
+    set:                             set
+}
+
+MAPPING_TYPES = {
+    collections.abc.Mapping:        dict,
+    collections.abc.MutableMapping: dict,
+    dict:                           dict
+}
+
+UNTYPED_COLLECTIONS = {
+    tuple:     Tuple[Any, ...],
+    list:      List[Any],
+    frozenset: AbstractSet[Any],
+    set:       Set[Any],
+    dict:      Dict[Any, Any]
+}
+
+TYPED_ORIGINS = {
+    tuple:                           Tuple,
+    list:                            List,
+    frozenset:                       AbstractSet,
+    set:                             Set,
+    dict:                            Dict,
+    collections.abc.Iterable:        Iterable,
+    collections.abc.Collection:      Collection,
+    collections.abc.Sequence:        Sequence,
+    collections.abc.MutableSequence: MutableSequence,
+    collections.abc.Set:             AbstractSet,
+    collections.abc.MutableSet:      Set,
+}
+
+if sys.version_info >= (3, 7):
+    OrderedDict = dict
+else:
+    from collections import OrderedDict  # noqa
+
+# Kind of hack to benefit of PEP 584
+if sys.version_info >= (3, 9):
+    Metadata = Mapping[str, Any]
+    DictWithUnion = dict
+else:
+    class Metadata(Mapping[str, Any]):
+        def __or__(self, other: Mapping[str, Any]) -> "Metadata":
+            return DictWithUnion(**self, **other)
 
 
-def is_resolved(cls: Type):
-    assert is_dataclass(cls)
-    return hasattr(cls, TYPES_RESOLVED_FIELD)
+    class DictWithUnion(Dict[str, Any], Metadata):  # noqa
+        pass
 
 
-def resolve_types(cls: Type):
-    assert is_dataclass(cls)
-    type_hints = get_type_hints(cls)
-    # noinspection PyDataclass
-    for field in fields(cls):
-        field.type = type_hints[field.name]
-    setattr(cls, TYPES_RESOLVED_FIELD, True)
+class MetadataMixin(Metadata):
+    metadata: Mapping[str, Any]
+
+    def __getitem__(self, key):
+        return self.metadata[key]
+
+    def __iter__(self):
+        return iter(self.metadata)
+
+    def __len__(self):
+        return len(self.metadata)
