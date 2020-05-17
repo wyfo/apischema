@@ -13,8 +13,8 @@ setup(
                 "through typing annotation; light, simple, powerful.",
     long_description=README,
     long_description_content_type="text/markdown",
-    version='0.1.0',
-    packages=find_packages(include=["apischema"]),
+    version='0.1.1',
+    packages=find_packages(include=["apischema*"]),
     classifiers=[
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
