@@ -1,7 +1,8 @@
 import collections.abc
+import re
 import sys
 from typing import (AbstractSet, Any, Collection, Dict, Iterable, List, Mapping,
-                    MutableSequence, Sequence, Set, Tuple, Union)
+                    MutableSequence, Pattern, Sequence, Set, Tuple, Union)
 
 Number = Union[int, float]
 
@@ -47,6 +48,7 @@ TYPED_ORIGINS = {
     collections.abc.MutableSequence: MutableSequence,
     collections.abc.Set:             AbstractSet,
     collections.abc.MutableSet:      Set,
+    re.Pattern:                      Pattern,
 }
 
 if sys.version_info >= (3, 7):

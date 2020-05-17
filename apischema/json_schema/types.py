@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Mapping, Optional, Sequence, Type, Union
+from typing import Any, Mapping, Optional, Pattern, Sequence, Type, Union
 
 from apischema.alias import alias
 from apischema.fields import with_fields_set
@@ -56,8 +56,8 @@ class JSONSchema:
     min_properties: Optional[int] = None
     multiple_of: Optional[Number] = None
     one_of: Optional[Sequence["JSONSchema"]] = None
-    pattern: Optional[str] = None
-    pattern_properties: Optional[Mapping[str, "JSONSchema"]] = None
+    pattern: Optional[Union[str, Pattern]] = None
+    pattern_properties: Optional[Mapping[Union[str, Pattern], "JSONSchema"]] = None
     properties: Optional[Mapping[str, "JSONSchema"]] = None
     read_only: Optional[bool] = None
     ref: Optional[str] = field(default=None, metadata=alias("$ref"))

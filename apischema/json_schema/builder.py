@@ -1,8 +1,10 @@
+import re
 from dataclasses import (Field, InitVar, _FIELD_INITVAR, fields,  # type: ignore
                          is_dataclass, replace)
 from enum import Enum
 from itertools import chain
-from typing import (Any, Callable, Dict, Iterable, List, Mapping, Optional, Sequence,
+from typing import (Any, Callable, Dict, Iterable, List, Mapping, Optional, Pattern,
+                    Sequence,
                     Set, Tuple, Type, Union)
 
 from apischema.alias import ALIAS_METADATA
@@ -80,6 +82,33 @@ def _field_schema(field: Field) -> Schema:
                   field.metadata.get(CONSTRAINT_METADATA))
 
 
+def _extract_properties(json_schema: JSONSchema
+                        ) -> Tuple[Optional[Union[str, Pattern]], JSONSchema]:
+    pattern = None
+    result = None
+    if json_schema.pattern_properties is not None:
+        if len(json_schema.pattern_properties) >= 1:
+            # TODO error handling
+            raise TypeError()
+        pattern, result = next(iter(json_schema.pattern_properties.items()))
+    if json_schema.additional_properties is not None:
+        if result:
+            # TODO error handling
+            raise TypeError()
+        if json_schema.additional_properties is True:
+            result = JSONSchema()
+        if json_schema.additional_properties is False:
+            # TODO error handling
+            raise TypeError()
+        else:
+            assert isinstance(json_schema.additional_properties, JSONSchema)
+            result = json_schema.additional_properties
+    if result is None:
+        # TODO error handling
+        raise TypeError()
+    return pattern, result
+
+
 class SchemaBuilder(Visitor[Schema, JSONSchema]):
     def __init__(self, ref_factory: Optional[Callable[[Type], str]]):
         super().__init__()
@@ -121,8 +150,15 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
     def mapping(self, cls: Type[Mapping], key_type: Type, value_type: Type,
                 schema: Schema) -> JSONSchema:
         check_constraint(schema, ObjectConstraint)
-        props = self.visit(value_type, schema.additional_properties)
-        return JSONSchema(type=JSONType.OBJECT, additional_properties=props,
+        key = self.visit(key_type, Schema())
+        pattern = key.pattern
+        value = self.visit(value_type, schema.additional_properties)
+        properties: Dict[str, Any] = {}
+        if key.pattern is not None:
+            properties["pattern_properties"] = {key.pattern: value}
+        else:
+            properties["additional_properties"] = value
+        return JSONSchema(type=JSONType.OBJECT, **properties,  # type: ignore
                           **_to_dict(schema))
 
     def typed_dict(self, cls: Type, keys: Mapping[str, Type], total: bool,
@@ -221,22 +257,35 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
             properties[alias] = self._field_visit(field, types)
             if not has_default(field):
                 required.append(alias)
-        pattern_properties: Dict[str, Any] = {
-            field.metadata[PROPERTIES_METADATA].pattern: self._field_visit(field, types)
-            for field in pattern_fields
-        }
         additional_properties: Optional[Union[bool, "JSONSchema"]] = False
+        pattern_properties: Dict[Pattern, JSONSchema] = {}
         if additional_field:
-            additional_properties = self._field_visit(additional_field, types)
-        others: Dict[str, Any] = {}
+            props_schema = self._field_visit(additional_field, types)
+            pattern, props_schema = _extract_properties(props_schema)
+            if pattern is not None:
+                pattern_properties[re.compile(pattern)] = props_schema
+            else:
+                additional_properties = props_schema
+        for field in pattern_fields:
+            pattern = field.metadata[PROPERTIES_METADATA].pattern
+            props_schema = self._field_visit(field, types)
+            pattern_, props_schema = _extract_properties(props_schema)
+            if pattern_ is not None:
+                # TODO warns about ignored pattern
+                pass
+            assert pattern is not None
+            pattern_properties[re.compile(pattern)] = props_schema
+        kwargs: Dict[str, Any] = {}
+        if properties:
+            kwargs["properties"] = properties
         if required:
-            others["required"] = required
+            kwargs["required"] = required
+        if additional_properties is False or fields_set(additional_properties):
+            kwargs["additional_properties"] = additional_properties
         if pattern_properties:
-            others["pattern_properties"] = pattern_properties
+            kwargs["pattern_properties"] = pattern_properties
         return JSONSchema(type=JSONType.OBJECT,  # type: ignore
-                          properties=properties,
-                          additional_properties=additional_properties,
-                          **others, **_to_dict(schema_))
+                          **kwargs, **_to_dict(schema_))
 
     def enum(self, cls: Type[Enum], schema: Schema) -> JSONSchema:
         if schema.constraint is not None:

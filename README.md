@@ -107,14 +107,16 @@ See other [examples](examples); a suggested order:
 - [validator.py](examples/validator.py) 
 - [stringified.py](examples/stringified.py) 
 - [generic.py](examples/generic.py) 
+- [properties2.py](examples/properties2.py)
 - [conversion2.py](examples/conversion2.py) 
 - [validator2.py](examples/validator2.py) 
 - [recursivity_and_pep563.py](examples/recursivity_and_pep563.py) 
 - [generic_conversion.py](examples/generic_conversion.py)
+- [raw_conversion.py](examples/raw_conversion.py)
 
 
 ## Benchmark
-According to [Pydantic benchmark](https://pydantic-docs.helpmanual.io/benchmarks/), **using only CPython**, *apischema* is a little behind Pydantic, and by toggling some features not provided by *Pydantic* `BaseModel` (`__post_init__`, `patternProperties`) with some optimizations (dataclass fields caching), *apischema* becomes the fastest, ahead of *Pydantic* and others.
+According to [Pydantic benchmark](https://pydantic-docs.helpmanual.io/benchmarks/), **using only CPython**, *apischema* is a little behind Pydantic, and by toggling some features not provided by *Pydantic* `BaseModel` (`__post_init__`, `patternProperties` at field level) with some optimizations (dataclass fields caching), *apischema* becomes the fastest, ahead of *Pydantic* and others.
 
 Concerning Cython, *apischema* is blocked for now by this [Cython issue](https://github.com/cython/cython/issues/3537)
 

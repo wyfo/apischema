@@ -1,7 +1,9 @@
+import re
 import sys
 from datetime import date, datetime, time
 from ipaddress import (IPv4Address, IPv4Interface, IPv4Network,
                        IPv6Address, IPv6Interface, IPv6Network)
+from typing import Pattern
 from uuid import UUID
 
 from apischema.conversion import inout_model, input_converter, output_converter
@@ -46,3 +48,7 @@ schema(format="ipv6")(IPv6Interface)
 
 inout_model(str)(IPv6Network)
 schema(format="ipv6")(IPv6Network)
+
+# ==================== pattern ====================
+input_converter(re.compile, str, Pattern)
+output_converter(lambda p: p.pattern, Pattern, str)
