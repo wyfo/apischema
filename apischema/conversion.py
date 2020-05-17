@@ -163,7 +163,7 @@ def input_converter(function: Func, param: Type = None, ret: Type = None
     param, ret = check_converter(function, param, ret)
     ret, function_ = handle_potential_validation(ret, function)
     ret, param = substitute_type_vars(ret, param)
-    _input_converters[ret][param] = function
+    _input_converters[ret][param] = function_
     return function
 
 

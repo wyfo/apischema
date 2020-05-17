@@ -115,6 +115,7 @@ See other [examples](examples); a suggested order:
 
 ## Benchmark
 According to [Pydantic benchmark](https://pydantic-docs.helpmanual.io/benchmarks/), **using only CPython**, *apischema* is a little behind Pydantic, and by toggling some features not provided by *Pydantic* `BaseModel` (`__post_init__`, `patternProperties`) with some optimizations (dataclass fields caching), *apischema* becomes the fastest, ahead of *Pydantic* and others.
+
 Concerning Cython, *apischema* is blocked for now by this [Cython issue](https://github.com/cython/cython/issues/3537)
 
 
