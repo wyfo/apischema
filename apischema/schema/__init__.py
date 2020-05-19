@@ -1,14 +1,15 @@
-__all__ = ["schema", "Schema", "Annotations", "Constraint"]
+__all__ = ["get_schema", "schema", "Schema", "Annotations", "Constraint"]
 
 from dataclasses import dataclass, fields
-from typing import (Any, Dict, Optional, Sequence, TypeVar,
+from typing import (Any, Dict, Optional, Sequence, Type, TypeVar,
                     Union, overload)
 
-from .annotations import ANNOTATIONS_METADATA, Annotations, _annotations
+from apischema.types import MetadataMixin, Number
+from .annotations import (ANNOTATIONS_METADATA, Annotations, _annotations,
+                          get_annotations)
 from .constraints import (ArrayConstraint, CONSTRAINT_METADATA, Constraint,
-                          NumberConstraint,
-                          ObjectConstraint, StringConstraint, _constraints)
-from ..types import MetadataMixin, Number
+                          NumberConstraint, ObjectConstraint, StringConstraint,
+                          _constraints, get_constraint)
 
 T = TypeVar("T")
 
@@ -24,6 +25,11 @@ class Schema(MetadataMixin):
             self.metadata[ANNOTATIONS_METADATA] = self.annotations
         if self.constraint is not None:
             self.metadata[CONSTRAINT_METADATA] = self.constraint
+
+    def validate(self, _obj: T) -> T:
+        if self.constraint is not None:
+            self.constraint.validate(_obj)
+        return _obj
 
     def __call__(self, obj: T) -> T:
         if self.annotations is not None:
@@ -60,6 +66,10 @@ class Schema(MetadataMixin):
         if self.constraint is not None:
             constraint = self.constraint.additional_properties
         return Schema(annotations, constraint)
+
+
+def get_schema(cls: Type) -> Schema:
+    return Schema(get_annotations(cls), get_constraint(cls))
 
 
 _constraint_rewrite = {

@@ -4,7 +4,7 @@ from typing import Any, Mapping, Optional, Pattern, Sequence, Type, Union
 
 from apischema.alias import alias
 from apischema.fields import with_fields_set
-from apischema.types import Number
+from apischema.types import NoneType, Number
 from apischema.utils import NO_DEFAULT, to_camel_case
 
 
@@ -20,13 +20,13 @@ class JSONType(Enum):
     @staticmethod
     def from_type(cls: Type) -> "JSONType":
         return {
-            type(None): JSONType.NULL,
-            bool:       JSONType.BOOLEAN,
-            str:        JSONType.STRING,
-            int:        JSONType.INTEGER,
-            float:      JSONType.NUMBER,
-            list:       JSONType.ARRAY,
-            dict:       JSONType.OBJECT,
+            NoneType: JSONType.NULL,
+            bool:     JSONType.BOOLEAN,
+            str:      JSONType.STRING,
+            int:      JSONType.INTEGER,
+            float:    JSONType.NUMBER,
+            list:     JSONType.ARRAY,
+            dict:     JSONType.OBJECT,
         }[cls]
 
 

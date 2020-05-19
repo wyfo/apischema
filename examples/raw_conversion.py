@@ -27,8 +27,7 @@ def test_check_binary():
         "binary":   b64encode(binary).decode(),
         "checksum": compute_checksum(binary),
     }
-    assert from_data(data, CheckedBinary) == binary
+    assert from_data(CheckedBinary, data) == binary
     with raises(ValidationError) as err:
-        from_data({"binary": b64encode(binary).decode(), "checksum": 0},
-                  CheckedBinary)
+        from_data(CheckedBinary, {"binary": b64encode(binary).decode(), "checksum": 0})
     assert err.value == ValidationError(["invalid checksum"])

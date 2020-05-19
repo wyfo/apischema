@@ -32,7 +32,7 @@ def test_resource():
         "type": "A",
         "tags": ["tag1"]
     }
-    resource = from_data(data, Resource)
+    resource = from_data(Resource, data)
     assert resource == Resource(uuid, ResourceType.RESOURCE_A, [Tag("tag1")])
     assert to_data(resource) == data
     json_schema = build_input_schema(Resource)
@@ -66,7 +66,7 @@ def test_resource():
 
 def test_resource_error():
     with raises(ValidationError) as err:
-        from_data({"id": "uuid", "type": None, "tags": ["a", "a"]}, Resource)
+        from_data(Resource, {"id": "uuid", "type": None, "tags": ["a", "a"]})
     assert err.value == ValidationError(children={
         "id":   ValidationError([
             "[ValueError]badly formed hexadecimal UUID string"

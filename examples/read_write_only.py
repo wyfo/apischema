@@ -54,7 +54,7 @@ def test_data():
             }
         },
     }
-    data = from_data({"init_field": 0, "write_only_field": 1}, Data)
+    data = from_data(Data, {"init_field": 0, "write_only_field": 1})
     assert data.write_only_field == 1
     assert data.not_init_field == 0
     assert data.read_only_field == 42

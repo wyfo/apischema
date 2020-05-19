@@ -1,12 +1,24 @@
 import collections.abc
 import re
 import sys
+from dataclasses import Field
 from typing import (AbstractSet, Any, Collection, Dict, Iterable, List, Mapping,
-                    MutableSequence, Pattern, Sequence, Set, Tuple, Union)
+                    MutableSequence, Pattern, Sequence, Set, TYPE_CHECKING, Tuple, Type,
+                    Union)
 
+AnyType = Any
+NoneType: Type[None] = type(None)
+if TYPE_CHECKING:
+    class EllipsisType:
+        pass
+
+
+    Ellipsis = EllipsisType()
+else:
+    EllipsisType: AnyType = type(Ellipsis)
 Number = Union[int, float]
 
-PRIMITIVE_TYPE = {str, int, bool, float, type(None)}
+PRIMITIVE_TYPE = {str, int, bool, float, NoneType}
 
 # Hack before PEP 585 ...
 ITERABLE_TYPES = {
@@ -81,3 +93,6 @@ class MetadataMixin(Metadata):
 
     def __len__(self):
         return len(self.metadata)
+
+    def _resolve(self, field: Field, field_type: AnyType) -> Metadata:
+        return self

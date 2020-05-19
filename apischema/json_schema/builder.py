@@ -1,28 +1,23 @@
-import re
-from dataclasses import (Field, InitVar, _FIELD_INITVAR, fields,  # type: ignore
-                         is_dataclass, replace)
+from dataclasses import is_dataclass, replace
 from enum import Enum
 from itertools import chain
 from typing import (Any, Callable, Dict, Iterable, List, Mapping, Optional, Pattern,
                     Sequence,
                     Set, Tuple, Type, Union)
 
-from apischema.alias import ALIAS_METADATA
-from apischema.conversion import (Converter, INPUT_METADATA, InputVisitorMixin,
-                                  OUTPUT_METADATA, OutputVisitorMixin)
+from apischema.conversion import (Converter, InputVisitorMixin,
+                                  OutputVisitorMixin)
 from apischema.data import to_data
-from apischema.fields import (NoDefault, fields_set, get_default, has_default,
-                              init_fields,
-                              mark_set_fields)
+from apischema.dataclasses import (Field, FieldCache, FieldKind, get_input_fields,
+                                   get_output_fields)
+from apischema.fields import (NoDefault, get_default, get_fields_set, mark_set_fields)
 from apischema.ignore import Ignored
 from apischema.json_schema.types import JSONSchema, JSONType
-from apischema.properties import PROPERTIES_METADATA
 from apischema.schema import Constraint, Schema
-from apischema.schema.annotations import ANNOTATIONS_METADATA, get_annotations
-from apischema.schema.constraints import (ArrayConstraint, CONSTRAINT_METADATA,
-                                          NumberConstraint, ObjectConstraint,
-                                          StringConstraint, get_constraint)
-from apischema.typing import get_type_hints
+from apischema.schema.annotations import get_annotations
+from apischema.schema.constraints import (ArrayConstraint, NumberConstraint,
+                                          ObjectConstraint, StringConstraint,
+                                          get_constraint)
 from apischema.utils import NO_DEFAULT, as_dict
 from apischema.visitor import Visitor
 
@@ -78,35 +73,30 @@ def _override(schema: Schema, cls: Type) -> Schema:
 
 
 def _field_schema(field: Field) -> Schema:
-    return Schema(field.metadata.get(ANNOTATIONS_METADATA),
-                  field.metadata.get(CONSTRAINT_METADATA))
+    annotations = field.annotations
+    if annotations is not None and annotations.default is ...:
+        try:
+            default = to_data(get_default(field.base_field))
+        except NoDefault:
+            raise TypeError("Invalid ... without field default")
+        annotations = replace(annotations, default=default)
+    return Schema(annotations, field.constraint)
 
 
-def _extract_properties(json_schema: JSONSchema
-                        ) -> Tuple[Optional[Union[str, Pattern]], JSONSchema]:
-    pattern = None
-    result = None
+def _extract_properties_schema(json_schema: JSONSchema) -> JSONSchema:
     if json_schema.pattern_properties is not None:
-        if len(json_schema.pattern_properties) >= 1:
-            # TODO error handling
-            raise TypeError()
-        pattern, result = next(iter(json_schema.pattern_properties.items()))
-    if json_schema.additional_properties is not None:
-        if result:
-            # TODO error handling
-            raise TypeError()
-        if json_schema.additional_properties is True:
-            result = JSONSchema()
-        if json_schema.additional_properties is False:
-            # TODO error handling
-            raise TypeError()
+        if (
+                len(json_schema.pattern_properties) >= 1
+                or json_schema.additional_properties
+        ):  # don't try to merge the schemas and return
+            return JSONSchema()
+        return next(iter(json_schema.pattern_properties.values()))
+    if json_schema.additional_properties:
+        if isinstance(json_schema.additional_properties, JSONSchema):
+            return json_schema.additional_properties
         else:
-            assert isinstance(json_schema.additional_properties, JSONSchema)
-            result = json_schema.additional_properties
-    if result is None:
-        # TODO error handling
-        raise TypeError()
-    return pattern, result
+            return JSONSchema()
+    raise TypeError("properties field must have an 'object' schema")
 
 
 class SchemaBuilder(Visitor[Schema, JSONSchema]):
@@ -169,10 +159,9 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
         if schema.additional_properties:
             raise TypeError("additional properties are not handled"
                             " for TypedDict")
-        types = get_type_hints(cls)
         sorted_keys = sorted(keys)
         return JSONSchema(type=JSONType.OBJECT,
-                          properties={key: self.visit(types[key], Schema())
+                          properties={key: self.visit(keys[key], Schema())
                                       for key in sorted_keys},
                           required=sorted_keys if total else [],
                           additional_properties=True, **_to_dict(schema))
@@ -217,19 +206,10 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
             return JSONSchema(type=type_, enum=values,  # type: ignore
                               **_to_dict(schema))
 
-    def _dataclass_fields(self, cls: Type) -> Iterable[Field]:
+    def _dataclass_fields(self, cls: Type) -> FieldCache:
         raise NotImplementedError()
 
-    def _set_field_default(self, field: Field, schema: Schema):
-        if schema.annotations is not None and schema.annotations.default is ...:
-            try:
-                default = to_data(get_default(field))
-            except NoDefault:
-                raise TypeError("Invalid ... as default without field default")
-            schema.annotations = replace(schema.annotations, default=default)
-
-    def _field_visit(self, field: Field, types: Mapping[str, Type]
-                     ) -> JSONSchema:
+    def _field_visit(self, field: Field) -> JSONSchema:
         raise NotImplementedError()
 
     def dataclass(self, cls: Type, schema: Schema) -> JSONSchema:
@@ -240,47 +220,28 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
         check_constraint(schema, ObjectConstraint)
         schema_ = _override(schema, cls)
         properties = {}
-        additional_field: Optional[Field] = None
-        pattern_fields: List[Field] = []
-        types = get_type_hints(cls)
         required: List[str] = []
-        for field in self._dataclass_fields(cls):
-            if PROPERTIES_METADATA in field.metadata:
-                if field.metadata[PROPERTIES_METADATA] is None:
-                    if additional_field is not None:
-                        raise TypeError("Multiple properties without pattern")
-                    additional_field = field
-                else:
-                    pattern_fields.append(field)
-                continue
-            alias = field.metadata.get(ALIAS_METADATA, field.name)
-            properties[alias] = self._field_visit(field, types)
-            if not has_default(field):
-                required.append(alias)
-        additional_properties: Optional[Union[bool, "JSONSchema"]] = False
+        fields, pattern_fields, additional_field = self._dataclass_fields(cls)
+        for field in fields:
+            properties[field.alias] = self._field_visit(field)
+            if not field.default:
+                required.append(field.alias)
         pattern_properties: Dict[Pattern, JSONSchema] = {}
+        for pattern, field in pattern_fields:
+            field_schema = self._field_visit(field)
+            pattern_properties[pattern] = _extract_properties_schema(field_schema)
+        additional_properties: Optional[Union[bool, "JSONSchema"]] = False
         if additional_field:
-            props_schema = self._field_visit(additional_field, types)
-            pattern, props_schema = _extract_properties(props_schema)
-            if pattern is not None:
-                pattern_properties[re.compile(pattern)] = props_schema
-            else:
-                additional_properties = props_schema
-        for field in pattern_fields:
-            pattern = field.metadata[PROPERTIES_METADATA].pattern
-            props_schema = self._field_visit(field, types)
-            pattern_, props_schema = _extract_properties(props_schema)
-            if pattern_ is not None:
-                # TODO warns about ignored pattern
-                pass
-            assert pattern is not None
-            pattern_properties[re.compile(pattern)] = props_schema
+            field_schema = self._field_visit(additional_field)
+            additional_properties = _extract_properties_schema(field_schema)
         kwargs: Dict[str, Any] = {}
         if properties:
             kwargs["properties"] = properties
         if required:
             kwargs["required"] = required
-        if additional_properties is False or fields_set(additional_properties):
+        # get_fields_set(additional_properties) means that additional_properties
+        # is not {} and not True
+        if additional_properties is False or get_fields_set(additional_properties):
             kwargs["additional_properties"] = additional_properties
         if pattern_properties:
             kwargs["pattern_properties"] = pattern_properties
@@ -329,27 +290,18 @@ class InputSchemaBuilder(InputVisitorMixin[Schema, JSONSchema], SchemaBuilder):
                 schema: Schema) -> JSONSchema:
         return self.union(list(custom), _override(schema, cls))
 
-    def _dataclass_fields(self, cls: Type) -> Iterable[Field]:
-        return init_fields(cls)
+    _dataclass_fields = staticmethod(get_input_fields)  # type: ignore
 
-    def _field_visit(self, field: Field, types: Mapping[str, Type]
-                     ) -> JSONSchema:
-        if INPUT_METADATA in field.metadata:
-            cls, _ = field.metadata[INPUT_METADATA]
-        else:
-            cls = types[field.name]
-        if isinstance(cls, InitVar):
-            cls = cls.type  # type: ignore
+    def _field_visit(self, field: Field) -> JSONSchema:
         schema = _field_schema(field)
-        self._set_field_default(field, schema)
-        if field._field_type == _FIELD_INITVAR:  # type: ignore
+        if field.kind == FieldKind.INIT:
             if schema.constraint is None:
                 schema.constraint = ReadWriteOnly(write_only=True)
             else:
                 if schema.constraint.read_only:
                     raise TypeError("InitVar cannot be read-only")
                 schema.constraint = replace(schema.constraint, write_only=True)
-        return self.visit(cls, schema)
+        return self.visit(field.input_type, schema)
 
     def dataclass(self, cls: Type, schema: Schema) -> JSONSchema:
         json_schema = super().dataclass(cls, schema)
@@ -357,7 +309,7 @@ class InputSchemaBuilder(InputVisitorMixin[Schema, JSONSchema], SchemaBuilder):
             # TODO document that `dataclasses.replace` don't keep fields set
             return mark_set_fields(replace(
                 json_schema, additional_properties=self.additional_properties
-            ), *fields_set(json_schema), overwrite=True)
+            ), *get_fields_set(json_schema), overwrite=True)
         return json_schema
 
 
@@ -379,26 +331,18 @@ class OutputSchemaBuilder(OutputVisitorMixin[Schema, JSONSchema],
                 schema: Schema) -> JSONSchema:
         return self.visit(custom[0], _override(schema, cls))
 
-    def _dataclass_fields(self, cls: Type) -> Iterable[Field]:
-        assert is_dataclass(cls)
-        return fields(cls)
+    _dataclass_fields = staticmethod(get_output_fields)  # type: ignore
 
-    def _field_visit(self, field: Field, types: Mapping[str, Type]
-                     ) -> JSONSchema:
-        if OUTPUT_METADATA in field.metadata:
-            cls, _ = field.metadata[OUTPUT_METADATA]
-        else:
-            cls = types[field.name]
+    def _field_visit(self, field: Field) -> JSONSchema:
         schema = _field_schema(field)
-        self._set_field_default(field, schema)
-        if not field.init:
+        if field.kind == FieldKind.NO_INIT:
             if schema.constraint is None:
                 schema.constraint = ReadWriteOnly(read_only=True)
             else:
                 if schema.constraint.write_only:
                     raise TypeError("not init field cannot be write-only")
                 schema.constraint = replace(schema.constraint, read_only=True)
-        return self.visit(cls, schema)
+        return self.visit(field.output_type, schema)
 
 
 def build_output_schema(cls: Type, conversions: Mapping[Type, Type] = None, *,

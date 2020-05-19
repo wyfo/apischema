@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Mapping
 
-from apischema import (alias, fields_set, from_data, properties, to_data,
+from apischema import (alias, from_data, get_fields_set, properties, to_data,
                        with_fields_set)
 
 
@@ -25,12 +25,12 @@ def test_serialized():
         "field1": 0,
         "field2": ["elt1", "elt2"]
     }
-    serialized = from_data(data, Serialized)
+    serialized = from_data(Serialized, data)
     assert serialized == Serialized("Foo", properties={
         "field1": 0,
         "field2": ["elt1", "elt2"]
     })
-    assert fields_set(serialized) == {"cls", "properties"}  # no to_be_completed
+    assert get_fields_set(serialized) == {"cls", "properties"}  # no to_be_completed
     assert to_data(serialized) == data
     assert to_data(serialized, exclude_unset=False) == {
         "class":           "Foo",

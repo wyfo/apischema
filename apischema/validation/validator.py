@@ -2,53 +2,98 @@ from dataclasses import Field
 from functools import wraps
 from inspect import Parameter, isfunction, isgeneratorfunction, signature
 from types import MethodType
-from typing import (AbstractSet, Any, Callable, Iterable,
-                    Iterator,
-                    Sequence,
-                    TypeVar, overload)
+from typing import (AbstractSet, Any, Callable, Iterable, Optional, Sequence, TypeVar,
+                    cast, overload)
 
-from apischema.types import DictWithUnion, Metadata
-from apischema.utils import PREFIX, to_generator
+from apischema.types import AnyType, DictWithUnion, Metadata
+from apischema.typing import Protocol
+from apischema.utils import PREFIX
 from apischema.validation.dependencies import find_end_dependencies
-from apischema.validation.errors import (Error, ValidationError,
-                                         build_from_errors, exception)
+from apischema.validation.errors import (ValidationError, build_from_errors, exception,
+                                         merge)
 from apischema.validation.mock import NonTrivialDependency
-
-T = TypeVar("T", contravariant=True)
-
 
 # use attribute instead of global dict in order to be inherited
 VALIDATORS_ATTR = f"{PREFIX}validators"
-ValidatorResult = Iterator[Error]
 
 
-class Validator:
-    def __init__(self, func: Callable):
-        wraps(func)(self)
+class ValidatorFunc(Protocol):
+    @overload
+    def __call__(self, _obj):
+        ...
+
+    @overload
+    def __call__(self, _obj, **kwargs):
+        ...
+
+    def __call__(self, _obj, **kwargs):
+        ...
+
+
+class BaseValidator(Protocol):
+    validate: ValidatorFunc
+
+
+class SimpleValidator:
+    def __init__(self, func: ValidatorFunc):
         self.func = func
-        if not isgeneratorfunction(func):
-            self.validate = to_generator(func)
-        else:
-            self.validate = func
+        parameters = signature(func).parameters
+        validate = func
+        if not any(param.kind == Parameter.VAR_KEYWORD
+                   for param in parameters.values()):
+            if not parameters:
+                raise TypeError("validator must have at least one parameter")
+            params = set(list(parameters)[1:])
+            wrapped = validate
 
-    def __get__(self, instance, owner):
-        return self if instance is None else MethodType(self.func, instance)
+            def validate(_obj, **kwargs):
+                kwargs2 = {k: v for k, v in kwargs.items() if k in params}
+                return wrapped(_obj, **kwargs2)
+
+        if isgeneratorfunction(func):
+            wrapped = validate
+
+            def validate(_obj, **kwargs):
+                errors = [*validate(_obj, **kwargs)]
+                if errors:
+                    raise build_from_errors(errors)
+
+        self.validate = cast(ValidatorFunc, validate)
 
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
+    def can_be_called(self, fields: AbstractSet[str]) -> bool:
+        return False
+
+
+class Validator(SimpleValidator):
+    def __init__(self, func: Callable):
+        if isgeneratorfunction(func):
+            @wraps(func)
+            def validate(_obj, **kwargs):
+                errors = []
+                try:
+                    errors.extend(func(_obj, **kwargs))
+                except ValidationError:
+                    raise RuntimeError("Validation error raised in generator validator")
+                except Discard as err:
+                    err.error = build_from_errors(errors)
+                    raise
+                if errors:
+                    raise build_from_errors(errors)
+
+            validate.__annotations__.pop("return", ...)
+            super().__init__(validate)
+        else:
+            super().__init__(func)
+        wraps(func)(self)
+        self.func = func
+
+    def __get__(self, instance, owner):
+        return self if instance is None else MethodType(self.func, instance)
+
     def __set_name__(self, owner, name: str):
-        parameters = signature(self.func).parameters
-        if not any(param.kind == Parameter.VAR_KEYWORD
-                   for param in parameters.values()):
-            params = set(parameters) - {"self"}
-            wrapped = self.validate
-
-            def wrapper(self: T, **kwargs):
-                kwargs2 = {k: v for k, v in kwargs.items() if k in params}
-                return wrapped(self, **kwargs2)
-
-            self.validate = wrapper
         self.owner = owner
         self.dependencies = find_end_dependencies(owner, self.func)
         setattr(owner, VALIDATORS_ATTR, (*get_validators(owner), self))
@@ -57,8 +102,17 @@ class Validator:
         return all(dep in fields for dep in self.dependencies)
 
 
+Func = TypeVar("Func", bound=Callable)
+
+
 def get_validators(obj) -> Sequence[Validator]:
     return getattr(obj, VALIDATORS_ATTR, ())
+
+
+def add_validator(cls: AnyType, *validators: ValidatorFunc):
+    for func in validators:
+        validator = SimpleValidator(func)
+        setattr(cls, VALIDATORS_ATTR, (*get_validators(cls), validator))
 
 
 class Discard(Exception):
@@ -66,33 +120,43 @@ class Discard(Exception):
         if not all(isinstance(f, Field) for f in fields):
             raise TypeError("Only fields can be discarded")
         self.fields: AbstractSet[str] = {f.name for f in fields}
+        self.error: Optional[ValidationError] = None
 
 
-def validate(_obj: T, _validators: Sequence[Validator] = None, **kwargs):
+T = TypeVar("T")
+
+
+def validate(_obj: T, _validators: Sequence[BaseValidator] = None, **kwargs) -> T:
     if _validators is None:
         _validators = get_validators(_obj)
-    if kwargs is None:
-        kwargs = {}
-    errors = []
+    if not _validators:
+        return _obj
+    error: Optional[ValidationError] = None
     while True:
         for i, validator in enumerate(_validators):
             try:
-                errors.extend(validator.validate(_obj, **kwargs))
-            except ValidationError:
-                raise
+                validator.validate(_obj, **kwargs)
+            except ValidationError as err:
+                error = merge(error, err)
             except Discard as err:
+                if err.error is None:
+                    raise RuntimeError("Discard can only be raised in class Validator")
+                error = merge(error, err.error)
                 _validators = [v for v in _validators[i + 1:]
-                               if not v.dependencies & err.fields]
+                               if not isinstance(v, Validator)
+                               or not v.dependencies & err.fields]
                 break
             except NonTrivialDependency as exc:
+                assert isinstance(validator, Validator)
                 exc.validator = validator
                 raise
             except Exception as err:
-                errors.append(exception(err))
+                error = merge(error, ValidationError([exception(err)]))
         else:
             break
-    if errors:
-        raise build_from_errors(errors)
+    if error is not None:
+        raise error
+    return _obj
 
 
 V = TypeVar("V", bound=Callable)
@@ -142,5 +206,5 @@ def validator(arg=None, field=None, *, discard=True):
 VALIDATORS_METADATA = f"{PREFIX}validators"
 
 
-def field_validator(*validators: Callable) -> Metadata:
-    return DictWithUnion({VALIDATORS_METADATA: validators})
+def field_validator(*validators: ValidatorFunc) -> Metadata:
+    return DictWithUnion({VALIDATORS_METADATA: list(map(SimpleValidator, validators))})

@@ -38,7 +38,7 @@ def test_result():
         "bounds": [0, 10],
         "values": [1, 3, 4],
     }
-    assert from_data(data, Result) == Result((0, 10), [1, 3, 4])
+    assert from_data(Result, data) == Result((0, 10), [1, 3, 4])
 
 
 def test_bad_bounds():
@@ -47,7 +47,7 @@ def test_bad_bounds():
         "values": [1, 3, 4],
     }
     with raises(ValidationError) as err:
-        from_data(data, Result)
+        from_data(Result, data)
     assert err.value == ValidationError(children={
         "bounds": ValidationError(["bounds are not sorted"])
     })
@@ -59,7 +59,7 @@ def test_bad_values():
         "values": [1, 3, -4, 4, 42],
     }
     with raises(ValidationError) as err:
-        from_data(data, Result)
+        from_data(Result, data)
     assert err.value == ValidationError(children={
         "2": ValidationError(["value exceeds bounds"]),
         "4": ValidationError(["value exceeds bounds"]),

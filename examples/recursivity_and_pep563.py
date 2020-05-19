@@ -70,7 +70,7 @@ def test_tree():
             }
         ]
     }
-    tree = from_data(data, Tree)
+    tree = from_data(Tree, data)
     assert tree == Tree("root", {
         "leaf1": Tree("leaf1"),
         "node1": Tree("node1", {
@@ -117,7 +117,7 @@ def test_bad_tree():
         ]
     }
     with raises(ValidationError) as err:
-        from_data(data, Tree)
+        from_data(Tree, data)
     assert err.value == ValidationError(children={
         "branches": ValidationError(children={
             "1": ValidationError(children={

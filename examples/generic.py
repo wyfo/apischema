@@ -62,12 +62,12 @@ def test_result():
 
     data = {"result": 0}
     with raises(ValidationError):
-        from_data(data, Result[str])
-    result = from_data(data, Result[int])
+        from_data(Result[str], data)
+    result = from_data(Result[int], data)
     assert result.get() == 0
     assert to_data(result) == {"result": 0}
 
-    error = from_data({"error": {"code": 42, "description": "..."}}, Result)
+    error = from_data(Result, {"error": {"code": 42, "description": "..."}})
     with raises(Error) as err:
         error.get()
     assert err.value == Error(42, "...")

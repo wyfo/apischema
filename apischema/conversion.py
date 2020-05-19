@@ -4,7 +4,7 @@ from inspect import (Parameter, isclass, isgeneratorfunction,
                      signature)
 from logging import getLogger
 from types import MappingProxyType, MethodType
-from typing import (Any, Callable, Dict, Generator, Generic, List, Mapping,
+from typing import (Any, Callable, Dict, Generator, Generic, Mapping,
                     Optional, Tuple, Type, TypeVar, Union, cast,
                     get_type_hints)
 
@@ -12,7 +12,7 @@ from apischema.properties import properties
 from apischema.types import (DictWithUnion, Metadata, TYPED_ORIGINS)
 from apischema.typing import _GenericAlias
 from apischema.utils import GeneratorValue, PREFIX, as_dict, to_camel_case
-from apischema.validation.errors import Error
+from apischema.validation.errors import build_from_errors
 from apischema.visitor import NOT_CUSTOM, NotCustom
 
 logger = getLogger(__name__)
@@ -62,11 +62,6 @@ def check_converter(converter: Converter,
     return cast(Type[Param], param), cast(Type[Return], ret)
 
 
-class ConversionError(Exception):
-    def __init__(self, errors: List[Error]):
-        self.errors = errors
-
-
 def handle_potential_validation(ret: Type, converter: Converter
                                 ) -> Tuple[Type, Converter]:
     if not isgeneratorfunction(converter):
@@ -74,9 +69,9 @@ def handle_potential_validation(ret: Type, converter: Converter
 
     def wrapper(arg):
         generator = GeneratorValue(converter(arg))
-        errors = list(generator)
+        errors = [*generator]
         if errors:
-            raise ConversionError(errors)
+            raise build_from_errors(errors)
         return generator.value
 
     if isinstance(ret, _GenericAlias) and ret.__origin__ == Generator:

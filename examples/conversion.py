@@ -25,7 +25,7 @@ def rgb_from_str(hexa: HexaRGB) -> RGB:
 
 
 def test_rgb():
-    assert from_data("#FFFFFF", RGB) == RGB(255, 255, 255)
+    assert from_data(RGB, "#FFFFFF") == RGB(255, 255, 255)
     assert to_data(RGB(0, 0, 0)) == "#000000"
 
 # Standard library types like UUID or datetime are handled this way

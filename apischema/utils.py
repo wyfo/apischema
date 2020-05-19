@@ -1,23 +1,11 @@
 from dataclasses import fields, is_dataclass
-from functools import wraps
 from typing import (Any, Callable, Dict, Generator, Generic, Hashable, Iterable,
-                    TypeVar,
-                    Union)
+                    TypeVar, Union)
 
 PREFIX = "_apischema_"
 NO_DEFAULT = object()
 
 Func = TypeVar("Func", bound=Callable)
-
-
-def to_generator(func: Callable):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-        yield  # noqa
-
-    return wrapper
-
 
 Hashable_ = TypeVar("Hashable_", bound=Hashable)
 

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Mapping, NewType
 
-from apischema import from_stringified, output_converter
+from apischema import from_data, items_to_data, output_converter
 
 Secret = NewType("Secret", str)
 
@@ -20,20 +20,15 @@ class Config:
 
 
 def test_config():
-    raw_data = """
-    username=wyfo
-    password=5tr0ngP455w0rd!
-    options.verbose=true
-    options.execute_order_66=no
-    authorized_domains.0=fr
-    authorized_domains.1=com
-    """
-    key_values = [
-        tuple(line.split("="))
-        for line in map(str.strip, raw_data.split("\n"))
-        if line
-    ]
-    assert from_stringified(key_values, Config) == Config(
+    key_values = {
+        "username":                 "wyfo",
+        "password":                 "5tr0ngP455w0rd!",
+        "options.verbose":          "true",
+        "options.execute_order_66": "no",
+        "authorized_domains.0":     "fr",
+        "authorized_domains.1":     "com",
+    }
+    assert from_data(Config, items_to_data(key_values.items()), coerce=True) == Config(
         username="wyfo",
         password=Secret("5tr0ngP455w0rd!"),
         options={"verbose": True, "execute_order_66": False},

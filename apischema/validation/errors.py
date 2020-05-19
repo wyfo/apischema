@@ -26,9 +26,6 @@ class ValidationError(Exception):
     def flatten(self) -> Mapping[Tuple[str, ...], Sequence[ErrorMsg]]:
         return dict(self.flat())
 
-    def __str__(self):
-        return repr(self)
-
 
 @overload
 def merge(err1: Optional[ValidationError], err2: ValidationError

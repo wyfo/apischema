@@ -1,13 +1,14 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Pattern, Sequence, TypeVar, Union
+from typing import Any, Dict, Iterator, Optional, Pattern, Sequence, TypeVar, Union
 
 from apischema.types import Number
 from apischema.utils import PREFIX, to_hashable
 from apischema.validation.errors import ValidationError
-from apischema.validation.validator import ValidatorResult
 
 CONSTRAINT_METADATA = f"{PREFIX}constraint"
+
+T = TypeVar("T")
 
 
 @dataclass
@@ -19,13 +20,14 @@ class Constraint:
         if self.read_only is not None and self.write_only is not None:
             raise ValueError("Schema cannot be both read/write only")
 
-    def _validate(self, data) -> ValidatorResult:
+    def _validate(self, data) -> Iterator[str]:
         raise NotImplementedError()
 
-    def validate(self, data):
+    def validate(self, data: T) -> T:
         errors = list(self._validate(data))
         if errors:
             raise ValidationError(errors)
+        return data
 
 
 _constraints: Dict[Any, Constraint] = {}
@@ -43,7 +45,7 @@ class NumberConstraint(Constraint):
     exclusive_maximum: Optional[Number] = None
     multiple_of: Optional[Number] = None
 
-    def _validate(self, data: Any) -> ValidatorResult:
+    def _validate(self, data: Any) -> Iterator[str]:
         assert isinstance(data, (int, float))
         if self.minimum is not None and data < self.minimum:
             yield f"{data} < {self.minimum} (minimum)"
@@ -71,7 +73,7 @@ class StringConstraint(Constraint):
         if self.pattern is not None:
             self.pattern = re.compile(self.pattern)
 
-    def _validate(self, data: Any) -> ValidatorResult:
+    def _validate(self, data: Any) -> Iterator[str]:
         assert isinstance(data, str)
         if self.min_length is not None and len(data) < self.min_length:
             yield f"'{data}'.length < {self.min_length} (minLength)"
@@ -88,7 +90,7 @@ class ArrayConstraint(Constraint):
     items: Optional[Union[Constraint, Sequence[Constraint]]] = None
     unique_items: Optional[bool] = None
 
-    def _validate(self, data: Any) -> ValidatorResult:
+    def _validate(self, data: Any) -> Iterator[str]:
         assert isinstance(data, list)
         if self.min_items is not None and len(data) < self.min_items:
             yield (f"not enough items, {len(data)} is lower than "
@@ -106,7 +108,7 @@ class ObjectConstraint(Constraint):
     max_properties: Optional[int] = None
     additional_properties: Optional[Constraint] = None
 
-    def _validate(self, data: Any) -> ValidatorResult:
+    def _validate(self, data: Any) -> Iterator[str]:
         assert isinstance(data, dict)
         if self.min_properties is not None and len(data) < self.min_properties:
             yield (f"not enough properties, {len(data)} is lower than "

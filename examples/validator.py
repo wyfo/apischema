@@ -30,7 +30,7 @@ def test_change_password_form():
         "password":     "5tr0ngP455w0rd!",
         "confirmation": "5tr0ngP455w0rd!"
     }
-    form = from_data(data, ChangePasswordForm)
+    form = from_data(ChangePasswordForm, data)
     assert form == ChangePasswordForm(Password("5tr0ngP455w0rd!"),
                                       Password("5tr0ngP455w0rd!"))
     assert to_data(form) == {
@@ -45,7 +45,7 @@ def test_bad_confirmation():
         "confirmation": "1234",
     }
     with raises(ValidationError) as err:
-        from_data(data, ChangePasswordForm)
+        from_data(ChangePasswordForm, data)
     assert err.value == ValidationError([
         "password and its confirmation don't match",
     ])
@@ -56,7 +56,7 @@ def test_missing_confirmation():
         "password": "password",
     }
     with raises(ValidationError) as err:
-        from_data(data, ChangePasswordForm)
+        from_data(ChangePasswordForm, data)
     assert err.value == ValidationError(children={
         "confirmation": ValidationError(["missing field"])
     })

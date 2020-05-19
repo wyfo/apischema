@@ -29,14 +29,14 @@ def to_wrapper(a: U) -> Wrapper[U]:
 
 
 def test_wrapper():
-    assert from_data([0, 1], Wrapper[List[int]]).wrapped == [0, 1]
+    assert from_data(Wrapper[List[int]], [0, 1]).wrapped == [0, 1]
     assert to_data(Wrapper("wrapped")) == "wrapped"
     assert to_data(build_input_schema(Wrapper[int])) == {
         "type": "integer"
     } == to_data(build_output_schema(Wrapper[int]))
 
     with raises(ValidationError):
-        from_data("wrapped", Wrapper[int])
+        from_data(Wrapper[int], "wrapped")
 
 
 ##########################################
@@ -56,7 +56,7 @@ def pair(value: Tuple[int, T]) -> Pair[int, T]:
 
 def test_pair():
     with raises(Unsupported):
-        from_data((0, ""), Pair[int, str])
+        from_data(Pair[int, str], (0, ""))
     # I decided to only match exact types because of the following issue:
     # If I have a converter for Pair[int, T] and an other for Pair[T, str],
     # which one should I choose for Pair [int, str] ...

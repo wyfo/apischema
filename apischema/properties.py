@@ -11,3 +11,4 @@ def properties(pattern: Optional[Union[str, Pattern]] = None) -> Metadata:
     if pattern is not None:
         pattern = re.compile(pattern)
     return DictWithUnion({PROPERTIES_METADATA: pattern})
+

@@ -1,17 +1,13 @@
-from dataclasses import Field, fields
 from enum import Enum
 from typing import (Any, Dict, Iterable, Mapping, Sequence, Tuple,
                     Type,
                     TypeVar)
 
-from apischema.alias import ALIAS_METADATA
-from apischema.conversion import (Converter, OUTPUT_METADATA,
-                                  OutputVisitorMixin)
+from apischema.conversion import (Converter, OutputVisitorMixin)
 from apischema.data.common_errors import bad_literal, wrong_type
-from apischema.fields import FIELDS_SET_ATTR
-from apischema.properties import PROPERTIES_METADATA
+from apischema.dataclasses import Field, get_output_fields_raw
+from apischema.fields import get_fields_set
 from apischema.types import UNTYPED_COLLECTIONS
-from apischema.typing import get_type_hints
 from apischema.visitor import Visitor
 
 UNTYPED_COLLECTIONS_IDS = set(map(id, UNTYPED_COLLECTIONS))
@@ -86,24 +82,25 @@ class ToData(OutputVisitorMixin[Any, Any], Visitor[Any, Any]):
         return self.visit(conv_type, converter(obj))
 
     def dataclass(self, cls: Type, obj):
-        res: Dict[str, Any] = {}
-        fields_: Iterable[Field] = fields(obj)
-        if self.exclude_unset and hasattr(obj, FIELDS_SET_ATTR):
-            fields_ = (f for f in fields_
-                       if f.name in getattr(obj, FIELDS_SET_ATTR))
-        types = get_type_hints(cls)
-        for field in fields_:
-            if OUTPUT_METADATA in field.metadata:
-                ret, converter = field.metadata[OUTPUT_METADATA]
-                value = self.visit(ret, converter(getattr(obj, field.name)))
-            else:
-                value = self.visit(types[field.name], getattr(obj, field.name))
-            if PROPERTIES_METADATA in field.metadata:
-                res.update(value)
-            else:
-                alias = field.metadata.get(ALIAS_METADATA, field.name)
-                res[alias] = value
-        return res
+        result: Dict[str, Any] = {}
+
+        def field_value(field: Field):
+            value = getattr(obj, field.name)
+            if field.output_converter is not None:
+                value = field.output_converter(value)
+            return value
+
+        fields, properties_fields = get_output_fields_raw(cls)
+        if self.exclude_unset:
+            fields_set = get_fields_set(obj)
+            fields = [f for f in fields if f.name in fields_set]
+        for field in fields:
+            value = self.visit(field.output_type, field_value(field))
+            result[field.alias] = value
+        for field in properties_fields:
+            value = self.visit(field.output_type, field_value(field))
+            result.update(value)
+        return result
 
     def enum(self, cls: Type[Enum], obj):
         check_type(obj, cls)

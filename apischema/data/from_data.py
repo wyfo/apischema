@@ -1,27 +1,23 @@
-from dataclasses import Field, InitVar, _FIELD, is_dataclass  # type: ignore
+from dataclasses import Field as BaseField, is_dataclass
 from enum import Enum
-from re import Pattern
 from typing import (Any, Callable, Dict, Iterable, List, Mapping, Optional,
                     Sequence, Tuple, Type, TypeVar)
 
-from apischema.alias import ALIAS_METADATA
-from apischema.conversion import (ConversionError, Converter, INPUT_METADATA,
-                                  InputVisitorMixin)
+from apischema.conversion import Converter, InputVisitorMixin
+from apischema.data.coercion import STR_NONE_VALUES, coerce
 from apischema.data.common_errors import bad_literal, wrong_type
-from apischema.fields import has_default, init_fields
+from apischema.dataclasses import Field, FieldKind, get_input_fields
 from apischema.ignore import Ignored
-from apischema.properties import PROPERTIES_METADATA
 from apischema.schema import Constraint, Schema
-from apischema.schema.constraints import (ArrayConstraint, CONSTRAINT_METADATA,
-                                          ObjectConstraint, get_constraint)
-from apischema.types import ITERABLE_TYPES, MAPPING_TYPES
-from apischema.typing import get_type_hints
+from apischema.schema.constraints import (ArrayConstraint, ObjectConstraint,
+                                          get_constraint)
+from apischema.types import ITERABLE_TYPES, MAPPING_TYPES, NoneType
 from apischema.utils import distinct
 from apischema.validation.errors import (ValidationError,
-                                         build_from_errors, exception,
+                                         exception,
                                          merge)
 from apischema.validation.mock import ValidatorMock
-from apischema.validation.validator import (Validator, get_validators, validate)
+from apischema.validation.validator import Validator, get_validators, validate
 from apischema.visitor import Visitor
 
 
@@ -50,8 +46,6 @@ def apply_converter(value: From, converter: Callable[[From], To]) -> To:
         result = converter(value)
     except ValidationError:
         raise
-    except ConversionError as err:
-        raise build_from_errors(err.errors)
     except Exception as err:
         raise ValidationError([exception(err)])
     validate(result)
@@ -88,7 +82,7 @@ class FromData(InputVisitorMixin[DataWithConstraint, Any],
 
     def union(self, alternatives: Sequence[Type], data2: DataWithConstraint):
         # Optional optimization
-        if data2[0] is None and alternatives[1] is type(None):  # noqa
+        if data2[0] is None and alternatives[1] is NoneType:
             return None
         return self._union(alternatives, data2)[0]
 
@@ -208,59 +202,36 @@ class FromData(InputVisitorMixin[DataWithConstraint, Any],
         data, constraint = data2
         constraint = constraint or get_constraint(cls)
         check_type(data, dict)
-        types = get_type_hints(cls)
         values: Dict[str, Any] = {}
-        default: Dict[str, Field] = {}
-        init: Dict[str, Any] = {}
+        default: Dict[str, BaseField] = {}
         aliases: List[str] = []
-        additional_field: Optional[Field] = None
-        pattern_fields: List[Field] = []
         field_errors: Dict[str, ValidationError] = {}
 
         def set_field(field: Field, value: Any, alias: str):
-            constraint = field.metadata.get(CONSTRAINT_METADATA)
             try:
-                if INPUT_METADATA in field.metadata:
-                    param, converter = field.metadata[INPUT_METADATA]
-                    tmp = self.visit(param, (value, constraint))
-                    res = apply_converter(tmp, converter)
-                else:
-                    cls = types[field.name]
-                    if isinstance(cls, InitVar):
-                        cls = cls.type  # type: ignore
-                    res = self.visit(cls, (value, constraint))
+                result = self.visit(field.input_type, (value, field.constraint))
+                if field.input_converter:
+                    result = apply_converter(result, field.input_converter)
             except ValidationError as err:
                 field_errors[alias] = err
             else:
-                if field._field_type is _FIELD:  # type: ignore
-                    values[field.name] = res
-                else:
-                    init[field.name] = res
+                values[field.name] = result
 
-        for field in init_fields(cls):
-            metadata = field.metadata
-            if PROPERTIES_METADATA in metadata:
-                if metadata[PROPERTIES_METADATA] is None:
-                    if additional_field is not None:
-                        raise TypeError("Multiple additional_properties")
-                    additional_field = field
-                else:
-                    pattern_fields.append(field)
-                continue
-            alias = metadata.get(ALIAS_METADATA, field.name)
+        fields, pattern_fields, additional_field = get_input_fields(cls)
+        for field in fields:
+            alias = field.alias
             if alias in data:
                 aliases.append(alias)
                 set_field(field, data[alias], alias)
-            elif has_default(field):
-                default[field.name] = field
+            elif field.default:
+                default[field.name] = field.base_field
             else:
                 field_errors[alias] = ValidationError(["missing field"])
         if len(data) != len(aliases):
             remain = set(data).difference(aliases)
         else:
             remain = set()
-        for field in pattern_fields:
-            pattern: Pattern = field.metadata[PROPERTIES_METADATA]
+        for pattern, field in pattern_fields:
             matched = {key: data[key] for key in remain if pattern.match(key)}
             remain -= matched.keys()
             set_field(field, matched, f"/{pattern.pattern}/")
@@ -268,10 +239,8 @@ class FromData(InputVisitorMixin[DataWithConstraint, Any],
             additional = {key: data[key] for key in remain}
             set_field(additional_field, additional, "<additionalProperties>")
         elif remain and not self.additional_properties:
-            field_errors.update(
-                (field, ValidationError(["field not allowed"]))
-                for field in sorted(remain)
-            )
+            field_errors.update((field.alias, ValidationError(["field not allowed"]))
+                                for field in sorted(remain))
         error: Optional[ValidationError] = None
         if field_errors:
             error = ValidationError(children=field_errors)
@@ -282,8 +251,12 @@ class FromData(InputVisitorMixin[DataWithConstraint, Any],
                 constraint.validate(data)
             except ValidationError as err:
                 error = merge(error, err)
-        validators: Iterable[Validator]
+        init: Dict[str, Any] = {}
+        validators: Sequence[Validator]
         if hasattr(cls, "__post_init__") or error:
+            for field in fields:
+                if field.kind == FieldKind.INIT and field.name in values:
+                    init[field.name] = values.pop(field.name)
             partial: List[Validator] = []
             whole: List[Validator] = []
             for val in get_validators(cls):
@@ -341,6 +314,28 @@ class FromData(InputVisitorMixin[DataWithConstraint, Any],
 T = TypeVar("T")
 
 
-def from_data(data: Any, cls: Type[T], *, additional_properties: bool = False
-              ) -> T:
-    return FromData(additional_properties).visit(cls, (data, None))
+class FromDataWithCoercion(FromData):
+    def __init__(self, additional_properties: bool):
+        super().__init__(additional_properties)
+
+    def primitive(self, cls, data2: DataWithConstraint):
+        data, constraint = data2
+        if cls is NoneType or data is None:
+            if data not in STR_NONE_VALUES:
+                check_type(data, cls)
+            return None
+        data = coerce(cls, data)
+        if constraint is not None and data is not None:
+            constraint.validate(data)
+        return data
+
+    def enum(self, cls: Type[Enum], data2: DataWithConstraint):
+        data, constraint = data2
+        data = self.primitive(type(data), (data, None))
+        return super().enum(cls, (data, constraint))
+
+
+def from_data(cls: Type[T], data: Any, *, additional_properties: bool = False,
+              coerce: bool = False) -> T:
+    visitor = FromData if not coerce else FromDataWithCoercion
+    return visitor(additional_properties).visit(cls, (data, None))

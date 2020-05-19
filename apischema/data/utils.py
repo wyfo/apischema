@@ -29,7 +29,7 @@ def override_data(obj: Optional[Union[Dict, List]],
     return res
 
 
-def build_data(items: Iterable[Tuple[str, Any]], separator: str = ".") -> Any:
+def items_to_data(items: Iterable[Tuple[str, Any]], *, separator: str = ".") -> Any:
     data = None
     for key, value in items:
         if not key:

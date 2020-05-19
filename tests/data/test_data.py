@@ -19,14 +19,14 @@ uuid = str(uuid4())
 
 
 def bijection(cls, data, expected):
-    obj = from_data(data, cls)
+    obj = from_data(cls, data)
     assert obj == expected
     assert to_data(obj, cls) == data
 
 
 def error(data, cls):
     with raises(ValidationError):
-        from_data(data, cls)
+        from_data(cls, data)
 
 
 @dataclass(unsafe_hash=True)
@@ -182,7 +182,7 @@ def test_dataclass(data, expected):
 
 def test_dataclass_partial_validator():
     with raises(ValidationError):
-        from_data({}, PartialValidator)
+        from_data(PartialValidator, {})
 
 
 @mark.parametrize("data", [{}, {"nested": {}, "opt": 1}])
@@ -205,5 +205,5 @@ def test_properties():
         startswith_a: Mapping[str, Any] = field(metadata=properties("^a.*$"))
         others: Mapping[str, Any] = field(metadata=properties())
 
-    assert from_data({"plop": 0, "allo": 1}, Test) == Test({"allo": 1},
+    assert from_data(Test, {"plop": 0, "allo": 1}) == Test({"allo": 1},
                                                            {"plop": 0})
