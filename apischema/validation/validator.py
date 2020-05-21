@@ -1,41 +1,55 @@
-from dataclasses import Field
 from functools import wraps
 from inspect import Parameter, isfunction, isgeneratorfunction, signature
 from types import MethodType
-from typing import (AbstractSet, Any, Callable, Iterable, Optional, Sequence, TypeVar,
-                    cast, overload)
+from typing import (AbstractSet, Any, Callable, Iterable, Optional, Sequence,
+                    TypeVar,
+                    overload)
+
+from dataclasses import Field
 
 from apischema.types import AnyType, DictWithUnion, Metadata
-from apischema.typing import Protocol
+from apischema.typing import NO_TYPE, Protocol
 from apischema.utils import PREFIX
-from apischema.validation.dependencies import find_end_dependencies
+from apischema.validation.dependencies import find_all_dependencies
 from apischema.validation.errors import (ValidationError, build_from_errors, exception,
                                          merge)
 from apischema.validation.mock import NonTrivialDependency
+
+if Protocol is not NO_TYPE:
+    class ValidatorFunc(Protocol):
+        @overload
+        def __call__(self, _obj):
+            ...
+
+        @overload
+        def __call__(self, _obj, **kwargs):
+            ...
+
+        def __call__(self, _obj, **kwargs):
+            ...
+
+
+    class BaseValidator(Protocol):
+        @overload
+        def validate(self, _obj):
+            ...
+
+        @overload
+        def validate(self, _obj, **kwargs):
+            ...
+
+        def validate(self, _obj, **kwargs):
+            ...
+else:
+    ValidatorFunc = Callable  # type: ignore
+    BaseValidator = Callable  # type: ignore
 
 # use attribute instead of global dict in order to be inherited
 VALIDATORS_ATTR = f"{PREFIX}validators"
 
 
-class ValidatorFunc(Protocol):
-    @overload
-    def __call__(self, _obj):
-        ...
-
-    @overload
-    def __call__(self, _obj, **kwargs):
-        ...
-
-    def __call__(self, _obj, **kwargs):
-        ...
-
-
-class BaseValidator(Protocol):
-    validate: ValidatorFunc
-
-
 class SimpleValidator:
-    def __init__(self, func: ValidatorFunc):
+    def __init__(self, func: "ValidatorFunc"):
         self.func = func
         parameters = signature(func).parameters
         validate = func
@@ -58,13 +72,13 @@ class SimpleValidator:
                 if errors:
                     raise build_from_errors(errors)
 
-        self.validate = cast(ValidatorFunc, validate)
+        self.validate = validate  # type: ignore
 
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
-    def can_be_called(self, fields: AbstractSet[str]) -> bool:
-        return False
+    def validate(self, _obj, **kwargs):  # for typing
+        ...
 
 
 class Validator(SimpleValidator):
@@ -94,8 +108,7 @@ class Validator(SimpleValidator):
         return self if instance is None else MethodType(self.func, instance)
 
     def __set_name__(self, owner, name: str):
-        self.owner = owner
-        self.dependencies = find_end_dependencies(owner, self.func)
+        self.dependencies = find_all_dependencies(owner, self.func)
         setattr(owner, VALIDATORS_ATTR, (*get_validators(owner), self))
 
     def can_be_called(self, fields: AbstractSet[str]) -> bool:

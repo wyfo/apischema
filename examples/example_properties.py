@@ -1,5 +1,6 @@
-from dataclasses import dataclass, field
 from typing import Any, Mapping
+
+from dataclasses import dataclass, field
 
 from apischema import (alias, from_data, get_fields_set, properties, to_data,
                        with_fields_set)

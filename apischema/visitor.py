@@ -1,12 +1,12 @@
-from dataclasses import is_dataclass
 from enum import Enum, EnumMeta
 from typing import (Any, Dict, Generic, Iterable, Mapping, Sequence, Type,
                     TypeVar, Union)
 
+from dataclasses import is_dataclass
+
 from apischema.types import ITERABLE_TYPES, MAPPING_TYPES, PRIMITIVE_TYPE
-from apischema.typing import (Literal, NamedTupleMeta, _AnnotatedAlias,
-                              _GenericAlias, _TypedDictMeta, _type_repr,
-                              get_type_hints)
+from apischema.typing import (Literal, NamedTupleMeta, _AnnotatedAlias, _LiteralMeta,
+                              _TypedDictMeta, _type_repr, get_type_hints)
 
 PRIMITIVE_TYPE_IDS = set(map(id, PRIMITIVE_TYPE))
 
@@ -84,8 +84,8 @@ class Visitor(Generic[Arg, Return]):
         # Use `id` to avoid useless costly generic types hashing
         if id(cls) in PRIMITIVE_TYPE_IDS:
             return self.primitive(cls, arg)
-        if isinstance(cls, _GenericAlias):
-            origin = cls.__origin__
+        origin = getattr(cls, "__origin__", None)  # because of 3.6
+        if origin is not None:
             if isinstance(cls, _AnnotatedAlias):
                 return self.annotated(origin, cls.__metadata__, arg)
             if origin is Union:
@@ -96,8 +96,7 @@ class Visitor(Generic[Arg, Return]):
             if origin in ITERABLE_TYPES:
                 return self.iterable(origin, cls.__args__[0], arg)
             if origin in MAPPING_TYPES:
-                return self.mapping(origin, cls.__args__[0], cls.__args__[1],
-                                    arg)
+                return self.mapping(origin, cls.__args__[0], cls.__args__[1], arg)
             if origin is Literal:
                 return self.literal(cls.__args__, arg)
             custom = self.custom(cls, arg)
@@ -120,8 +119,10 @@ class Visitor(Generic[Arg, Return]):
         if is_dataclass(cls):
             return self.dataclass(cls, arg)
         if isinstance(cls, _TypedDictMeta):
-            return self.typed_dict(cls, get_type_hints(cls),
-                                   cls.__total__, arg)  # type: ignore
+            total = cls.__total__  # type: ignore
+            return self.typed_dict(
+                cls, get_type_hints(cls, include_extras=True), total, arg
+            )
         if isinstance(cls, TypeVar):  # type: ignore
             try:
                 cls_ = self._generics[cls]
@@ -139,10 +140,12 @@ class Visitor(Generic[Arg, Return]):
             return self.any(arg)
         if isinstance(cls, NamedTupleMeta):
             if hasattr(cls, "__annotations__"):
-                types = get_type_hints(cls)
+                types = get_type_hints(cls, include_extras=True)
             else:
                 types = cls._field_types  # type: ignore
             return self.named_tuple(cls, types, cls._field_defaults, arg)
+        if isinstance(cls, _LiteralMeta):
+            return self.literal(cls.__values__, arg)
         if hasattr(cls, "__parameters__"):
             params = tuple(self._generics.get(p, Any)
                            for p in getattr(cls, "__parameters__"))

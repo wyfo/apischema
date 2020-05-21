@@ -1,6 +1,6 @@
-from dataclasses import dataclass
-from typing import Any, Generic, TypeVar, Union
+from typing import Any, Generic, List, TypeVar, Union
 
+from dataclasses import dataclass
 from pytest import raises
 from typing_extensions import Annotated
 
@@ -13,6 +13,7 @@ class NoResult:
 
 
 NO_RESULT = NoResult()
+NO_DATA = object()
 
 T = TypeVar("T")
 
@@ -22,7 +23,7 @@ T = TypeVar("T")
 class Error(Exception):
     code: int
     description: str
-    data: Any = ...
+    data: Any = NO_DATA
 
 
 @schema(min_properties=1, max_properties=1)
@@ -40,13 +41,18 @@ class Result(Generic[T]):
 
 
 def test_result():
-    assert to_data(build_input_schema(Result[int])) == {
+    assert to_data(build_input_schema(Result[List[int]])) == {
         "additionalProperties": False,
         "maxProperties":        1,
         "minProperties":        1,
         "properties":           {
-            "result": {"type": "integer"},
-            "error": {
+            "result": {
+                "type":  "array",
+                "items": {
+                    "type": "integer",
+                }
+            },
+            "error":  {
                 "additionalProperties": False,
                 "properties":           {
                     "code":        {"type": "integer"},

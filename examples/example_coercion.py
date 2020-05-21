@@ -1,5 +1,6 @@
-from dataclasses import dataclass, field
 from typing import List, Mapping, NewType
+
+from dataclasses import dataclass, field
 
 from apischema import from_data, items_to_data, output_converter
 

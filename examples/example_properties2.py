@@ -1,9 +1,11 @@
+import sys
+from typing import Any, Mapping, NewType
+
 from dataclasses import dataclass, field
-from typing import Any, Mapping
+from typing_extensions import Annotated
 
 from apischema import (build_input_schema, properties,
                        schema, to_data)
-from apischema.typing import Annotated
 
 
 @dataclass
@@ -24,7 +26,11 @@ def test_properties():
 
 
 def test_mapping_pattern_properties():
-    cls = Mapping[Annotated[str, schema(pattern=r"\w{2}")], int]
+    if sys.version_info >= (3, 7):
+        cls = Mapping[Annotated[str, schema(pattern=r"\w{2}")], int]
+    else:
+        TwoLetters = schema(pattern=r"\w{2}")(NewType("TwoLetters", str))
+        cls = Mapping[TwoLetters, int]
     assert to_data(build_input_schema(cls)) == {
         "type":              "object",
         "patternProperties": {

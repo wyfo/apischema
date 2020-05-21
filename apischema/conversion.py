@@ -1,16 +1,17 @@
+import sys
 from collections import defaultdict
-from dataclasses import (MISSING, dataclass, field, fields, is_dataclass)
 from inspect import (Parameter, isclass, isgeneratorfunction,
                      signature)
 from logging import getLogger
-from types import MappingProxyType, MethodType
-from typing import (Any, Callable, Dict, Generator, Generic, Mapping,
-                    Optional, Tuple, Type, TypeVar, Union, cast,
-                    get_type_hints)
+from types import MethodType
+from typing import (Any, Callable, Dict, Generator, Generic, Mapping, Optional, Tuple,
+                    Type, TypeVar, Union, cast)
+
+from dataclasses import (MISSING, dataclass, field)
 
 from apischema.properties import properties
-from apischema.types import (DictWithUnion, Metadata, TYPED_ORIGINS)
-from apischema.typing import _GenericAlias
+from apischema.types import DictWithUnion, Metadata
+from apischema.typing import _GenericAlias, get_type_hints
 from apischema.utils import GeneratorValue, PREFIX, as_dict, to_camel_case
 from apischema.validation.errors import build_from_errors
 from apischema.visitor import NOT_CUSTOM, NotCustom
@@ -48,7 +49,7 @@ def check_converter(converter: Converter,
                     Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD):
                 raise TypeError("converter must have at most one parameter "
                                 "without default")
-        types = get_type_hints(converter)
+        types = get_type_hints(converter, include_extras=True)
         if param is None:
             try:
                 param = types.pop(first.name)
@@ -74,7 +75,7 @@ def handle_potential_validation(ret: Type, converter: Converter
             raise build_from_errors(errors)
         return generator.value
 
-    if isinstance(ret, _GenericAlias) and ret.__origin__ == Generator:
+    if getattr(ret, "__origin__", None) == Generator:
         return ret.__args__[2], wrapper
     else:
         return ret, wrapper
@@ -111,22 +112,46 @@ def handle_method(decorator: Func) -> Func:
 Cls = TypeVar("Cls", bound=Type)
 Other = TypeVar("Other", bound=Type)
 
+if sys.version_info >= (3, 7):
+    import collections.abc
+    import re
+    from typing import (List, AbstractSet, Set, Dict, Iterable, Collection, Sequence,
+                        MutableSequence, Pattern)
 
-def _get_origin(cls: _GenericAlias) -> Type:  # type: ignore
-    return TYPED_ORIGINS.get(cls.__origin__, cls.__origin__)  # type: ignore
+    TYPED_ORIGINS = {
+        tuple:                           Tuple,
+        list:                            List,
+        frozenset:                       AbstractSet,
+        set:                             Set,
+        dict:                            Dict,
+        collections.abc.Iterable:        Iterable,
+        collections.abc.Collection:      Collection,
+        collections.abc.Sequence:        Sequence,
+        collections.abc.MutableSequence: MutableSequence,
+        collections.abc.Set:             AbstractSet,
+        collections.abc.MutableSet:      Set,
+        re.Pattern:                      Pattern,
+    }
+
+
+    def _get_origin(cls: _GenericAlias) -> Type:  # type: ignore
+        return TYPED_ORIGINS.get(cls.__origin__, cls.__origin__)  # type: ignore
+else:
+    def _get_origin(cls: _GenericAlias) -> Type:  # type: ignore
+        return cls.__origin__  # type: ignore
 
 
 # If A[str, T] and A[T, int], what to choose for A[str, int]? None of them.
 
 def substitute_generic_args(cls: Cls, substitution: Mapping) -> Cls:
-    if not isinstance(cls, _GenericAlias):
+    if getattr(cls, "__origin__", None) is None:
         return cls
     args = tuple(substitution.get(arg, arg) for arg in cls.__args__)
     return _get_origin(cls)[args]
 
 
 def substitute_type_vars(base: Cls, other: Other) -> Tuple[Cls, Other]:
-    if not isinstance(base, _GenericAlias):
+    if getattr(base, "__origin__", None) is None:
         return base, other
     substitution = {
         arg: param
@@ -245,27 +270,8 @@ def field_output_converter(converter: Callable[[Any], Any], param: Type = None,
     return DictWithUnion({OUTPUT_METADATA: (ret, converter)})
 
 
-# Because of NameError when type is recursive
-def resolve_fieds_converters(cls: Type):
-    assert is_dataclass(cls)
-    for field in fields(cls):
-        metadata = dict(field.metadata)
-        if INPUT_METADATA in metadata:
-            param, converter = metadata[INPUT_METADATA]
-            param, _ = check_converter(converter, param, ...)  # type: ignore
-            param, _ = substitute_type_vars(param, ...)  # type: ignore
-            _, converter = handle_potential_validation(..., converter)  # type: ignore
-            metadata[INPUT_METADATA] = param, converter
-        if OUTPUT_METADATA in metadata:
-            ret, converter = metadata[OUTPUT_METADATA]
-            _, ret = check_converter(converter, ..., ret)  # type: ignore
-            ret, _ = substitute_type_vars(ret, ...)  # type: ignore
-            metadata[OUTPUT_METADATA] = ret, converter
-        field.metadata = MappingProxyType(metadata)
-
-
 def converter_from_raw(func: Callable) -> Converter:
-    types = get_type_hints(func)
+    types = get_type_hints(func, include_extras=True)
     sig = signature(func)
     annotations: Dict[str, Any] = {}
     fields: Dict[str, Any] = {}

@@ -1,9 +1,10 @@
-from dataclasses import is_dataclass, replace
 from enum import Enum
 from itertools import chain
 from typing import (Any, Callable, Dict, Iterable, List, Mapping, Optional, Pattern,
                     Sequence,
                     Set, Tuple, Type, Union)
+
+from dataclasses import is_dataclass, replace
 
 from apischema.conversion import (Converter, InputVisitorMixin,
                                   OutputVisitorMixin)
@@ -141,7 +142,6 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
                 schema: Schema) -> JSONSchema:
         check_constraint(schema, ObjectConstraint)
         key = self.visit(key_type, Schema())
-        pattern = key.pattern
         value = self.visit(value_type, schema.additional_properties)
         properties: Dict[str, Any] = {}
         if key.pattern is not None:

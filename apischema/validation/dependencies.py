@@ -1,7 +1,7 @@
 import ast
 from inspect import getsourcelines, isfunction
 from itertools import takewhile
-from typing import Callable, ClassVar, Dict, Mapping, Set, Type, get_type_hints
+from typing import AbstractSet, Callable, Collection, Dict, Set
 
 
 def getsource(func: Callable) -> str:
@@ -11,7 +11,7 @@ def getsource(func: Callable) -> str:
 
 
 Dependency = str
-Dependencies = Set[Dependency]
+Dependencies = AbstractSet[Dependency]
 
 
 class DependencyFinder(ast.NodeVisitor):
@@ -22,6 +22,8 @@ class DependencyFinder(ast.NodeVisitor):
         self.generic_visit(node)
         if isinstance(node.value, ast.Name) and node.value.id == "self":
             self.dependencies.add(node.attr)
+
+    # TODO Add warning in case of function call with self in parameter
 
 
 def find_dependencies(method: Callable) -> Dependencies:
@@ -36,33 +38,23 @@ def find_dependencies(method: Callable) -> Dependencies:
 cache: Dict[Callable, Dependencies] = {}
 
 
-def is_class_var(dep: str, cls: Type, type_hints: Mapping[str, Type]) -> bool:
-    # Cannot use is_dataclass because dependencies of dataclass are evaluated
-    # before the dataclass decorator
-    if not hasattr(cls, dep):
-        return False
-    if dep in type_hints:
-        return getattr(type_hints[dep], "__origin__",
-                       type_hints[dep]) is ClassVar
-    return True
-
-
-def find_end_dependencies(cls: type, method: Callable, rec_gard=()
+def find_all_dependencies(cls: type, method: Callable, rec_guard: Collection[str] = ()
                           ) -> Dependencies:
+    """Dependencies contains class variables (because they can be "fake" ones as in
+       dataclasses)"""
     if method not in cache:
-        type_hints = get_type_hints(cls)
-        dependencies = find_dependencies(method)
-        class_vars = {dep for dep in dependencies
-                      if is_class_var(dep, cls, type_hints)}
-        dependencies -= class_vars
-        for field in class_vars:
-            attr = getattr(cls, field)
-            if isinstance(attr, property):
-                attr = attr.fget
-            if isfunction(attr):
-                if attr in rec_gard:
+        dependencies = set(find_dependencies(method))
+        for attr in list(dependencies):
+            if not hasattr(cls, attr):
+                continue
+            member = getattr(cls, attr)
+            if isinstance(member, property):
+                member = member.fget
+            if isfunction(member):
+                dependencies.remove(attr)
+                if member in rec_guard:
                     continue
-                rec_deps = find_end_dependencies(cls, attr, (*rec_gard, attr))
+                rec_deps = find_all_dependencies(cls, member, {*rec_guard, member})
                 dependencies.update(rec_deps)
         cache[method] = dependencies
     return cache[method]

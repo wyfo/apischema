@@ -1,10 +1,10 @@
-from dataclasses import Field, dataclass
 from functools import partial
 from types import FunctionType, MethodType
-from typing import Any, Callable, ClassVar, Mapping, Optional, Type
+from typing import Any, Callable, Mapping, Optional, Type
+
+from dataclasses import Field, _FIELDS, _FIELD_CLASSVAR, dataclass  # type: ignore
 
 from apischema.fields import FIELDS_SET_ATTR, get_default
-from apischema.typing import get_type_hints
 
 MOCK_FIELDS_FIELD = "__mock_fields__"
 MOCK_CLS_FIELD = "__mock_cls__"
@@ -26,20 +26,23 @@ class ValidatorMock:
         setattr(self, FIELDS_SET_ATTR, set(fields))
 
     def __getattribute__(self, attr: str) -> Any:
-        if attr in super().__getattribute__("fields"):
-            return super().__getattribute__("fields")[attr]
-        if attr in super().__getattribute__("defaults"):
-            return get_default(super().__getattribute__("defaults")[attr])
+        fields = super().__getattribute__("fields")
+        if attr in fields:
+            return fields[attr]
+        defaults = super().__getattribute__("defaults")
+        if attr in defaults:
+            return get_default(defaults[attr])
+        cls = super().__getattribute__("cls")
         if attr == "__class__":
-            return super().__getattribute__("cls")
+            return cls
         if attr == "__dict__":
-            return {**super().__getattribute__("fields"),
-                    **{name: get_default(field)
-                       for name, field
-                       in super().__getattribute__("defaults").items()},
-                    FIELDS_SET_ATTR: set(super().__getattribute__("fields"))}
-        if hasattr(super().__getattribute__("cls"), attr):
-            member = getattr(super().__getattribute__("cls"), attr)
+            return {
+                **fields,
+                **{name: get_default(field) for name, field in defaults.items()},
+                FIELDS_SET_ATTR: set(fields)
+            }
+        if hasattr(cls, attr):
+            member = getattr(cls, attr)
             # for classmethod (staticmethod are not handled)
             if isinstance(member, MethodType):
                 return member
@@ -47,8 +50,7 @@ class ValidatorMock:
                 return partial(member, self)
             if isinstance(member, property):
                 return member.fget(self)  # type: ignore
-            types = get_type_hints(super().__getattribute__("cls"))
-            if getattr(types.get(attr), "__origin__",
-                       types.get(attr)) is ClassVar:
+            if all(f.name != attr or f._field_type == _FIELD_CLASSVAR
+                   for f in getattr(cls, _FIELDS).values()):
                 return member
         raise NonTrivialDependency(attr)

@@ -1,6 +1,6 @@
-from dataclasses import dataclass, field
 from typing import List, Tuple
 
+from dataclasses import dataclass, field
 from pytest import raises
 
 from apischema import Discard, ValidationError, from_data, get_fields, validator

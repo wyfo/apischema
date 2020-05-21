@@ -6,19 +6,27 @@ with open("README.md") as f:
 # cannot use Cython because of https://github.com/cython/cython/issues/3537
 setup(
     name='apischema',
+    version='0.3.0',
     url="https://github.com/wyfo/apischema",
     author="Joseph Perez",
     author_email="joperez@hotmail.fr",
+    license='MIT',
+    packages=find_packages(include=["apischema*"]),
     description="Another Python API schema handling and JSON (de)serialization "
                 "through typing annotation; light, simple, powerful.",
     long_description=README,
     long_description_content_type="text/markdown",
-    version='0.2.2',
-    license='MIT',
-    packages=find_packages(include=["apischema*"]),
+    python_requires='>=3.6',
+    install_requires=[
+        "dataclasses==0.7;python_version<'3.7'"
+    ],
     classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    python_requires='>=3.6'
 )

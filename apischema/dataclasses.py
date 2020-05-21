@@ -1,8 +1,10 @@
-from dataclasses import (Field as BaseField, InitVar, MISSING, _FIELDS,  # type: ignore
-                         dataclass, fields, is_dataclass)
 from enum import Enum, auto
-from typing import (Any, Callable, Dict, List, Optional, Pattern, Tuple, Type,
-                    TypeVar, cast, get_type_hints)
+from typing import (Any, Callable, Dict, List, Optional, Pattern, Set, Tuple, Type,
+                    TypeVar,
+                    cast)
+
+from dataclasses import (Field as BaseField, InitVar, MISSING, _FIELDS,  # type: ignore
+                         _FIELD_CLASSVAR, dataclass, fields, is_dataclass)
 
 from apischema.alias import ALIAS_METADATA
 from apischema.conversion import (INPUT_METADATA, OUTPUT_METADATA, check_converter,
@@ -11,14 +13,15 @@ from apischema.properties import PROPERTIES_METADATA
 from apischema.schema import (ANNOTATIONS_METADATA, Annotations, CONSTRAINT_METADATA,
                               Constraint)
 from apischema.types import AnyType
+from apischema.typing import get_type_hints
+from apischema.validation import get_validators
 from apischema.validation.validator import BaseValidator, VALIDATORS_METADATA, validate
 
 Cls = TypeVar("Cls", bound=Type)
 
 
 def slotted_dataclass(cls: Cls) -> Cls:
-    types = get_type_hints(cls)
-    slots = [f.name for f in fields(cls) if not isinstance(types[f.name], InitVar)]
+    slots = [f.name for f in fields(cls)]
     namespace = cls.__dict__.copy()
     for slot in slots:
         namespace.pop(slot, ...)
@@ -66,19 +69,25 @@ def _add_field_to_lists(obj: T, kind: FieldKind, inputs: List[T], outputs: List[
 
 def cache_fields(cls: Type):
     assert is_dataclass(cls)
-    types = get_type_hints(cls)
+    types = get_type_hints(cls, include_extras=True)
     input_fields: List[Field] = []
     input_patterns: List[Tuple[Pattern, Field]] = []
     input_additional: List[Field] = []
     output_fields: List[Field] = []
     output_patterns: List[Tuple[Pattern, Field]] = []
     output_additional: List[Field] = []
+    all_fields: Set[str] = set()
     for field in getattr(cls, _FIELDS).values():
         assert isinstance(field, BaseField)
+        if field._field_type == _FIELD_CLASSVAR:  # type: ignore
+            continue
+        all_fields.add(field.name)
         type_ = types[field.name]
         if isinstance(type_, InitVar):
             type_ = type_.type  # type: ignore
             kind = FieldKind.INIT
+        elif type_ is InitVar:
+            raise TypeError("InitVar are not handled before Python 3.8")
         elif field.init:
             kind = FieldKind.NORMAL
         else:
@@ -135,6 +144,10 @@ def cache_fields(cls: Type):
                           input_additional[0] if input_additional else None)
     _output_fields[cls] = (output_fields,
                            [f for p, f in output_patterns] + output_additional)
+    for validator in get_validators(cls):
+        validator.dependencies = {
+            dep for dep in validator.dependencies if dep in all_fields
+        }
 
 
 def get_input_fields(cls: Type) -> FieldCache:

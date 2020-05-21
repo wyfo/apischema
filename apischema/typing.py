@@ -7,6 +7,7 @@ __all__ = [
     "TypedDict",
     "_AnnotatedAlias",
     "_GenericAlias",
+    "_LiteralMeta",
     "_TypedDictMeta",
     "get_type_hints",
     "set_type_hints",
@@ -15,47 +16,43 @@ __all__ = [
 
 import sys
 import types
-from dataclasses import is_dataclass
-from inspect import isclass
 from typing import (Any, Dict, Generic, Mapping, NamedTuple, Optional, Type, TypeVar)
+
+from dataclasses import is_dataclass
 
 
 class NoType:
-    pass
+    def __getitem__(self, key):
+        return self
 
 
-NO_TYPE = NoType()
+NO_TYPE: Any = NoType()
 
 if sys.version_info >= (3, 9):
-    from typing import Annotated, get_type_hints as gth
+    from typing import Annotated, get_type_hints
 else:
     try:
-        from typing_extensions import Annotated, get_type_hints as gth
+        from typing_extensions import Annotated
+    except ImportError:
+        Annotated = NO_TYPE
+    try:
+        from typing_extensions import get_type_hints as gth
     except ImportError:
         from typing import get_type_hints as gth_
 
 
-        def gth(obj, globalns=None, localns=None,  # type: ignore # noqa
-                include_extras=False):
+        def gth(obj, globalns=None, localns=None, include_extras=False):  # type: ignore
             return gth_(obj, globalns, localns)
 
-
-        class MetaAnnotated(type):
-            def __getitem__(self, _):
-                return NO_TYPE
-
-
-        class Annotated(MetaAnnotated):  # type: ignore # noqa
-            pass
 if sys.version_info >= (3, 8):
     from typing import Literal, Protocol, TypedDict
 else:
     try:
         from typing_extensions import Literal, Protocol, TypedDict
     except ImportError:
-        Literal = NO_TYPE  # type: ignore
-        TypedDict = NO_TYPE  # type: ignore
-        Protocol = NO_TYPE  # type: ignore
+        Literal = NO_TYPE
+        TypedDict = NO_TYPE
+        Protocol = NO_TYPE
 
 Annotated = Annotated
 Literal = Literal
@@ -63,8 +60,9 @@ Protocol = Protocol
 TypedDict = TypedDict
 
 _T = TypeVar("_T")
-_GenericAlias = type(Generic[_T])
 _AnnotatedAlias = type(Annotated[_T, ...])
+_GenericAlias = type(Generic[_T])
+_LiteralMeta = type(Literal)
 _TypedDictMeta = type(TypedDict)
 NamedTupleMeta = type(NamedTuple)
 
@@ -74,18 +72,16 @@ NS = Dict[str, Any]
 
 
 def get_type_hints(obj, globalns: Optional[NS] = None,
-                   localns: Optional[NS] = None):
+                   localns: Optional[NS] = None, include_extras=False):
     try:
         return _type_hints[obj]
     except (KeyError, TypeError):
         types = gth(obj, globalns, localns, include_extras=True)
-        try:
-            _type_hints[obj] = types
-        except TypeError:
-            pass
-        if isclass(obj) and is_dataclass(obj):
-            from apischema.conversion import resolve_fieds_converters
-            resolve_fieds_converters(obj)
+        if isinstance(obj, _TypedDictMeta) or is_dataclass(NamedTupleMeta):
+            try:
+                _type_hints[obj] = types
+            except TypeError:
+                pass
         return types
 
 

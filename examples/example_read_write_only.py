@@ -1,7 +1,16 @@
+import sys
+
+import pytest
 from dataclasses import InitVar, dataclass, field
 
 from apischema import (build_input_schema, build_output_schema, from_data,
                        schema, to_data)
+
+if sys.version_info <= (3, 8):
+    pytest.skip(
+        "InitVar are not handled before 3.8 (https://bugs.python.org/issue33569)",
+        allow_module_level=True
+    )
 
 
 @dataclass

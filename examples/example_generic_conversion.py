@@ -1,11 +1,10 @@
+import sys
 from typing import Generic, List, Tuple, TypeVar
 
 from pytest import raises
 
 from apischema import (ValidationError, build_input_schema, build_output_schema,
-                       from_data,
-                       input_converter,
-                       output_converter, to_data)
+                       from_data, input_converter, output_converter, to_data)
 from apischema.visitor import Unsupported
 
 T = TypeVar("T")
@@ -15,10 +14,17 @@ class Wrapper(Generic[T]):
     def __init__(self, wrapped: T):
         self.wrapped = wrapped
 
-    @output_converter
-    def _wrapped(self) -> T:
-        return self.wrapped
+    if sys.version_info >= (3, 7):
+        @output_converter
+        def _wrapped(self) -> T:
+            return self.wrapped
+    else:
+        def _wrapped(self) -> T:
+            return self.wrapped
 
+
+if sys.version_info <= (3, 7):
+    output_converter(Wrapper._wrapped, Wrapper[T])
 
 U = TypeVar("U")
 

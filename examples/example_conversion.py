@@ -1,5 +1,6 @@
-from dataclasses import dataclass
 from typing import NewType
+
+from dataclasses import dataclass
 
 from apischema import (from_data, input_converter, output_converter, schema,
                        to_data)

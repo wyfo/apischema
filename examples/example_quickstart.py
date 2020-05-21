@@ -1,8 +1,8 @@
-from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, NewType
 from uuid import UUID, uuid4
 
+from dataclasses import dataclass, field
 from pytest import raises
 
 from apischema import (ValidationError, build_input_schema, build_output_schema,

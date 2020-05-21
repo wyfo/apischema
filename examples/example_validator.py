@@ -1,6 +1,6 @@
-from dataclasses import dataclass, field
 from typing import NewType
 
+from dataclasses import dataclass, field
 from pytest import raises
 
 from apischema import (ValidationError, from_data, output_converter,

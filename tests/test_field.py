@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field, fields
-
 from pytest import raises
 
 from apischema import (get_fields_set, mark_set_fields, unmark_set_fields,
@@ -63,8 +62,8 @@ def test_fields_set():
     with raises(ValueError):
         mark_set_fields(data, "not_a_field")
 
-    assert get_fields_set(DecoratedInherited(0, other=0)) == {"without_default",
-                                                              "other"}
     assert get_fields_set(Inherited(0, other=0)) == {
         "without_default", "with_default", "with_default_factory", "other"
     }
+    assert get_fields_set(DecoratedInherited(0, other=0)) == {"without_default",
+                                                              "other"}

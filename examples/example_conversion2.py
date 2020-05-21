@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Collection
 
 from apischema import converter, output_converter, to_data

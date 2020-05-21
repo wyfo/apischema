@@ -18,7 +18,7 @@ And I simply want to enjoy myself coding this stuff.
 
 ## Examples
 Following example can be run 'as is' in Python 3.7 (all examples are valid tests of the library).
-[quickstart.py](examples/quickstart.py)
+[quickstart.py](examples/example_quickstart.py)
 ```python
 from dataclasses import dataclass, field
 from enum import Enum
@@ -102,17 +102,17 @@ def test_resource_error():
     })
 ```
 See other [examples](examples); a suggested order:
-- [properties.py](examples/properties.py)
-- [conversion.py](examples/conversion.py) 
-- [validator.py](examples/validator.py) 
-- [coercion.py](examples/coercion.py) 
-- [generic.py](examples/generic.py) 
-- [properties2.py](examples/properties2.py)
-- [conversion2.py](examples/conversion2.py) 
-- [validator2.py](examples/validator2.py) 
-- [recursivity_and_pep563.py](examples/recursivity_and_pep563.py) 
-- [generic_conversion.py](examples/generic_conversion.py)
-- [raw_conversion.py](examples/raw_conversion.py)
+- [example_properties.py](examples/example_properties.py)
+- [example_conversion.py](examples/example_conversion.py) 
+- [example_validator.py](examples/example_validator.py) 
+- [example_coercion.py](examples/example_coercion.py) 
+- [example_generic.py](examples/example_generic.py) 
+- [example_properties2.py](examples/example_properties2.py)
+- [example_conversion2.py](examples/example_conversion2.py) 
+- [example_validator2.py](examples/example_validator2.py) 
+- [example_recursivity_and_pep563.py](examples/example_recursivity_and_pep563.py) 
+- [example_generic_conversion.py](examples/example_generic_conversion.py)
+- [example_raw_conversion.py](examples/example_raw_conversion.py)
 
 
 ## Benchmark

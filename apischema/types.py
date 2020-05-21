@@ -1,44 +1,55 @@
 import collections.abc
-import re
 import sys
+from typing import (AbstractSet, Any, Collection, Dict, FrozenSet, Iterable, List,
+                    Mapping, MutableMapping, MutableSequence, Sequence, Set, Tuple,
+                    Type, Union)
+
 from dataclasses import Field
-from typing import (AbstractSet, Any, Collection, Dict, Iterable, List, Mapping,
-                    MutableSequence, Pattern, Sequence, Set, TYPE_CHECKING, Tuple, Type,
-                    Union)
 
 AnyType = Any
 NoneType: Type[None] = type(None)
-if TYPE_CHECKING:
-    class EllipsisType:
-        pass
-
-
-    Ellipsis = EllipsisType()
-else:
-    EllipsisType: AnyType = type(Ellipsis)
 Number = Union[int, float]
 
 PRIMITIVE_TYPE = {str, int, bool, float, NoneType}
 
 # Hack before PEP 585 ...
-ITERABLE_TYPES = {
-    collections.abc.Iterable:        tuple,
-    collections.abc.Collection:      tuple,
-    collections.abc.Sequence:        tuple,
-    tuple:                           tuple,
-    collections.abc.MutableSequence: list,
-    list:                            list,
-    collections.abc.Set:             frozenset,
-    frozenset:                       frozenset,
-    collections.abc.MutableSet:      set,
-    set:                             set
-}
+if sys.version_info >= (3, 7):
+    ITERABLE_TYPES = {
+        collections.abc.Iterable:        tuple,
+        collections.abc.Collection:      tuple,
+        collections.abc.Sequence:        tuple,
+        tuple:                           tuple,
+        collections.abc.MutableSequence: list,
+        list:                            list,
+        collections.abc.Set:             frozenset,
+        frozenset:                       frozenset,
+        collections.abc.MutableSet:      set,
+        set:                             set
+    }
 
-MAPPING_TYPES = {
-    collections.abc.Mapping:        dict,
-    collections.abc.MutableMapping: dict,
-    dict:                           dict
-}
+    MAPPING_TYPES = {
+        collections.abc.Mapping:        dict,
+        collections.abc.MutableMapping: dict,
+        dict:                           dict
+    }
+else:
+    ITERABLE_TYPES = {
+        Iterable:        tuple,
+        Collection:      tuple,
+        Sequence:        tuple,
+        Tuple:           tuple,
+        MutableSequence: list,
+        List:            list,
+        AbstractSet:     frozenset,
+        FrozenSet:       frozenset,
+        Set:             set,
+    }
+
+    MAPPING_TYPES = {
+        Mapping:        dict,
+        MutableMapping: dict,
+        Dict:           dict
+    }
 
 UNTYPED_COLLECTIONS = {
     tuple:     Tuple[Any, ...],
@@ -46,21 +57,6 @@ UNTYPED_COLLECTIONS = {
     frozenset: AbstractSet[Any],
     set:       Set[Any],
     dict:      Dict[Any, Any]
-}
-
-TYPED_ORIGINS = {
-    tuple:                           Tuple,
-    list:                            List,
-    frozenset:                       AbstractSet,
-    set:                             Set,
-    dict:                            Dict,
-    collections.abc.Iterable:        Iterable,
-    collections.abc.Collection:      Collection,
-    collections.abc.Sequence:        Sequence,
-    collections.abc.MutableSequence: MutableSequence,
-    collections.abc.Set:             AbstractSet,
-    collections.abc.MutableSet:      Set,
-    re.Pattern:                      Pattern,
 }
 
 if sys.version_info >= (3, 7):
@@ -75,7 +71,7 @@ if sys.version_info >= (3, 9):
 else:
     class Metadata(Mapping[str, Any]):
         def __or__(self, other: Mapping[str, Any]) -> "Metadata":
-            return DictWithUnion(**self, **other)
+            return DictWithUnion({**self, **other})
 
 
     class DictWithUnion(Dict[str, Any], Metadata):  # noqa

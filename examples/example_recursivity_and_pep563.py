@@ -1,8 +1,6 @@
-from __future__ import annotations
-
-from dataclasses import dataclass, field
 from typing import Any, Dict, Generator, Iterable, List, Set
 
+from dataclasses import dataclass, field
 from pytest import raises
 
 from apischema import (ValidationError, build_input_schema,
@@ -10,8 +8,8 @@ from apischema import (ValidationError, build_input_schema,
                        to_data, with_fields_set)
 
 
-def branches_dict_from_list(branches: List[Tree]
-                            ) -> Generator[Any, Any, Dict[str, Tree]]:
+def branches_dict_from_list(branches: List["Tree"]
+                            ) -> Generator[Any, Any, Dict[str, "Tree"]]:
     nodes: Set[str] = set()
     for i, tree in enumerate(branches):
         nodes2 = set(tree.all_nodes)
@@ -22,7 +20,7 @@ def branches_dict_from_list(branches: List[Tree]
 
 
 # Roughly equivalent to branch_dict_from_list
-def branches_dict_from_list2(branches: List[Tree]) -> Dict[str, Tree]:
+def branches_dict_from_list2(branches: List["Tree"]) -> Dict[str, "Tree"]:
     nodes: Set[str] = set()
     errors: Dict[str, ValidationError] = {}
     for i, tree in enumerate(branches):
@@ -35,7 +33,7 @@ def branches_dict_from_list2(branches: List[Tree]) -> Dict[str, Tree]:
     return {b.node: b for b in branches}
 
 
-def branches_dict_to_list(branches: Dict[str, Tree]) -> List[Tree]:
+def branches_dict_to_list(branches: Dict[str, "Tree"]) -> List["Tree"]:
     return list(branches.values())
 
 
@@ -43,7 +41,7 @@ def branches_dict_to_list(branches: Dict[str, Tree]) -> List[Tree]:
 @dataclass
 class Tree:
     node: str
-    branches: Dict[str, Tree] = field(default_factory=dict, metadata=(
+    branches: Dict[str, "Tree"] = field(default_factory=dict, metadata=(
             field_input_converter(branches_dict_from_list) |
             field_output_converter(branches_dict_to_list)
     ))
