@@ -1,21 +1,32 @@
+from dataclasses import Field
 from functools import wraps
 from inspect import Parameter, isfunction, isgeneratorfunction, signature
 from types import MethodType
-from typing import (AbstractSet, Any, Callable, Iterable, Optional, Sequence,
-                    TypeVar,
-                    overload)
-
-from dataclasses import Field
+from typing import (
+    AbstractSet,
+    Any,
+    Callable,
+    Iterable,
+    Optional,
+    Sequence,
+    TypeVar,
+    overload,
+)
 
 from apischema.types import AnyType, DictWithUnion, Metadata
 from apischema.typing import NO_TYPE, Protocol
 from apischema.utils import PREFIX
 from apischema.validation.dependencies import find_all_dependencies
-from apischema.validation.errors import (ValidationError, build_from_errors, exception,
-                                         merge)
+from apischema.validation.errors import (
+    ValidationError,
+    build_from_errors,
+    exception,
+    merge,
+)
 from apischema.validation.mock import NonTrivialDependency
 
 if Protocol is not NO_TYPE:
+
     class ValidatorFunc(Protocol):
         @overload
         def __call__(self, _obj):
@@ -28,7 +39,6 @@ if Protocol is not NO_TYPE:
         def __call__(self, _obj, **kwargs):
             ...
 
-
     class BaseValidator(Protocol):
         @overload
         def validate(self, _obj):
@@ -40,6 +50,8 @@ if Protocol is not NO_TYPE:
 
         def validate(self, _obj, **kwargs):
             ...
+
+
 else:
     ValidatorFunc = Callable  # type: ignore
     BaseValidator = Callable  # type: ignore
@@ -53,8 +65,9 @@ class SimpleValidator:
         self.func = func
         parameters = signature(func).parameters
         validate = func
-        if not any(param.kind == Parameter.VAR_KEYWORD
-                   for param in parameters.values()):
+        if not any(
+            param.kind == Parameter.VAR_KEYWORD for param in parameters.values()
+        ):
             if not parameters:
                 raise TypeError("validator must have at least one parameter")
             params = set(list(parameters)[1:])
@@ -84,6 +97,7 @@ class SimpleValidator:
 class Validator(SimpleValidator):
     def __init__(self, func: Callable):
         if isgeneratorfunction(func):
+
             @wraps(func)
             def validate(_obj, **kwargs):
                 errors = []
@@ -155,9 +169,11 @@ def validate(_obj: T, _validators: Sequence[BaseValidator] = None, **kwargs) -> 
                 if err.error is None:
                     raise RuntimeError("Discard can only be raised in class Validator")
                 error = merge(error, err.error)
-                _validators = [v for v in _validators[i + 1:]
-                               if not isinstance(v, Validator)
-                               or not v.dependencies & err.fields]
+                _validators = [
+                    v
+                    for v in _validators[i + 1 :]
+                    if not isinstance(v, Validator) or not v.dependencies & err.fields
+                ]
                 break
             except NonTrivialDependency as exc:
                 assert isinstance(validator, Validator)

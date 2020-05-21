@@ -38,8 +38,9 @@ def find_dependencies(method: Callable) -> Dependencies:
 cache: Dict[Callable, Dependencies] = {}
 
 
-def find_all_dependencies(cls: type, method: Callable, rec_guard: Collection[str] = ()
-                          ) -> Dependencies:
+def find_all_dependencies(
+    cls: type, method: Callable, rec_guard: Collection[str] = ()
+) -> Dependencies:
     """Dependencies contains class variables (because they can be "fake" ones as in
        dataclasses)"""
     if method not in cache:

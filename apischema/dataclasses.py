@@ -1,17 +1,43 @@
+from dataclasses import (  # type: ignore
+    Field as BaseField,
+    InitVar,
+    MISSING,
+    _FIELDS,
+    _FIELD_CLASSVAR,
+    dataclass,
+    fields,
+    is_dataclass,
+)
 from enum import Enum, auto
-from typing import (Any, Callable, Dict, List, Optional, Pattern, Set, Tuple, Type,
-                    TypeVar,
-                    cast)
-
-from dataclasses import (Field as BaseField, InitVar, MISSING, _FIELDS,  # type: ignore
-                         _FIELD_CLASSVAR, dataclass, fields, is_dataclass)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Pattern,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    cast,
+)
 
 from apischema.alias import ALIAS_METADATA
-from apischema.conversion import (INPUT_METADATA, OUTPUT_METADATA, check_converter,
-                                  handle_potential_validation, substitute_type_vars)
+from apischema.conversion import (
+    INPUT_METADATA,
+    OUTPUT_METADATA,
+    check_converter,
+    handle_potential_validation,
+    substitute_type_vars,
+)
 from apischema.properties import PROPERTIES_METADATA
-from apischema.schema import (ANNOTATIONS_METADATA, Annotations, CONSTRAINT_METADATA,
-                              Constraint)
+from apischema.schema import (
+    ANNOTATIONS_METADATA,
+    Annotations,
+    CONSTRAINT_METADATA,
+    Constraint,
+)
 from apischema.types import AnyType
 from apischema.typing import get_type_hints
 from apischema.validation import get_validators
@@ -117,8 +143,10 @@ def cache_fields(cls: Type):
             type=field.type,
             input_type=input_type,
             output_type=output_type,
-            default=(field.default is not MISSING
-                     or field.default_factory is not MISSING),  # type: ignore
+            default=(
+                field.default is not MISSING
+                or field.default_factory is not MISSING  # type: ignore
+            ),
             kind=kind,
             annotations=metadata.get(ANNOTATIONS_METADATA),
             constraint=metadata.get(CONSTRAINT_METADATA),
@@ -132,18 +160,27 @@ def cache_fields(cls: Type):
             if pattern is None:
                 if input_additional or output_additional:
                     raise TypeError(f"Multiple additional properties for class {cls}")
-                _add_field_to_lists(new_field, new_field.kind,
-                                    input_additional, output_additional)
+                _add_field_to_lists(
+                    new_field, new_field.kind, input_additional, output_additional
+                )
             else:
-                _add_field_to_lists((pattern, new_field), new_field.kind,
-                                    input_patterns, output_patterns)
+                _add_field_to_lists(
+                    (pattern, new_field),
+                    new_field.kind,
+                    input_patterns,
+                    output_patterns,
+                )
         else:
-            _add_field_to_lists(new_field, new_field.kind,
-                                input_fields, output_fields)
-    _input_fields[cls] = (input_fields, input_patterns,
-                          input_additional[0] if input_additional else None)
-    _output_fields[cls] = (output_fields,
-                           [f for p, f in output_patterns] + output_additional)
+            _add_field_to_lists(new_field, new_field.kind, input_fields, output_fields)
+    _input_fields[cls] = (
+        input_fields,
+        input_patterns,
+        input_additional[0] if input_additional else None,
+    )
+    _output_fields[cls] = (
+        output_fields,
+        [f for p, f in output_patterns] + output_additional,
+    )
     for validator in get_validators(cls):
         validator.dependencies = {
             dep for dep in validator.dependencies if dep in all_fields

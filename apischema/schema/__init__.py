@@ -1,15 +1,25 @@
 __all__ = ["get_schema", "schema", "Schema", "Annotations", "Constraint"]
 
 from dataclasses import dataclass, fields
-from typing import (Any, Dict, Optional, Sequence, Type, TypeVar,
-                    Union, overload)
+from typing import Any, Dict, Optional, Sequence, Type, TypeVar, Union, overload
 
 from apischema.types import MetadataMixin, Number
-from .annotations import (ANNOTATIONS_METADATA, Annotations, _annotations,
-                          get_annotations)
-from .constraints import (ArrayConstraint, CONSTRAINT_METADATA, Constraint,
-                          NumberConstraint, ObjectConstraint, StringConstraint,
-                          _constraints, get_constraint)
+from .annotations import (
+    ANNOTATIONS_METADATA,
+    Annotations,
+    _annotations,
+    get_annotations,
+)
+from .constraints import (
+    ArrayConstraint,
+    CONSTRAINT_METADATA,
+    Constraint,
+    NumberConstraint,
+    ObjectConstraint,
+    StringConstraint,
+    _constraints,
+    get_constraint,
+)
 
 T = TypeVar("T")
 
@@ -40,8 +50,7 @@ class Schema(MetadataMixin):
 
     @property
     def items_(self) -> Union["Schema", Sequence["Schema"]]:
-        assert (self.constraint is None
-                or isinstance(self.constraint, ArrayConstraint))
+        assert self.constraint is None or isinstance(self.constraint, ArrayConstraint)
         annotations, constraint = None, None
         if self.annotations is not None:
             annotations = self.annotations.items
@@ -58,8 +67,7 @@ class Schema(MetadataMixin):
 
     @property
     def additional_properties(self) -> "Schema":
-        assert (self.constraint is None
-                or isinstance(self.constraint, ObjectConstraint))
+        assert self.constraint is None or isinstance(self.constraint, ObjectConstraint)
         annotations, constraint = None, None
         if self.annotations is not None:
             annotations = self.annotations.additional_properties
@@ -73,87 +81,101 @@ def get_schema(cls: Type) -> Schema:
 
 
 _constraint_rewrite = {
-    "min":        "minimum",
-    "max":        "maximum",
-    "exc_min":    "exclusive_minimum",
-    "exc_max":    "exclusive_maximum",
-    "mult_of":    "multiple_of",
-    "min_len":    "min_length",
-    "max_len":    "max_length",
-    "unique":     "unique_items",
+    "min": "minimum",
+    "max": "maximum",
+    "exc_min": "exclusive_minimum",
+    "exc_max": "exclusive_maximum",
+    "mult_of": "multiple_of",
+    "min_len": "min_length",
+    "max_len": "max_length",
+    "unique": "unique_items",
     "properties": "additional_properties",
 }
 
 
 @overload
-def schema(*, title: Optional[str] = None,
-           description: Optional[str] = None,
-           examples: Optional[Sequence[Any]] = None,
-           read_only: Optional[bool] = None,
-           write_only: Optional[bool] = None) -> Schema:
+def schema(
+    *,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    examples: Optional[Sequence[Any]] = None,
+    read_only: Optional[bool] = None,
+    write_only: Optional[bool] = None
+) -> Schema:
     ...
 
 
 @overload
-def schema(*, title: Optional[str] = None,
-           description: Optional[str] = None,
-           examples: Optional[Sequence[Any]] = None,
-           read_only: Optional[bool] = None,
-           write_only: Optional[bool] = None,
-           min: Optional[Number] = None,
-           max: Optional[Number] = None,
-           exc_min: Optional[Number] = None,
-           exc_max: Optional[Number] = None,
-           mult_of: Optional[Number] = None) -> Schema:
+def schema(
+    *,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    examples: Optional[Sequence[Any]] = None,
+    read_only: Optional[bool] = None,
+    write_only: Optional[bool] = None,
+    min: Optional[Number] = None,
+    max: Optional[Number] = None,
+    exc_min: Optional[Number] = None,
+    exc_max: Optional[Number] = None,
+    mult_of: Optional[Number] = None
+) -> Schema:
     ...
 
 
 @overload
-def schema(*, title: Optional[str] = None,
-           description: Optional[str] = None,
-           examples: Optional[Sequence[Any]] = None,
-           read_only: Optional[bool] = None,
-           write_only: Optional[bool] = None,
-           format: Optional[str] = None,
-           min_len: Optional[int] = None,
-           max_len: Optional[int] = None,
-           pattern: Optional[str] = None) -> Schema:
+def schema(
+    *,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    examples: Optional[Sequence[Any]] = None,
+    read_only: Optional[bool] = None,
+    write_only: Optional[bool] = None,
+    format: Optional[str] = None,
+    min_len: Optional[int] = None,
+    max_len: Optional[int] = None,
+    pattern: Optional[str] = None
+) -> Schema:
     ...
 
 
 @overload
-def schema(*, title: Optional[str] = None,
-           description: Optional[str] = None,
-           examples: Optional[Sequence[Any]] = None,
-           read_only: Optional[bool] = None,
-           write_only: Optional[bool] = None,
-           min_items: Optional[int] = None,
-           max_items: Optional[int] = None,
-           unique: Optional[bool] = None,
-           items: Optional[Union[Schema, Sequence[Schema]]] = None) -> Schema:
+def schema(
+    *,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    examples: Optional[Sequence[Any]] = None,
+    read_only: Optional[bool] = None,
+    write_only: Optional[bool] = None,
+    min_items: Optional[int] = None,
+    max_items: Optional[int] = None,
+    unique: Optional[bool] = None,
+    items: Optional[Union[Schema, Sequence[Schema]]] = None
+) -> Schema:
     ...
 
 
 @overload
-def schema(*, title: Optional[str] = None,
-           description: Optional[str] = None,
-           examples: Optional[Sequence[Any]] = None,
-           read_only: Optional[bool] = None,
-           write_only: Optional[bool] = None,
-           min_properties: Optional[int] = None,
-           max_properties: Optional[int] = None,
-           properties: Optional[Schema] = None) -> Schema:
+def schema(
+    *,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    examples: Optional[Sequence[Any]] = None,
+    read_only: Optional[bool] = None,
+    write_only: Optional[bool] = None,
+    min_properties: Optional[int] = None,
+    max_properties: Optional[int] = None,
+    properties: Optional[Schema] = None
+) -> Schema:
     ...
 
 
 def schema(**kwargs) -> Schema:
-    kwargs_ = {_constraint_rewrite.get(k, k): v
-               for k, v in kwargs.items()}
+    kwargs_ = {_constraint_rewrite.get(k, k): v for k, v in kwargs.items()}
     annotations_fields = {f.name for f in fields(Annotations)}
-    annotations_kwargs = {k: v for k, v in kwargs_.items()
-                          if k in annotations_fields}
-    constraint_kwargs = {k: v for k, v in kwargs_.items()
-                         if k not in annotations_kwargs}
+    annotations_kwargs = {k: v for k, v in kwargs_.items() if k in annotations_fields}
+    constraint_kwargs = {
+        k: v for k, v in kwargs_.items() if k not in annotations_kwargs
+    }
     if "additional_properties" in annotations_kwargs:
         schema1: Schema = annotations_kwargs["additional_properties"]
         annotations_kwargs["additional_properties"] = schema1.annotations
@@ -174,8 +196,12 @@ def schema(**kwargs) -> Schema:
 
     constraint = None
     if constraint_kwargs:
-        for cls in (NumberConstraint, StringConstraint,
-                    ArrayConstraint, ObjectConstraint):
+        for cls in (
+            NumberConstraint,
+            StringConstraint,
+            ArrayConstraint,
+            ObjectConstraint,
+        ):
             try:
                 constraint = cls(**constraint_kwargs)
                 break

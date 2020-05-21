@@ -1,8 +1,9 @@
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 
-def override_data(obj: Optional[Union[Dict, List]],
-                  key: str, value: Any, separator: str) -> Union[Dict, List]:
+def override_data(
+    obj: Optional[Union[Dict, List]], key: str, value: Any, separator: str
+) -> Union[Dict, List]:
     assert key
     # Use Any to prevent mypy to complain
     index: Any

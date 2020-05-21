@@ -1,15 +1,20 @@
 import sys
-
-import pytest
 from dataclasses import InitVar, dataclass, field
 
-from apischema import (build_input_schema, build_output_schema, from_data,
-                       schema, to_data)
+import pytest
+
+from apischema import (
+    build_input_schema,
+    build_output_schema,
+    from_data,
+    schema,
+    to_data,
+)
 
 if sys.version_info <= (3, 8):
     pytest.skip(
         "InitVar are not handled before 3.8 (https://bugs.python.org/issue33569)",
-        allow_module_level=True
+        allow_module_level=True,
     )
 
 
@@ -26,41 +31,23 @@ class Data:
 
 def test_data():
     assert to_data(build_input_schema(Data)) == {
-        "type":                 "object",
-        "required":             ["init_field", "write_only_field"],
+        "type": "object",
+        "required": ["init_field", "write_only_field"],
         "additionalProperties": False,
-        "properties":           {
-            "init_field":       {
-                "type":      "integer",
-                "writeOnly": True,
-            },
-            "write_only_field": {
-                "type":      "integer",
-                "writeOnly": True,
-            },
-            "read_only_field":  {
-                "type":     "integer",
-                "readOnly": True,
-            }
+        "properties": {
+            "init_field": {"type": "integer", "writeOnly": True},
+            "write_only_field": {"type": "integer", "writeOnly": True},
+            "read_only_field": {"type": "integer", "readOnly": True},
         },
     }
     assert to_data(build_output_schema(Data)) == {
-        "type":                 "object",
-        "required":             ["write_only_field", "not_init_field"],
+        "type": "object",
+        "required": ["write_only_field", "not_init_field"],
         "additionalProperties": False,
-        "properties":           {
-            "write_only_field": {
-                "type":      "integer",
-                "writeOnly": True,
-            },
-            "not_init_field":   {
-                "type":     "integer",
-                "readOnly": True,
-            },
-            "read_only_field":  {
-                "type":     "integer",
-                "readOnly": True,
-            }
+        "properties": {
+            "write_only_field": {"type": "integer", "writeOnly": True},
+            "not_init_field": {"type": "integer", "readOnly": True},
+            "read_only_field": {"type": "integer", "readOnly": True},
         },
     }
     data = from_data(Data, {"init_field": 0, "write_only_field": 1})
@@ -73,12 +60,9 @@ def test_data():
     # I could filter writeOnly properties at serialization (and readOnly at
     # deserialization), but this would make the code way more complex and I'm
     # not sure of the real interest of this "feature"
-    assert to_data(data) != {
-        "not_init_field":  0,
-        "read_only_field": 42
-    }
+    assert to_data(data) != {"not_init_field": 0, "read_only_field": 42}
     assert to_data(data) == {
         "write_only_field": 1,
-        "not_init_field":   0,
-        "read_only_field":  42
+        "not_init_field": 0,
+        "read_only_field": 42,
     }

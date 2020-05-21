@@ -33,19 +33,13 @@ class OrmEntity:
 def test_conversion():
     entity1 = OrmEntity(1, "me", ["tag"])
     entity2 = OrmEntity(2, "me", [])
-    assert to_data(entity1) == {
-        "id":    1,
-        "owner": "me",
-        "tags":  ["tag"]
-    } == to_data(entity1, conversions={OrmEntity: FullSerialization})
+    assert (
+        to_data(entity1)
+        == {"id": 1, "owner": "me", "tags": ["tag"]}
+        == to_data(entity1, conversions={OrmEntity: FullSerialization})
+    )
     entities = [entity1, entity2]
     assert to_data(entities, conversions={OrmEntity: LightSerialization}) == [
-        {
-            "id":    1,
-            "owner": "me"
-        },
-        {
-            "id":    2,
-            "owner": "me"
-        }
+        {"id": 1, "owner": "me"},
+        {"id": 2, "owner": "me"},
     ]

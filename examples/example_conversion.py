@@ -1,9 +1,7 @@
+from dataclasses import dataclass
 from typing import NewType
 
-from dataclasses import dataclass
-
-from apischema import (from_data, input_converter, output_converter, schema,
-                       to_data)
+from apischema import from_data, input_converter, output_converter, schema, to_data
 
 HexaRGB = NewType("HexaRGB", str)
 schema(pattern="^#[0-9a-fA-F]{6}$")(HexaRGB)
@@ -28,6 +26,7 @@ def rgb_from_str(hexa: HexaRGB) -> RGB:
 def test_rgb():
     assert from_data(RGB, "#FFFFFF") == RGB(255, 255, 255)
     assert to_data(RGB(0, 0, 0)) == "#000000"
+
 
 # Standard library types like UUID or datetime are handled this way
 # see std_types.py

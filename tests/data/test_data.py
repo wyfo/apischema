@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import (AbstractSet, Any, List, Mapping, Optional,
-                    Sequence, Set, Union)
+from typing import AbstractSet, Any, List, Mapping, Optional, Sequence, Set, Union
 from uuid import UUID, uuid4
 
 from pytest import mark, raises
@@ -62,10 +61,7 @@ def test_any(data):
     bijection(Any, data, data)
 
 
-@mark.parametrize("data, expected", [
-    (None, None),
-    ({"a": 0}, SimpleDataclass(0)),
-])
+@mark.parametrize("data, expected", [(None, None), ({"a": 0}, SimpleDataclass(0))])
 def test_optional(data, expected):
     bijection(Optional[SimpleDataclass], data, expected)
 
@@ -74,10 +70,7 @@ def test_optional_error():
     error(0, Optional[str])
 
 
-@mark.parametrize("data, expected", [
-    ("", ""),
-    ({"a": 0}, SimpleDataclass(0))
-])
+@mark.parametrize("data, expected", [("", ""), ({"a": 0}, SimpleDataclass(0))])
 def test_union(data, expected):
     bijection(Union[str, SimpleDataclass], data, expected)
 
@@ -92,12 +85,7 @@ def test_union_value_error():
         to_data(True, Union[str, List[str]])
 
 
-@mark.parametrize("cls, data", [
-    (int, 0),
-    (str, ""),
-    (bool, True),
-    (float, 0.0)
-])
+@mark.parametrize("cls, data", [(int, 0), (str, ""), (bool, True), (float, 0.0)])
 def test_primitive(cls, data):
     bijection(cls, data, data)
 
@@ -108,12 +96,15 @@ def test_primitive_error(data):
 
 
 # noinspection PyTypeChecker
-@mark.parametrize("cls, expected", [
-    (List, [0, SimpleDataclass(0)]),
-    (Set, {0, SimpleDataclass(0)}),
-    (Sequence, (0, SimpleDataclass(0))),
-    (AbstractSet, frozenset([0, SimpleDataclass(0)]))
-])
+@mark.parametrize(
+    "cls, expected",
+    [
+        (List, [0, SimpleDataclass(0)]),
+        (Set, {0, SimpleDataclass(0)}),
+        (Sequence, (0, SimpleDataclass(0))),
+        (AbstractSet, frozenset([0, SimpleDataclass(0)])),
+    ],
+)
 def test_iterable(cls, expected):
     data = [0, {"a": 0}]
     bijection(cls[Union[int, SimpleDataclass]], data, expected)
@@ -124,19 +115,19 @@ def test_iterable_error(data):
     error(data, List[str])
 
 
-@mark.parametrize("key_cls, data, expected", [
-    (str, {"int": 0, "SC": {"a": 0}}, {"int": 0, "SC": SimpleDataclass(0)}),
-    (UUID, {uuid: 0}, {UUID(uuid): 0}),
-    (UUID, {uuid: 0}, {UUID(uuid): 0}),
-])
+@mark.parametrize(
+    "key_cls, data, expected",
+    [
+        (str, {"int": 0, "SC": {"a": 0}}, {"int": 0, "SC": SimpleDataclass(0)}),
+        (UUID, {uuid: 0}, {UUID(uuid): 0}),
+        (UUID, {uuid: 0}, {UUID(uuid): 0}),
+    ],
+)
 def test_mapping(key_cls, data, expected):
     bijection(Mapping[key_cls, Union[int, SimpleDataclass]], data, expected)
 
 
-@mark.parametrize("data", [
-    [],
-    {"key": ""},
-])
+@mark.parametrize("data", [[], {"key": ""}])
 def test_mapping_error(data):
     error(data, Mapping[str, int])
 
@@ -170,12 +161,14 @@ def test_literal_error():
         to_data(1, Literal[0, "ok"])
 
 
-@mark.parametrize("data, expected", [
-    ({"nested": {"a": 0}}, Dataclass(SimpleDataclass(0), None)),
-    ({"nested": {"a": 0},
-      "opt":    None}, Dataclass(SimpleDataclass(0), None)),
-    ({"nested": {"a": 0}, "opt": 100}, Dataclass(SimpleDataclass(0), 100)),
-])
+@mark.parametrize(
+    "data, expected",
+    [
+        ({"nested": {"a": 0}}, Dataclass(SimpleDataclass(0), None)),
+        ({"nested": {"a": 0}, "opt": None}, Dataclass(SimpleDataclass(0), None)),
+        ({"nested": {"a": 0}, "opt": 100}, Dataclass(SimpleDataclass(0), 100)),
+    ],
+)
 def test_dataclass(data, expected):
     bijection(Dataclass, data, expected)
 
@@ -205,5 +198,4 @@ def test_properties():
         startswith_a: Mapping[str, Any] = field(metadata=properties("^a.*$"))
         others: Mapping[str, Any] = field(metadata=properties())
 
-    assert from_data(Test, {"plop": 0, "allo": 1}) == Test({"allo": 1},
-                                                           {"plop": 0})
+    assert from_data(Test, {"plop": 0, "allo": 1}) == Test({"allo": 1}, {"plop": 0})

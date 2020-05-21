@@ -5,7 +5,7 @@ from pytest import fixture, raises
 
 from apischema import ValidationError, validator
 from apischema.validation.mock import NonTrivialDependency, ValidatorMock
-from apischema.validation.validator import (Validator, get_validators, validate)
+from apischema.validation.validator import Validator, get_validators, validate
 
 
 @dataclass

@@ -1,6 +1,6 @@
+from dataclasses import dataclass, field
 from typing import ClassVar, cast
 
-from dataclasses import dataclass, field
 from pytest import raises
 
 from apischema.fields import FIELDS_SET_ATTR
@@ -33,8 +33,7 @@ def test_mock():
     assert mock.c == 42
     assert mock.d == 0
     assert mock.__class__ == Data
-    assert mock.__dict__ == {"a":             0, "b": "1",
-                             FIELDS_SET_ATTR: {"a"}}
+    assert mock.__dict__ == {"a": 0, "b": "1", FIELDS_SET_ATTR: {"a"}}
     assert mock.property == 1
     assert mock.method(1) == 1
     assert mock.classmethod(0) == 42

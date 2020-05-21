@@ -1,9 +1,7 @@
 from enum import Enum
-from typing import (Any, Dict, Iterable, Mapping, Sequence, Tuple,
-                    Type,
-                    TypeVar)
+from typing import Any, Dict, Iterable, Mapping, Sequence, Tuple, Type, TypeVar
 
-from apischema.conversion import (Converter, OutputVisitorMixin)
+from apischema.conversion import Converter, OutputVisitorMixin
 from apischema.data.common_errors import bad_literal, wrong_type
 from apischema.dataclasses import Field, get_output_fields_raw
 from apischema.fields import get_fields_set
@@ -40,23 +38,24 @@ class ToData(OutputVisitorMixin[Any, Any], Visitor[Any, Any]):
                 return self.visit(cls, obj)
             except:  # noqa
                 pass
-        raise ValueError(f"No union alternatives {list(alternatives)}"
-                         f" matches '{type(obj)}'")
+        raise ValueError(
+            f"No union alternatives {list(alternatives)}" f" matches '{type(obj)}'"
+        )
 
     def iterable(self, cls: Type[Iterable], value_type: Type, obj):
         check_type(obj, Iterable)
         return [self.visit(value_type, elt) for elt in obj]
 
-    def mapping(self, cls: Type[Mapping], key_type: Type,
-                value_type: Type, obj):
+    def mapping(self, cls: Type[Mapping], key_type: Type, value_type: Type, obj):
         check_type(obj, Mapping)
-        return check_mapping({
-            self.visit(key_type, key): self.visit(value_type, value)
-            for key, value in obj.items()
-        })
+        return check_mapping(
+            {
+                self.visit(key_type, key): self.visit(value_type, value)
+                for key, value in obj.items()
+            }
+        )
 
-    def typed_dict(self, cls: Type, keys: Mapping[str, Type],
-                   total: bool, obj):
+    def typed_dict(self, cls: Type, keys: Mapping[str, Type], total: bool, obj):
         check_type(obj, Mapping)
         if total and any(key not in obj for key in keys):
             raise ValueError(f"Typed '{cls}' is not total: {obj}")
@@ -68,8 +67,9 @@ class ToData(OutputVisitorMixin[Any, Any], Visitor[Any, Any]):
     def tuple(self, types: Sequence[Type], obj):
         check_type(obj, tuple)
         if len(obj) != len(types):
-            raise ValueError(f"Expected tuple length '{len(types)}',"
-                             f" got '{len(obj)}'")
+            raise ValueError(
+                f"Expected tuple length '{len(types)}'," f" got '{len(obj)}'"
+            )
         return [self.visit(cls, elt) for cls, elt in zip(types, obj)]
 
     def literal(self, values: Sequence[Any], obj):
@@ -108,10 +108,9 @@ class ToData(OutputVisitorMixin[Any, Any], Visitor[Any, Any]):
 
     def any(self, obj):
         if isinstance(obj, Mapping):
-            return check_mapping({
-                self.visit(type(k), k): self.visit(type(v), v)
-                for k, v in obj.items()
-            })
+            return check_mapping(
+                {self.visit(type(k), k): self.visit(type(v), v) for k, v in obj.items()}
+            )
         if isinstance(obj, str):
             return self.visit(type(obj), obj)
         if isinstance(obj, Iterable):
@@ -128,9 +127,13 @@ class ToData(OutputVisitorMixin[Any, Any], Visitor[Any, Any]):
 T = TypeVar("T")
 
 
-def to_data(obj: T, cls: Type[T] = None,
-            conversions: Mapping[Type, Type] = None,
-            *, exclude_unset: bool = True) -> Any:
+def to_data(
+    obj: T,
+    cls: Type[T] = None,
+    conversions: Mapping[Type, Type] = None,
+    *,
+    exclude_unset: bool = True,
+) -> Any:
     if cls is None:
         cls = type(obj)
     if conversions is None:

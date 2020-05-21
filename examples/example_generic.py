@@ -1,11 +1,18 @@
+from dataclasses import dataclass
 from typing import Any, Generic, List, TypeVar, Union
 
-from dataclasses import dataclass
 from pytest import raises
 from typing_extensions import Annotated
 
-from apischema import (Ignored, ValidationError, build_input_schema, from_data, schema,
-                       to_data, with_fields_set)
+from apischema import (
+    Ignored,
+    ValidationError,
+    build_input_schema,
+    from_data,
+    schema,
+    to_data,
+    with_fields_set,
+)
 
 
 class NoResult:
@@ -43,27 +50,22 @@ class Result(Generic[T]):
 def test_result():
     assert to_data(build_input_schema(Result[List[int]])) == {
         "additionalProperties": False,
-        "maxProperties":        1,
-        "minProperties":        1,
-        "properties":           {
-            "result": {
-                "type":  "array",
-                "items": {
-                    "type": "integer",
-                }
-            },
-            "error":  {
+        "maxProperties": 1,
+        "minProperties": 1,
+        "properties": {
+            "result": {"type": "array", "items": {"type": "integer"}},
+            "error": {
                 "additionalProperties": False,
-                "properties":           {
-                    "code":        {"type": "integer"},
+                "properties": {
+                    "code": {"type": "integer"},
                     "description": {"type": "string"},
-                    "data":        {}
+                    "data": {},
                 },
-                "required":             ["code", "description"],
-                "type":                 "object"
+                "required": ["code", "description"],
+                "type": "object",
             },
         },
-        "type":                 "object"
+        "type": "object",
     }
 
     data = {"result": 0}

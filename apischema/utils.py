@@ -1,7 +1,15 @@
-from typing import (Any, Callable, Dict, Generator, Generic, Hashable, Iterable,
-                    TypeVar, Union)
-
 from dataclasses import fields, is_dataclass
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    Generic,
+    Hashable,
+    Iterable,
+    TypeVar,
+    Union,
+)
 
 PREFIX = "_apischema_"
 NO_DEFAULT = object()
@@ -19,8 +27,7 @@ def distinct(values: Iterable[Hashable_]) -> Iterable[Hashable_]:
             yield value
 
 
-def to_hashable(data: Union[None, int, float, str, bool, list, dict]
-                ) -> Hashable:
+def to_hashable(data: Union[None, int, float, str, bool, list, dict]) -> Hashable:
     if isinstance(data, list):
         return tuple(map(to_hashable, data))
     if isinstance(data, dict):

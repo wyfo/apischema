@@ -1,6 +1,6 @@
+from dataclasses import dataclass, field
 from typing import List, Tuple
 
-from dataclasses import dataclass, field
 from pytest import raises
 
 from apischema import Discard, ValidationError, from_data, get_fields, validator
@@ -30,7 +30,7 @@ class Result:
         min_bound, max_bound = self.bounds
         for index, value in enumerate(self.values):
             if not min_bound <= value <= max_bound:
-                yield index, f"value exceeds bounds"
+                yield index, "value exceeds bounds"
 
 
 def test_result():
@@ -48,9 +48,9 @@ def test_bad_bounds():
     }
     with raises(ValidationError) as err:
         from_data(Result, data)
-    assert err.value == ValidationError(children={
-        "bounds": ValidationError(["bounds are not sorted"])
-    })
+    assert err.value == ValidationError(
+        children={"bounds": ValidationError(["bounds are not sorted"])}
+    )
 
 
 def test_bad_values():
@@ -60,7 +60,9 @@ def test_bad_values():
     }
     with raises(ValidationError) as err:
         from_data(Result, data)
-    assert err.value == ValidationError(children={
-        "2": ValidationError(["value exceeds bounds"]),
-        "4": ValidationError(["value exceeds bounds"]),
-    })
+    assert err.value == ValidationError(
+        children={
+            "2": ValidationError(["value exceeds bounds"]),
+            "4": ValidationError(["value exceeds bounds"]),
+        }
+    )

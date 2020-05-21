@@ -1,12 +1,17 @@
-from enum import Enum, EnumMeta
-from typing import (Any, Dict, Generic, Iterable, Mapping, Sequence, Type,
-                    TypeVar, Union)
-
 from dataclasses import is_dataclass
+from enum import Enum, EnumMeta
+from typing import Any, Dict, Generic, Iterable, Mapping, Sequence, Type, TypeVar, Union
 
 from apischema.types import ITERABLE_TYPES, MAPPING_TYPES, PRIMITIVE_TYPE
-from apischema.typing import (Literal, NamedTupleMeta, _AnnotatedAlias, _LiteralMeta,
-                              _TypedDictMeta, _type_repr, get_type_hints)
+from apischema.typing import (
+    Literal,
+    NamedTupleMeta,
+    _AnnotatedAlias,
+    _LiteralMeta,
+    _TypedDictMeta,
+    _type_repr,
+    get_type_hints,
+)
 
 PRIMITIVE_TYPE_IDS = set(map(id, PRIMITIVE_TYPE))
 
@@ -39,16 +44,17 @@ class Visitor(Generic[Arg, Return]):
     def union(self, alternatives: Sequence[Type], arg: Arg) -> Return:
         raise NotImplementedError()
 
-    def iterable(self, cls: Type[Iterable], value_type: Type,
-                 arg: Arg) -> Return:
+    def iterable(self, cls: Type[Iterable], value_type: Type, arg: Arg) -> Return:
         raise NotImplementedError()
 
-    def mapping(self, cls: Type[Mapping], key_type: Type, value_type: Type,
-                arg: Arg) -> Return:
+    def mapping(
+        self, cls: Type[Mapping], key_type: Type, value_type: Type, arg: Arg
+    ) -> Return:
         raise NotImplementedError()
 
-    def typed_dict(self, cls: Type, keys: Mapping[str, Type], total: bool,
-                   arg: Arg) -> Return:
+    def typed_dict(
+        self, cls: Type, keys: Mapping[str, Type], total: bool, arg: Arg
+    ) -> Return:
         raise NotImplementedError()
 
     def tuple(self, types: Sequence[Type], arg: Arg) -> Return:
@@ -72,12 +78,16 @@ class Visitor(Generic[Arg, Return]):
     def any(self, arg: Arg) -> Return:
         raise NotImplementedError()
 
-    def annotated(self, cls: Type, annotations: Sequence[Any],
-                  arg: Arg) -> Return:
+    def annotated(self, cls: Type, annotations: Sequence[Any], arg: Arg) -> Return:
         return self.visit(cls, arg)
 
-    def named_tuple(self, cls: Type, types: Mapping[str, Type],
-                    defaults: Mapping[str, Any], arg: Arg) -> Return:
+    def named_tuple(
+        self,
+        cls: Type,
+        types: Mapping[str, Type],
+        defaults: Mapping[str, Any],
+        arg: Arg,
+    ) -> Return:
         raise TypeError("NamedTuple is not handled")
 
     def visit(self, cls: Type, arg: Arg) -> Return:
@@ -147,7 +157,8 @@ class Visitor(Generic[Arg, Return]):
         if isinstance(cls, _LiteralMeta):
             return self.literal(cls.__values__, arg)
         if hasattr(cls, "__parameters__"):
-            params = tuple(self._generics.get(p, Any)
-                           for p in getattr(cls, "__parameters__"))
+            params = tuple(
+                self._generics.get(p, Any) for p in getattr(cls, "__parameters__")
+            )
             raise Unsupported(cls[params])
         raise Unsupported(cls)

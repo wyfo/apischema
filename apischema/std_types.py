@@ -1,8 +1,14 @@
 import re
 import sys
 from datetime import date, datetime, time
-from ipaddress import (IPv4Address, IPv4Interface, IPv4Network,
-                       IPv6Address, IPv6Interface, IPv6Network)
+from ipaddress import (
+    IPv4Address,
+    IPv4Interface,
+    IPv4Network,
+    IPv6Address,
+    IPv6Interface,
+    IPv6Network,
+)
 from typing import Pattern
 from uuid import UUID
 

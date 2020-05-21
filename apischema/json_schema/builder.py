@@ -1,31 +1,51 @@
+from dataclasses import is_dataclass, replace
 from enum import Enum
 from itertools import chain
-from typing import (Any, Callable, Dict, Iterable, List, Mapping, Optional, Pattern,
-                    Sequence,
-                    Set, Tuple, Type, Union)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Pattern,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    Union,
+)
 
-from dataclasses import is_dataclass, replace
-
-from apischema.conversion import (Converter, InputVisitorMixin,
-                                  OutputVisitorMixin)
+from apischema.conversion import Converter, InputVisitorMixin, OutputVisitorMixin
 from apischema.data import to_data
-from apischema.dataclasses import (Field, FieldCache, FieldKind, get_input_fields,
-                                   get_output_fields)
-from apischema.fields import (NoDefault, get_default, get_fields_set, mark_set_fields)
+from apischema.dataclasses import (
+    Field,
+    FieldCache,
+    FieldKind,
+    get_input_fields,
+    get_output_fields,
+)
+from apischema.fields import NoDefault, get_default, get_fields_set, mark_set_fields
 from apischema.ignore import Ignored
 from apischema.json_schema.types import JSONSchema, JSONType
 from apischema.schema import Constraint, Schema
 from apischema.schema.annotations import get_annotations
-from apischema.schema.constraints import (ArrayConstraint, NumberConstraint,
-                                          ObjectConstraint, StringConstraint,
-                                          get_constraint)
+from apischema.schema.constraints import (
+    ArrayConstraint,
+    NumberConstraint,
+    ObjectConstraint,
+    StringConstraint,
+    get_constraint,
+)
 from apischema.utils import NO_DEFAULT, as_dict
 from apischema.visitor import Visitor
 
 constraint_by_type = {
-    int:   NumberConstraint,
+    int: NumberConstraint,
     float: NumberConstraint,
-    str:   StringConstraint,
+    str: StringConstraint,
 }
 
 
@@ -37,25 +57,30 @@ def check_constraint(schema: Schema, expected: Type[Constraint]):
     if schema.constraint is not None:
         if not isinstance(schema.constraint, expected):
             if not isinstance(schema.constraint, ReadWriteOnly):
-                raise TypeError(f"Bad constraint: expected {expected.__name__}"
-                                f" found {type(schema.constraint).__name__}")
+                raise TypeError(
+                    f"Bad constraint: expected {expected.__name__}"
+                    f" found {type(schema.constraint).__name__}"
+                )
 
 
-def _remove_none(obj: Optional[Any]) -> Iterable[Tuple[str, Any]]:
+def _remove_none(obj: Optional[Any]) -> Iterator[Tuple[str, Any]]:
     if obj is None:
-        return iter(())
-    return ((k, v) for k, v in as_dict(obj).items()
-            if v is not None and v is not NO_DEFAULT
-            and k not in ("items", "additional_properties"))
+        return
+    for k, v in as_dict(obj).items():
+        filtered = {"items", "additional_properties"}
+        if v is not None and v is not NO_DEFAULT and k not in filtered:
+            yield k, v
 
 
 def _to_dict(schema: Schema) -> Mapping[str, Any]:
-    return dict(chain(_remove_none(schema.annotations),
-                      _remove_none(schema.constraint)))
+    return dict(
+        chain(_remove_none(schema.annotations), _remove_none(schema.constraint))
+    )
 
 
-def _merge_constraints(c1: Optional[Constraint],
-                       c2: Optional[Constraint]) -> Optional[Constraint]:
+def _merge_constraints(
+    c1: Optional[Constraint], c2: Optional[Constraint]
+) -> Optional[Constraint]:
     if c1 is None:
         return c2
     if c2 is None:
@@ -63,14 +88,17 @@ def _merge_constraints(c1: Optional[Constraint],
     if isinstance(c1, ReadWriteOnly):
         return type(c2)(**{**as_dict(c1), **as_dict(c2)})
     elif Constraint != type(c1) != type(c2) != Constraint:
-        raise TypeError(f"Incompatibles constraints {type(c1).__name__}"
-                        f" and {type(c2).__name__}")
+        raise TypeError(
+            f"Incompatibles constraints {type(c1).__name__}" f" and {type(c2).__name__}"
+        )
     return c1
 
 
 def _override(schema: Schema, cls: Type) -> Schema:
-    return Schema(schema.annotations or get_annotations(cls),
-                  _merge_constraints(schema.constraint, get_constraint(cls)))
+    return Schema(
+        schema.annotations or get_annotations(cls),
+        _merge_constraints(schema.constraint, get_constraint(cls)),
+    )
 
 
 def _field_schema(field: Field) -> Schema:
@@ -87,8 +115,8 @@ def _field_schema(field: Field) -> Schema:
 def _extract_properties_schema(json_schema: JSONSchema) -> JSONSchema:
     if json_schema.pattern_properties is not None:
         if (
-                len(json_schema.pattern_properties) >= 1
-                or json_schema.additional_properties
+            len(json_schema.pattern_properties) >= 1
+            or json_schema.additional_properties
         ):  # don't try to merge the schemas and return
             return JSONSchema()
         return next(iter(json_schema.pattern_properties.values()))
@@ -108,16 +136,14 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
 
     @staticmethod
     def _missing_ref_factory(cls: Type) -> str:
-        raise TypeError("reference factory is needed to handle"
-                        " recursive types")
+        raise TypeError("reference factory is needed to handle" " recursive types")
 
     def primitive(self, cls: Type, schema: Schema) -> JSONSchema:
         if cls in constraint_by_type:
             check_constraint(schema, constraint_by_type[cls])
         return JSONSchema(type=JSONType.from_type(cls), **_to_dict(schema))
 
-    def union(self, alternatives: Sequence[Type],
-              schema: Schema) -> JSONSchema:
+    def union(self, alternatives: Sequence[Type], schema: Schema) -> JSONSchema:
         any_of = []
         for cls in alternatives:
             try:
@@ -129,17 +155,21 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
         else:
             return JSONSchema(any_of=any_of)
 
-    def iterable(self, cls: Type[Iterable], value_type: Type,
-                 schema: Schema) -> JSONSchema:
+    def iterable(
+        self, cls: Type[Iterable], value_type: Type, schema: Schema
+    ) -> JSONSchema:
         check_constraint(schema, ArrayConstraint)
         if isinstance(schema.items_, Sequence):
             raise TypeError("Iterable items schema cannot be a list of schema")
-        return JSONSchema(type=JSONType.ARRAY,
-                          items=self.visit(value_type, schema.items_),
-                          **_to_dict(schema))
+        return JSONSchema(
+            type=JSONType.ARRAY,
+            items=self.visit(value_type, schema.items_),
+            **_to_dict(schema),
+        )
 
-    def mapping(self, cls: Type[Mapping], key_type: Type, value_type: Type,
-                schema: Schema) -> JSONSchema:
+    def mapping(
+        self, cls: Type[Mapping], key_type: Type, value_type: Type, schema: Schema
+    ) -> JSONSchema:
         check_constraint(schema, ObjectConstraint)
         key = self.visit(key_type, Schema())
         value = self.visit(value_type, schema.additional_properties)
@@ -148,36 +178,41 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
             properties["pattern_properties"] = {key.pattern: value}
         else:
             properties["additional_properties"] = value
-        return JSONSchema(type=JSONType.OBJECT, **properties,  # type: ignore
-                          **_to_dict(schema))
+        return JSONSchema(  # type: ignore
+            type=JSONType.OBJECT, **properties, **_to_dict(schema),
+        )
 
-    def typed_dict(self, cls: Type, keys: Mapping[str, Type], total: bool,
-                   schema: Schema) -> JSONSchema:
+    def typed_dict(
+        self, cls: Type, keys: Mapping[str, Type], total: bool, schema: Schema
+    ) -> JSONSchema:
         if cls in self.schemas:
             return JSONSchema(ref=self.ref_factory(cls))
         check_constraint(schema, ObjectConstraint)
         if schema.additional_properties:
-            raise TypeError("additional properties are not handled"
-                            " for TypedDict")
+            raise TypeError("additional properties are not handled" " for TypedDict")
         sorted_keys = sorted(keys)
-        return JSONSchema(type=JSONType.OBJECT,
-                          properties={key: self.visit(keys[key], Schema())
-                                      for key in sorted_keys},
-                          required=sorted_keys if total else [],
-                          additional_properties=True, **_to_dict(schema))
+        return JSONSchema(
+            type=JSONType.OBJECT,
+            properties={key: self.visit(keys[key], Schema()) for key in sorted_keys},
+            required=sorted_keys if total else [],
+            additional_properties=True,
+            **_to_dict(schema),
+        )
 
     def tuple(self, types: Sequence[Type], schema: Schema) -> JSONSchema:
         check_constraint(schema, ArrayConstraint)
         if schema.constraint is not None:
             assert isinstance(schema.constraint, ArrayConstraint)
-            if (schema.constraint.max_items is not None
-                    or schema.constraint.min_items is not None):
-                raise TypeError("Tuple cannot have min_items/max_items"
-                                " constraint")
+            if (
+                schema.constraint.max_items is not None
+                or schema.constraint.min_items is not None
+            ):
+                raise TypeError("Tuple cannot have min_items/max_items" " constraint")
         if isinstance(schema.items_, Sequence):
             if len(schema.items_) != len(types):
-                raise TypeError("Tuple items schema list must have the same"
-                                " length than tuple")
+                raise TypeError(
+                    "Tuple items schema list must have the same" " length than tuple"
+                )
         items = []
         for i, cls in enumerate(types):
             if isinstance(schema.items_, Sequence):
@@ -185,26 +220,31 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
             else:
                 elt_schema = schema.items_
             items.append(self.visit(cls, elt_schema))
-        return JSONSchema(type=JSONType.ARRAY, items=items,
-                          min_items=len(types), max_items=len(types),
-                          **_to_dict(schema))
+        return JSONSchema(
+            type=JSONType.ARRAY,
+            items=items,
+            min_items=len(types),
+            max_items=len(types),
+            **_to_dict(schema),
+        )
 
     def literal(self, values: Sequence[Any], schema: Schema) -> JSONSchema:
         if not values:
             raise TypeError("empty Literal")
         if schema.constraint is not None:
             raise TypeError("Literal cannot have constraint")
-        types = sorted(set(
-            JSONType.from_type(type(v.value if isinstance(v, Enum) else v))
-            for v in values
-        ))
-        type_ = types[0] if len(types) == 1 else types
+        types = sorted(
+            set(
+                JSONType.from_type(type(v.value if isinstance(v, Enum) else v))
+                for v in values
+            )
+        )
+        # Mypy issue
+        type_: Any = types[0] if len(types) == 1 else types
         if len(values) == 1:
-            return JSONSchema(type=type_, const=values[0],  # type: ignore
-                              **_to_dict(schema))
+            return JSONSchema(type=type_, const=values[0], **_to_dict(schema),)
         else:
-            return JSONSchema(type=type_, enum=values,  # type: ignore
-                              **_to_dict(schema))
+            return JSONSchema(type=type_, enum=values, **_to_dict(schema),)
 
     def _dataclass_fields(self, cls: Type) -> FieldCache:
         raise NotImplementedError()
@@ -245,8 +285,9 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
             kwargs["additional_properties"] = additional_properties
         if pattern_properties:
             kwargs["pattern_properties"] = pattern_properties
-        return JSONSchema(type=JSONType.OBJECT,  # type: ignore
-                          **kwargs, **_to_dict(schema_))
+        return JSONSchema(  # type: ignore
+            type=JSONType.OBJECT, **kwargs, **_to_dict(schema_),
+        )
 
     def enum(self, cls: Type[Enum], schema: Schema) -> JSONSchema:
         if schema.constraint is not None:
@@ -255,8 +296,7 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
             raise TypeError("Empty enum")
         return self.literal(list(cls), _override(schema, cls))
 
-    def new_type(self, cls: Type, super_type: Type, schema: Schema
-                 ) -> JSONSchema:
+    def new_type(self, cls: Type, super_type: Type, schema: Schema) -> JSONSchema:
         return self.visit(super_type, _override(schema, cls))
 
     def any(self, schema: Schema) -> JSONSchema:
@@ -264,8 +304,9 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
             raise TypeError("Any type cannot have constraint")
         return JSONSchema()
 
-    def annotated(self, cls: Type, annotations: Sequence[Any],
-                  schema: Schema) -> JSONSchema:
+    def annotated(
+        self, cls: Type, annotations: Sequence[Any], schema: Schema
+    ) -> JSONSchema:
         schema_ = schema
         if Ignored in annotations:
             raise Ignored
@@ -273,21 +314,22 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
             if isinstance(annotation, Schema):
                 schema_ = Schema(
                     schema.annotations or annotation.annotations,
-                    _merge_constraints(schema.constraint,
-                                       annotation.constraint)
+                    _merge_constraints(schema.constraint, annotation.constraint),
                 )
                 break
         return self.visit(cls, schema_)
 
 
 class InputSchemaBuilder(InputVisitorMixin[Schema, JSONSchema], SchemaBuilder):
-    def __init__(self, ref_factory: Optional[Callable[[Type], str]],
-                 additional_properties: bool):
+    def __init__(
+        self, ref_factory: Optional[Callable[[Type], str]], additional_properties: bool
+    ):
         SchemaBuilder.__init__(self, ref_factory)
         self.additional_properties = additional_properties
 
-    def _custom(self, cls: Type, custom: Dict[Type, Converter],
-                schema: Schema) -> JSONSchema:
+    def _custom(
+        self, cls: Type, custom: Dict[Type, Converter], schema: Schema
+    ) -> JSONSchema:
         return self.union(list(custom), _override(schema, cls))
 
     _dataclass_fields = staticmethod(get_input_fields)  # type: ignore
@@ -307,28 +349,37 @@ class InputSchemaBuilder(InputVisitorMixin[Schema, JSONSchema], SchemaBuilder):
         json_schema = super().dataclass(cls, schema)
         if json_schema.additional_properties is False:
             # TODO document that `dataclasses.replace` don't keep fields set
-            return mark_set_fields(replace(
-                json_schema, additional_properties=self.additional_properties
-            ), *get_fields_set(json_schema), overwrite=True)
+            return mark_set_fields(
+                replace(json_schema, additional_properties=self.additional_properties),
+                *get_fields_set(json_schema),
+                overwrite=True,
+            )
         return json_schema
 
 
-def build_input_schema(cls: Type, *, ref_factory: Callable[[Type], str] = None,
-                       additional_properties: bool = False,
-                       schema: Schema = None) -> JSONSchema:
+def build_input_schema(
+    cls: Type,
+    *,
+    ref_factory: Callable[[Type], str] = None,
+    additional_properties: bool = False,
+    schema: Schema = None,
+) -> JSONSchema:
     builder = InputSchemaBuilder(ref_factory, additional_properties)
     return builder.visit(cls, schema or Schema())
 
 
-class OutputSchemaBuilder(OutputVisitorMixin[Schema, JSONSchema],
-                          SchemaBuilder):
-    def __init__(self, conversions: Mapping[Type, Type],
-                 ref_factory: Optional[Callable[[Type], str]]):
+class OutputSchemaBuilder(OutputVisitorMixin[Schema, JSONSchema], SchemaBuilder):
+    def __init__(
+        self,
+        conversions: Mapping[Type, Type],
+        ref_factory: Optional[Callable[[Type], str]],
+    ):
         SchemaBuilder.__init__(self, ref_factory)
         OutputVisitorMixin.__init__(self, conversions)
 
-    def _custom(self, cls: Type, custom: Tuple[Type, Converter],
-                schema: Schema) -> JSONSchema:
+    def _custom(
+        self, cls: Type, custom: Tuple[Type, Converter], schema: Schema
+    ) -> JSONSchema:
         return self.visit(custom[0], _override(schema, cls))
 
     _dataclass_fields = staticmethod(get_output_fields)  # type: ignore
@@ -345,8 +396,12 @@ class OutputSchemaBuilder(OutputVisitorMixin[Schema, JSONSchema],
         return self.visit(field.output_type, schema)
 
 
-def build_output_schema(cls: Type, conversions: Mapping[Type, Type] = None, *,
-                        ref_factory: Callable[[Type], str] = None,
-                        schema: Schema = None) -> JSONSchema:
+def build_output_schema(
+    cls: Type,
+    conversions: Mapping[Type, Type] = None,
+    *,
+    ref_factory: Callable[[Type], str] = None,
+    schema: Schema = None,
+) -> JSONSchema:
     builder = OutputSchemaBuilder(conversions or {}, ref_factory)
     return builder.visit(cls, schema or Schema())

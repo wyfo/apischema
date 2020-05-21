@@ -11,14 +11,13 @@ __all__ = [
     "_TypedDictMeta",
     "get_type_hints",
     "set_type_hints",
-    "_type_repr"
+    "_type_repr",
 ]
 
 import sys
 import types
-from typing import (Any, Dict, Generic, Mapping, NamedTuple, Optional, Type, TypeVar)
-
 from dataclasses import is_dataclass
+from typing import Any, Dict, Generic, Mapping, NamedTuple, Optional, Type, TypeVar
 
 
 class NoType:
@@ -29,7 +28,7 @@ class NoType:
 NO_TYPE: Any = NoType()
 
 if sys.version_info >= (3, 9):
-    from typing import Annotated, get_type_hints
+    from typing import Annotated, get_type_hints as gth
 else:
     try:
         from typing_extensions import Annotated
@@ -40,9 +39,9 @@ else:
     except ImportError:
         from typing import get_type_hints as gth_
 
-
         def gth(obj, globalns=None, localns=None, include_extras=False):  # type: ignore
             return gth_(obj, globalns, localns)
+
 
 if sys.version_info >= (3, 8):
     from typing import Literal, Protocol, TypedDict
@@ -71,8 +70,12 @@ _type_hints: Dict[str, Mapping[str, Type]] = {}
 NS = Dict[str, Any]
 
 
-def get_type_hints(obj, globalns: Optional[NS] = None,
-                   localns: Optional[NS] = None, include_extras=False):
+def get_type_hints(
+    obj,
+    globalns: Optional[NS] = None,
+    localns: Optional[NS] = None,
+    include_extras=False,
+):
     try:
         return _type_hints[obj]
     except (KeyError, TypeError):
@@ -93,11 +96,11 @@ except ImportError:
     # copy from typing._type_repr in case of ...
     def _type_repr(obj):
         if isinstance(obj, type):
-            if obj.__module__ == 'builtins':
+            if obj.__module__ == "builtins":
                 return obj.__qualname__
-            return f'{obj.__module__}.{obj.__qualname__}'
+            return f"{obj.__module__}.{obj.__qualname__}"
         if obj is ...:
-            return ('...')
+            return "..."
         if isinstance(obj, types.FunctionType):
             return obj.__name__
         return repr(obj)

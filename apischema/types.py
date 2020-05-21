@@ -1,10 +1,23 @@
 import collections.abc
 import sys
-from typing import (AbstractSet, Any, Collection, Dict, FrozenSet, Iterable, List,
-                    Mapping, MutableMapping, MutableSequence, Sequence, Set, Tuple,
-                    Type, Union)
-
 from dataclasses import Field
+from typing import (
+    AbstractSet,
+    Any,
+    Collection,
+    Dict,
+    FrozenSet,
+    Iterable,
+    List,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    Union,
+)
 
 AnyType = Any
 NoneType: Type[None] = type(None)
@@ -15,48 +28,44 @@ PRIMITIVE_TYPE = {str, int, bool, float, NoneType}
 # Hack before PEP 585 ...
 if sys.version_info >= (3, 7):
     ITERABLE_TYPES = {
-        collections.abc.Iterable:        tuple,
-        collections.abc.Collection:      tuple,
-        collections.abc.Sequence:        tuple,
-        tuple:                           tuple,
+        collections.abc.Iterable: tuple,
+        collections.abc.Collection: tuple,
+        collections.abc.Sequence: tuple,
+        tuple: tuple,
         collections.abc.MutableSequence: list,
-        list:                            list,
-        collections.abc.Set:             frozenset,
-        frozenset:                       frozenset,
-        collections.abc.MutableSet:      set,
-        set:                             set
+        list: list,
+        collections.abc.Set: frozenset,
+        frozenset: frozenset,
+        collections.abc.MutableSet: set,
+        set: set,
     }
 
     MAPPING_TYPES = {
-        collections.abc.Mapping:        dict,
+        collections.abc.Mapping: dict,
         collections.abc.MutableMapping: dict,
-        dict:                           dict
+        dict: dict,
     }
 else:
     ITERABLE_TYPES = {
-        Iterable:        tuple,
-        Collection:      tuple,
-        Sequence:        tuple,
-        Tuple:           tuple,
+        Iterable: tuple,
+        Collection: tuple,
+        Sequence: tuple,
+        Tuple: tuple,
         MutableSequence: list,
-        List:            list,
-        AbstractSet:     frozenset,
-        FrozenSet:       frozenset,
-        Set:             set,
+        List: list,
+        AbstractSet: frozenset,
+        FrozenSet: frozenset,
+        Set: set,
     }
 
-    MAPPING_TYPES = {
-        Mapping:        dict,
-        MutableMapping: dict,
-        Dict:           dict
-    }
+    MAPPING_TYPES = {Mapping: dict, MutableMapping: dict, Dict: dict}
 
 UNTYPED_COLLECTIONS = {
-    tuple:     Tuple[Any, ...],
-    list:      List[Any],
+    tuple: Tuple[Any, ...],
+    list: List[Any],
     frozenset: AbstractSet[Any],
-    set:       Set[Any],
-    dict:      Dict[Any, Any]
+    set: Set[Any],
+    dict: Dict[Any, Any],
 }
 
 if sys.version_info >= (3, 7):
@@ -69,10 +78,10 @@ if sys.version_info >= (3, 9):
     Metadata = Mapping[str, Any]
     DictWithUnion = dict
 else:
+
     class Metadata(Mapping[str, Any]):
         def __or__(self, other: Mapping[str, Any]) -> "Metadata":
             return DictWithUnion({**self, **other})
-
 
     class DictWithUnion(Dict[str, Any], Metadata):  # noqa
         pass

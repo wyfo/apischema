@@ -1,10 +1,9 @@
+from dataclasses import dataclass, field
 from typing import NewType
 
-from dataclasses import dataclass, field
 from pytest import raises
 
-from apischema import (ValidationError, from_data, output_converter,
-                       to_data, validator)
+from apischema import ValidationError, from_data, output_converter, to_data, validator
 
 Password = NewType("Password", str)
 
@@ -26,29 +25,25 @@ class ChangePasswordForm:
 
 
 def test_change_password_form():
-    data = {
-        "password":     "5tr0ngP455w0rd!",
-        "confirmation": "5tr0ngP455w0rd!"
-    }
+    data = {"password": "5tr0ngP455w0rd!", "confirmation": "5tr0ngP455w0rd!"}
     form = from_data(ChangePasswordForm, data)
-    assert form == ChangePasswordForm(Password("5tr0ngP455w0rd!"),
-                                      Password("5tr0ngP455w0rd!"))
+    assert form == ChangePasswordForm(
+        Password("5tr0ngP455w0rd!"), Password("5tr0ngP455w0rd!")
+    )
     assert to_data(form) == {
-        "password":     "******",
+        "password": "******",
         "confirmation": "******",
     }
 
 
 def test_bad_confirmation():
     data = {
-        "password":     "password",
+        "password": "password",
         "confirmation": "1234",
     }
     with raises(ValidationError) as err:
         from_data(ChangePasswordForm, data)
-    assert err.value == ValidationError([
-        "password and its confirmation don't match",
-    ])
+    assert err.value == ValidationError(["password and its confirmation don't match"])
 
 
 def test_missing_confirmation():
@@ -57,6 +52,6 @@ def test_missing_confirmation():
     }
     with raises(ValidationError) as err:
         from_data(ChangePasswordForm, data)
-    assert err.value == ValidationError(children={
-        "confirmation": ValidationError(["missing field"])
-    })
+    assert err.value == ValidationError(
+        children={"confirmation": ValidationError(["missing field"])}
+    )

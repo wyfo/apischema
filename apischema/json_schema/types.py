@@ -21,12 +21,12 @@ class JSONType(Enum):
     def from_type(cls: Type) -> "JSONType":
         return {
             NoneType: JSONType.NULL,
-            bool:     JSONType.BOOLEAN,
-            str:      JSONType.STRING,
-            int:      JSONType.INTEGER,
-            float:    JSONType.NUMBER,
-            list:     JSONType.ARRAY,
-            dict:     JSONType.OBJECT,
+            bool: JSONType.BOOLEAN,
+            str: JSONType.STRING,
+            int: JSONType.INTEGER,
+            float: JSONType.NUMBER,
+            list: JSONType.ARRAY,
+            dict: JSONType.OBJECT,
         }[cls]
 
 

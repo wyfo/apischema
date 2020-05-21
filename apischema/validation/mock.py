@@ -1,8 +1,7 @@
+from dataclasses import Field, _FIELDS, _FIELD_CLASSVAR, dataclass  # type: ignore
 from functools import partial
 from types import FunctionType, MethodType
 from typing import Any, Callable, Mapping, Optional, Type
-
-from dataclasses import Field, _FIELDS, _FIELD_CLASSVAR, dataclass  # type: ignore
 
 from apischema.fields import FIELDS_SET_ATTR, get_default
 
@@ -18,8 +17,9 @@ class NonTrivialDependency(Exception):
 
 @dataclass
 class ValidatorMock:
-    def __init__(self, cls: Type, fields: Mapping[str, Any],
-                 defaults: Mapping[str, Field]):
+    def __init__(
+        self, cls: Type, fields: Mapping[str, Any], defaults: Mapping[str, Field]
+    ):
         self.cls = cls
         self.fields = fields
         self.defaults = defaults
@@ -39,7 +39,7 @@ class ValidatorMock:
             return {
                 **fields,
                 **{name: get_default(field) for name, field in defaults.items()},
-                FIELDS_SET_ATTR: set(fields)
+                FIELDS_SET_ATTR: set(fields),
             }
         if hasattr(cls, attr):
             member = getattr(cls, attr)
@@ -50,7 +50,9 @@ class ValidatorMock:
                 return partial(member, self)
             if isinstance(member, property):
                 return member.fget(self)  # type: ignore
-            if all(f.name != attr or f._field_type == _FIELD_CLASSVAR
-                   for f in getattr(cls, _FIELDS).values()):
+            if all(
+                f.name != attr or f._field_type == _FIELD_CLASSVAR
+                for f in getattr(cls, _FIELDS).values()
+            ):
                 return member
         raise NonTrivialDependency(attr)

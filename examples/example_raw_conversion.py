@@ -22,9 +22,9 @@ def check_binary(binary: bytes, checksum: int) -> CheckedBinary:
 
 
 def test_check_binary():
-    binary = b'data!'
+    binary = b"data!"
     data = {
-        "binary":   b64encode(binary).decode(),
+        "binary": b64encode(binary).decode(),
         "checksum": compute_checksum(binary),
     }
     assert from_data(CheckedBinary, data) == binary

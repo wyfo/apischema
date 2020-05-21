@@ -1,4 +1,4 @@
-from apischema.validation.dependencies import (find_all_dependencies, find_dependencies)
+from apischema.validation.dependencies import find_all_dependencies, find_dependencies
 
 
 def test_find_dependencies():

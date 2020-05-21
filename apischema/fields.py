@@ -1,10 +1,15 @@
-from dataclasses import (Field, MISSING, _FIELD, _FIELDS,  # type: ignore
-                         _FIELD_INITVAR, fields as fields_,
-                         is_dataclass)
+from dataclasses import (  # type: ignore
+    Field,
+    MISSING,
+    _FIELD,
+    _FIELDS,
+    _FIELD_INITVAR,
+    fields as fields_,
+    is_dataclass,
+)
 from functools import wraps
 from inspect import signature
-from typing import (AbstractSet, Any, Type,
-                    TypeVar, Union, cast)
+from typing import AbstractSet, Any, Type, TypeVar, Union, cast
 
 from apischema.utils import PREFIX
 
@@ -61,7 +66,7 @@ def with_fields_set(cls: Cls) -> Cls:
     def new_init(*args, **kwargs):
         args[0].__dict__[FIELDS_SET_ATTR] = set()
         old_init(*args, **kwargs)
-        arg_fields = {*params[1:len(args)], *kwargs} - init_fields
+        arg_fields = {*params[1 : len(args)], *kwargs} - init_fields
         args[0].__dict__[FIELDS_SET_ATTR] = arg_fields | post_init_fields
 
     @wraps(old_setattr)

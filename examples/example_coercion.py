@@ -1,6 +1,5 @@
-from typing import List, Mapping, NewType
-
 from dataclasses import dataclass, field
+from typing import List, Mapping, NewType
 
 from apischema import from_data, items_to_data, output_converter
 
@@ -22,16 +21,16 @@ class Config:
 
 def test_config():
     key_values = {
-        "username":                 "wyfo",
-        "password":                 "5tr0ngP455w0rd!",
-        "options.verbose":          "true",
+        "username": "wyfo",
+        "password": "5tr0ngP455w0rd!",
+        "options.verbose": "true",
         "options.execute_order_66": "no",
-        "authorized_domains.0":     "fr",
-        "authorized_domains.1":     "com",
+        "authorized_domains.0": "fr",
+        "authorized_domains.1": "com",
     }
     assert from_data(Config, items_to_data(key_values.items()), coerce=True) == Config(
         username="wyfo",
         password=Secret("5tr0ngP455w0rd!"),
         options={"verbose": True, "execute_order_66": False},
-        authorized_domains=["fr", "com"]
+        authorized_domains=["fr", "com"],
     )

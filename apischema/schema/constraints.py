@@ -58,8 +58,7 @@ class NumberConstraint(Constraint):
             if data >= self.exclusive_maximum:
                 yield f"{data} >= {self.maximum} (exclusiveMaximum)"
         if self.multiple_of is not None and (data % self.multiple_of) != 0:
-            yield (f"{data} if not a multiple of "
-                   f"{self.multiple_of} (multipleOf)")
+            yield (f"{data} if not a multiple of " f"{self.multiple_of} (multipleOf)")
 
 
 @dataclass
@@ -93,11 +92,15 @@ class ArrayConstraint(Constraint):
     def _validate(self, data: Any) -> Iterator[str]:
         assert isinstance(data, list)
         if self.min_items is not None and len(data) < self.min_items:
-            yield (f"not enough items, {len(data)} is lower than "
-                   f"{self.min_items} (minItems)")
+            yield (
+                f"not enough items, {len(data)} is lower than "
+                f"{self.min_items} (minItems)"
+            )
         if self.max_items is not None and len(data) > self.max_items:
-            yield (f"too much items, {len(data)} is greater than "
-                   f"{self.max_items} (maxItems)")
+            yield (
+                f"too much items, {len(data)} is greater than "
+                f"{self.max_items} (maxItems)"
+            )
         if self.unique_items and len(set(map(to_hashable, data))) != len(data):
             yield f"duplicates items in {data} (uniqueItems)"
 
@@ -111,8 +114,12 @@ class ObjectConstraint(Constraint):
     def _validate(self, data: Any) -> Iterator[str]:
         assert isinstance(data, dict)
         if self.min_properties is not None and len(data) < self.min_properties:
-            yield (f"not enough properties, {len(data)} is lower than "
-                   f"{self.min_properties} (minProperties)")
+            yield (
+                f"not enough properties, {len(data)} is lower than "
+                f"{self.min_properties} (minProperties)"
+            )
         if self.max_properties is not None and len(data) > self.max_properties:
-            yield (f"too much properties, {len(data)} is greater than "
-                   f"{self.max_properties} (maxProperties)")
+            yield (
+                f"too much properties, {len(data)} is greater than "
+                f"{self.max_properties} (maxProperties)"
+            )

@@ -1,13 +1,23 @@
 import sys
 from collections import defaultdict
-from inspect import (Parameter, isclass, isgeneratorfunction,
-                     signature)
+from dataclasses import MISSING, dataclass, field
+from inspect import Parameter, isclass, isgeneratorfunction, signature
 from logging import getLogger
 from types import MethodType
-from typing import (Any, Callable, Dict, Generator, Generic, Mapping, Optional, Tuple,
-                    Type, TypeVar, Union, cast)
-
-from dataclasses import (MISSING, dataclass, field)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    Generic,
+    Mapping,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from apischema.properties import properties
 from apischema.types import DictWithUnion, Metadata
@@ -28,10 +38,9 @@ Param = TypeVar("Param")
 Return = TypeVar("Return")
 
 
-def check_converter(converter: Converter,
-                    param: Optional[Type[Param]],
-                    ret: Optional[Type[Return]]
-                    ) -> Tuple[Type[Param], Type[Return]]:
+def check_converter(
+    converter: Converter, param: Optional[Type[Param]], ret: Optional[Type[Return]]
+) -> Tuple[Type[Param], Type[Return]]:
     try:
         parameters = iter(signature(converter).parameters.values())
     except ValueError:  # builtin types
@@ -46,9 +55,12 @@ def check_converter(converter: Converter,
             raise TypeError("converter must have at least one parameter")
         for p in parameters:
             if p.default is Parameter.empty and p.kind not in (
-                    Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD):
-                raise TypeError("converter must have at most one parameter "
-                                "without default")
+                Parameter.VAR_POSITIONAL,
+                Parameter.VAR_KEYWORD,
+            ):
+                raise TypeError(
+                    "converter must have at most one parameter " "without default"
+                )
         types = get_type_hints(converter, include_extras=True)
         if param is None:
             try:
@@ -63,8 +75,9 @@ def check_converter(converter: Converter,
     return cast(Type[Param], param), cast(Type[Return], ret)
 
 
-def handle_potential_validation(ret: Type, converter: Converter
-                                ) -> Tuple[Type, Converter]:
+def handle_potential_validation(
+    ret: Type, converter: Converter
+) -> Tuple[Type, Converter]:
     if not isgeneratorfunction(converter):
         return ret, converter
 
@@ -115,33 +128,45 @@ Other = TypeVar("Other", bound=Type)
 if sys.version_info >= (3, 7):
     import collections.abc
     import re
-    from typing import (List, AbstractSet, Set, Dict, Iterable, Collection, Sequence,
-                        MutableSequence, Pattern)
+    from typing import (
+        List,
+        AbstractSet,
+        Set,
+        Dict,
+        Iterable,
+        Collection,
+        Sequence,
+        MutableSequence,
+        Pattern,
+    )
 
     TYPED_ORIGINS = {
-        tuple:                           Tuple,
-        list:                            List,
-        frozenset:                       AbstractSet,
-        set:                             Set,
-        dict:                            Dict,
-        collections.abc.Iterable:        Iterable,
-        collections.abc.Collection:      Collection,
-        collections.abc.Sequence:        Sequence,
+        tuple: Tuple,
+        list: List,
+        frozenset: AbstractSet,
+        set: Set,
+        dict: Dict,
+        collections.abc.Iterable: Iterable,
+        collections.abc.Collection: Collection,
+        collections.abc.Sequence: Sequence,
         collections.abc.MutableSequence: MutableSequence,
-        collections.abc.Set:             AbstractSet,
-        collections.abc.MutableSet:      Set,
-        re.Pattern:                      Pattern,
+        collections.abc.Set: AbstractSet,
+        collections.abc.MutableSet: Set,
+        re.Pattern: Pattern,
     }
-
 
     def _get_origin(cls: _GenericAlias) -> Type:  # type: ignore
         return TYPED_ORIGINS.get(cls.__origin__, cls.__origin__)  # type: ignore
+
+
 else:
+
     def _get_origin(cls: _GenericAlias) -> Type:  # type: ignore
         return cls.__origin__  # type: ignore
 
 
 # If A[str, T] and A[T, int], what to choose for A[str, int]? None of them.
+
 
 def substitute_generic_args(cls: Cls, substitution: Mapping) -> Cls:
     if getattr(cls, "__origin__", None) is None:
@@ -165,8 +190,9 @@ def substitute_type_vars(base: Cls, other: Other) -> Tuple[Cls, Other]:
     if all(isinstance(arg, TypeVar) for arg in base.__args__):  # type: ignore
         return cast(Tuple[Cls, Other], (_get_origin(base), new_other))
     else:
-        return cast(Tuple[Cls, Other],
-                    (substitute_generic_args(base, substitution), new_other))
+        return cast(
+            Tuple[Cls, Other], (substitute_generic_args(base, substitution), new_other)
+        )
 
 
 @handle_method
@@ -178,8 +204,7 @@ def converter(function: Func, param: Type = None, ret: Type = None) -> Func:
 
 
 @handle_method
-def input_converter(function: Func, param: Type = None, ret: Type = None
-                    ) -> Func:
+def input_converter(function: Func, param: Type = None, ret: Type = None) -> Func:
     param, ret = check_converter(function, param, ret)
     ret, function_ = handle_potential_validation(ret, function)
     ret, param = substitute_type_vars(ret, param)
@@ -188,8 +213,7 @@ def input_converter(function: Func, param: Type = None, ret: Type = None
 
 
 @handle_method
-def output_converter(function: Func, param: Type = None, ret: Type = None
-                     ) -> Func:
+def output_converter(function: Func, param: Type = None, ret: Type = None) -> Func:
     param, ret = check_converter(function, param, ret)
     param, ret = substitute_type_vars(param, ret)
     _output_converters[param] = ret, function
@@ -197,8 +221,7 @@ def output_converter(function: Func, param: Type = None, ret: Type = None
     return function
 
 
-def inout_model(model: Type, *, replace_new_type: bool = True
-                ) -> Callable[[Cls], Cls]:
+def inout_model(model: Type, *, replace_new_type: bool = True) -> Callable[[Cls], Cls]:
     def decorator(cls: Cls) -> Cls:
         input_converter(cls, model, cls)
         out_conv = model
@@ -214,8 +237,7 @@ Arg = TypeVar("Arg")
 
 
 class InputVisitorMixin(Generic[Arg, Return]):
-    def _custom(self, cls: Type, custom: Dict[Type, Converter],
-                arg: Arg) -> Return:
+    def _custom(self, cls: Type, custom: Dict[Type, Converter], arg: Arg) -> Return:
         raise NotImplementedError()
 
     def custom(self, cls: Type, arg: Arg) -> Union[Return, NotCustom]:
@@ -234,8 +256,7 @@ class OutputVisitorMixin(Generic[Arg, Return]):
             else:
                 self.converters[cls] = out, _converters[cls][out]
 
-    def _custom(self, cls: Type, custom: Tuple[Type, Converter],
-                arg: Arg) -> Return:
+    def _custom(self, cls: Type, custom: Tuple[Type, Converter], arg: Arg) -> Return:
         raise NotImplementedError()
 
     def custom(self, cls: Type, arg: Arg) -> Union[Return, NotCustom]:
@@ -250,8 +271,9 @@ INPUT_METADATA = f"{PREFIX}input"
 OUTPUT_METADATA = f"{PREFIX}output"
 
 
-def field_input_converter(converter: Callable[[Any], Any], param: Type = None,
-                          ret: Type = None) -> Metadata:
+def field_input_converter(
+    converter: Callable[[Any], Any], param: Type = None, ret: Type = None
+) -> Metadata:
     try:
         param, ret = check_converter(converter, param, ret)
     except NameError:
@@ -261,8 +283,9 @@ def field_input_converter(converter: Callable[[Any], Any], param: Type = None,
     return DictWithUnion({INPUT_METADATA: (param, converter)})
 
 
-def field_output_converter(converter: Callable[[Any], Any], param: Type = None,
-                           ret: Type = None) -> Metadata:
+def field_output_converter(
+    converter: Callable[[Any], Any], param: Type = None, ret: Type = None
+) -> Metadata:
     try:
         param, ret = check_converter(converter, param, ret)
     except NameError:
@@ -278,12 +301,14 @@ def converter_from_raw(func: Callable) -> Converter:
     kwargs = None
     for name, param in sig.parameters.items():
         if param.kind == Parameter.POSITIONAL_ONLY:
-            raise TypeError(f"Forbidden positional-only parameter")
+            raise TypeError("Forbidden positional-only parameter")
         if param.kind == Parameter.VAR_POSITIONAL:
-            raise TypeError(f"Forbidden variadic positional parameter")
+            raise TypeError("Forbidden variadic positional parameter")
         if param.kind == Parameter.VAR_KEYWORD:
-            fields[name] = field(default_factory=dict,  # type: ignore
-                                 metadata=properties())
+            fields[name] = field(
+                default_factory=dict,  # type: ignore
+                metadata=properties(),
+            )
             type_ = types.get(name, Any)
             annotations[name] = Mapping[str, type_]  # type: ignore
             kwargs = name

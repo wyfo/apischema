@@ -7,7 +7,7 @@ def test_items_to_data():
     lines = {
         "key1.0": "v0",
         "key1.2": "v2",
-        "key2":   42,
+        "key2": 42,
     }
     assert items_to_data(lines.items()) == {"key1": ["v0", None, "v2"], "key2": 42}
     with raises(ValueError):

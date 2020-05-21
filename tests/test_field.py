@@ -1,8 +1,13 @@
 from dataclasses import dataclass, field, fields
+
 from pytest import raises
 
-from apischema import (get_fields_set, mark_set_fields, unmark_set_fields,
-                       with_fields_set)
+from apischema import (
+    get_fields_set,
+    mark_set_fields,
+    unmark_set_fields,
+    with_fields_set,
+)
 from apischema.fields import FIELDS_SET_ATTR, NoDefault, get_default
 
 
@@ -51,19 +56,30 @@ def test_fields_set():
     mark_set_fields(data, "with_default", overwrite=True)
     assert get_fields_set(data) == {"with_default"}
     data.__dict__.pop(FIELDS_SET_ATTR)
-    assert get_fields_set(data) == {"without_default", "with_default",
-                                    "with_default_factory"}
+    assert get_fields_set(data) == {
+        "without_default",
+        "with_default",
+        "with_default_factory",
+    }
     unmark_set_fields(data, "without_default")
     assert get_fields_set(data) == {"with_default", "with_default_factory"}
     data.__dict__.pop(FIELDS_SET_ATTR)
     mark_set_fields(data, "with_default")
-    assert get_fields_set(data) == {"without_default", "with_default",
-                                    "with_default_factory"}
+    assert get_fields_set(data) == {
+        "without_default",
+        "with_default",
+        "with_default_factory",
+    }
     with raises(ValueError):
         mark_set_fields(data, "not_a_field")
 
     assert get_fields_set(Inherited(0, other=0)) == {
-        "without_default", "with_default", "with_default_factory", "other"
+        "without_default",
+        "with_default",
+        "with_default_factory",
+        "other",
     }
-    assert get_fields_set(DecoratedInherited(0, other=0)) == {"without_default",
-                                                              "other"}
+    assert get_fields_set(DecoratedInherited(0, other=0)) == {
+        "without_default",
+        "other",
+    }

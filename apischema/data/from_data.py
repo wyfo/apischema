@@ -1,7 +1,18 @@
 from dataclasses import Field as BaseField, is_dataclass
 from enum import Enum
-from typing import (Any, Callable, Dict, Iterable, List, Mapping, Optional,
-                    Sequence, Tuple, Type, TypeVar)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TypeVar,
+)
 
 from apischema.conversion import Converter, InputVisitorMixin
 from apischema.data.coercion import STR_NONE_VALUES, coerce
@@ -9,13 +20,14 @@ from apischema.data.common_errors import bad_literal, wrong_type
 from apischema.dataclasses import Field, FieldKind, get_input_fields
 from apischema.ignore import Ignored
 from apischema.schema import Constraint, Schema
-from apischema.schema.constraints import (ArrayConstraint, ObjectConstraint,
-                                          get_constraint)
+from apischema.schema.constraints import (
+    ArrayConstraint,
+    ObjectConstraint,
+    get_constraint,
+)
 from apischema.types import ITERABLE_TYPES, MAPPING_TYPES, NoneType
 from apischema.utils import distinct
-from apischema.validation.errors import (ValidationError,
-                                         exception,
-                                         merge)
+from apischema.validation.errors import ValidationError, exception, merge
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validator import Validator, get_validators, validate
 from apischema.visitor import Visitor
@@ -26,8 +38,9 @@ def check_type(data: Any, expected: Type):
         raise ValidationError([wrong_type(type(data), expected)])
 
 
-def validate_with_errors(data: Any, constraint: Optional[Constraint],
-                         errors: Mapping[str, ValidationError]):
+def validate_with_errors(
+    data: Any, constraint: Optional[Constraint], errors: Mapping[str, ValidationError]
+):
     if constraint is not None:
         try:
             constraint.validate(data)
@@ -55,8 +68,9 @@ def apply_converter(value: From, converter: Callable[[From], To]) -> To:
 DataWithConstraint = Tuple[Any, Optional[Constraint]]
 
 
-class FromData(InputVisitorMixin[DataWithConstraint, Any],
-               Visitor[DataWithConstraint, Any]):
+class FromData(
+    InputVisitorMixin[DataWithConstraint, Any], Visitor[DataWithConstraint, Any]
+):
     def __init__(self, additional_properties: bool):
         Visitor.__init__(self)  # type: ignore
         self.additional_properties = additional_properties
@@ -68,8 +82,9 @@ class FromData(InputVisitorMixin[DataWithConstraint, Any],
             constraint.validate(data)
         return data
 
-    def _union(self, alternatives: Iterable[Type], data2: DataWithConstraint
-               ) -> Tuple[Any, int]:
+    def _union(
+        self, alternatives: Iterable[Type], data2: DataWithConstraint
+    ) -> Tuple[Any, int]:
         error: Optional[ValidationError] = None
         for i, cls in enumerate(alternatives):
             try:
@@ -86,8 +101,9 @@ class FromData(InputVisitorMixin[DataWithConstraint, Any],
             return None
         return self._union(alternatives, data2)[0]
 
-    def iterable(self, cls: Type[Iterable], value_type: Type,
-                 data2: DataWithConstraint):
+    def iterable(
+        self, cls: Type[Iterable], value_type: Type, data2: DataWithConstraint
+    ):
         data, constraint = data2
         check_type(data, list)
         elts: List[value_type] = []  # type: ignore
@@ -105,8 +121,13 @@ class FromData(InputVisitorMixin[DataWithConstraint, Any],
         validate_with_errors(data, constraint, errors)
         return ITERABLE_TYPES[cls](elts)
 
-    def mapping(self, cls: Type[Mapping], key_type: Type,  # type: ignore
-                value_type: Type, data2: DataWithConstraint):
+    def mapping(
+        self,
+        cls: Type[Mapping],
+        key_type: Type,  # type: ignore
+        value_type: Type,
+        data2: DataWithConstraint,
+    ):
         data, constraint = data2
         check_type(data, dict)
         mapping: Dict[key_type, value_type] = {}  # type: ignore
@@ -119,15 +140,19 @@ class FromData(InputVisitorMixin[DataWithConstraint, Any],
             assert isinstance(key, str)
             try:
                 new_key = self.visit(key_type, (key, None))
-                mapping[new_key] = self.visit(value_type,
-                                              (value, prop_constraint))
+                mapping[new_key] = self.visit(value_type, (value, prop_constraint))
             except ValidationError as err:
                 errors[key] = err
         validate_with_errors(data, constraint, errors)
         return MAPPING_TYPES[cls](mapping)
 
-    def typed_dict(self, cls: Type, keys: Mapping[str, Type],
-                   total: bool, data2: DataWithConstraint):
+    def typed_dict(
+        self,
+        cls: Type,
+        keys: Mapping[str, Type],
+        total: bool,
+        data2: DataWithConstraint,
+    ):
         data, constraint = data2
         check_type(data, dict)
         constraint = constraint or get_constraint(cls)
@@ -154,8 +179,7 @@ class FromData(InputVisitorMixin[DataWithConstraint, Any],
     def tuple(self, types: Sequence[Type], data2: DataWithConstraint):
         data, constraint = data2
         check_type(data, list)
-        ArrayConstraint(min_items=len(types),
-                        max_items=len(types)).validate(data)
+        ArrayConstraint(min_items=len(types), max_items=len(types)).validate(data)
         elts: List[Any] = []
         errors: Dict[str, ValidationError] = {}
         elt_constraints = None
@@ -189,8 +213,9 @@ class FromData(InputVisitorMixin[DataWithConstraint, Any],
                 return value
         raise ValidationError([bad_literal(data2[0], values)])
 
-    def _custom(self, cls: Type, custom: Dict[Type, Converter],
-                data2: DataWithConstraint):
+    def _custom(
+        self, cls: Type, custom: Dict[Type, Converter], data2: DataWithConstraint
+    ):
         data, constraint = data2
         constraint = constraint or get_constraint(cls)
         types = list(custom)
@@ -239,8 +264,10 @@ class FromData(InputVisitorMixin[DataWithConstraint, Any],
             additional = {key: data[key] for key in remain}
             set_field(additional_field, additional, "<additionalProperties>")
         elif remain and not self.additional_properties:
-            field_errors.update((field.alias, ValidationError(["field not allowed"]))
-                                for field in sorted(remain))
+            field_errors.update(
+                (field.alias, ValidationError(["field not allowed"]))
+                for field in sorted(remain)
+            )
         error: Optional[ValidationError] = None
         if field_errors:
             error = ValidationError(children=field_errors)
@@ -298,8 +325,9 @@ class FromData(InputVisitorMixin[DataWithConstraint, Any],
     def any(self, data2: DataWithConstraint):
         return data2[0]
 
-    def annotated(self, cls: Type, annotations: Sequence[Any],
-                  data2: DataWithConstraint):
+    def annotated(
+        self, cls: Type, annotations: Sequence[Any], data2: DataWithConstraint
+    ):
         if Ignored in annotations:
             raise Ignored()
         data, constraint = data2
@@ -335,7 +363,12 @@ class FromDataWithCoercion(FromData):
         return super().enum(cls, (data, constraint))
 
 
-def from_data(cls: Type[T], data: Any, *, additional_properties: bool = False,
-              coerce: bool = False) -> T:
+def from_data(
+    cls: Type[T],
+    data: Any,
+    *,
+    additional_properties: bool = False,
+    coerce: bool = False,
+) -> T:
     visitor = FromData if not coerce else FromDataWithCoercion
     return visitor(additional_properties).visit(cls, (data, None))
