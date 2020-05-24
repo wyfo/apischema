@@ -19,14 +19,6 @@ Func = TypeVar("Func", bound=Callable)
 Hashable_ = TypeVar("Hashable_", bound=Hashable)
 
 
-def distinct(values: Iterable[Hashable_]) -> Iterable[Hashable_]:
-    unique = set()
-    for value in values:
-        if value not in unique:
-            unique.add(value)
-            yield value
-
-
 def to_hashable(data: Union[None, int, float, str, bool, list, dict]) -> Hashable:
     if isinstance(data, list):
         return tuple(map(to_hashable, data))

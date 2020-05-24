@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Any, Dict
 
 from apischema.types import AnyType
 
@@ -19,7 +19,8 @@ for false, true in _bool_pairs:
         STR_TO_BOOL[s.upper()] = value
 
 
-def coerce(cls: AnyType, data):
+def coerce(cls: AnyType, data: Any):
+    assert data is not None
     if isinstance(data, cls):
         return data
     if cls is bool and isinstance(data, str):

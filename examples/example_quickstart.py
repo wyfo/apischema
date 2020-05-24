@@ -15,7 +15,7 @@ from apischema import (
 )
 
 Tag = NewType("Tag", str)
-schema(title="resource tag", max_len=64)(Tag)
+schema(title="resource tag", max_len=20)(Tag)
 
 
 class ResourceType(Enum):
@@ -51,7 +51,7 @@ def test_resource():
                 "type": "array",
                 "maxItems": 5,
                 "uniqueItems": True,
-                "items": {"type": "string", "title": "resource tag", "maxLength": 64},
+                "items": {"type": "string", "title": "resource tag", "maxLength": 20},
             },
         },
     }
@@ -59,11 +59,21 @@ def test_resource():
 
 def test_resource_error():
     with raises(ValidationError) as err:
-        from_data(Resource, {"id": "uuid", "type": None, "tags": ["a", "a"]})
+        from_data(
+            Resource,
+            {
+                "id": "uuid",
+                "type": None,
+                "tags": ["duplicate_tag", "duplicate_tag", "a_very_very_very_long_tag"],
+            },
+        )
     assert err.value == ValidationError(
         children={
             "id": ValidationError(["[ValueError]badly formed hexadecimal UUID string"]),
-            "type": ValidationError(["None is not a valid ResourceType"]),
-            "tags": ValidationError(["duplicates items in ['a', 'a'] (uniqueItems)"]),
+            "type": ValidationError(["not one of ['A', 'B']"]),
+            "tags": ValidationError(
+                ["duplicate items (uniqueItems)"],
+                children={"2": ValidationError(["length greater than 20 (maxLength)"])},
+            ),
         }
     )

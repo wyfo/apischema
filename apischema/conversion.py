@@ -305,10 +305,7 @@ def converter_from_raw(func: Callable) -> Converter:
         if param.kind == Parameter.VAR_POSITIONAL:
             raise TypeError("Forbidden variadic positional parameter")
         if param.kind == Parameter.VAR_KEYWORD:
-            fields[name] = field(
-                default_factory=dict,  # type: ignore
-                metadata=properties(),
-            )
+            fields[name] = field(default_factory=dict, metadata=properties(),)
             type_ = types.get(name, Any)
             annotations[name] = Mapping[str, type_]  # type: ignore
             kwargs = name

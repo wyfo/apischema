@@ -48,17 +48,15 @@ class NumberConstraint(Constraint):
     def _validate(self, data: Any) -> Iterator[str]:
         assert isinstance(data, (int, float))
         if self.minimum is not None and data < self.minimum:
-            yield f"{data} < {self.minimum} (minimum)"
+            yield f"less than {self.minimum} (minimum)"
         if self.maximum is not None and data > self.maximum:
-            yield f"{data} > {self.maximum} (maximum)"
-        if self.exclusive_minimum is not None:
-            if data <= self.exclusive_minimum:
-                yield f"{data} <= {self.minimum} (exclusiveMinimum)"
-        if self.exclusive_maximum is not None:
-            if data >= self.exclusive_maximum:
-                yield f"{data} >= {self.maximum} (exclusiveMaximum)"
+            yield f"greater than {self.maximum} (maximum)"
+        if self.exclusive_minimum is not None and data <= self.exclusive_minimum:
+            yield f"less than or equal to {self.exclusive_minimum} (exclusiveMinimum)"
+        if self.exclusive_maximum is not None and data >= self.exclusive_maximum:
+            yield f"greater than or equal to {self.exclusive_maximum} (exclusiveMaximum)"  # noqa: E501
         if self.multiple_of is not None and (data % self.multiple_of) != 0:
-            yield (f"{data} if not a multiple of " f"{self.multiple_of} (multipleOf)")
+            yield f"not a multiple of {self.multiple_of} (multipleOf)"
 
 
 @dataclass
@@ -75,11 +73,11 @@ class StringConstraint(Constraint):
     def _validate(self, data: Any) -> Iterator[str]:
         assert isinstance(data, str)
         if self.min_length is not None and len(data) < self.min_length:
-            yield f"'{data}'.length < {self.min_length} (minLength)"
+            yield f"length less than {self.min_length} (minLength)"
         if self.max_length is not None and len(data) > self.max_length:
-            yield f"'{data}'.length > {self.max_length} (maxLength)"
+            yield f"length greater than {self.max_length} (maxLength)"
         if self.pattern is not None and not re.fullmatch(self.pattern, data):
-            yield f"'{data}' does not match '{self.pattern}' pattern"
+            yield f"unmatched pattern '{self.pattern}'"
 
 
 @dataclass
@@ -92,17 +90,11 @@ class ArrayConstraint(Constraint):
     def _validate(self, data: Any) -> Iterator[str]:
         assert isinstance(data, list)
         if self.min_items is not None and len(data) < self.min_items:
-            yield (
-                f"not enough items, {len(data)} is lower than "
-                f"{self.min_items} (minItems)"
-            )
+            yield f"size less than {self.min_items} (minItems)"
         if self.max_items is not None and len(data) > self.max_items:
-            yield (
-                f"too much items, {len(data)} is greater than "
-                f"{self.max_items} (maxItems)"
-            )
+            yield f"size greater than {self.max_items} (maxItems)"
         if self.unique_items and len(set(map(to_hashable, data))) != len(data):
-            yield f"duplicates items in {data} (uniqueItems)"
+            yield "duplicate items (uniqueItems)"
 
 
 @dataclass
@@ -114,12 +106,6 @@ class ObjectConstraint(Constraint):
     def _validate(self, data: Any) -> Iterator[str]:
         assert isinstance(data, dict)
         if self.min_properties is not None and len(data) < self.min_properties:
-            yield (
-                f"not enough properties, {len(data)} is lower than "
-                f"{self.min_properties} (minProperties)"
-            )
+            yield f"size less than {self.min_properties} (minProperties)"
         if self.max_properties is not None and len(data) > self.max_properties:
-            yield (
-                f"too much properties, {len(data)} is greater than "
-                f"{self.max_properties} (maxProperties)"
-            )
+            yield f"size greater than {self.max_properties} (maxProperties)"

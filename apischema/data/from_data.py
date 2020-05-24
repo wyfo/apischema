@@ -16,7 +16,6 @@ from typing import (
 
 from apischema.conversion import Converter, InputVisitorMixin
 from apischema.data.coercion import STR_NONE_VALUES, coerce
-from apischema.data.common_errors import bad_literal, wrong_type
 from apischema.dataclasses import Field, FieldKind, get_input_fields
 from apischema.ignore import Ignored
 from apischema.schema import Constraint, Schema
@@ -26,7 +25,7 @@ from apischema.schema.constraints import (
     get_constraint,
 )
 from apischema.types import ITERABLE_TYPES, MAPPING_TYPES, NoneType
-from apischema.utils import distinct
+from apischema.typing import _type_repr
 from apischema.validation.errors import ValidationError, exception, merge
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validator import Validator, get_validators, validate
@@ -34,8 +33,15 @@ from apischema.visitor import Visitor
 
 
 def check_type(data: Any, expected: Type):
-    if type(data) is not expected:
-        raise ValidationError([wrong_type(type(data), expected)])
+    if not isinstance(data, expected):
+        raise ValidationError([f"expected type {_type_repr(expected)}"])
+
+
+def not_one_of(values: Iterable[Any]) -> ValidationError:
+    allowed_values = [
+        value if not isinstance(value, Enum) else value.value for value in values
+    ]
+    return ValidationError([f"not one of {allowed_values}"])
 
 
 def validate_with_errors(
@@ -203,15 +209,21 @@ class FromData(
 
     def literal(self, values: Sequence[Any], data2: DataWithConstraint):
         # Literal can contain Enum values and thus has to call visit too
-        assert data2[1] is None
-        for cls in distinct(map(type, values)):
-            try:
-                value = self.visit(cls, data2)
-            except ValidationError:
-                continue
-            if value in values:
-                return value
-        raise ValidationError([bad_literal(data2[0], values)])
+        data, _ = data2
+        assert _ is None
+        if data in values:
+            return data
+        enums = set()
+        for value in values:
+            if isinstance(value, Enum) and type(value) not in enums:
+                enums.add(type(value))
+                try:
+                    enum_data = self.visit(type(value), data2)
+                except ValidationError:
+                    continue
+                if enum_data in values:
+                    return enum_data
+        raise not_one_of(values)
 
     def _custom(
         self, cls: Type, custom: Dict[Type, Converter], data2: DataWithConstraint
@@ -314,8 +326,8 @@ class FromData(
         assert constraint is None
         try:
             return cls(data)
-        except ValueError as err:
-            raise ValidationError([str(err)])
+        except ValueError:
+            raise not_one_of(cls)
 
     def new_type(self, cls: Type, super_type: Type, data2: DataWithConstraint):
         data, constraint = data2
@@ -358,9 +370,11 @@ class FromDataWithCoercion(FromData):
         return data
 
     def enum(self, cls: Type[Enum], data2: DataWithConstraint):
-        data, constraint = data2
-        data = self.primitive(type(data), (data, None))
-        return super().enum(cls, (data, constraint))
+        data, _ = data2
+        assert _ is None
+        if not isinstance(cls, data):
+            data = self.visit(type(data), data2)
+        return super().enum(cls, (data, None))
 
 
 def from_data(

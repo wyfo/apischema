@@ -2,7 +2,6 @@ from enum import Enum
 from typing import Any, Dict, Iterable, Mapping, Sequence, Tuple, Type, TypeVar
 
 from apischema.conversion import Converter, OutputVisitorMixin
-from apischema.data.common_errors import bad_literal, wrong_type
 from apischema.dataclasses import Field, get_output_fields_raw
 from apischema.fields import get_fields_set
 from apischema.types import UNTYPED_COLLECTIONS
@@ -13,7 +12,7 @@ UNTYPED_COLLECTIONS_IDS = set(map(id, UNTYPED_COLLECTIONS))
 
 def check_type(obj: Any, expected: Type):
     if not isinstance(obj, expected):
-        raise ValueError(wrong_type(type(obj), expected))
+        raise ValueError(f"expected type {expected}, found {type(obj)}")
 
 
 def check_mapping(mapping: Mapping):
@@ -74,7 +73,7 @@ class ToData(OutputVisitorMixin[Any, Any], Visitor[Any, Any]):
 
     def literal(self, values: Sequence[Any], obj):
         if obj not in values:
-            raise ValueError(bad_literal(obj, values))
+            raise ValueError(f"{obj} not in {values}")
         return obj
 
     def _custom(self, cls: Type, custom: Tuple[Type, Converter], obj):
