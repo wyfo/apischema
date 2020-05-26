@@ -3,6 +3,7 @@ from typing import (
     Any,
     Dict,
     Iterable,
+    Iterator,
     List,
     Mapping,
     Optional,
@@ -17,7 +18,15 @@ from apischema.alias import ALIAS_METADATA
 ErrorMsg = str
 Error = Union[ErrorMsg, Tuple[Any, ErrorMsg]]
 
-ROOT_KEY = "."
+
+@dataclass
+class LocalizedError:
+    loc: Sequence[str]
+    err: Union[ErrorMsg, Sequence[ErrorMsg]]
+
+    def __post_init__(self):
+        if not isinstance(self.err, str) and len(self.err) == 1:
+            self.err = self.err[0]
 
 
 @dataclass
@@ -25,16 +34,16 @@ class ValidationError(Exception):
     messages: Sequence[ErrorMsg] = field(default_factory=list)
     children: Mapping[str, "ValidationError"] = field(default_factory=dict)
 
-    def flat(self) -> Iterable[Tuple[Tuple[str, ...], Sequence[ErrorMsg]]]:
+    def flat(self) -> Iterator[Tuple[Tuple[str, ...], Sequence[ErrorMsg]]]:
         if self.messages:
             yield (), self.messages
         for child_path, child in self.children.items():
             for path, errors in child.flat():
                 yield (child_path, *path), errors
 
-    @property
-    def flatten(self) -> Mapping[Tuple[str, ...], Sequence[ErrorMsg]]:
-        return dict(self.flat())
+    def format(self) -> Iterator[LocalizedError]:
+        for loc, err in self.flat():
+            yield LocalizedError(loc, err)
 
 
 @overload
