@@ -1,6 +1,5 @@
 import sys
 from collections import defaultdict
-from dataclasses import MISSING, dataclass, field
 from inspect import Parameter, isclass, isgeneratorfunction, signature
 from logging import getLogger
 from types import MethodType
@@ -18,6 +17,8 @@ from typing import (
     Union,
     cast,
 )
+
+from dataclasses import MISSING, dataclass, field
 
 from apischema.properties import properties
 from apischema.types import DictWithUnion, Metadata
@@ -199,6 +200,9 @@ def substitute_type_vars(base: Cls, other: Other) -> Tuple[Cls, Other]:
 def converter(function: Func, param: Type = None, ret: Type = None) -> Func:
     param, ret = check_converter(function, param, ret)
     param, ret = substitute_type_vars(param, ret)
+    if hasattr(param, "__supertype__"):
+        # For performance reason, serialization is based on objects class
+        raise TypeError("NewType cannot be used with converter/output_converter")
     _converters[param][ret] = function
     return function
 

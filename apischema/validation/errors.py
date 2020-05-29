@@ -1,4 +1,3 @@
-from dataclasses import Field, dataclass, field
 from typing import (
     Any,
     Dict,
@@ -12,6 +11,8 @@ from typing import (
     Union,
     overload,
 )
+
+from dataclasses import Field, dataclass, field
 
 from apischema.alias import ALIAS_METADATA
 

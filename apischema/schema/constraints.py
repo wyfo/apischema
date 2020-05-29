@@ -1,6 +1,7 @@
 import re
-from dataclasses import dataclass
 from typing import Any, Dict, Iterator, Optional, Pattern, Sequence, TypeVar, Union
+
+from dataclasses import dataclass
 
 from apischema.types import Number
 from apischema.utils import PREFIX, to_hashable

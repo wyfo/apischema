@@ -16,8 +16,9 @@ __all__ = [
 
 import sys
 import types
-from dataclasses import is_dataclass
 from typing import Any, Dict, Generic, Mapping, NamedTuple, Optional, Type, TypeVar
+
+from dataclasses import is_dataclass
 
 
 class NoType:

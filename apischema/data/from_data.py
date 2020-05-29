@@ -1,4 +1,3 @@
-from dataclasses import Field as BaseField, is_dataclass
 from enum import Enum
 from typing import (
     Any,
@@ -13,6 +12,8 @@ from typing import (
     Type,
     TypeVar,
 )
+
+from dataclasses import Field as BaseField, is_dataclass
 
 from apischema.conversion import Converter, InputVisitorMixin
 from apischema.data.coercion import STR_NONE_VALUES, coerce

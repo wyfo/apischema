@@ -1,7 +1,8 @@
-from dataclasses import Field, _FIELDS, _FIELD_CLASSVAR, dataclass  # type: ignore
 from functools import partial
 from types import FunctionType, MethodType
 from typing import Any, Callable, Mapping, Optional, Type
+
+from dataclasses import Field, _FIELDS, _FIELD_CLASSVAR, dataclass  # type: ignore
 
 from apischema.fields import FIELDS_SET_ATTR, get_default
 

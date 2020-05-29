@@ -1,11 +1,22 @@
 from dataclasses import dataclass, field
-from typing import NewType
-
 from pytest import raises
 
-from apischema import ValidationError, from_data, output_converter, to_data, validator
+from apischema import (
+    ValidationError,
+    from_data,
+    input_converter,
+    output_converter,
+    to_data,
+    validator,
+)
 
-Password = NewType("Password", str)
+
+class Password(str):
+    pass
+
+
+# TODO handle inherited primitive
+input_converter(Password, str, Password)
 
 
 @output_converter

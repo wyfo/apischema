@@ -1,6 +1,5 @@
 import collections.abc
 import sys
-from dataclasses import Field
 from typing import (
     AbstractSet,
     Any,
@@ -18,6 +17,8 @@ from typing import (
     Type,
     Union,
 )
+
+from dataclasses import Field
 
 AnyType = Any
 NoneType: Type[None] = type(None)
@@ -60,13 +61,6 @@ else:
 
     MAPPING_TYPES = {Mapping: dict, MutableMapping: dict, Dict: dict}
 
-UNTYPED_COLLECTIONS = {
-    tuple: Tuple[Any, ...],
-    list: List[Any],
-    frozenset: AbstractSet[Any],
-    set: Set[Any],
-    dict: Dict[Any, Any],
-}
 
 if sys.version_info >= (3, 7):
     OrderedDict = dict

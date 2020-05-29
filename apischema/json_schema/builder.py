@@ -1,4 +1,3 @@
-from dataclasses import is_dataclass, replace
 from enum import Enum
 from itertools import chain
 from typing import (
@@ -17,6 +16,8 @@ from typing import (
     Type,
     Union,
 )
+
+from dataclasses import is_dataclass, replace
 
 from apischema.conversion import Converter, InputVisitorMixin, OutputVisitorMixin
 from apischema.data import to_data

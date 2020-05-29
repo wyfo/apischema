@@ -1,8 +1,8 @@
-from dataclasses import dataclass, field
 from enum import Enum
 from typing import AbstractSet, Any, List, Mapping, Optional, Sequence, Set, Union
 from uuid import UUID, uuid4
 
+from dataclasses import dataclass, field
 from pytest import mark, raises
 
 from apischema import properties, schema
@@ -20,7 +20,7 @@ uuid = str(uuid4())
 def bijection(cls, data, expected):
     obj = from_data(cls, data)
     assert obj == expected
-    assert to_data(obj, cls) == data
+    assert to_data(obj) == data
 
 
 def error(data, cls):
@@ -78,11 +78,6 @@ def test_union(data, expected):
 @mark.parametrize("data", [0, None])
 def test_union_error(data):
     error(data, Union[str, SimpleDataclass])
-
-
-def test_union_value_error():
-    with raises(ValueError):
-        to_data(True, Union[str, List[str]])
 
 
 @mark.parametrize("cls, data", [(int, 0), (str, ""), (bool, True), (float, 0.0)])
@@ -157,8 +152,6 @@ def test_literal(data):
 
 def test_literal_error():
     error(1, Literal[0, "ok"])
-    with raises(ValueError):
-        to_data(1, Literal[0, "ok"])
 
 
 @mark.parametrize(

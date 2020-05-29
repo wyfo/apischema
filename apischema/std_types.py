@@ -9,7 +9,6 @@ from ipaddress import (
     IPv6Interface,
     IPv6Network,
 )
-from typing import Pattern
 from uuid import UUID
 
 from apischema.conversion import inout_model, input_converter, output_converter
@@ -56,5 +55,6 @@ inout_model(str)(IPv6Network)
 schema(format="ipv6")(IPv6Network)
 
 # ==================== pattern ====================
+Pattern = type(re.compile(r""))
 input_converter(re.compile, str, Pattern)
 output_converter(lambda p: p.pattern, Pattern, str)

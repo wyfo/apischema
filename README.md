@@ -5,11 +5,11 @@ Another Python API schema handling and JSON (de)serialization through typing ann
 
 ## Why another library
 Because i'm not satisfied with existing ones. I would like to:
-- stay closest as possible to the standard library (dataclasses, typing, etc.), and as a consequency to have no need of plugin for editor/linter/etc.
-- be able to tune the library and use my own types (or foreign libraries ones), instead of having to do a PR for handling of `bson.ObjectId` or use inheritance
+- stay closest as possible to the standard library (dataclasses, typing, etc.) to be the most accessible possible and as a consequency no need of plugin for editor/linter/etc.
+- be able to tune the library and use my own types (or foreign libraries ones), instead of subclassing or having to do a PR for handling of `bson.ObjectId`
 - have the least possible dynamic thing (like using string for attribute name)
 
-And I simply want to enjoy myself coding this stuff.
+And I simply want to enjoy myself coding this stuff (and trying to make it smaller and faster than its alternatives).
 
 
 ## Getting Started
@@ -116,9 +116,9 @@ See other [examples](examples); a suggested order:
 
 
 ## Benchmark
-Using [Pydantic benchmark](https://pydantic-docs.helpmanual.io/benchmarks/), **using only CPython**, *apischema* is faster than others libraries, including *Pydantic*, present in the benchmark.
+Using [Pydantic benchmark](https://pydantic-docs.helpmanual.io/benchmarks/), **using only CPython**, *apischema* is faster than others libraries, including *Pydantic*, present in the benchmark. 
 
-Concerning Cython, *apischema* is blocked for now by this [Cython issue](https://github.com/cython/cython/issues/3537)
+Concerning Cython compilation, *apischema* is blocked for now by this [Cython issue](https://github.com/cython/cython/issues/3537)
 
 
 ## Todo

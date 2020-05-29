@@ -1,8 +1,13 @@
-from dataclasses import is_dataclass
 from enum import Enum, EnumMeta
 from typing import Any, Dict, Generic, Iterable, Mapping, Sequence, Type, TypeVar, Union
 
-from apischema.types import ITERABLE_TYPES, MAPPING_TYPES, PRIMITIVE_TYPE
+from dataclasses import is_dataclass
+
+from apischema.types import (
+    ITERABLE_TYPES,
+    MAPPING_TYPES,
+    PRIMITIVE_TYPE,
+)
 from apischema.typing import (
     Literal,
     NamedTupleMeta,
@@ -109,10 +114,6 @@ class Visitor(Generic[Arg, Return]):
                 return self.mapping(origin, cls.__args__[0], cls.__args__[1], arg)
             if origin is Literal:
                 return self.literal(cls.__args__, arg)
-            custom = self.custom(cls, arg)
-            if custom is not NOT_CUSTOM:
-                assert not isinstance(custom, NotCustom)
-                return custom
             # TypeVar handling
             generics_save = self._generics.copy()
             for tv, value in zip(origin.__parameters__, cls.__args__):
@@ -148,14 +149,14 @@ class Visitor(Generic[Arg, Return]):
             return self.new_type(cls, cls.__supertype__, arg)
         if cls is Any:
             return self.any(arg)
+        if isinstance(cls, _LiteralMeta):
+            return self.literal(cls.__values__, arg)
         if isinstance(cls, NamedTupleMeta):
             if hasattr(cls, "__annotations__"):
                 types = get_type_hints(cls, include_extras=True)
             else:
                 types = cls._field_types  # type: ignore
             return self.named_tuple(cls, types, cls._field_defaults, arg)
-        if isinstance(cls, _LiteralMeta):
-            return self.literal(cls.__values__, arg)
         if hasattr(cls, "__parameters__"):
             params = tuple(
                 self._generics.get(p, Any) for p in getattr(cls, "__parameters__")

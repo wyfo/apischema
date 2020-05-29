@@ -1,7 +1,8 @@
 __all__ = ["get_schema", "schema", "Schema", "Annotations", "Constraint"]
 
-from dataclasses import dataclass, fields
 from typing import Any, Dict, Optional, Sequence, Type, TypeVar, Union, overload
+
+from dataclasses import dataclass, fields
 
 from apischema.types import MetadataMixin, Number
 from .annotations import (

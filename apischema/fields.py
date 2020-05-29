@@ -1,3 +1,7 @@
+from functools import wraps
+from inspect import signature
+from typing import AbstractSet, Any, Type, TypeVar, Union, cast
+
 from dataclasses import (  # type: ignore
     Field,
     MISSING,
@@ -7,9 +11,6 @@ from dataclasses import (  # type: ignore
     fields as fields_,
     is_dataclass,
 )
-from functools import wraps
-from inspect import signature
-from typing import AbstractSet, Any, Type, TypeVar, Union, cast
 
 from apischema.utils import PREFIX
 

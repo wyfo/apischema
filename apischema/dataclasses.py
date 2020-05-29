@@ -1,13 +1,3 @@
-from dataclasses import (  # type: ignore
-    Field as BaseField,
-    InitVar,
-    MISSING,
-    _FIELDS,
-    _FIELD_CLASSVAR,
-    dataclass,
-    fields,
-    is_dataclass,
-)
 from enum import Enum, auto
 from typing import (
     Any,
@@ -23,6 +13,17 @@ from typing import (
     cast,
 )
 
+from dataclasses import (  # type: ignore
+    Field as BaseField,
+    InitVar,
+    MISSING,
+    _FIELDS,
+    _FIELD_CLASSVAR,
+    dataclass,
+    fields,
+    is_dataclass,
+)
+
 from apischema.alias import ALIAS_METADATA
 from apischema.conversion import (
     INPUT_METADATA,
@@ -31,6 +32,7 @@ from apischema.conversion import (
     handle_potential_validation,
     substitute_type_vars,
 )
+from apischema.ignore import IGNORE_METADATA
 from apischema.properties import PROPERTIES_METADATA
 from apischema.schema import (
     ANNOTATIONS_METADATA,
@@ -119,6 +121,10 @@ def cache_fields(cls: Type):
         else:
             kind = FieldKind.NO_INIT
         metadata = field.metadata
+        default = IGNORE_METADATA not in metadata and (
+            field.default is not MISSING
+            or field.default_factory is not MISSING  # type: ignore
+        )
         input_type, output_type = type_, type_
         input_converter, output_converter = None, None
         if INPUT_METADATA in metadata:
@@ -143,10 +149,7 @@ def cache_fields(cls: Type):
             type=field.type,
             input_type=input_type,
             output_type=output_type,
-            default=(
-                field.default is not MISSING
-                or field.default_factory is not MISSING  # type: ignore
-            ),
+            default=default,
             kind=kind,
             annotations=metadata.get(ANNOTATIONS_METADATA),
             constraint=metadata.get(CONSTRAINT_METADATA),

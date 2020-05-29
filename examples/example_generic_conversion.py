@@ -22,7 +22,7 @@ class Wrapper(Generic[T]):
         self.wrapped = wrapped
 
     if sys.version_info >= (3, 7):
-
+        # Method are not handled before 3.7
         @output_converter
         def _wrapped(self) -> T:
             return self.wrapped

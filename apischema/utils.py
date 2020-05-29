@@ -1,4 +1,3 @@
-from dataclasses import fields, is_dataclass
 from typing import (
     Any,
     Callable,
@@ -10,6 +9,8 @@ from typing import (
     TypeVar,
     Union,
 )
+
+from dataclasses import fields, is_dataclass
 
 PREFIX = "_apischema_"
 NO_DEFAULT = object()

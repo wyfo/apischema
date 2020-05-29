@@ -1,4 +1,3 @@
-from dataclasses import Field
 from functools import wraps
 from inspect import Parameter, isfunction, isgeneratorfunction, signature
 from types import MethodType
@@ -12,6 +11,8 @@ from typing import (
     TypeVar,
     overload,
 )
+
+from dataclasses import Field
 
 from apischema.types import AnyType, DictWithUnion, Metadata
 from apischema.typing import NO_TYPE, Protocol
