@@ -22,7 +22,7 @@ class Wrapper(Generic[T]):
         self.wrapped = wrapped
 
     if sys.version_info >= (3, 7):
-        # Method are not handled before 3.7
+        # Methods of generic classes are not handled before 3.7
         @output_converter
         def _wrapped(self) -> T:
             return self.wrapped
@@ -78,5 +78,4 @@ def test_pair():
     # I decided to only match exact types because of the following issue:
     # If I have a converter for Pair[int, T] and an other for Pair[T, str],
     # which one should I choose for Pair [int, str] ...
-    # maybe the first/last one declared, why not, but the feature is not
-    # prioritary
+    # maybe the first/last one declared, why not, but the feature is not priority
