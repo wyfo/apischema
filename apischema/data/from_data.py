@@ -1,3 +1,4 @@
+from dataclasses import Field as BaseField, is_dataclass
 from enum import Enum
 from typing import (
     Any,
@@ -12,8 +13,6 @@ from typing import (
     Type,
     TypeVar,
 )
-
-from dataclasses import Field as BaseField, is_dataclass
 
 from apischema.conversion import Converter, InputVisitorMixin
 from apischema.data.coercion import STR_NONE_VALUES, coerce
@@ -88,6 +87,9 @@ class FromData(
         if constraint is not None and data is not None:
             constraint.validate(data)
         return data
+
+    def subprimitive(self, cls: Type, superclass: Type, data2: DataWithConstraint):
+        return cls(self.primitive(superclass, data2))
 
     def _union(
         self, alternatives: Iterable[Type], data2: DataWithConstraint

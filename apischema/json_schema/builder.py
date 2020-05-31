@@ -1,3 +1,4 @@
+from dataclasses import is_dataclass, replace
 from enum import Enum
 from itertools import chain
 from typing import (
@@ -16,8 +17,6 @@ from typing import (
     Type,
     Union,
 )
-
-from dataclasses import is_dataclass, replace
 
 from apischema.conversion import Converter, InputVisitorMixin, OutputVisitorMixin
 from apischema.data import to_data
@@ -143,6 +142,9 @@ class SchemaBuilder(Visitor[Schema, JSONSchema]):
         if cls in constraint_by_type:
             check_constraint(schema, constraint_by_type[cls])
         return JSONSchema(type=JSONType.from_type(cls), **_to_dict(schema))
+
+    def subprimitive(self, cls: Type, superclass: Type, schema: Schema) -> JSONSchema:
+        return self.primitive(superclass, _override(schema, cls))
 
     def union(self, alternatives: Sequence[Type], schema: Schema) -> JSONSchema:
         any_of = []

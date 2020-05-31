@@ -46,6 +46,9 @@ class Visitor(Generic[Arg, Return]):
     def primitive(self, cls: Type, arg: Arg) -> Return:
         raise NotImplementedError()
 
+    def subprimitive(self, cls: Type, superclass: Type, arg: Arg) -> Return:
+        raise NotImplementedError()
+
     def union(self, alternatives: Sequence[Type], arg: Arg) -> Return:
         raise NotImplementedError()
 
@@ -151,6 +154,9 @@ class Visitor(Generic[Arg, Return]):
             return self.any(arg)
         if isinstance(cls, _LiteralMeta):
             return self.literal(cls.__values__, arg)
+        for primitive in PRIMITIVE_TYPES:
+            if issubclass(cls, primitive):
+                return self.subprimitive(cls, primitive, arg)
         if isinstance(cls, NamedTupleMeta):
             if hasattr(cls, "__annotations__"):
                 types = get_type_hints(cls, include_extras=True)
