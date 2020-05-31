@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from dataclasses import dataclass, field
 from pytest import mark, raises
 
-from apischema import input_converter, output_converter, properties, schema
+from apischema import input_converter, properties, schema
 from apischema.data import from_data
 from apischema.data.to_data import to_data
 from apischema.fields import with_fields_set
@@ -181,7 +181,6 @@ def test_with_class_context():
         pass
 
     input_converter(BigInt, int, BigInt)
-    output_converter(int, BigInt, int)
 
     bijection(BigInt, 100, 100)
 

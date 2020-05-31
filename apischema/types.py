@@ -24,7 +24,7 @@ AnyType = Any
 NoneType: Type[None] = type(None)
 Number = Union[int, float]
 
-PRIMITIVE_TYPE = {str, int, bool, float, NoneType}
+PRIMITIVE_TYPES = {str, int, bool, float, NoneType}
 
 # Hack before PEP 585 ...
 if sys.version_info >= (3, 7):

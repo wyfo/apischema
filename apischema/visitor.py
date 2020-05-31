@@ -6,7 +6,7 @@ from dataclasses import is_dataclass
 from apischema.types import (
     ITERABLE_TYPES,
     MAPPING_TYPES,
-    PRIMITIVE_TYPE,
+    PRIMITIVE_TYPES,
 )
 from apischema.typing import (
     Literal,
@@ -18,7 +18,7 @@ from apischema.typing import (
     get_type_hints,
 )
 
-PRIMITIVE_TYPE_IDS = set(map(id, PRIMITIVE_TYPE))
+PRIMITIVE_TYPE_IDS = set(map(id, PRIMITIVE_TYPES))
 
 
 class Unsupported(TypeError):
