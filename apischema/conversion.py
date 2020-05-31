@@ -225,16 +225,10 @@ def output_converter(function: Func, param: Type = None, ret: Type = None) -> Fu
     return function
 
 
-def inout_model(model: Type, *, replace_new_type: bool = True) -> Callable[[Cls], Cls]:
-    def decorator(cls: Cls) -> Cls:
-        input_converter(cls, model, cls)
-        out_conv = model
-        if replace_new_type and hasattr(model, "__supertype__"):
-            out_conv = model.__supertype__
-        output_converter(out_conv, cls, model)
-        return cls
-
-    return decorator
+def inout_str(cls: Cls) -> Cls:
+    input_converter(cls, str, cls)
+    output_converter(str, cls, str)
+    return cls
 
 
 Arg = TypeVar("Arg")

@@ -3,7 +3,7 @@ __all__ = [
     "converter",
     "field_input_converter",
     "field_output_converter",
-    "inout_model",
+    "inout_str",
     "input_converter",
     "output_converter",
     "from_data",
@@ -35,7 +35,7 @@ from .conversion import (
     converter,
     field_input_converter,
     field_output_converter,
-    inout_model,
+    inout_str,
     input_converter,
     output_converter,
 )
