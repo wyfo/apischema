@@ -280,8 +280,7 @@ class FromData(
             set_field(additional_field, additional, "<additionalProperties>")
         elif remain and not self.additional_properties:
             field_errors.update(
-                (field.alias, ValidationError(["field not allowed"]))
-                for field in sorted(remain)
+                (key, ValidationError(["field not allowed"])) for key in sorted(remain)
             )
         error: Optional[ValidationError] = None
         if field_errors:
