@@ -24,7 +24,7 @@ from apischema.schema.constraints import (
     ObjectConstraint,
     get_constraint,
 )
-from apischema.types import ITERABLE_TYPES, MAPPING_TYPES, NoneType
+from apischema.types import ITERABLE_TYPES, LIST_TYPE, MAPPING_TYPES, NoneType
 from apischema.typing import _type_repr
 from apischema.validation.errors import ValidationError, exception, merge
 from apischema.validation.mock import ValidatorMock
@@ -128,7 +128,7 @@ class FromData(
             except ValidationError as err:
                 errors[str(i)] = err
         validate_with_errors(data, constraint, errors)
-        return ITERABLE_TYPES[cls](elts)
+        return elts if cls is LIST_TYPE else ITERABLE_TYPES[cls](elts)
 
     def mapping(
         self,

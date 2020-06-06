@@ -26,7 +26,6 @@ Number = Union[int, float]
 
 PRIMITIVE_TYPES = {str, int, bool, float, NoneType}
 
-# Hack before PEP 585 ...
 if sys.version_info >= (3, 7):
     ITERABLE_TYPES = {
         collections.abc.Iterable: tuple,
@@ -40,6 +39,8 @@ if sys.version_info >= (3, 7):
         collections.abc.MutableSet: set,
         set: set,
     }
+
+    LIST_TYPE = list
 
     MAPPING_TYPES = {
         collections.abc.Mapping: dict,
@@ -58,6 +59,8 @@ else:
         FrozenSet: frozenset,
         Set: set,
     }
+
+    LIST_TYPE = list
 
     MAPPING_TYPES = {Mapping: dict, MutableMapping: dict, Dict: dict}
 
