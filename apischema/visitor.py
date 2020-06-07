@@ -1,6 +1,6 @@
 from collections import defaultdict
 from dataclasses import is_dataclass
-from enum import Enum, EnumMeta
+from enum import Enum
 from typing import (
     Any,
     Generic,
@@ -147,9 +147,6 @@ class Visitor(Generic[Arg, Return]):
             return custom
         if is_dataclass(cls):
             return self.dataclass(cls, arg)
-        if isinstance(cls, EnumMeta):
-            assert issubclass(cls, Enum)
-            return self.enum(cls, arg)  # type: ignore
         if isinstance(cls, TypeVar):  # type: ignore
             try:
                 cls_ = self._generics[cls].pop()
@@ -162,18 +159,21 @@ class Visitor(Generic[Arg, Return]):
                 return self.visit(cls_, arg)
             finally:
                 self._generics[cls].append(cls_)
-        if isinstance(cls, _TypedDictMeta):
+        # cannot use issubclass before NewType and Any which are not classes
+        if hasattr(cls, "__supertype__"):
+            return self.new_type(cls, cls.__supertype__, arg)
+        if cls is Any:
+            return self.any(arg)
+        if isinstance(cls, _LiteralMeta):  # python 3.6
+            return self.literal(cls.__values__, arg)  # type: ignore
+        if issubclass(cls, Enum):
+            return self.enum(cls, arg)
+        if isinstance(cls, _TypedDictMeta):  # cannot use isinstance(..., TypedDict)
             total = cls.__total__  # type: ignore
             assert isinstance(cls, type)
             return self.typed_dict(
                 cls, get_type_hints(cls, include_extras=True), total, arg
             )
-        if hasattr(cls, "__supertype__"):
-            return self.new_type(cls, cls.__supertype__, arg)
-        if cls is Any:
-            return self.any(arg)
-        if isinstance(cls, _LiteralMeta):
-            return self.literal(cls.__values__, arg)  # type: ignore
         for primitive in PRIMITIVE_TYPES:
             if issubclass(cls, primitive):
                 return self.subprimitive(cls, primitive, arg)

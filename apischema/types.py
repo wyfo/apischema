@@ -18,8 +18,6 @@ from typing import (
     Union,
 )
 
-from dataclasses import Field
-
 AnyType = Any
 NoneType: Type[None] = type(None)
 Number = Union[int, float]
@@ -95,6 +93,3 @@ class MetadataMixin(Metadata):
 
     def __len__(self):
         return len(self.metadata)
-
-    def _resolve(self, field: Field, field_type: AnyType) -> Metadata:
-        return self
