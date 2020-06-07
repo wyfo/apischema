@@ -1,12 +1,24 @@
-from enum import Enum, EnumMeta
-from typing import Any, Dict, Generic, Iterable, Mapping, Sequence, Type, TypeVar, Union
-
+from collections import defaultdict
 from dataclasses import is_dataclass
+from enum import Enum, EnumMeta
+from typing import (
+    Any,
+    Generic,
+    Iterable,
+    Mapping,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+    DefaultDict,
+    List,
+)
 
 from apischema.types import (
     ITERABLE_TYPES,
     MAPPING_TYPES,
     PRIMITIVE_TYPES,
+    AnyType,
 )
 from apischema.typing import (
     Literal,
@@ -41,7 +53,7 @@ Return = TypeVar("Return", covariant=True)
 
 class Visitor(Generic[Arg, Return]):
     def __init__(self):
-        self._generics: Dict[TypeVar, Type] = {}
+        self._generics: DefaultDict[TypeVar, List[AnyType]] = defaultdict(list)
 
     def primitive(self, cls: Type, arg: Arg) -> Return:
         raise NotImplementedError()
@@ -98,7 +110,7 @@ class Visitor(Generic[Arg, Return]):
     ) -> Return:
         raise TypeError("NamedTuple is not handled")
 
-    def visit(self, cls: Type, arg: Arg) -> Return:
+    def visit(self, cls: AnyType, arg: Arg) -> Return:
         # Use `id` to avoid useless costly generic types hashing
         if id(cls) in PRIMITIVE_TYPE_IDS:
             return self.primitive(cls, arg)
@@ -118,12 +130,15 @@ class Visitor(Generic[Arg, Return]):
             if origin is Literal:
                 return self.literal(cls.__args__, arg)
             # TypeVar handling
-            generics_save = self._generics.copy()
+            assert len(origin.__parameters__) == len(cls.__args__)
+            # Use a side effect in order to avoid passing argument anywhere
             for tv, value in zip(origin.__parameters__, cls.__args__):
-                # Kind of ugly side effect, but for simplicity
-                self._generics[tv] = generics_save.get(value, value)
-            res = self.visit(origin, arg)
-            self._generics = generics_save
+                self._generics[tv].append(value)
+            try:
+                res = self.visit(origin, arg)
+            finally:
+                for tv in origin.__parameters__:
+                    self._generics[tv].pop()
             return res
         # customs are handled before other classes
         custom = self.custom(cls, arg)
@@ -132,28 +147,33 @@ class Visitor(Generic[Arg, Return]):
             return custom
         if is_dataclass(cls):
             return self.dataclass(cls, arg)
+        if isinstance(cls, EnumMeta):
+            assert issubclass(cls, Enum)
+            return self.enum(cls, arg)  # type: ignore
+        if isinstance(cls, TypeVar):  # type: ignore
+            try:
+                cls_ = self._generics[cls].pop()
+            except IndexError:
+                if cls.__constraints__:
+                    return self.visit(Union[cls.__constraints__], arg)
+                else:
+                    return self.visit(Any, arg)
+            try:
+                return self.visit(cls_, arg)
+            finally:
+                self._generics[cls].append(cls_)
         if isinstance(cls, _TypedDictMeta):
             total = cls.__total__  # type: ignore
+            assert isinstance(cls, type)
             return self.typed_dict(
                 cls, get_type_hints(cls, include_extras=True), total, arg
             )
-        if isinstance(cls, TypeVar):  # type: ignore
-            try:
-                cls_ = self._generics[cls]
-            except KeyError:
-                if cls.__constraints__:
-                    return self.visit(Union[cls.__constraints__], arg)
-                return self.visit(Any, arg)  # type: ignore
-            else:
-                return self.visit(cls_, arg)
-        if isinstance(cls, EnumMeta):
-            return self.enum(cls, arg)
         if hasattr(cls, "__supertype__"):
             return self.new_type(cls, cls.__supertype__, arg)
         if cls is Any:
             return self.any(arg)
         if isinstance(cls, _LiteralMeta):
-            return self.literal(cls.__values__, arg)
+            return self.literal(cls.__values__, arg)  # type: ignore
         for primitive in PRIMITIVE_TYPES:
             if issubclass(cls, primitive):
                 return self.subprimitive(cls, primitive, arg)
@@ -161,11 +181,11 @@ class Visitor(Generic[Arg, Return]):
             if hasattr(cls, "__annotations__"):
                 types = get_type_hints(cls, include_extras=True)
             else:
-                types = cls._field_types  # type: ignore
+                types = cls._field_types
             return self.named_tuple(cls, types, cls._field_defaults, arg)
         if hasattr(cls, "__parameters__"):
             params = tuple(
-                self._generics.get(p, Any) for p in getattr(cls, "__parameters__")
+                (self._generics[p] or [Any])[0] for p in getattr(cls, "__parameters__")
             )
             raise Unsupported(cls[params])
         raise Unsupported(cls)
