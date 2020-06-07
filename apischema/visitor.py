@@ -3,32 +3,31 @@ from dataclasses import is_dataclass
 from enum import Enum
 from typing import (
     Any,
+    Callable,
+    Collection,
+    DefaultDict,
     Generic,
-    Iterable,
+    List,
     Mapping,
+    Optional,
     Sequence,
+    Tuple,
     Type,
     TypeVar,
     Union,
-    DefaultDict,
-    List,
+    cast,
 )
 
 from apischema.types import (
-    ITERABLE_TYPES,
-    MAPPING_TYPES,
-    PRIMITIVE_TYPES,
     AnyType,
+    COLLECTION_TYPES,
+    MAPPING_TYPES,
+    OrderedDict,
+    PRIMITIVE_TYPES,
+    TUPLE_TYPE,
 )
-from apischema.typing import (
-    Literal,
-    NamedTupleMeta,
-    _AnnotatedAlias,
-    _LiteralMeta,
-    _TypedDictMeta,
-    _type_repr,
-    get_type_hints,
-)
+from apischema.typing import Literal, _AnnotatedAlias, _LiteralMeta, _TypedDictMeta
+from apischema.utils import type_hints_cache
 
 PRIMITIVE_TYPE_IDS = set(map(id, PRIMITIVE_TYPES))
 
@@ -37,15 +36,6 @@ class Unsupported(TypeError):
     def __init__(self, cls: Type):
         self.cls = cls
 
-    def __repr__(self):
-        return f"unsupported '{_type_repr(self.cls)}' type"
-
-
-class NotCustom:
-    pass
-
-
-NOT_CUSTOM = NotCustom()
 
 Arg = TypeVar("Arg", contravariant=True)
 Return = TypeVar("Return", covariant=True)
@@ -55,36 +45,16 @@ class Visitor(Generic[Arg, Return]):
     def __init__(self):
         self._generics: DefaultDict[TypeVar, List[AnyType]] = defaultdict(list)
 
-    def primitive(self, cls: Type, arg: Arg) -> Return:
+    def annotated(self, cls: AnyType, annotations: Sequence[Any], arg: Arg) -> Return:
+        return self.visit(cls, arg)
+
+    def any(self, arg: Arg) -> Return:
         raise NotImplementedError()
 
-    def subprimitive(self, cls: Type, superclass: Type, arg: Arg) -> Return:
-        raise NotImplementedError()
-
-    def union(self, alternatives: Sequence[Type], arg: Arg) -> Return:
-        raise NotImplementedError()
-
-    def iterable(self, cls: Type[Iterable], value_type: Type, arg: Arg) -> Return:
-        raise NotImplementedError()
-
-    def mapping(
-        self, cls: Type[Mapping], key_type: Type, value_type: Type, arg: Arg
+    def collection(
+        self, cls: Type[Collection], value_type: AnyType, arg: Arg
     ) -> Return:
         raise NotImplementedError()
-
-    def typed_dict(
-        self, cls: Type, keys: Mapping[str, Type], total: bool, arg: Arg
-    ) -> Return:
-        raise NotImplementedError()
-
-    def tuple(self, types: Sequence[Type], arg: Arg) -> Return:
-        raise NotImplementedError()
-
-    def literal(self, values: Sequence[Any], arg: Arg) -> Return:
-        raise NotImplementedError()
-
-    def custom(self, cls: Type, arg: Arg) -> Union[Return, NotCustom]:
-        return NOT_CUSTOM
 
     def dataclass(self, cls: Type, arg: Arg) -> Return:
         raise NotImplementedError()
@@ -92,23 +62,81 @@ class Visitor(Generic[Arg, Return]):
     def enum(self, cls: Type[Enum], arg: Arg) -> Return:
         raise NotImplementedError()
 
-    def new_type(self, cls: Type, super_type: Type, arg: Arg) -> Return:
-        return self.visit(super_type, arg)
+    def _generic(self, cls: AnyType, arg: Arg) -> Return:
+        origin, args = cls.__origin__, cls.__args__
+        assert len(origin.__parameters__) == len(args)
+        # Use a side effect in order to avoid passing argument anywhere
+        for tv, value in zip(origin.__parameters__, args):
+            self._generics[tv].append(value)
+        try:
+            return self.visit(origin, arg)
+        finally:
+            for tv in origin.__parameters__:
+                self._generics[tv].pop()
 
-    def any(self, arg: Arg) -> Return:
+    def literal(self, values: Sequence[Any], arg: Arg) -> Return:
         raise NotImplementedError()
 
-    def annotated(self, cls: Type, annotations: Sequence[Any], arg: Arg) -> Return:
-        return self.visit(cls, arg)
+    def mapping(
+        self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType, arg: Arg
+    ) -> Return:
+        raise NotImplementedError()
 
     def named_tuple(
         self,
-        cls: Type,
-        types: Mapping[str, Type],
+        cls: Type[Tuple],
+        types: Mapping[str, AnyType],
         defaults: Mapping[str, Any],
         arg: Arg,
     ) -> Return:
-        raise TypeError("NamedTuple is not handled")
+        raise NotImplementedError("NamedTuple is not handled")
+
+    def new_type(self, cls: AnyType, super_type: AnyType, arg: Arg) -> Return:
+        return self.visit(super_type, arg)
+
+    def primitive(self, cls: Type, arg: Arg) -> Return:
+        raise NotImplementedError()
+
+    def subprimitive(self, cls: Type, superclass: Type, arg: Arg) -> Return:
+        return self.primitive(superclass, arg)
+
+    def tuple(self, types: Sequence[AnyType], arg: Arg) -> Return:
+        raise NotImplementedError()
+
+    def typed_dict(
+        self, cls: Type, keys: Mapping[str, AnyType], total: bool, arg: Arg
+    ) -> Return:
+        raise NotImplementedError()
+
+    def _type_var(self, tv: AnyType, arg: Arg) -> Return:
+        try:
+            cls_ = self._generics[tv].pop()
+        except IndexError:
+            if tv.__constraints__:
+                return self.visit(Union[tv.__constraints__], arg)
+            else:
+                return self.visit(Any, arg)
+        try:
+            return self.visit(cls_, arg)
+        finally:
+            self._generics[tv].append(cls_)
+
+    def union(self, alternatives: Sequence[AnyType], arg: Arg) -> Return:
+        raise NotImplementedError()
+
+    def _unsupported(self, cls: AnyType, arg: Arg) -> Return:
+        if hasattr(cls, "__parameters__") and cls.__parameters__:
+            params = tuple(
+                (self._generics[p] or [Any])[-1] for p in getattr(cls, "__parameters__")
+            )
+            if len(params) == 1:
+                params = params[0]
+            return self.unsupported(cls[params], arg)
+        else:
+            return self.unsupported(cls, arg)
+
+    def unsupported(self, cls: AnyType, arg: Arg) -> Return:
+        raise Unsupported(cls) from None
 
     def visit(self, cls: AnyType, arg: Arg) -> Return:
         # Use `id` to avoid useless costly generic types hashing
@@ -117,75 +145,103 @@ class Visitor(Generic[Arg, Return]):
         origin = getattr(cls, "__origin__", None)  # because of 3.6
         if origin is not None:
             if isinstance(cls, _AnnotatedAlias):
-                return self.annotated(origin, cls.__metadata__, arg)
+                return self.annotated(cls.__args__[0], cls.__metadata__, arg)
             if origin is Union:
                 return self.union(cls.__args__, arg)
-            if origin is tuple:
+            if origin is TUPLE_TYPE:
                 if len(cls.__args__) < 2 or cls.__args__[1] is not ...:
                     return self.tuple(cls.__args__, arg)
-            if origin in ITERABLE_TYPES:
-                return self.iterable(origin, cls.__args__[0], arg)
+            if origin in COLLECTION_TYPES:
+                return self.collection(origin, cls.__args__[0], arg)
             if origin in MAPPING_TYPES:
                 return self.mapping(origin, cls.__args__[0], cls.__args__[1], arg)
-            if origin is Literal:
+            if origin is Literal:  # pragma: no cover (because of py36)
                 return self.literal(cls.__args__, arg)
             # TypeVar handling
-            assert len(origin.__parameters__) == len(cls.__args__)
-            # Use a side effect in order to avoid passing argument anywhere
-            for tv, value in zip(origin.__parameters__, cls.__args__):
-                self._generics[tv].append(value)
-            try:
-                res = self.visit(origin, arg)
-            finally:
-                for tv in origin.__parameters__:
-                    self._generics[tv].pop()
-            return res
-        # customs are handled before other classes
-        custom = self.custom(cls, arg)
-        if custom is not NOT_CUSTOM:
-            assert not isinstance(custom, NotCustom)
-            return custom
-        if is_dataclass(cls):
-            return self.dataclass(cls, arg)
-        if isinstance(cls, TypeVar):  # type: ignore
-            try:
-                cls_ = self._generics[cls].pop()
-            except IndexError:
-                if cls.__constraints__:
-                    return self.visit(Union[cls.__constraints__], arg)
-                else:
-                    return self.visit(Any, arg)
-            try:
-                return self.visit(cls_, arg)
-            finally:
-                self._generics[cls].append(cls_)
-        # cannot use issubclass before NewType and Any which are not classes
+            if not hasattr(origin, "__parameters__"):  # pragma: no cover
+                return self.unsupported(origin, arg)
+            return self._generic(cls, arg)
         if hasattr(cls, "__supertype__"):
             return self.new_type(cls, cls.__supertype__, arg)
+        if isinstance(cls, TypeVar):  # type: ignore
+            return self._type_var(cls, arg)
         if cls is Any:
             return self.any(arg)
-        if isinstance(cls, _LiteralMeta):  # python 3.6
-            return self.literal(cls.__values__, arg)  # type: ignore
-        if issubclass(cls, Enum):
-            return self.enum(cls, arg)
-        if isinstance(cls, _TypedDictMeta):  # cannot use isinstance(..., TypedDict)
+        # cannot use isinstance(..., TypedDict)
+        if isinstance(cls, _TypedDictMeta):
             total = cls.__total__  # type: ignore
             assert isinstance(cls, type)
-            return self.typed_dict(
-                cls, get_type_hints(cls, include_extras=True), total, arg
-            )
+            return self.typed_dict(cls, type_hints_cache(cls), total, arg)
+        return self.visit_not_builtin(cls, arg)
+
+    def visit_not_builtin(self, cls: Type, arg: Arg) -> Return:
+        if is_dataclass(cls):
+            return self.dataclass(cls, arg)
+        # cannot use issubclass before Any or 3.6 Literal
+        if isinstance(cls, _LiteralMeta):  # pragma: no cover (because of py36)
+            return self.literal(cls.__values__, arg)  # type: ignore
+        try:
+            issubclass(cls, object)
+        except TypeError:
+            return self._unsupported(cls, arg)
+        if issubclass(cls, Enum):
+            return self.enum(cls, arg)
         for primitive in PRIMITIVE_TYPES:
             if issubclass(cls, primitive):
                 return self.subprimitive(cls, primitive, arg)
-        if isinstance(cls, NamedTupleMeta):
+        # NamedTuple
+        if issubclass(cls, tuple) and hasattr(cls, "_fields"):
             if hasattr(cls, "__annotations__"):
-                types = get_type_hints(cls, include_extras=True)
-            else:
-                types = cls._field_types
-            return self.named_tuple(cls, types, cls._field_defaults, arg)
-        if hasattr(cls, "__parameters__"):
-            params = tuple(
-                (self._generics[p] or [Any])[0] for p in getattr(cls, "__parameters__")
+                types = type_hints_cache(cls)
+            elif hasattr(cls, "__field_types"):  # pragma: no cover
+                types = cls._field_types  # type: ignore
+            else:  # pragma: no cover
+                types = OrderedDict((f, Any) for f in cls._fields)  # type: ignore
+            return self.named_tuple(
+                cls, types, cls._field_defaults, arg  # type: ignore
             )
-            raise Unsupported(cls[params])
-        raise Unsupported(cls)
+        return self._unsupported(cls, arg)
+
+
+class VisitorMock:
+    def __init__(self):
+        self._method = None
+        self._args = None
+
+    def __getattr__(self, name):
+        def set_method(*args):
+            assert args[-1] is ...
+            self._method = name
+            self._args = args[:-1]
+
+        return set_method
+
+    def compute_method(
+        self, cls: AnyType, visitor_cls: Optional[Type[Visitor]]
+    ) -> Callable[[Visitor[Arg, Return], AnyType, Arg], Return]:
+        Visitor.visit(cast(Visitor, self), cls, ...)
+        method_name, args = self._method, self._args
+        assert method_name is not None and args is not None
+        if visitor_cls is None:
+
+            def method(visitor: Visitor[Arg, Return], cls: AnyType, arg: Arg) -> Return:
+                return getattr(visitor, method_name)(*args, arg)
+
+        else:
+            _method = getattr(visitor_cls, method_name)
+            if args == (cls,):
+                method = _method
+            else:
+
+                def method(
+                    visitor: Visitor[Arg, Return], cls: AnyType, arg: Arg
+                ) -> Return:
+                    return _method(visitor, *args, arg)
+
+        return method
+
+
+def visitor_method(
+    cls: AnyType, visitor_cls: Type[Visitor] = None
+) -> Callable[[Visitor[Arg, Return], AnyType, Arg], Return]:
+    return VisitorMock().compute_method(cls, visitor_cls)

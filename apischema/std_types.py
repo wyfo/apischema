@@ -1,6 +1,8 @@
 import re
 import sys
+from base64 import b64decode, b64encode
 from datetime import date, datetime, time
+from decimal import Decimal
 from ipaddress import (
     IPv4Address,
     IPv4Interface,
@@ -9,52 +11,62 @@ from ipaddress import (
     IPv6Interface,
     IPv6Network,
 )
+from pathlib import Path
+from typing import NewType, Type, TypeVar
 from uuid import UUID
 
-from apischema.conversion import inout_str, input_converter, output_converter
-from apischema.schema import schema
+from apischema.json_schema.schema import schema
+from apischema.conversion.converters import deserializer, serializer
 
-# ==================== uuid ====================
+Cls = TypeVar("Cls", bound=Type)
 
-inout_str(UUID)
-schema(format="uuid")(UUID)
 
-# ==================== datetime ====================
+def as_str(cls: Cls, format: str = None):
+    str_type = schema(format=format)(NewType(cls.__name__, str))
+    deserializer(cls, str_type, cls)
+    serializer(str, cls, str_type)
 
-if sys.version_info >= (3, 7):
-    input_converter(date.fromisoformat, str, date)
-    output_converter(date.isoformat, date, str)
-    schema(format="date")(date)
 
-    input_converter(datetime.fromisoformat, str, datetime)
-    output_converter(datetime.isoformat, datetime, str)
-    schema(format="date-time")(datetime)
+# =================== bytes =====================
 
-    input_converter(time.fromisoformat, str, time)
-    input_converter(time.isoformat, time, str)
-    schema(format="time")(time)
+deserializer(b64decode, str, bytes)
 
-# ==================== ipaddress ====================
 
-inout_str(IPv4Address)
-schema(format="ipv4")(IPv4Address)
+@serializer
+def to_base64(b: bytes) -> str:
+    return b64encode(b).decode()
 
-inout_str(IPv4Interface)
-schema(format="ipv4")(IPv4Interface)
 
-inout_str(IPv4Network)
-schema(format="ipv4")(IPv4Network)
+# ================== datetime ===================
 
-inout_str(IPv6Address)
-schema(format="ipv6")(IPv6Address)
+if sys.version_info >= (3, 7):  # pragma: no cover
+    for cls, format in [(date, "date"), (datetime, "date-time"), (time, "time")]:
+        str_type = schema(format=format)(NewType(cls.__name__, str))
+        deserializer(cls.fromisoformat, str_type, cls)  # type: ignore
+        serializer(cls.isoformat, cls, str_type)  # type: ignore
 
-inout_str(IPv6Interface)
-schema(format="ipv6")(IPv6Interface)
+# ================== decimal ====================
 
-inout_str(IPv6Network)
-schema(format="ipv6")(IPv6Network)
+deserializer(Decimal, float, Decimal)
+serializer(float, Decimal, float)
 
-# ==================== pattern ====================
+# ================= ipaddress ===================
+
+for cls in (IPv4Address, IPv4Interface, IPv4Network):
+    as_str(cls, "ipv4")
+for cls in (IPv6Address, IPv6Interface, IPv6Network):
+    as_str(cls, "ipv6")
+
+# ==================== path =====================
+
+as_str(Path)
+
+# =================== pattern ===================
+
 Pattern = type(re.compile(r""))
-input_converter(re.compile, str, Pattern)
-output_converter(lambda p: p.pattern, Pattern, str)
+deserializer(re.compile, str, Pattern)
+serializer(lambda p: p.pattern, Pattern, str)
+
+# ==================== uuid =====================
+
+as_str(UUID, "uuid")

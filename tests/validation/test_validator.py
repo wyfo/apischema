@@ -1,17 +1,21 @@
-from dataclasses import dataclass
-from typing import Sequence, cast
+from dataclasses import Field, dataclass, field
+from operator import not_
+from typing import cast
 
-from pytest import fixture, raises
+from pytest import raises
 
 from apischema import ValidationError, validator
+from apischema.fields import fields
 from apischema.validation.mock import NonTrivialDependency, ValidatorMock
-from apischema.validation.validator import Validator, get_validators, validate
+from apischema.validation.validator import Validator, get_validators, validate, validators
 
 
 @dataclass
 class Data:
     a: int
-    other: str = ""
+    b: int
+    c: int = 0
+    with_validator: bool = field(default=False, metadata=validators(not_))
 
     @validator
     def a_gt_10(self):
@@ -28,44 +32,41 @@ class Data:
         non_trivial(self)
 
 
+validator_field = cast(Field, fields(Data).with_validator)
+
+
 def non_trivial(data: Data):
-    return data.other
+    return data.c == data.b
 
 
-@fixture
-def validators() -> Sequence[Validator]:
-    return get_validators(Data)
-
-
-def test_get_validators(validators):
-    assert validators == (Data.a_gt_10, Data.a_lt_100, Data.non_trivial)
+def test_get_validators():
+    assert get_validators(Data) == (Data.a_gt_10, Data.a_lt_100, Data.non_trivial)
 
 
 def test_validator_descriptor():
     # Class field is descriptor
-    val = cast(Validator, Data.a_gt_10)
+    val: Validator = Data.a_gt_10
     assert val.dependencies == {"a"}
-    assert val.can_be_called({"a"})
-    assert not val.can_be_called(set())
     # Can be called from class and instance
     with raises(ValueError):
-        assert Data(200).a_lt_100()
+        assert Data(200, 0).a_lt_100()
     with raises(ValueError):
-        assert Data.a_lt_100(Data(200))
+        assert Data.a_lt_100(Data(200, 0))
 
 
-def test_validate(validators):
-    validate(Data(42), validators)
+def test_validate():
+    validate(Data(42, 0))
     with raises(ValidationError) as err:
-        validate(Data(0), validators)
+        validate(Data(0, 0))
     assert err.value == ValidationError(["error"])
     with raises(ValidationError) as err:
-        validate(Data(200), validators)
-    assert err.value == ValidationError(["[ValueError]error2"])
+        validate(Data(200, 0))
+    assert err.value == ValidationError(["error2"])
 
 
-def test_non_trivial(validators):
+def test_non_trivial():
     with raises(NonTrivialDependency) as err:
-        validate(ValidatorMock(Data, {"a": 42}, {}), validators)
-    assert err.value.attr == "other"
+        validate(ValidatorMock(Data, {"a": 42}))
+    # err.value.attr != "c" because `c` has a default value
+    assert err.value.attr == "b"
     assert err.value.validator == Data.non_trivial

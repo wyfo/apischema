@@ -1,12 +1,12 @@
 import collections.abc
 import sys
+from types import MappingProxyType
 from typing import (
     AbstractSet,
     Any,
     Collection,
     Dict,
     FrozenSet,
-    Iterable,
     List,
     Mapping,
     MutableMapping,
@@ -15,8 +15,11 @@ from typing import (
     Set,
     Tuple,
     Type,
+    TypeVar,
     Union,
 )
+
+from apischema.typing import Annotated, NO_TYPE
 
 AnyType = Any
 NoneType: Type[None] = type(None)
@@ -24,9 +27,8 @@ Number = Union[int, float]
 
 PRIMITIVE_TYPES = (str, int, bool, float, NoneType)
 
-if sys.version_info >= (3, 7):
-    ITERABLE_TYPES = {
-        collections.abc.Iterable: tuple,
+if sys.version_info >= (3, 7):  # pragma: no cover
+    COLLECTION_TYPES = {
         collections.abc.Collection: tuple,
         collections.abc.Sequence: tuple,
         tuple: tuple,
@@ -37,17 +39,17 @@ if sys.version_info >= (3, 7):
         collections.abc.MutableSet: set,
         set: set,
     }
-
-    LIST_TYPE = list
-
     MAPPING_TYPES = {
-        collections.abc.Mapping: dict,
+        collections.abc.Mapping: MappingProxyType,
         collections.abc.MutableMapping: dict,
         dict: dict,
     }
-else:
-    ITERABLE_TYPES = {
-        Iterable: tuple,
+    LIST_TYPE = list
+    TUPLE_TYPE = tuple
+    DICT_TYPE = dict
+
+else:  # pragma: no cover
+    COLLECTION_TYPES = {
         Collection: tuple,
         Sequence: tuple,
         Tuple: tuple,
@@ -57,39 +59,75 @@ else:
         FrozenSet: frozenset,
         Set: set,
     }
+    MAPPING_TYPES = {Mapping: MappingProxyType, MutableMapping: dict, Dict: dict}
+    LIST_TYPE = List
+    TUPLE_TYPE = Tuple
+    DICT_TYPE = Dict
 
-    LIST_TYPE = list
 
-    MAPPING_TYPES = {Mapping: dict, MutableMapping: dict, Dict: dict}
-
-
-if sys.version_info >= (3, 7):
+if sys.version_info >= (3, 7):  # pragma: no cover
     OrderedDict = dict
-else:
+else:  # pragma: no cover
     from collections import OrderedDict  # noqa
 
 # Kind of hack to benefit of PEP 584
-if sys.version_info >= (3, 9):
+if sys.version_info >= (3, 9):  # pragma: no cover
     Metadata = Mapping[str, Any]
-    DictWithUnion = dict
-else:
+else:  # pragma: no cover
 
     class Metadata(Mapping[str, Any]):
         def __or__(self, other: Mapping[str, Any]) -> "Metadata":
-            return DictWithUnion({**self, **other})
+            return MappingWithUnion({**self, **other})
 
-    class DictWithUnion(Dict[str, Any], Metadata):  # noqa
-        pass
+        def __ror__(self, other: Mapping[str, Any]) -> "Metadata":
+            return MappingWithUnion({**other, **self})
 
 
 class MetadataMixin(Metadata):
-    metadata: Mapping[str, Any]
+    def __init__(self, key: str):
+        super().__setattr__("_key", key)
 
     def __getitem__(self, key):
-        return self.metadata[key]
+        if key != self._key:
+            raise KeyError(key)
+        return self
 
     def __iter__(self):
-        return iter(self.metadata)
+        return iter((self._key,))
 
     def __len__(self):
-        return len(self.metadata)
+        return 1
+
+
+if sys.version_info >= (3, 9):
+    MappingWithUnion = MappingProxyType
+else:
+
+    class MappingWithUnion(dict, Metadata):
+        pass
+
+
+class Skipped(Exception):
+    pass
+
+
+class _Skip:
+    def __call__(self, *, schema_only: bool):
+        return SkipSchema if schema_only else self
+
+
+Skip = _Skip()
+SkipSchema = object()
+
+
+T = TypeVar("T")
+
+if Annotated is not NO_TYPE:
+    NotNull = Union[T, Annotated[None, Skip]]
+else:
+
+    class _NotNull:
+        def __getitem__(self, item):
+            raise TypeError("NotNull requires Annotated (PEP 593)")
+
+    NotNull = _NotNull()  # type: ignore

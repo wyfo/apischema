@@ -3,10 +3,9 @@ from setuptools import find_packages, setup
 with open("README.md") as f:
     README = f.read()
 
-# cannot use Cython because of https://github.com/cython/cython/issues/3537
 setup(
     name="apischema",
-    version="0.5.2",
+    version="0.7.0",
     url="https://github.com/wyfo/apischema",
     author="Joseph Perez",
     author_email="joperez@hotmail.fr",
@@ -19,6 +18,7 @@ setup(
     long_description_content_type="text/markdown",
     python_requires=">=3.6",
     install_requires=["dataclasses==0.7;python_version<'3.7'"],
+    extras_require={"test": ["typing_extensions", "tox", "pytest", "sqlalchemy"]},
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",

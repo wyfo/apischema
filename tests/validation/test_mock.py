@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import ClassVar, cast
 
 from pytest import raises
@@ -26,17 +26,23 @@ class Data:
         return cls.c + arg
 
 
+class SubData(Data):
+    pass
+
+
 def test_mock():
-    mock = cast(Data, ValidatorMock(Data, {"a": 0}, {"b": field(default="1")}))
+    mock = cast(Data, ValidatorMock(Data, {"a": 0}))
     assert mock.a == 0
     assert mock.b == "1"
     assert mock.c == 42
     assert mock.d == 0
-    assert mock.__class__ == Data
     assert mock.__dict__ == {"a": 0, "b": "1", FIELDS_SET_ATTR: {"a"}}
+    assert getattr(mock, FIELDS_SET_ATTR) == {"a"}
     assert mock.property == 1
     assert mock.method(1) == 1
     assert mock.classmethod(0) == 42
+    assert mock.__class__ == Data
+    assert isinstance(mock, Data)
     assert type(mock) == ValidatorMock
     with raises(NonTrivialDependency):
         _ = mock.e

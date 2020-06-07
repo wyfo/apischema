@@ -1,10 +1,19 @@
+from dataclasses import (  # type: ignore
+    Field,
+    MISSING,
+    _FIELDS,
+    _FIELD_CLASSVAR,
+    dataclass,
+)
 from functools import partial
 from types import FunctionType, MethodType
-from typing import Any, Callable, Mapping, Optional, Type
+from typing import Any, Mapping, Optional, TYPE_CHECKING, Type, TypeVar
 
-from dataclasses import Field, _FIELDS, _FIELD_CLASSVAR, dataclass  # type: ignore
+from apischema.fields import FIELDS_SET_ATTR
+from apischema.utils import get_default
 
-from apischema.fields import FIELDS_SET_ATTR, get_default
+if TYPE_CHECKING:
+    from apischema.validation.validator import Validator
 
 MOCK_FIELDS_FIELD = "__mock_fields__"
 MOCK_CLS_FIELD = "__mock_cls__"
@@ -13,37 +22,50 @@ MOCK_CLS_FIELD = "__mock_cls__"
 class NonTrivialDependency(Exception):
     def __init__(self, attr: str):
         self.attr = attr
-        self.validator: Optional[Callable] = None
+        self.validator: Optional["Validator"] = None
 
 
 @dataclass
 class ValidatorMock:
-    def __init__(
-        self, cls: Type, fields: Mapping[str, Any], defaults: Mapping[str, Field]
-    ):
+    def __init__(self, cls: Type, fields: Mapping[str, Any]):
         self.cls = cls
         self.fields = fields
-        self.defaults = defaults
         setattr(self, FIELDS_SET_ATTR, set(fields))
 
-    def __getattribute__(self, attr: str) -> Any:
+    def __getattribute__(self, name: str) -> Any:
         fields = super().__getattribute__("fields")
-        if attr in fields:
-            return fields[attr]
-        defaults = super().__getattribute__("defaults")
-        if attr in defaults:
-            return get_default(defaults[attr])
+        if name in fields:
+            return fields[name]
         cls = super().__getattribute__("cls")
-        if attr == "__class__":
+        cls_fields: Mapping[str, Field] = getattr(cls, _FIELDS)
+        if name in cls_fields:
+            if cls_fields[name]._field_type == _FIELD_CLASSVAR:  # type: ignore
+                return getattr(cls, name)
+            else:
+                try:
+                    return get_default(cls_fields[name])
+                except NotImplementedError:
+                    raise NonTrivialDependency(name)
+        if name == "__class__":
             return cls
-        if attr == "__dict__":
+        if name == "__dict__":
             return {
                 **fields,
-                **{name: get_default(field) for name, field in defaults.items()},
+                **{
+                    name: get_default(field)
+                    for name, field in cls_fields.items()
+                    if field._field_type != _FIELD_CLASSVAR  # type: ignore
+                    and (
+                        field.default is not MISSING
+                        or field.default_factory is not MISSING  # type: ignore
+                    )
+                },
                 FIELDS_SET_ATTR: set(fields),
             }
-        if hasattr(cls, attr):
-            member = getattr(cls, attr)
+        if name == FIELDS_SET_ATTR:
+            return set(fields)
+        if hasattr(cls, name):
+            member = getattr(cls, name)
             # for classmethod (staticmethod are not handled)
             if isinstance(member, MethodType):
                 return member
@@ -51,9 +73,8 @@ class ValidatorMock:
                 return partial(member, self)
             if isinstance(member, property):
                 return member.fget(self)  # type: ignore
-            if all(
-                f.name != attr or f._field_type == _FIELD_CLASSVAR
-                for f in getattr(cls, _FIELDS).values()
-            ):
-                return member
-        raise NonTrivialDependency(attr)
+            return member
+        raise NonTrivialDependency(name)
+
+
+T = TypeVar("T")

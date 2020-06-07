@@ -1,4 +1,13 @@
-__all__ = ["JSONSchema", "build_input_schema", "build_output_schema"]
+__all__ = [
+    "JsonSchemaVersion",
+    "definitions_schema",
+    "deserialization_schema",
+    "serialization_schema",
+]
 
-from .builder import build_input_schema, build_output_schema
-from .types import JSONSchema
+from .generation.builder import (
+    definitions_schema,
+    deserialization_schema,
+    serialization_schema,
+)
+from .versions import JsonSchemaVersion

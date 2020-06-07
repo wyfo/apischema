@@ -1,12 +1,20 @@
+from pytest import mark, raises
+
 from apischema.validation.dependencies import find_all_dependencies, find_dependencies
 
 
-def test_find_dependencies():
-    def a_equal_b(self):
-        assert self.a == self.b
+def a_equal_b(param):
+    assert param.a == param.b
 
-    assert find_dependencies(a_equal_b) == {"a", "b"}
-    assert find_dependencies(int) == set()
+
+@mark.parametrize("func, deps", [(a_equal_b, {"a", "b"}), (int, set())])
+def test_find_dependencies(func, deps):
+    assert find_dependencies(func) == deps
+
+
+def test_no_parameter():
+    with raises(TypeError):
+        find_dependencies(lambda: None)
 
 
 def test_find_end_dependencies():

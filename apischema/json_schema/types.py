@@ -1,14 +1,25 @@
-from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Mapping, Optional, Pattern, Sequence, Type, Union
+from functools import wraps
+from inspect import signature
+from typing import (
+    Any,
+    Callable,
+    Collection,
+    Dict,
+    Mapping,
+    Pattern,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
-from apischema.alias import alias
-from apischema.fields import with_fields_set
 from apischema.types import NoneType, Number
-from apischema.utils import NO_DEFAULT, to_camel_case
+from apischema.utils import Nil
 
 
-class JSONType(Enum):
+class JsonType(str, Enum):
     NULL = "null"
     BOOLEAN = "boolean"
     STRING = "string"
@@ -18,51 +29,78 @@ class JSONType(Enum):
     OBJECT = "object"
 
     @staticmethod
-    def from_type(cls: Type) -> "JSONType":
+    def from_type(cls: Type) -> "JsonType":
         return {
-            NoneType: JSONType.NULL,
-            bool: JSONType.BOOLEAN,
-            str: JSONType.STRING,
-            int: JSONType.INTEGER,
-            float: JSONType.NUMBER,
-            list: JSONType.ARRAY,
-            dict: JSONType.OBJECT,
+            NoneType: JsonType.NULL,
+            bool: JsonType.BOOLEAN,
+            str: JsonType.STRING,
+            int: JsonType.INTEGER,
+            float: JsonType.NUMBER,
+            list: JsonType.ARRAY,
+            dict: JsonType.OBJECT,
         }[cls]
 
 
-@alias(to_camel_case)
-@with_fields_set
-@dataclass
-class JSONSchema:
-    additional_properties: Optional[Union[bool, "JSONSchema"]] = None
-    all_of: Optional[Sequence["JSONSchema"]] = None
-    any_of: Optional[Sequence["JSONSchema"]] = None
-    const: Any = NO_DEFAULT
-    default: Any = NO_DEFAULT
-    description: Optional[str] = None
-    enum: Optional[Sequence[Any]] = None
-    exclusive_maximum: Optional[Number] = None
-    exclusive_minimum: Optional[Number] = None
-    examples: Optional[Sequence[Any]] = None
-    format: Optional[str] = None
-    items: Optional[Union["JSONSchema", Sequence["JSONSchema"]]] = None
-    maximum: Optional[Number] = None
-    minimum: Optional[Number] = None
-    max_items: Optional[int] = None
-    min_items: Optional[int] = None
-    max_length: Optional[int] = None
-    min_length: Optional[int] = None
-    max_properties: Optional[int] = None
-    min_properties: Optional[int] = None
-    multiple_of: Optional[Number] = None
-    one_of: Optional[Sequence["JSONSchema"]] = None
-    pattern: Optional[Union[str, Pattern]] = None
-    pattern_properties: Optional[Mapping[Union[str, Pattern], "JSONSchema"]] = None
-    properties: Optional[Mapping[str, "JSONSchema"]] = None
-    read_only: Optional[bool] = None
-    ref: Optional[str] = field(default=None, metadata=alias("$ref"))
-    required: Optional[Sequence[str]] = None
-    title: Optional[str] = None
-    type: Optional[Union[JSONType, Sequence[JSONType]]] = None
-    unique_items: Optional[bool] = None
-    write_only: Optional[bool] = None
+class JsonSchema(Dict[str, Any]):
+    pass
+
+
+Func = TypeVar("Func", bound=Callable)
+
+
+def json_schema_kwargs(func: Func) -> Func:
+    @wraps(func)
+    def wrapper(**kwargs):
+        type_ = kwargs.get("type")
+        if isinstance(type_, Sequence):
+            if JsonType.INTEGER in type_ and JsonType.NUMBER in type_:
+                kwargs["type"] = [t for t in type_ if t != JsonType.INTEGER]
+        return JsonSchema(
+            (k, v)
+            for k, v in kwargs.items()
+            if k not in _json_schema_params or v != _json_schema_params[k].default
+        )
+
+    _json_schema_params = signature(func).parameters
+    return cast(Func, wrapper)
+
+
+@json_schema_kwargs
+def json_schema(
+    *,
+    additionalProperties: Union[bool, JsonSchema] = JsonSchema(),
+    allOf: Sequence[JsonSchema] = [],
+    anyOf: Sequence[JsonSchema] = [],
+    const: Any = Nil,
+    default: Any = Nil,
+    dependentRequired: Mapping[str, Collection[str]] = {},
+    description: str = None,
+    enum: Sequence[Any] = [],
+    exclusiveMaximum: Number = None,
+    exclusiveMinimum: Number = None,
+    examples: Sequence[Any] = None,
+    format: str = None,
+    items: Union[JsonSchema, Sequence[JsonSchema]] = JsonSchema(),
+    maximum: Number = None,
+    minimum: Number = None,
+    maxItems: int = None,
+    minItems: int = None,
+    maxLength: int = None,
+    minLength: int = None,
+    maxProperties: int = None,
+    minProperties: int = None,
+    multipleOf: Number = None,
+    oneOf: Sequence[JsonSchema] = [],
+    pattern: Pattern = None,
+    patternProperties: Mapping[Pattern, JsonSchema] = {},
+    properties: Mapping[str, JsonSchema] = {},
+    readOnly: bool = False,
+    required: Sequence[str] = [],
+    title: str = None,
+    type: Union[JsonType, Sequence[JsonType]] = None,
+    uniqueItems: bool = False,
+    unevaluatedProperties: Union[bool, JsonSchema] = JsonSchema(),
+    writeOnly: bool = False,
+    **kwargs,
+) -> JsonSchema:
+    ...

@@ -1,5 +1,5 @@
 import ast
-from inspect import getsourcelines, isfunction
+from inspect import getsourcelines, signature
 from itertools import takewhile
 from typing import AbstractSet, Callable, Collection, Dict, Set
 
@@ -10,27 +10,35 @@ def getsource(func: Callable) -> str:
     return "".join(line[indentation:] for line in lines)
 
 
-Dependency = str
-Dependencies = AbstractSet[Dependency]
+Dependencies = AbstractSet[str]
 
 
 class DependencyFinder(ast.NodeVisitor):
-    def __init__(self):
+    def __init__(self, param: str):
+        self.param = param
         self.dependencies: Set[str] = set()
 
     def visit_Attribute(self, node):
         self.generic_visit(node)
-        if isinstance(node.value, ast.Name) and node.value.id == "self":
+        if isinstance(node.value, ast.Name) and node.value.id == self.param:
             self.dependencies.add(node.attr)
 
     # TODO Add warning in case of function call with self in parameter
+    # or better, follow the call, but it would be too hard (local import, etc.)
 
 
-def find_dependencies(method: Callable) -> Dependencies:
-    finder = DependencyFinder()
+def first_parameter(func: Callable) -> str:
     try:
-        finder.visit(ast.parse(getsource(method)))
-    except TypeError:
+        return next(iter(signature(func).parameters))
+    except StopIteration:
+        raise TypeError("Cannot compute dependencies if no parameter")
+
+
+def find_dependencies(func: Callable) -> Dependencies:
+    try:
+        finder = DependencyFinder(first_parameter(func))
+        finder.visit(ast.parse(getsource(func)))
+    except ValueError:
         return set()
     return finder.dependencies
 
@@ -39,23 +47,23 @@ cache: Dict[Callable, Dependencies] = {}
 
 
 def find_all_dependencies(
-    cls: type, method: Callable, rec_guard: Collection[str] = ()
+    cls: type, func: Callable, rec_guard: Collection[str] = ()
 ) -> Dependencies:
     """Dependencies contains class variables (because they can be "fake" ones as in
        dataclasses)"""
-    if method not in cache:
-        dependencies = set(find_dependencies(method))
+    if func not in cache:
+        dependencies = set(find_dependencies(func))
         for attr in list(dependencies):
             if not hasattr(cls, attr):
                 continue
             member = getattr(cls, attr)
             if isinstance(member, property):
                 member = member.fget
-            if isfunction(member):
+            if callable(member):
                 dependencies.remove(attr)
                 if member in rec_guard:
                     continue
                 rec_deps = find_all_dependencies(cls, member, {*rec_guard, member})
                 dependencies.update(rec_deps)
-        cache[method] = dependencies
-    return cache[method]
+        cache[func] = dependencies
+    return cache[func]

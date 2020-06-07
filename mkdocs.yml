@@ -1,0 +1,46 @@
+site_name: Apischema
+repo_name: wyfo/apischema
+repo_url: https://github.com/wyfo/apischema
+
+theme:
+  name: material
+  palette:
+    scheme: preference
+    primary: green
+    accent: indigo
+
+nav:
+- Overview: index.md
+- data_model.md
+- "(De)serialization: The basics": de_serialization.md
+- JSON schema: json_schema.md
+- validation.md
+- "(De)serialization: Customize with conversions": conversions.md
+- configuration_management.md
+- Examples:
+  - OpenRPC: examples/open_rpc.md
+  - examples/recoverable_fields.md
+  - SQLAlchemy: examples/sqlalchemy.md
+- benchmark.md
+- changelog.md
+
+
+markdown_extensions:
+- markdown.extensions.codehilite:
+    guess_lang: false
+- markdown_include.include:
+    base_path: examples
+- toc:
+    permalink: True
+#    toc_depth: 3
+- admonition
+- codehilite
+- extra
+- attr_list
+
+plugins:
+- search
+- exclude:
+    glob:
+    - requirements.txt
+
