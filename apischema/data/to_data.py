@@ -1,7 +1,6 @@
+from dataclasses import is_dataclass
 from enum import Enum
 from typing import Any, Iterable, Mapping, Tuple, Type, TypeVar
-
-from dataclasses import is_dataclass
 
 from apischema.conversion import Converter, OutputVisitorMixin
 from apischema.dataclasses import Field, get_output_fields_raw
@@ -9,7 +8,7 @@ from apischema.fields import get_fields_set
 from apischema.types import AnyType, PRIMITIVE_TYPES
 from apischema.visitor import NOT_CUSTOM, Unsupported
 
-BUILTIN_TYPES = [*PRIMITIVE_TYPES, Iterable, Mapping]
+PRIMITIVE_TYPES_SET = set(PRIMITIVE_TYPES)
 
 
 def dataclass_field_value(obj: Any, field: Field):
@@ -32,9 +31,9 @@ class ToData(OutputVisitorMixin[Any, Any]):
         _, converter = custom
         return self.visit(converter(obj))
 
-    def visit(self, obj: T, cls: Type[T] = None) -> Any:
-        cls = cls or type(obj)
-        if cls in PRIMITIVE_TYPES:
+    def visit(self, obj: T) -> Any:
+        cls = type(obj)
+        if cls in PRIMITIVE_TYPES_SET:
             return obj
         if cls is dict:
             return {self.visit(key): self.visit(value) for key, value in obj.items()}
@@ -58,9 +57,12 @@ class ToData(OutputVisitorMixin[Any, Any]):
             return result
         if issubclass(cls, Enum):
             return obj.value
-        for builtin in BUILTIN_TYPES:
-            if issubclass(cls, builtin):
-                return self.visit(obj, builtin)
+        if isinstance(obj, PRIMITIVE_TYPES):
+            return obj
+        if isinstance(obj, Mapping):
+            return {self.visit(key): self.visit(value) for key, value in obj.items()}
+        if isinstance(obj, Iterable):
+            return [self.visit(elt) for elt in obj]
         raise Unsupported(cls)
 
 
