@@ -1,0 +1,866 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.5.0">
+    
+    
+      
+        <title>Data model - Apischema</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.b5d04df8.min.css">
+      
+        <link rel="stylesheet" href="../assets/stylesheets/palette.9ab2c1f8.min.css">
+      
+      
+        
+        
+        <meta name="theme-color" content="#4caf50">
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="preference" data-md-color-primary="green" data-md-color-accent="indigo">
+  
+    
+      <script>matchMedia("(prefers-color-scheme: dark)").matches&&document.body.setAttribute("data-md-color-scheme","slate")</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#data-model" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href=".." title="Apischema" class="md-header-nav__button md-logo" aria-label="Apischema">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Apischema
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Data model
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Apischema" class="md-nav__button md-logo" aria-label="Apischema">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Apischema
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Data model
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="Data model" class="md-nav__link md-nav__link--active">
+      Data model
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#pep-585" class="md-nav__link">
+    PEP 585
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataclasses" class="md-nav__link">
+    Dataclasses
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#standard-library-types" class="md-nav__link">
+    Standard library types
+  </a>
+  
+    <nav class="md-nav" aria-label="Standard library types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#primitive" class="md-nav__link">
+    Primitive
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#collection" class="md-nav__link">
+    Collection
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mapping" class="md-nav__link">
+    Mapping
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enumeration" class="md-nav__link">
+    Enumeration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#typing-facilities" class="md-nav__link">
+    Typing facilities
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-standard-library-types" class="md-nav__link">
+    Other standard library types
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generic" class="md-nav__link">
+    Generic
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recursive-types-string-annotations-and-pep-563" class="md-nav__link">
+    Recursive types, string annotations and PEP 563
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-types-orm" class="md-nav__link">
+    Custom types / ORM
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faq" class="md-nav__link">
+    FAQ
+  </a>
+  
+    <nav class="md-nav" aria-label="FAQ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-bytes-is-not-handled-with-other-primitives" class="md-nav__link">
+    Why bytes is not handled with other primitives?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-iterable-is-not-handled-with-other-primitives" class="md-nav__link">
+    Why Iterable is not handled with other primitives?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-collections-are-only-deserialized-from-list-and-not-other-iterables" class="md-nav__link">
+    Why collections are only deserialized from list (and not other iterables)?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../de_serialization/" title="(De)serialization: The basics" class="md-nav__link">
+      (De)serialization: The basics
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../schema/" title="(JSON-)schema" class="md-nav__link">
+      (JSON-)schema
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../validation/" title="Validation" class="md-nav__link">
+      Validation
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../conversions/" title="(De)serialization: Customize with conversions" class="md-nav__link">
+      (De)serialization: Customize with conversions
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../configuration_management/" title="Configuration management" class="md-nav__link">
+      Configuration management
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../miscellaneous/" title="Miscellaneous" class="md-nav__link">
+      Miscellaneous
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../benchmark/" title="Benchmark" class="md-nav__link">
+      Benchmark
+    </a>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#pep-585" class="md-nav__link">
+    PEP 585
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataclasses" class="md-nav__link">
+    Dataclasses
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#standard-library-types" class="md-nav__link">
+    Standard library types
+  </a>
+  
+    <nav class="md-nav" aria-label="Standard library types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#primitive" class="md-nav__link">
+    Primitive
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#collection" class="md-nav__link">
+    Collection
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mapping" class="md-nav__link">
+    Mapping
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enumeration" class="md-nav__link">
+    Enumeration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#typing-facilities" class="md-nav__link">
+    Typing facilities
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-standard-library-types" class="md-nav__link">
+    Other standard library types
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generic" class="md-nav__link">
+    Generic
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recursive-types-string-annotations-and-pep-563" class="md-nav__link">
+    Recursive types, string annotations and PEP 563
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-types-orm" class="md-nav__link">
+    Custom types / ORM
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faq" class="md-nav__link">
+    FAQ
+  </a>
+  
+    <nav class="md-nav" aria-label="FAQ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-bytes-is-not-handled-with-other-primitives" class="md-nav__link">
+    Why bytes is not handled with other primitives?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-iterable-is-not-handled-with-other-primitives" class="md-nav__link">
+    Why Iterable is not handled with other primitives?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-collections-are-only-deserialized-from-list-and-not-other-iterables" class="md-nav__link">
+    Why collections are only deserialized from list (and not other iterables)?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                  
+                
+                
+                <h1 id="data-model">Data model<a class="headerlink" href="#data-model" title="Permanent link">&para;</a></h1>
+<p><em>Apischema</em> handle every classes/types you need.</p>
+<h2 id="pep-585">PEP 585<a class="headerlink" href="#pep-585" title="Permanent link">&para;</a></h2>
+<p>With Python 3.9 and <a href="https://www.python.org/dev/peps/pep-0585/">PEP 585</a>, typing is substantially shaken up. Because <em>Apischema</em> must be up-to-date with modern Python, support of Python 3.9 covers PEP 585. But because 3.9 is not yet released and far from being widely adopted, the following documentation will use old fashioned Python typing with <code>typing</code> module.</p>
+<h2 id="dataclasses">Dataclasses<a class="headerlink" href="#dataclasses" title="Permanent link">&para;</a></h2>
+<p>Because the library aims to bring the minimum boilerplate, it's build on the top of standard library. <a href="https://docs.python.org/3/library/dataclasses.html">Dataclasses</a> are thus the core structure of the data model.</p>
+<p>Dataclasses bring the possibility of field customization, with more than just a default value.
+In addition to the common parameters of <a href="https://docs.python.org/3/library/dataclasses.html#dataclasses.field"><code>dataclasses.field</code></a>, customization is done with <code>metadata</code> parameter. </p>
+<p>With some teasing of features presented later:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">alias</span><span class="p">,</span> <span class="n">schema</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">ignore_default</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;foo_bar&quot;</span><span class="p">)</span>
+        <span class="o">|</span> <span class="n">schema</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;foo! bar!&quot;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+        <span class="o">|</span> <span class="n">ignore_default</span><span class="p">()</span>
+    <span class="p">)</span>
+</code></pre></div>
+
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Field's metadata are just an ordinary <code>dict</code>; <em>Apischema</em> provides some functions to enrich these metadata with it's own keys (<code>alias("foo_bar)</code> is roughly equivalent to `{"_apischema_alias": "foo_bar"}) and use them when the time comes, but metadata are not reserved to <em>Apischema</em> and other keys can be added.</p>
+<p>Because <a href="https://www.python.org/dev/peps/pep-0584/">PEP 584</a> is painfully missing before Python 3.9, <em>Apischema</em> metadata use their own subclass of <code>dict</code> just to add <code>|</code> operator for convenience.</p>
+</div>
+<h2 id="standard-library-types">Standard library types<a class="headerlink" href="#standard-library-types" title="Permanent link">&para;</a></h2>
+<p><em>Apischema</em> handle natively most of the types provided by the standard library. They are sorted in the following categories:</p>
+<h4 id="primitive">Primitive<a class="headerlink" href="#primitive" title="Permanent link">&para;</a></h4>
+<p><code>str</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>None</code>, subclasses of them</p>
+<p>They correspond to JSON primitive types.</p>
+<h4 id="collection">Collection<a class="headerlink" href="#collection" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>typing.Collection</code></li>
+<li><code>typing.Sequence</code></li>
+<li><code>typing.Tuple</code></li>
+<li><code>typing.MutableSequence</code></li>
+<li><code>typing.List</code></li>
+<li><code>typing.AbstractSet</code></li>
+<li><code>typing.FrozenSet</code></li>
+<li><code>typing.Set</code></li>
+</ul>
+<p>They correspond to JSON <em>array</em> and are serialized to <code>list</code>.</p>
+<p>Some of them are abstract; deserialization will instantiate a concrete child class. For example <code>typing.Sequence</code> will be instantiated with <code>tuple</code> while <code>typing.MutableSequence</code> will be instantiated with <code>list</code>.</p>
+<h4 id="mapping">Mapping<a class="headerlink" href="#mapping" title="Permanent link">&para;</a></h4>
+<p><code>typing.Mapping</code>, <code>typing.MutableMapping</code>, <code>typing.Dict</code>.</p>
+<p>They correpond to JSON <em>object</em> and are serialized to <code>dict</code>.</p>
+<h4 id="enumeration">Enumeration<a class="headerlink" href="#enumeration" title="Permanent link">&para;</a></h4>
+<p><code>enum.Enum</code> subclasses, <code>typing.Literal</code></p>
+<p>For <code>Enum</code>, this is the value and not the attribute name that is serialized</p>
+<h4 id="typing-facilities">Typing facilities<a class="headerlink" href="#typing-facilities" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>typing.Optional</code>/<code>typing.Union</code> (<code>Optional[T]</code> is strictly equivalent to <code>Union[T, None]</code>)</li>
+</ul>
+<dl>
+<dd>Deserialization select the first matching alternative</dd>
+</dl>
+<ul>
+<li><code>typing.Tuple</code></li>
+</ul>
+<dl>
+<dd>Can be used as collection as well as true Tuple, like <code>Tuple[str, int]</code></dd>
+</dl>
+<ul>
+<li><code>typing.NewType</code></li>
+</ul>
+<dl>
+<dd>Serialized according to its base type</dd>
+</dl>
+<ul>
+<li><code>typing.TypedDict</code>, <code>typing.NamedTuple</code></li>
+</ul>
+<dl>
+<dd>Kind of discount dataclass without field customization</dd>
+</dl>
+<ul>
+<li><code>Any</code></li>
+</ul>
+<dl>
+<dd>Untouched by deserialization</dd>
+</dl>
+<h4 id="other-standard-library-types">Other standard library types<a class="headerlink" href="#other-standard-library-types" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>datetime.datetime</code></li>
+<li><code>datetime.date</code></li>
+<li><code>datetime.time</code></li>
+</ul>
+<dl>
+<dd>Supported only in 3.7+ with (from)<code>isoformat</code></dd>
+</dl>
+<ul>
+<li><code>Decimal</code></li>
+</ul>
+<dl>
+<dd>With <code>float</code> (de)serialization</dd>
+</dl>
+<ul>
+<li><code>ipaddress.IPv4Address</code> </li>
+<li><code>ipaddress.IPv4Interface</code></li>
+<li><code>ipaddress.IPv4Network</code></li>
+<li><code>ipaddress.IPv6Address</code> </li>
+<li><code>ipaddress.IPv6Interface</code></li>
+<li><code>ipaddress.IPv6Network</code></li>
+<li><code>pathlib.Path</code></li>
+<li><code>typing.Pattern</code>/<code>re.Pattern</code></li>
+<li><code>uuid.UUID</code></li>
+</ul>
+<dl>
+<dd>With <code>str</code> (de)serialization</dd>
+</dl>
+<h2 id="generic">Generic<a class="headerlink" href="#generic" title="Permanent link">&para;</a></h2>
+<p><code>typing.Generic</code> can be used out of the box like in the following example:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">TypeVar</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Box</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
+    <span class="n">content</span><span class="p">:</span> <span class="n">T</span>
+    <span class="n">shaken</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Box</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="p">{</span><span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;void&quot;</span><span class="p">})</span> <span class="o">==</span> <span class="n">Box</span><span class="p">(</span><span class="s2">&quot;void&quot;</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">Box</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="p">{</span><span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">})</span>
+</code></pre></div>
+
+
+<h2 id="recursive-types-string-annotations-and-pep-563">Recursive types, string annotations and PEP 563<a class="headerlink" href="#recursive-types-string-annotations-and-pep-563" title="Permanent link">&para;</a></h2>
+<p>Recursive classes can be typed as they usually do, with or without <a href="https://www.python.org/dev/peps/pep-0563/">PEP 563</a>.
+Here with string annotations:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Node</span><span class="p">:</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">child</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Node&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}})</span> <span class="o">==</span> <span class="n">Node</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Node</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+</code></pre></div>
+
+
+<p>Here with PEP 563 (requires 3.7+)</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Node</span><span class="p">:</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">child</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Node</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}})</span> <span class="o">==</span> <span class="n">Node</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Node</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+</code></pre></div>
+
+
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>To resolve annotations, <em>Apischema</em> uses <code>typing.get_type_hints</code>; this doesn't work really well when used on objects defined outside of global scope.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning (minor)</p>
+<p>Currently, PEP 585 can have surprising behavior when used outside the box, see <a href="https://bugs.python.org/issue41370">bpo-41370</a></p>
+</div>
+<h2 id="custom-types-orm">Custom types / ORM<a class="headerlink" href="#custom-types-orm" title="Permanent link">&para;</a></h2>
+<p>See <a href="#MISSING_REF">conversion</a> in order to support every possible types in a few lines of code.</p>
+<h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
+<h4 id="why-bytes-is-not-handled-with-other-primitives">Why <code>bytes</code> is not handled with other primitives?<a class="headerlink" href="#why-bytes-is-not-handled-with-other-primitives" title="Permanent link">&para;</a></h4>
+<p>Because it's not primitive found in JSON data. It's use can differ according to user needs; some will use base64 data to represent binary, others could use another string representation. To not force anyone, handling is let to the user, but it can be done in a few lines of code (needs only 6loc for base64 handling, see <a href="#MISSING_REF">conversions</a>)</p>
+<h4 id="why-iterable-is-not-handled-with-other-primitives">Why <code>Iterable</code> is not handled with other primitives?<a class="headerlink" href="#why-iterable-is-not-handled-with-other-primitives" title="Permanent link">&para;</a></h4>
+<p>Iterable could be handled (actually, it was at the beginning), however, this doesn't really make sense from a data point of view. Iterable are computation objects, they can be infinite, etc. They don't correspond to a serialized data; <code>Collection</code> is way more appropriate in this context.</p>
+<h4 id="why-collections-are-only-deserialized-from-list-and-not-other-iterables">Why collections are only deserialized from <code>list</code> (and not other iterables)?<a class="headerlink" href="#why-collections-are-only-deserialized-from-list-and-not-other-iterables" title="Permanent link">&para;</a></h4>
+<p>When you parse a JSON array, do you get something else than a <code>list</code>? Handling of other types would make no sense. By the way, all the data model is pure Python types and code, so, the same way than a dataclass can be instantiated with its constructor in the code, an arbitrary collection can be instantiated from arbitrary thing in the code. Deserialization is meant to be applied concreteate (JSON-)serialized data.  </p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href=".." title="Overview" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Overview
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../de_serialization/" title="(De)serialization: The basics" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                (De)serialization: The basics
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.92ffa368.min.js"></script>
+      <script src="../assets/javascripts/bundle.5123e3d4.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.a68abb33.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>
