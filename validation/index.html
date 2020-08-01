@@ -126,6 +126,19 @@
 </div>
     
     
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/wyfo/apischema/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wyfo/apischema
+  </div>
+</a>
+      </div>
+    
   </nav>
 </header>
     
@@ -153,6 +166,19 @@
     </a>
     Apischema
   </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/wyfo/apischema/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wyfo/apischema
+  </div>
+</a>
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -402,8 +428,74 @@
 
 
   <li class="md-nav__item">
+    <a href="../code_generation_from_schema/" title="Code generation from schema" class="md-nav__link">
+      Code generation from schema
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+    
+    <label class="md-nav__link" for="nav-10">
+      Examples
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Examples" data-md-level="1">
+      <label class="md-nav__title" for="nav-10">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        Examples
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/open_rpc/" title="OpenRPC" class="md-nav__link">
+      OpenRPC
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
     <a href="../benchmark/" title="Benchmark" class="md-nav__link">
       Benchmark
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../changelog/" title="Changelog" class="md-nav__link">
+      Changelog
     </a>
   </li>
 
@@ -554,25 +646,29 @@
             <article class="md-content__inner md-typeset">
               
                 
+                  <a href="https://github.com/wyfo/apischema/edit/master/docs/validation.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
                 
                   
                 
                 
                 <h1 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h1>
-<p>Validation is an important part of deserialization. By default, <em>Apischema</em> validate types of data according to typing annotations, and <a href="#MISSING_REF"><code>schema</code></a> constraints. But custom validators can also be add for a more precise validation.</p>
+<p>Validation is an important part of deserialization. By default, <em>Apischema</em> validate types of data according to typing annotations, and <a href="../schema/#constraints-validation"><code>schema</code></a> constraints. But custom validators can also be add for a more precise validation.</p>
 <h2 id="deserialization-and-validation-error">Deserialization and validation error<a class="headerlink" href="#deserialization-and-validation-error" title="Permanent link">&para;</a></h2>
 <p><code>ValidaitonError</code> is raised when validation fails. This exception will contains all the information about the ill-formed part of the data. By the way this exception is also serializable and can be sent back directly to client.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">NewType</span>
-<span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">uuid4</span>
+<span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">serialize</span>
 
-
 <span class="n">Tag</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Tag&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
 <span class="n">schema</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;\w{1,16}&quot;</span><span class="p">)(</span><span class="n">Tag</span><span class="p">)</span>
+
 
 <span class="c1"># Define a schema with standard dataclasses</span>
 <span class="nd">@dataclass</span>
@@ -589,8 +685,11 @@
     <span class="p">)</span>
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span>
     <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;badly formed hexadecimal UUID string&quot;</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;size greater than 3 (maxItems)&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;unmatched pattern &#39;</span><span class="se">\\</span><span class="s2">w{1,16}&#39;&quot;</span><span class="p">]}</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;size greater than 3 (maxItems)&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">],</span>
+    <span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;unmatched pattern &#39;</span><span class="se">\\</span><span class="s2">w{1,16}&#39;&quot;</span><span class="p">]},</span>
 <span class="p">]</span>
 </code></pre></div>
 
@@ -662,12 +761,13 @@
 <p>Despite the fact that validator use <code>self</code> argument, it can be called during validation even if all the fields of the class are not ok and the class not really instantiated. In fact, instance is kind of mocked for validation with only the needed field.</p>
 </div>
 <h3 id="yield-instead-of-raise">Yield instead of raise<a class="headerlink" href="#yield-instead-of-raise" title="Permanent link">&para;</a></h3>
+<p>TO BE COMPLETED</p>
 <h3 id="discard">Discard<a class="headerlink" href="#discard" title="Permanent link">&para;</a></h3>
+<p>TO BE COMPLETED</p>
 <h3 id="field-validators">Field validators<a class="headerlink" href="#field-validators" title="Permanent link">&para;</a></h3>
 <h4 id="at-field-level">At field level<a class="headerlink" href="#at-field-level" title="Permanent link">&para;</a></h4>
 <p>Fields are validated according to their types and schema. But it's also possible to add validators to fields</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
