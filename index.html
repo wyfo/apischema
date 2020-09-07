@@ -279,13 +279,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#can-it-generate-json-schemaopenapi-from-code" class="md-nav__link">
-    Can it generate JSON schema/OpenAPI from code?
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -518,13 +511,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#can-it-generate-json-schemaopenapi-from-code" class="md-nav__link">
-    Can it generate JSON schema/OpenAPI from code?
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -626,8 +612,6 @@
 <p>No, in fact, no library are supported, even <em>SQLAlchemy</em>; it was a choice made to be as small and generic as possible, and to support only the standard library (with types like <code>datetime</code>, <code>UUID</code>). However, the library is flexible enough to code yourself the support you need with, I hope, the minimal effort. It's of course not excluded to add support in additional small plugin libraries. Feedbacks are welcome about the best way to do things.</p>
 <h4 id="i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-no-a-string-can-i-do-that">I need more accurate validation than "ensure this is an integer and no a string ", can I do that?<a class="headerlink" href="#i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-no-a-string-can-i-do-that" title="Permanent link">&para;</a></h4>
 <p>See the <a href="validation/">validation</a> section. You can use standard JSON schema validation (<code>maxItems</code>, <code>pattern</code>, etc.) that will be embedded in your schema or add custom Python validators for each class/fields/<code>NewType</code> you want.</p>
-<h4 id="can-it-generate-json-schemaopenapi-from-code">Can it generate JSON schema/<em>OpenAPI</em> from code?<a class="headerlink" href="#can-it-generate-json-schemaopenapi-from-code" title="Permanent link">&para;</a></h4>
-<p>This feature has not been put in the example to keep it light, but of course it can. By the way, only JSON schema is supported (but <em>OpenAPI</em> will <em>at last</em> converge with JSON schema in version 3.1). However the opposite, generate code from JSON schema is not yet supported.</p>
 <p><em>Let's start the Apischema tour.</em></p>
                 
               
