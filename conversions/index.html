@@ -224,8 +224,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../schema/" title="(JSON-)schema" class="md-nav__link">
-      (JSON-)schema
+    <a href="../json_schema/" title="JSON schema" class="md-nav__link">
+      JSON schema
     </a>
   </li>
 
@@ -256,9 +256,110 @@
       
     
     
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        (De)serialization: Customize with conversions
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
     <a href="./" title="(De)serialization: Customize with conversions" class="md-nav__link md-nav__link--active">
       (De)serialization: Customize with conversions
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#principle-apischema-conversions" class="md-nav__link">
+    Principle - Apischema conversions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#register-a-conversion" class="md-nav__link">
+    Register a conversion
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extra-conversions-choose-the-conversion-you-want" class="md-nav__link">
+    Extra conversions - choose the conversion you want
+  </a>
+  
+    <nav class="md-nav" aria-label="Extra conversions - choose the conversion you want">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#chain-conversions" class="md-nav__link">
+    Chain conversions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-conversions" class="md-nav__link">
+    Field conversions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generic-conversions" class="md-nav__link">
+    Generic conversions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-default-conversion" class="md-nav__link">
+    Global default conversion
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faq" class="md-nav__link">
+    FAQ
+  </a>
+  
+    <nav class="md-nav" aria-label="FAQ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-deserialization-conversions-are-not-inherited" class="md-nav__link">
+    Why deserialization conversions are not inherited?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
     
   </li>
 
@@ -280,42 +381,18 @@
       
 
 
-  <li class="md-nav__item">
-    <a href="../miscellaneous/" title="Miscellaneous" class="md-nav__link">
-      Miscellaneous
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
-  <li class="md-nav__item">
-    <a href="../code_generation_from_schema/" title="Code generation from schema" class="md-nav__link">
-      Code generation from schema
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
     
-    <label class="md-nav__link" for="nav-10">
+    <label class="md-nav__link" for="nav-8">
       Examples
       <span class="md-nav__icon md-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
       </span>
     </label>
     <nav class="md-nav" aria-label="Examples" data-md-level="1">
-      <label class="md-nav__title" for="nav-10">
+      <label class="md-nav__title" for="nav-8">
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
         </span>
@@ -382,6 +459,91 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#principle-apischema-conversions" class="md-nav__link">
+    Principle - Apischema conversions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#register-a-conversion" class="md-nav__link">
+    Register a conversion
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extra-conversions-choose-the-conversion-you-want" class="md-nav__link">
+    Extra conversions - choose the conversion you want
+  </a>
+  
+    <nav class="md-nav" aria-label="Extra conversions - choose the conversion you want">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#chain-conversions" class="md-nav__link">
+    Chain conversions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-conversions" class="md-nav__link">
+    Field conversions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generic-conversions" class="md-nav__link">
+    Generic conversions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-default-conversion" class="md-nav__link">
+    Global default conversion
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faq" class="md-nav__link">
+    FAQ
+  </a>
+  
+    <nav class="md-nav" aria-label="FAQ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-deserialization-conversions-are-not-inherited" class="md-nav__link">
+    Why deserialization conversions are not inherited?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -401,20 +563,24 @@
                 
                 
                 <h1 id="deserialization-customize-with-conversions">(De)serialization: Customize with conversions<a class="headerlink" href="#deserialization-customize-with-conversions" title="Permanent link">&para;</a></h1>
-<p>TO BE COMPLETED (but here is an example to start with)</p>
+<p><em>Apischema</em> covers majority of standard data types, but it's of course not enough, that's why it gives you the way to add support for all your classes and the libraries you use.</p>
+<p>Actually, <em>Apischema</em> uses internally its own feature to support standard library data types like UUID/datetime/etc. (see <a href="https://github.com/wyfo/apischema/blob/master/apischema/std_types.py">std_types.py</a>)</p>
+<p>ORM support can easily be achieved with this feature (see <a href="examples/sqlalchemy.md">SQLAlchemy example</a>).</p>
+<h2 id="principle-apischema-conversions">Principle - <em>Apischema</em> conversions<a class="headerlink" href="#principle-apischema-conversions" title="Permanent link">&para;</a></h2>
+<p>An <em>Apischema</em> conversion is composed of a source type, let's call it <code>Source</code>, a target type <code>Target</code> and a function of signature <code>(Source) -&gt; Target</code>.</p>
+<p>When a type (actually, a non-builtin type, so not <code>int</code>/<code>List[str]</code>/etc.) is deserialized, <em>Apischema</em> will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then conversion function will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply conversion (normally get the target type).</p>
+<p>Conversions are also handled in schema generation: for a deserialization schema, source schema is used (after merging target schema annotations) while target schema is used (after merging source schema annotations) for a serialization schema.</p>
+<h2 id="register-a-conversion">Register a conversion<a class="headerlink" href="#register-a-conversion" title="Permanent link">&para;</a></h2>
+<p>Conversion is registered using <code>deserializer</code>/<code>serializer</code> for deserialization/serialization respectively.</p>
+<p>When used as a decorator, the <code>Source</code>/<code>Target</code> types are directly extracted from conversion function signature. They can also be passed as argument when the function has no type annotations (builtins like <code>datetime.isoformat</code> or foreign library functions).</p>
+<p>Methods can be used for <code>serializer</code>, as well as <code>classmethod</code>/<code>staticmethod</code> for both (especially <code>deserializer</code>) </p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">NewType</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
-<span class="kn">from</span> <span class="nn">apischema.conversion</span> <span class="kn">import</span> <span class="n">extra_serializer</span>
 
 <span class="n">HexaRGB</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;HexaRGB&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
-<span class="n">schema</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;^#[0-9a-fA-F]</span><span class="si">{6}</span><span class="s2">$&quot;</span><span class="p">)(</span><span class="n">HexaRGB</span><span class="p">)</span>
-
-<span class="n">U8</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;U8&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
-<span class="n">schema</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">256</span><span class="p">)(</span><span class="n">U8</span><span class="p">)</span>
-
-<span class="n">RGBTuple</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">U8</span><span class="p">,</span> <span class="n">U8</span><span class="p">,</span> <span class="n">U8</span><span class="p">]</span>
+<span class="n">schema</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^#[0-9a-fA-F]</span><span class="si">{6}</span><span class="s2">$&quot;</span><span class="p">)(</span><span class="n">HexaRGB</span><span class="p">)</span>
 
 
 <span class="nd">@dataclass</span>
@@ -427,33 +593,138 @@
     <span class="k">def</span> <span class="nf">hexa</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HexaRGB</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">HexaRGB</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;#</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">red</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">green</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">blue</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="c1"># staticmethod/classmethod can be used for input_converter</span>
-    <span class="nd">@deserializer</span>
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">from_hexa</span><span class="p">(</span><span class="n">hexa</span><span class="p">:</span> <span class="n">HexaRGB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;RGB&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">RGB</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="mi">16</span><span class="p">))</span>
-
-
-<span class="c1"># Converters can be defined outside class with simple functions</span>
-<span class="c1"># It allows to add converters to foreign libraries classes</span>
-<span class="nd">@extra_serializer</span>
-<span class="k">def</span> <span class="nf">rgb_to_tuple_tuple</span><span class="p">(</span><span class="n">rgb</span><span class="p">:</span> <span class="n">RGB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RGBTuple</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">U8</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">red</span><span class="p">),</span> <span class="n">U8</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">green</span><span class="p">),</span> <span class="n">U8</span><span class="p">(</span><span class="n">rgb</span><span class="o">.</span><span class="n">blue</span><span class="p">)</span>
-
 
 <span class="nd">@deserializer</span>
-<span class="k">def</span> <span class="nf">rgb_from_tuple</span><span class="p">(</span><span class="n">rgb</span><span class="p">:</span> <span class="n">RGBTuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RGB</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">RGB</span><span class="p">(</span><span class="o">*</span><span class="n">rgb</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">from_hexa</span><span class="p">(</span><span class="n">hexa</span><span class="p">:</span> <span class="n">HexaRGB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;RGB&quot;</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">RGB</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="mi">16</span><span class="p">))</span>
 
 
-<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">,</span> <span class="s2">&quot;#000000&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">42</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;#00002a&quot;</span>  <span class="c1"># output_converter is default converter</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">42</span><span class="p">),</span> <span class="n">conversions</span><span class="o">=</span><span class="p">{</span><span class="n">RGB</span><span class="p">:</span> <span class="n">RGBTuple</span><span class="p">})</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">42</span><span class="p">]</span>
-
-
-<span class="c1"># Standard library types like UUID or datetime are handled this way</span>
-<span class="c1"># see std_types.py</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">,</span> <span class="s2">&quot;#000000&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">42</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;#00002a&quot;</span>
 </code></pre></div>
+
+
+<p>Registered serializers are inherited</p>
+<h2 id="extra-conversions-choose-the-conversion-you-want">Extra conversions - choose the conversion you want<a class="headerlink" href="#extra-conversions-choose-the-conversion-you-want" title="Permanent link">&para;</a></h2>
+<p>Conversion is a powerful feature, but, registering only one (de)serialization by type may not be enough. Some types may have different representations, or you may have different serialization for a given entity with more or less data (for example a "simple" and a "detailed" view). Hopefully, <em>Apischema</em> let you register as many conversion as you want for your classes and gives you the possibility to select the one you want.</p>
+<p>Conversions registered with <code>deserializer</code>/<code>serializer</code> are the default ones, they are selected when no conversion is precised. Other conversions are registered <code>extra_deserializer</code>/<code>extra_serializer</code> (they have the same signature than the previous ones).</p>
+<p>Conversions can then be selected using the <code>conversions</code> parameter of <em>Apischema</em> functions <code>deserialize</code>/<code>serialize</code>/<code>deserialization_schema</code>/<code>serialization_schema</code>. This parameter must be mapping of types:</p>
+<ul>
+<li>for deserialization, target as key and source as value</li>
+<li>for serialization, source as key and target as value</li>
+</ul>
+<p>(Actually, the type for which is registered the conversion is in key) 
+For deserialization, if there is several possible source, <code>conversions</code> values can also be a collection of types. It will again result in a <code>Union</code> deserialization.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For <code>definitions_schema</code>, conversions can be added with types by using a tuple instead, for example <code>definitions_schema(serializations=[(List[Foo], {Foo: Bar})])</code>. </p>
+</div>
+<p>TO BE COMPLETED</p>
+<h3 id="chain-conversions">Chain conversions<a class="headerlink" href="#chain-conversions" title="Permanent link">&para;</a></h3>
+<p>Conversions mapping put in <code>conversions</code> parameter is not used in all the deserialization/serialization. In fact it is "reset" as soon as a non-builtin type (so, not <code>int</code>/<code>List[int]</code>/<code>NewType</code> instances/etc.) is encountered. Not having this reset would completely break the possibility to have <code>$ref</code> in generated schema, because a <code>conversions</code> could then change the serialization of a field of a dataclass in one particular schema but not in another (and bye-bye <em>OpenAPI</em> components schema).</p>
+<p>But everything is not lost. Let's illustrate with an example. As previously mentioned, <em>Apischema</em> uses its own feature internally at several places. One of them is schema generation. JSON schema is generated using an internal <code>JsonSchema</code> type, and is then serialized; the JSON schema version selection result in fact in a conversion that is selected according to the version (by <code>JsonSchemaVersion.conversions</code> property). However, JSON schema is recursive and the serialization of <code>JsonSchema</code> returns a dictionary which can contain other <code>JsonSchema</code> ... but it has been written above that <code>conversions</code> is reset.</p>
+<p>That's why <code>deserializer</code> and others conversion registers have a <code>conversions</code> parameter that will be taken as the new <code>conversions</code> after the conversion application. In JSON schema example, it allows sub-<code>JsonSchema</code> to be serialized with the correct <code>conversions</code>. The following example is extracted from <a href="https://github.com/wyfo/apischema/blob/master/apischema/json_schema/versions.py"><em>Apischema</em> code</a>:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">NewType</span>
+
+<span class="kn">from</span> <span class="nn">apischema.conversion</span> <span class="kn">import</span> <span class="n">extra_serializer</span>
+
+
+<span class="k">class</span> <span class="nc">JsonSchema</span><span class="p">(</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+    <span class="k">pass</span>
+
+
+<span class="n">JsonSchema7</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;JSONSchema7&quot;</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
+
+
+<span class="k">def</span> <span class="nf">isolate_ref</span><span class="p">(</span><span class="n">schema</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+    <span class="k">if</span> <span class="s2">&quot;$ref&quot;</span> <span class="ow">in</span> <span class="n">schema</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">schema</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;allOf&quot;</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="n">schema</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;$ref&quot;</span><span class="p">)})</span>
+
+
+<span class="nd">@extra_serializer</span><span class="p">(</span><span class="n">conversions</span><span class="o">=</span><span class="p">{</span><span class="n">JsonSchema</span><span class="p">:</span> <span class="n">JsonSchema7</span><span class="p">})</span>
+<span class="k">def</span> <span class="nf">to_json_schema_7</span><span class="p">(</span><span class="n">schema</span><span class="p">:</span> <span class="n">JsonSchema</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JsonSchema7</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">isolate_ref</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;$defs&quot;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">&quot;definitions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">result</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;$defs&quot;</span><span class="p">),</span> <span class="o">**</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;definitions&quot;</span><span class="p">,</span> <span class="p">{})}</span>
+    <span class="k">if</span> <span class="s2">&quot;dependentRequired&quot;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">&quot;dependencies&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="n">result</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;dependentRequired&quot;</span><span class="p">),</span>
+            <span class="o">**</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dependencies&quot;</span><span class="p">,</span> <span class="p">{}),</span>
+        <span class="p">}</span>
+    <span class="k">return</span> <span class="n">JsonSchema7</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</code></pre></div>
+
+
+<h3 id="field-conversions">Field conversions<a class="headerlink" href="#field-conversions" title="Permanent link">&para;</a></h3>
+<p>Fields can also be used to chain conversions using <code>conversions</code> metadata. This metadata has two uses (with overloaded signature)</p>
+<p>TO BE COMPLETED</p>
+<h2 id="generic-conversions">Generic conversions<a class="headerlink" href="#generic-conversions" title="Permanent link">&para;</a></h2>
+<p><code>Generic</code> conversions are supported out of the box. However, keep in mind that serialization doesn't use type model, so they will not be used in serialization, but will be used on the other hand in serialization schema generation.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">TypeVar</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span><span class="p">,</span> <span class="n">serialization_schema</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Wrapper</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wrapped</span><span class="p">:</span> <span class="n">T</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapped</span> <span class="o">=</span> <span class="n">wrapped</span>
+
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">):</span>
+        <span class="c1"># Methods of generic classes are not handled before 3.7</span>
+        <span class="nd">@serializer</span>
+        <span class="k">def</span> <span class="nf">_wrapped</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapped</span>
+
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="k">def</span> <span class="nf">_wrapped</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapped</span>
+
+
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">):</span>
+    <span class="n">serializer</span><span class="p">(</span><span class="n">Wrapper</span><span class="o">.</span><span class="n">_wrapped</span><span class="p">,</span> <span class="n">Wrapper</span><span class="p">[</span><span class="n">T</span><span class="p">])</span>
+
+<span class="n">U</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;U&quot;</span><span class="p">)</span>
+<span class="n">deserializer</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Wrapper</span><span class="p">[</span><span class="n">U</span><span class="p">])</span>
+
+
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">wrapped</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="s2">&quot;wrapped&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">(</span><span class="s2">&quot;wrapped&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;wrapped&quot;</span>
+<span class="k">assert</span> <span class="p">(</span>
+    <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span>
+    <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}</span>
+    <span class="o">==</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span>
+<span class="p">)</span>
+</code></pre></div>
+
+
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>As shown in example, methods of <code>Generic</code> classes are not handled before 3.7</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><em>Apischema</em> doesn't support specialization of <code>Generic</code> conversion like <code>Foo[bool] -&gt; int</code>.</p>
+</div>
+<h2 id="global-default-conversion">Global default conversion<a class="headerlink" href="#global-default-conversion" title="Permanent link">&para;</a></h2>
+<p><em>Apischema</em> determine if a type has conversion using two functions, one for deserialization and one for serialization. These functions are overridable using <code>apischema.settings</code>, the same way than <a href="../de_serialization/#strictness-configuration"><code>settings.coercer</code></a>.</p>
+<p>TO BE COMPLETED</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Using global default conversion is not the only solution; it's also possible to use <code>__init_subclass__</code> for example, like in the <a href="examples/sqlalchemy.md">SQLAlchemy example</a>.</p>
+</div>
+<h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
+<h4 id="why-deserialization-conversions-are-not-inherited">Why deserialization conversions are not inherited?<a class="headerlink" href="#why-deserialization-conversions-are-not-inherited" title="Permanent link">&para;</a></h4>
+<p>Because a function <code>(Source) -&gt; Target</code> cannot be used to return a subtype of <code>Target</code>; function result is indeed <a href="https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)">contravariant</a>. However, this function can take a subtype of <code>Source</code> and return a <code>Target</code>, that's why serialization conversions are inherited.</p>
                 
               
               

@@ -328,13 +328,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#unsupported" class="md-nav__link">
-    Unsupported
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#faq" class="md-nav__link">
     FAQ
   </a>
@@ -374,8 +367,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../schema/" title="(JSON-)schema" class="md-nav__link">
-      (JSON-)schema
+    <a href="../json_schema/" title="JSON schema" class="md-nav__link">
+      JSON schema
     </a>
   </li>
 
@@ -421,42 +414,18 @@
       
 
 
-  <li class="md-nav__item">
-    <a href="../miscellaneous/" title="Miscellaneous" class="md-nav__link">
-      Miscellaneous
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
-  <li class="md-nav__item">
-    <a href="../code_generation_from_schema/" title="Code generation from schema" class="md-nav__link">
-      Code generation from schema
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
     
-    <label class="md-nav__link" for="nav-10">
+    <label class="md-nav__link" for="nav-8">
       Examples
       <span class="md-nav__icon md-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
       </span>
     </label>
     <nav class="md-nav" aria-label="Examples" data-md-level="1">
-      <label class="md-nav__title" for="nav-10">
+      <label class="md-nav__title" for="nav-8">
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
         </span>
@@ -613,13 +582,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#unsupported" class="md-nav__link">
-    Unsupported
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#faq" class="md-nav__link">
     FAQ
   </a>
@@ -670,36 +632,50 @@
 <p><em>Apischema</em> aims to help API with deserialization/serialization of data, mostly JSON.</p>
 <p>Let start again with the <a href="..#example">overview example</a></p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Set</span>
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">uuid4</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
 
-
 <span class="c1"># Define a schema with standard dataclasses</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+
+
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Resource</span><span class="p">:</span>
     <span class="nb">id</span><span class="p">:</span> <span class="n">UUID</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">tags</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">tags</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">set</span><span class="p">)</span>
 
 
 <span class="c1"># Get some data</span>
 <span class="n">uuid</span> <span class="o">=</span> <span class="n">uuid4</span><span class="p">()</span>
 <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="p">),</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;wyfo&quot;</span><span class="p">,</span> <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;some_tag&quot;</span><span class="p">]}</span>
-<span class="c1"># Deserialize with `from_data`</span>
+<span class="c1"># Deserialize data</span>
 <span class="n">resource</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Resource</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">resource</span> <span class="o">==</span> <span class="n">Resource</span><span class="p">(</span><span class="n">uuid</span><span class="p">,</span> <span class="s2">&quot;wyfo&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;some_tag&quot;</span><span class="p">])</span>
-<span class="c1"># Serialize with `to_data`</span>
+<span class="k">assert</span> <span class="n">resource</span> <span class="o">==</span> <span class="n">Resource</span><span class="p">(</span><span class="n">uuid</span><span class="p">,</span> <span class="s2">&quot;wyfo&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;some_tag&quot;</span><span class="p">})</span>
+<span class="c1"># Serialize objects</span>
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">resource</span><span class="p">)</span> <span class="o">==</span> <span class="n">data</span>
 <span class="c1"># Validate during deserialization</span>
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># pytest check exception is raised</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Resource</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;42&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;wyfo&quot;</span><span class="p">})</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span>  <span class="c1"># ValidationError is serializable</span>
     <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;badly formed hexadecimal UUID string&quot;</span><span class="p">]}</span>
 <span class="p">]</span>
+<span class="c1"># Generate JSON Schema</span>
+<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Resource</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;uuid&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span> <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span> <span class="s2">&quot;uniqueItems&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">}</span>
 </code></pre></div>
 
 
@@ -714,7 +690,7 @@
 <li><code>cls</code> can be a <code>dataclass</code> as well as a <code>list[int]</code> a <code>NewType</code>, or whatever you want (see <a href="../conversions/">conversions</a> to extend deserialization support to every type you want).</li>
 <li><code>data</code> must be a JSON-like serialized data: <code>dict</code>/<code>list</code>/<code>str</code>/<code>int</code>/<code>float</code>/<code>bool</code>/<code>None</code>, in short, what you get when you execute <code>json.loads</code>.</li>
 </ul>
-<p>Deserialization performs a validation of data, based on typing annotations and other information (see <a href="../schema/">schema</a> and <a href="../validation/">validation</a>).</p>
+<p>Deserialization performs a validation of data, based on typing annotations and other information (see <a href="../json_schema/">schema</a> and <a href="../validation/">validation</a>).</p>
 <p>from dataclasses import dataclass
 from typing import Collection, Mapping, NewType</p>
 <p>from apischema import deserialize</p>
@@ -737,7 +713,7 @@ assert deserialize(Mapping[str, Collection[Foo]], {"key": [{"bar": "42"}]}) == {
 
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span> <span class="n">coerce</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span> <span class="n">coercion</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 
 
@@ -785,8 +761,42 @@ assert deserialize(Mapping[str, Collection[Foo]], {"key": [{"bar": "42"}]}) == {
 <p><code>bool</code> coercion from <code>str</code> is just a global <code>dict[str, bool]</code> named <code>apischema.data.coercion.STR_TO_BOOL</code> and it can be customized according to your need (but keys have to be lower cased).</p>
 <p>There is also a global <code>set[str]</code> named <code>apischema.data.coercion.STR_NONE_VALUES</code> for <code>None</code> coercion.</p>
 </div>
+<p><code>coercion</code> parameter can also receive a coercion function which will then be used instead of default one.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Type</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">cast</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">coerce</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Only coerce int to bool&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="nb">bool</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="nb">bool</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span> <span class="n">coercion</span><span class="o">=</span><span class="n">coerce</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">coercion</span><span class="o">=</span><span class="n">coerce</span><span class="p">)</span>
+</code></pre></div>
+
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If coercer result is not an instance of class passed in argument, a ValidationError will be raised with an appropriate error message</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Coercer first argument can is a primitive json type <code>str</code>/<code>bool</code>/<code>int</code>/<code>float</code>/<code>list</code>/<code>dict</code>/<code>type(None)</code>; it can be <code>type(None)</code>, so returning <code>cls(data)</code> will fail in this case.</p>
+</div>
 <h4 id="additional-properties">Additional properties<a class="headerlink" href="#additional-properties" title="Permanent link">&para;</a></h4>
-<p><em>Apischema</em> is strict too about number of fields received for an <em>object</em>. In JSON-schema terms, <em>Apischema</em> put <code>"additionalProperties": false</code> by default (this can be configured by class with <a href="#additional-and-pattern-properties">properties field</a>). </p>
+<p><em>Apischema</em> is strict too about number of fields received for an <em>object</em>. In JSON schema terms, <em>Apischema</em> put <code>"additionalProperties": false</code> by default (this can be configured by class with <a href="#additional-and-pattern-properties">properties field</a>). </p>
 <p>This behavior can be controlled by <code>additional_properties</code> parameter. When set to <code>True</code>, it prevents the reject of unexpected properties. </p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
@@ -808,49 +818,69 @@ assert deserialize(Mapping[str, Collection[Foo]], {"key": [{"bar": "42"}]}) == {
 
 
 <h4 id="default-fallback">Default fallback<a class="headerlink" href="#default-fallback" title="Permanent link">&para;</a></h4>
-<p>Validation error can happen when deserializing an ill-formed field. However, if this field has a default value/factory, deserialization can fallback to this default; this is enabled by <code>default_fallback</code> parameter.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<p>Validation error can happen when deserializing an ill-formed field. However, if this field has a default value/factory, deserialization can fallback to this default; this is enabled by <code>default_fallback</code> parameter. This behavior can also be configured for each field using metadata. </p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">default_fallback</span>
 
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
     <span class="n">bar</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;bar&quot;</span>
+    <span class="n">baz</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;baz&quot;</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">default_fallback</span><span class="p">)</span>
 
 
-<span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">}</span>
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
-    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">default_fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">)</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="n">default_fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">()</span>
+
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">()</span>
 </code></pre></div>
 
 
 <h4 id="strictness-configuration">Strictness configuration<a class="headerlink" href="#strictness-configuration" title="Permanent link">&para;</a></h4>
-<p>Default strictness of the library can be configured with the function <code>apischema.deserialization.set_strictness</code> defined as following:</p>
-<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">set_strictness</span><span class="p">(</span>
-    <span class="o">*</span><span class="p">,</span>
-    <span class="n">additional_properties</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span> 
-    <span class="n">coerce</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span> 
-    <span class="n">default_fallback</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span>
-<span class="p">):</span>
-    <span class="o">...</span>
+<p><em>Apischema</em> global configuration is managed through <code>apischema.settings</code> module.
+This module has, among other, three global variables <code>settings.additional_properties</code>, <code>settings.coercion</code> and <code>settings.default_fallback</code> whose values are used as default parameter values for the <code>deserialize</code> function.</p>
+<p>Global coercion function can be set with <code>settings.coercer</code> following this example:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">settings</span>
+
+<span class="n">prev_coercer</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">coercer</span><span class="p">()</span>
+
+<span class="nd">@settings</span><span class="o">.</span><span class="n">coercer</span>
+<span class="k">def</span> <span class="nf">coercer</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;In case of coercion failures, try to deserialize json data&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">prev_coercer</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">err</span>
 </code></pre></div>
 
 
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Like all <code>settings</code> function, <code>coercer</code> has an overloaded signature. Without argument, it returns the current settings function, and with an argument, it set the settings function.</p>
+</div>
 <h2 id="fields-set">Fields set<a class="headerlink" href="#fields-set" title="Permanent link">&para;</a></h2>
-<p>Sometimes, it can be useful to know which field has been set by the deserialization, for example inthe case of a <em>PATCH</em> requests, to know which field has been updated. In fact, for nullable fields which are typed <code>Optional</code>, a default <code>None</code> value could mean that the field was not present in payload or that the field was present and must be set to <code>null</code>.</p>
+<p>Sometimes, it can be useful to know which field has been set by the deserialization, for example in the case of a <em>PATCH</em> requests, to know which field has been updated. Moreover, it is also used in serialization to limit the fields serialized (see <a href="#exclude-unset-fields">next section</a>)</p>
 <p>Because <em>Apischema</em> use vanilla dataclasses, this feature is not enabled by default and must be set explicitly on a per-class basis. <em>Apischema</em> provides a simple API to get/set this metadata.  </p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span>
 <span class="kn">from</span> <span class="nn">apischema.fields</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">get_fields_set</span><span class="p">,</span>
-    <span class="n">mark_set_fields</span><span class="p">,</span>
-    <span class="n">unmark_set_fields</span><span class="p">,</span>
+    <span class="n">fields_set</span><span class="p">,</span>
+    <span class="n">is_set</span><span class="p">,</span>
+    <span class="n">set_fields</span><span class="p">,</span>
+    <span class="n">unset_fields</span><span class="p">,</span>
     <span class="n">with_fields_set</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -865,28 +895,35 @@ assert deserialize(Mapping[str, Collection[Foo]], {"key": [{"bar": "42"}]}) == {
 
 <span class="c1"># Retrieve fields set</span>
 <span class="n">foo1</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">get_fields_set</span><span class="p">(</span><span class="n">foo1</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">fields_set</span><span class="p">(</span><span class="n">foo1</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">}</span>
 <span class="n">foo2</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">get_fields_set</span><span class="p">(</span><span class="n">foo2</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">}</span>
-<span class="c1"># Mark/unmark fields as set</span>
-<span class="n">mark_set_fields</span><span class="p">(</span><span class="n">foo2</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">get_fields_set</span><span class="p">(</span><span class="n">foo2</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">}</span>
-<span class="n">unmark_set_fields</span><span class="p">(</span><span class="n">foo2</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">get_fields_set</span><span class="p">(</span><span class="n">foo2</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">}</span>
-<span class="n">mark_set_fields</span><span class="p">(</span><span class="n">foo2</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">get_fields_set</span><span class="p">(</span><span class="n">foo2</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">fields_set</span><span class="p">(</span><span class="n">foo2</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">}</span>
+<span class="c1"># Test fields individually (with autocompletion and refactoring)</span>
+<span class="k">assert</span> <span class="n">is_set</span><span class="p">(</span><span class="n">foo1</span><span class="p">)</span><span class="o">.</span><span class="n">baz</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">is_set</span><span class="p">(</span><span class="n">foo2</span><span class="p">)</span><span class="o">.</span><span class="n">baz</span>
+<span class="c1"># Mark fields as set/unset</span>
+<span class="n">set_fields</span><span class="p">(</span><span class="n">foo2</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">fields_set</span><span class="p">(</span><span class="n">foo2</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">}</span>
+<span class="n">unset_fields</span><span class="p">(</span><span class="n">foo2</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">fields_set</span><span class="p">(</span><span class="n">foo2</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">}</span>
+<span class="n">set_fields</span><span class="p">(</span><span class="n">foo2</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">fields_set</span><span class="p">(</span><span class="n">foo2</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">}</span>
 <span class="c1"># Fields modification are taken in account</span>
 <span class="n">foo2</span><span class="o">.</span><span class="n">bar</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="k">assert</span> <span class="n">get_fields_set</span><span class="p">(</span><span class="n">foo2</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">fields_set</span><span class="p">(</span><span class="n">foo2</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">}</span>
 <span class="c1"># Because deserialization use normal constructor, it works with the feature</span>
 <span class="n">foo3</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
-<span class="k">assert</span> <span class="n">get_fields_set</span><span class="p">(</span><span class="n">foo3</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">fields_set</span><span class="p">(</span><span class="n">foo3</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">}</span>
 </code></pre></div>
 
 
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p><code>with_fields_set</code> decorator MUST be put before <code>dataclass</code>. This is because both of them modify <code>__init__</code> method, but only the first is built to take the second in account.</p>
+<p><code>with_fields_set</code> decorator MUST be put above <code>dataclass</code> one. This is because both of them modify <code>__init__</code> method, but only the first is built to take the second in account.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><code>dataclasses.replace</code> works by setting all the fields of the replaced object. Because of this issue, <em>Apischema</em> provides a little wrapper <code>apischema.dataclasses.replace</code>.</p>
 </div>
 <h2 id="serialization">Serialization<a class="headerlink" href="#serialization" title="Permanent link">&para;</a></h2>
 <p>Serialization is simpler than deserialization; <code>serialize(obj)</code> will generate a JSON-like serialized <code>obj</code>.</p>
@@ -934,24 +971,31 @@ Using the previous feature of <a href="#fields-set">fields set tracking</a>, <co
 <p class="admonition-title">Note</p>
 <p>As written in comment in the example, <code>with_fields_set</code> is necessary to benefit from the feature. If the dataclass don't use it, the feature will have no effect.</p>
 </div>
-<h2 id="unsupported">Unsupported<a class="headerlink" href="#unsupported" title="Permanent link">&para;</a></h2>
-<p>When a type is not supported by deserialization, an <code>Unsupported</code> exception is raised. See section about <a href="#conversions.md">conversions</a></p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+<p>Sometimes, some fields must be serialized, even with their default value; this behavior can be enforced using field metadata. With it, field will be marked as set even if its default value is used at initialization.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Unsupported</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.fields</span> <span class="kn">import</span> <span class="n">with_fields_set</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">default_as_set</span>
 
 
+<span class="c1"># Decorator needed to benefit from the feature</span>
+<span class="nd">@with_fields_set</span>
+<span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-    <span class="k">pass</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">default_as_set</span><span class="p">)</span>
 
 
-<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">Unsupported</span><span class="p">):</span>
-    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{})</span>
-<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">Unsupported</span><span class="p">):</span>
-    <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
 </code></pre></div>
 
 
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This metadata has effect only in combination with <code>with_fields_set</code> decorator.</p>
+</div>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
 <h4 id="why-coercion-is-not-default-behavior">Why coercion is not default behavior?<a class="headerlink" href="#why-coercion-is-not-default-behavior" title="Permanent link">&para;</a></h4>
 <p>Because ill-formed data can be symptomatic of problems, and it has been decided that highlighting them would be better than hiding them. By the way, this is easily globally configurable.</p>
@@ -990,13 +1034,13 @@ Using the previous feature of <a href="#fields-set">fields set tracking</a>, <co
           </a>
         
         
-          <a href="../schema/" title="(JSON-)schema" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../json_schema/" title="JSON schema" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                (JSON-)schema
+                JSON schema
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

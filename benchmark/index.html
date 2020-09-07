@@ -224,8 +224,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../schema/" title="(JSON-)schema" class="md-nav__link">
-      (JSON-)schema
+    <a href="../json_schema/" title="JSON schema" class="md-nav__link">
+      JSON schema
     </a>
   </li>
 
@@ -271,42 +271,18 @@
       
 
 
-  <li class="md-nav__item">
-    <a href="../miscellaneous/" title="Miscellaneous" class="md-nav__link">
-      Miscellaneous
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
-  <li class="md-nav__item">
-    <a href="../code_generation_from_schema/" title="Code generation from schema" class="md-nav__link">
-      Code generation from schema
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
     
-    <label class="md-nav__link" for="nav-10">
+    <label class="md-nav__link" for="nav-8">
       Examples
       <span class="md-nav__icon md-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
       </span>
     </label>
     <nav class="md-nav" aria-label="Examples" data-md-level="1">
-      <label class="md-nav__title" for="nav-10">
+      <label class="md-nav__title" for="nav-8">
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
         </span>
@@ -491,8 +467,11 @@
                 
                 
                 <h1 id="benchmark">Benchmark<a class="headerlink" href="#benchmark" title="Permanent link">&para;</a></h1>
-<p>Benchmark presented is just <a href="https://github.com/samuelcolvin/pydantic/tree/master/benchmarks"><em>Pydantic</em> benchmark</a> where <em>Apischema</em> has been <a href="https://github.com/wyfo/pydantic/tree/benchmark_apischema">"inserted"</a>. Benchmark is run using <strong>only <em>CPython</em></strong> (no <em>Cython</em> compilation)</p>
-<p>Below are the results of crude benchmark comparing <em>apischema</em> to <em>pydantic</em> other validation libraries.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Benchmark presented is just <a href="https://github.com/samuelcolvin/pydantic/tree/master/benchmarks"><em>Pydantic</em> benchmark</a> where <em>Apischema</em> has been <a href="https://github.com/wyfo/pydantic/tree/benchmark_apischema">"inserted"</a>. Benchmark is run <strong>without <em>Cython</em> compilation</strong>.</p>
+</div>
+<p>Below are the results of crude benchmark comparing <em>apischema</em> to <em>pydantic</em> and other validation libraries.</p>
 <table>
 <thead>
 <tr>
@@ -507,55 +486,55 @@
 <td>apischema</td>
 <td><code>0.7.0</code></td>
 <td></td>
-<td>114.0μs</td>
-</tr>
-<tr>
-<td>attrs + cattrs</td>
-<td><code>19.1.0</code></td>
-<td>1.1x slower</td>
-<td>122.2μs</td>
-</tr>
-<tr>
-<td>valideer</td>
-<td><code>0.4.2</code></td>
-<td>1.1x slower</td>
-<td>126.4μs</td>
+<td>108.0μs</td>
 </tr>
 <tr>
 <td>pydantic</td>
 <td><code>1.6.1</code></td>
 <td>1.1x slower</td>
-<td>128.9μs</td>
+<td>119.5μs</td>
+</tr>
+<tr>
+<td>attrs + cattrs</td>
+<td><code>19.1.0</code></td>
+<td>1.1x slower</td>
+<td>123.1μs</td>
+</tr>
+<tr>
+<td>valideer</td>
+<td><code>0.4.2</code></td>
+<td>1.2x slower</td>
+<td>124.5μs</td>
 </tr>
 <tr>
 <td>marshmallow</td>
 <td><code>3.5.2</code></td>
 <td>1.9x slower</td>
-<td>212.0μs</td>
+<td>203.9μs</td>
 </tr>
 <tr>
 <td>voluptuous</td>
 <td><code>0.11.7</code></td>
-<td>2.3x slower</td>
-<td>259.9μs</td>
+<td>2.4x slower</td>
+<td>254.2μs</td>
 </tr>
 <tr>
 <td>trafaret</td>
 <td><code>1.2.0</code></td>
-<td>2.7x slower</td>
-<td>310.6μs</td>
+<td>2.9x slower</td>
+<td>312.2μs</td>
 </tr>
 <tr>
 <td>django-rest-framework</td>
 <td><code>3.10.2</code></td>
 <td>8.4x slower</td>
-<td>962.4μs</td>
+<td>911.3μs</td>
 </tr>
 <tr>
 <td>cerberus</td>
 <td><code>1.3.2</code></td>
-<td>21.9x slower</td>
-<td>2498.4μs</td>
+<td>22.4x slower</td>
+<td>2416.6μs</td>
 </tr>
 </tbody>
 </table>
@@ -573,20 +552,28 @@
 <td>apischema</td>
 <td><code>0.7.0</code></td>
 <td></td>
-<td>50.2μs</td>
+<td>29.3μs</td>
 </tr>
 <tr>
 <td>pydantic</td>
 <td><code>1.6.1</code></td>
-<td>1.2x slower</td>
-<td>60.9μs</td>
+<td>2.0x slower</td>
+<td>58.2μs</td>
 </tr>
 </tbody>
 </table>
 <p>Benchmarks were run with Python 3.7.7 and the package versions listed above installed via pypi on macOs 10.15.5</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Of course, using coercion adds a little overhead to <em>Apischema</em> performance and but it can be toggled (strict by default).</p>
+</div>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
 <h4 id="why-not-use-cython">Why not use <em>Cython</em>?<a class="headerlink" href="#why-not-use-cython" title="Permanent link">&para;</a></h4>
-<p><em>Apischema</em> is blocked for now by this <a href="https://github.com/cython/cython/issues/3537">Cython issue</a></p>
+<p><em>Cython</em> doesn't support yet some of the modern Python features like <code>Generic</code> or <code>dataclass</code> which are intensively used in <em>Apischema</em>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>With some hacks, it has been possible to cythonize some of the modules, with performance increase; it becomes then a little bit slower than cythonized <em>Pydantic</em> (which is optimized for <em>Cython</em>). But this is too dirty to keep it, and <em>Cython</em> is not a priority. </p>
+</div>
 <h4 id="why-not-ask-for-integration-to-pydantic-benchmark">Why not ask for integration to <em>pydantic</em> benchmark?<a class="headerlink" href="#why-not-ask-for-integration-to-pydantic-benchmark" title="Permanent link">&para;</a></h4>
 <p><a href="https://github.com/samuelcolvin/pydantic/pull/1525#issuecomment-630422702">Done, but rejected</a> because "apischema doesn't have enough usage". Let's change that!</p>
                 

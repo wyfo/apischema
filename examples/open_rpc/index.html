@@ -224,8 +224,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../schema/" title="(JSON-)schema" class="md-nav__link">
-      (JSON-)schema
+    <a href="../../json_schema/" title="JSON schema" class="md-nav__link">
+      JSON schema
     </a>
   </li>
 
@@ -270,45 +270,21 @@
       
       
 
-
-  <li class="md-nav__item">
-    <a href="../../miscellaneous/" title="Miscellaneous" class="md-nav__link">
-      Miscellaneous
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
-  <li class="md-nav__item">
-    <a href="../../code_generation_from_schema/" title="Code generation from schema" class="md-nav__link">
-      Code generation from schema
-    </a>
-  </li>
-
-    
-      
-      
-      
-
   
 
 
   <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8" checked>
     
-    <label class="md-nav__link" for="nav-10">
+    <label class="md-nav__link" for="nav-8">
       Examples
       <span class="md-nav__icon md-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
       </span>
     </label>
     <nav class="md-nav" aria-label="Examples" data-md-level="1">
-      <label class="md-nav__title" for="nav-10">
+      <label class="md-nav__title" for="nav-8">
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
         </span>
@@ -409,15 +385,9 @@
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 <span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Annotated</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">ValidationError</span><span class="p">,</span>
-    <span class="n">build_input_schema</span><span class="p">,</span>
-    <span class="n">deserialize</span><span class="p">,</span>
-    <span class="n">schema</span><span class="p">,</span>
-    <span class="n">serialize</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">NotNull</span><span class="p">,</span> <span class="n">Skip</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">apischema.fields</span> <span class="kn">import</span> <span class="n">with_fields_set</span>
-<span class="kn">from</span> <span class="nn">apischema.misc</span> <span class="kn">import</span> <span class="n">Ignored</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 
 
 <span class="k">class</span> <span class="nc">NoResult</span><span class="p">:</span>
@@ -438,12 +408,12 @@
     <span class="n">data</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">NO_DATA</span>
 
 
-<span class="nd">@schema</span><span class="p">(</span><span class="n">min_properties</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_properties</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="nd">@schema</span><span class="p">(</span><span class="n">min_props</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_props</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="nd">@with_fields_set</span>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Result</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
-    <span class="n">result</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">NoResult</span><span class="p">,</span> <span class="n">Ignored</span><span class="p">]]</span> <span class="o">=</span> <span class="n">NO_RESULT</span>
-    <span class="n">error</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Error</span><span class="p">,</span> <span class="n">Annotated</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Ignored</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">result</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">NoResult</span><span class="p">,</span> <span class="n">Skip</span><span class="p">]]</span> <span class="o">=</span> <span class="n">NO_RESULT</span>
+    <span class="n">error</span><span class="p">:</span> <span class="n">NotNull</span><span class="p">[</span><span class="n">Error</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -452,7 +422,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span>
 
 
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">build_input_schema</span><span class="p">(</span><span class="n">Result</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]))</span> <span class="o">==</span> <span class="p">{</span>
+<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Result</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="s2">&quot;maxProperties&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
     <span class="s2">&quot;minProperties&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
@@ -503,7 +474,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../../code_generation_from_schema/" title="Code generation from schema" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../../configuration_management/" title="Configuration management" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -512,7 +483,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Code generation from schema
+                Configuration management
               </div>
             </div>
           </a>
