@@ -15,7 +15,7 @@
     
     
       
-        <title>OpenRPC - Apischema</title>
+        <title>SQLAlchemy - Apischema</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#openrpc" class="md-skip">
+        <a href="#sqlalchemy-with-custom-serializers" class="md-skip">
           Skip to content
         </a>
       
@@ -88,7 +88,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              OpenRPC
+              SQLAlchemy
             
           </span>
         </div>
@@ -297,6 +297,18 @@
           
           
 
+
+  <li class="md-nav__item">
+    <a href="../open_rpc/" title="OpenRPC" class="md-nav__link">
+      OpenRPC
+    </a>
+  </li>
+
+        
+          
+          
+          
+
   
 
 
@@ -307,22 +319,10 @@
       
     
     
-    <a href="./" title="OpenRPC" class="md-nav__link md-nav__link--active">
-      OpenRPC
-    </a>
-    
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../sqlalchemy/" title="SQLAlchemy" class="md-nav__link">
+    <a href="./" title="SQLAlchemy" class="md-nav__link md-nav__link--active">
       SQLAlchemy
     </a>
+    
   </li>
 
         
@@ -382,7 +382,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/open_rpc.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/sqlalchemy.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
@@ -390,83 +390,8 @@
                   
                 
                 
-                <h1 id="openrpc"><a href="https://open-rpc.org/">OpenRPC</a><a class="headerlink" href="#openrpc" title="Permanent link">&para;</a></h1>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span>
-
-<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
-<span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Annotated</span>
-
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">NotNull</span><span class="p">,</span> <span class="n">Skip</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">serialize</span>
-<span class="kn">from</span> <span class="nn">apischema.fields</span> <span class="kn">import</span> <span class="n">with_fields_set</span>
-<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
-
-
-<span class="k">class</span> <span class="nc">NoResult</span><span class="p">:</span>
-    <span class="k">pass</span>
-
-
-<span class="n">NO_RESULT</span> <span class="o">=</span> <span class="n">NoResult</span><span class="p">()</span>
-<span class="n">NO_DATA</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
-
-<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
-
-
-<span class="nd">@with_fields_set</span>
-<span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Error</span><span class="p">(</span><span class="ne">Exception</span><span class="p">,</span> <span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
-    <span class="n">code</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">data</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">NO_DATA</span>
-
-
-<span class="nd">@schema</span><span class="p">(</span><span class="n">min_props</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_props</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="nd">@with_fields_set</span>
-<span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Result</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
-    <span class="n">result</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">NoResult</span><span class="p">,</span> <span class="n">Skip</span><span class="p">]]</span> <span class="o">=</span> <span class="n">NO_RESULT</span>
-    <span class="n">error</span><span class="p">:</span> <span class="n">NotNull</span><span class="p">[</span><span class="n">Error</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-
-    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span>
-        <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="p">,</span> <span class="n">NoResult</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span>
-
-
-<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Result</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">==</span> <span class="p">{</span>
-    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="s2">&quot;maxProperties&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">&quot;minProperties&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span> <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
-        <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
-                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
-                <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{},</span>
-            <span class="p">},</span>
-            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-        <span class="p">},</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-<span class="p">}</span>
-
-<span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
-<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
-    <span class="n">deserialize</span><span class="p">(</span><span class="n">Result</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Result</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="n">Result</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
-
-<span class="n">error</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Result</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">}})</span>
-<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">Error</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-    <span class="n">error</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">Error</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;...&quot;</span><span class="p">)</span>
+                <h1 id="sqlalchemy-with-custom-serializers">SQLAlchemy with custom serializers<a class="headerlink" href="#sqlalchemy-with-custom-serializers" title="Permanent link">&para;</a></h1>
+<div class="codehilite"><pre><span></span><code><span class="c1"># TO BE COMPLETED SOON</span>
 </code></pre></div>
                 
               
@@ -486,7 +411,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../../configuration_management/" title="Configuration management" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../open_rpc/" title="OpenRPC" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -495,19 +420,19 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Configuration management
+                OpenRPC
               </div>
             </div>
           </a>
         
         
-          <a href="../sqlalchemy/" title="SQLAlchemy" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../../benchmark/" title="Benchmark" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                SQLAlchemy
+                Benchmark
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

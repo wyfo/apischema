@@ -294,6 +294,26 @@
     Register a conversion
   </a>
   
+    <nav class="md-nav" aria-label="Register a conversion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#multiple-deserializers" class="md-nav__link">
+    Multiple deserializers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inheritance" class="md-nav__link">
+    Inheritance
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -331,8 +351,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#global-default-conversion" class="md-nav__link">
-    Global default conversion
+  <a href="#thats-not-all" class="md-nav__link">
+    That's not all
   </a>
   
 </li>
@@ -346,8 +366,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#why-deserialization-conversions-are-not-inherited" class="md-nav__link">
-    Why deserialization conversions are not inherited?
+  <a href="#why-conversions-parameter-is-a-mapping-and-not-just-a-tuple-are-there-any-cases-where-it-can-be-several-conversions-at-the-same-time" class="md-nav__link">
+    Why conversions parameter is a mapping and not just a tuple? Are there any cases where it can be several conversions at the same time?
   </a>
   
 </li>
@@ -409,6 +429,18 @@
   <li class="md-nav__item">
     <a href="../examples/open_rpc/" title="OpenRPC" class="md-nav__link">
       OpenRPC
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/sqlalchemy/" title="SQLAlchemy" class="md-nav__link">
+      SQLAlchemy
     </a>
   </li>
 
@@ -479,6 +511,26 @@
     Register a conversion
   </a>
   
+    <nav class="md-nav" aria-label="Register a conversion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#multiple-deserializers" class="md-nav__link">
+    Multiple deserializers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inheritance" class="md-nav__link">
+    Inheritance
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -516,8 +568,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#global-default-conversion" class="md-nav__link">
-    Global default conversion
+  <a href="#thats-not-all" class="md-nav__link">
+    That's not all
   </a>
   
 </li>
@@ -531,8 +583,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#why-deserialization-conversions-are-not-inherited" class="md-nav__link">
-    Why deserialization conversions are not inherited?
+  <a href="#why-conversions-parameter-is-a-mapping-and-not-just-a-tuple-are-there-any-cases-where-it-can-be-several-conversions-at-the-same-time" class="md-nav__link">
+    Why conversions parameter is a mapping and not just a tuple? Are there any cases where it can be several conversions at the same time?
   </a>
   
 </li>
@@ -565,7 +617,7 @@
                 <h1 id="deserialization-customize-with-conversions">(De)serialization: Customize with conversions<a class="headerlink" href="#deserialization-customize-with-conversions" title="Permanent link">&para;</a></h1>
 <p><em>Apischema</em> covers majority of standard data types, but it's of course not enough, that's why it gives you the way to add support for all your classes and the libraries you use.</p>
 <p>Actually, <em>Apischema</em> uses internally its own feature to support standard library data types like UUID/datetime/etc. (see <a href="https://github.com/wyfo/apischema/blob/master/apischema/std_types.py">std_types.py</a>)</p>
-<p>ORM support can easily be achieved with this feature (see <a href="examples/sqlalchemy.md">SQLAlchemy example</a>).</p>
+<p>ORM support can easily be achieved with this feature (see <a href="../examples/sqlalchemy/">SQLAlchemy example</a>).</p>
 <h2 id="principle-apischema-conversions">Principle - <em>Apischema</em> conversions<a class="headerlink" href="#principle-apischema-conversions" title="Permanent link">&para;</a></h2>
 <p>An <em>Apischema</em> conversion is composed of a source type, let's call it <code>Source</code>, a target type <code>Target</code> and a function of signature <code>(Source) -&gt; Target</code>.</p>
 <p>When a type (actually, a non-builtin type, so not <code>int</code>/<code>List[str]</code>/etc.) is deserialized, <em>Apischema</em> will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then conversion function will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply conversion (normally get the target type).</p>
@@ -578,6 +630,7 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span><span class="p">,</span> <span class="n">serialization_schema</span>
 
 <span class="n">HexaRGB</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;HexaRGB&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
 <span class="n">schema</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^#[0-9a-fA-F]</span><span class="si">{6}</span><span class="s2">$&quot;</span><span class="p">)(</span><span class="n">HexaRGB</span><span class="p">)</span>
@@ -601,25 +654,188 @@
 
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">,</span> <span class="s2">&quot;#000000&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">42</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;#00002a&quot;</span>
+<span class="k">assert</span> <span class="p">(</span>
+    <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">RGB</span><span class="p">)</span>
+    <span class="o">==</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">RGB</span><span class="p">)</span>
+    <span class="o">==</span> <span class="p">{</span>
+        <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;pattern&quot;</span><span class="p">:</span> <span class="s2">&quot;^#[0-9a-fA-F]</span><span class="si">{6}</span><span class="s2">$&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">)</span>
 </code></pre></div>
 
 
-<p>Registered serializers are inherited</p>
+<h3 id="multiple-deserializers">Multiple deserializers<a class="headerlink" href="#multiple-deserializers" title="Permanent link">&para;</a></h3>
+<p>Sometimes, you want to have several possibilities to deserialize a type. If it's possible to register a deserializer with an <code>Union</code> param, it's not very practical. That's why <em>Apischema</em> make it possible to register several deserializers for the same type. They will be handled with an <code>Union</code> source type (ordered by deserializers registration), with the right serializer selected according to the matching alternative.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+
+<span class="c1"># Set UTC timezone for example</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TZ&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;UTC&quot;</span>
+<span class="n">time</span><span class="o">.</span><span class="n">tzset</span><span class="p">()</span>
+
+<span class="c1"># There is already `deserializer(datetime.fromisoformat, str, datetime) in apischema</span>
+<span class="c1"># Let&#39;s add an other deserializer for datetime from a timestamp</span>
+
+
+<span class="nd">@deserializer</span>
+<span class="k">def</span> <span class="nf">datetime_from_timestamp</span><span class="p">(</span><span class="n">timestamp</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span>
+
+
+<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">datetime</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;anyOf&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;date-time&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}],</span>
+<span class="p">}</span>
+<span class="k">assert</span> <span class="p">(</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="s2">&quot;2019-10-13&quot;</span><span class="p">)</span>
+    <span class="o">==</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
+    <span class="o">==</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="mi">1570917600</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If it seems that the deserializer declared is equivalent to <code>deserializer(datetime.fromtimestamp, int, datetime)</code>, there is actually a slight difference: in the example, the deserializer makes 2 function calls (<code>datetime_from_timestamp</code> and <code>datetime.fromtimestamp</code>) while the second inlined form imply only one function call to <code>datetime.fromtimestamp</code>.</p>
+<p>In Python, function calls are heavy, so it's good to know. </p>
+</div>
+<p>On the other hand, serializer registration overwrite the previous registration if any. That's how the default serialization of builtin types like <code>datetime</code> can be modified (because it's just a <code>serializer</code> call in <em>Apischema</em> code).</p>
+<p>This is not possible to overwrite this way deserializers (because they stack), but <code>reset_deserializers</code> can be used to reset them before adding new ones. Also, <code>self_deserializer</code> can be used to add a class itself as a deserializer (when it's a supported type like a dataclass).</p>
+<h3 id="inheritance">Inheritance<a class="headerlink" href="#inheritance" title="Permanent link">&para;</a></h3>
+<p>All serializers are naturally inherited. In fact, with a conversion function <code>(Source) -&gt; Target</code>, you can always pass a subtype of <code>Source</code> and get a <code>Target</code> in return.</p>
+<p>Moreover, when serializer is a method (and no <code>param</code> is passed to <code>serializer</code>, overriding this method in a subclass will override the inherited serializer.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
+
+
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@serializer</span>
+<span class="k">def</span> <span class="nf">serialize_foo</span><span class="p">(</span><span class="n">foo</span><span class="p">:</span> <span class="n">Foo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mi">0</span>
+
+
+<span class="k">class</span> <span class="nc">Foo2</span><span class="p">(</span><span class="n">Foo</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="c1"># Deserializer is inherited</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span> <span class="o">==</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo2</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span>
+
+
+<span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+    <span class="nd">@serializer</span>
+    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+
+<span class="k">class</span> <span class="nc">Bar2</span><span class="p">(</span><span class="n">Bar</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+
+<span class="c1"># Deserializer is inherited and overridden</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Bar</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">!=</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Bar2</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span>
+</code></pre></div>
+
+
+<p>On the other hand, deserializers cannot be inherited, because the same <code>Source</code> passed to a conversion function <code>(Source) -&gt; Target</code> will always give the same <code>Target</code> (not ensured to be the desired subtype).</p>
+<p>However, there is one way to do it by using a <code>classmethod</code> and the special decorator <code>inherited_deserializer</code>; the class parameter of the method is then assumed to be used to instantiate the return.  </p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span>
+<span class="kn">from</span> <span class="nn">apischema.conversion</span> <span class="kn">import</span> <span class="n">inherited_deserializer</span>
+
+
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="nb">int</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">n</span>
+
+    <span class="nd">@inherited_deserializer</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_int</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Bar</span><span class="p">(</span><span class="n">Foo</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Bar</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">Bar</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">!=</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div>
+
+
 <h2 id="extra-conversions-choose-the-conversion-you-want">Extra conversions - choose the conversion you want<a class="headerlink" href="#extra-conversions-choose-the-conversion-you-want" title="Permanent link">&para;</a></h2>
 <p>Conversion is a powerful feature, but, registering only one (de)serialization by type may not be enough. Some types may have different representations, or you may have different serialization for a given entity with more or less data (for example a "simple" and a "detailed" view). Hopefully, <em>Apischema</em> let you register as many conversion as you want for your classes and gives you the possibility to select the one you want.</p>
 <p>Conversions registered with <code>deserializer</code>/<code>serializer</code> are the default ones, they are selected when no conversion is precised. Other conversions are registered <code>extra_deserializer</code>/<code>extra_serializer</code> (they have the same signature than the previous ones).</p>
 <p>Conversions can then be selected using the <code>conversions</code> parameter of <em>Apischema</em> functions <code>deserialize</code>/<code>serialize</code>/<code>deserialization_schema</code>/<code>serialization_schema</code>. This parameter must be mapping of types:</p>
 <ul>
-<li>for deserialization, target as key and source as value</li>
+<li>for deserialization, target as key and source(s) as value</li>
 <li>for serialization, source as key and target as value</li>
 </ul>
 <p>(Actually, the type for which is registered the conversion is in key) 
-For deserialization, if there is several possible source, <code>conversions</code> values can also be a collection of types. It will again result in a <code>Union</code> deserialization.</p>
+For deserialization, if there is <a href="#multiple-deserializers">several possible source</a>, <code>conversions</code> values can also be a collection of types. It will again result in a <code>Union</code> deserialization.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For <code>definitions_schema</code>, conversions can be added with types by using a tuple instead, for example <code>definitions_schema(serializations=[(List[Foo], {Foo: Bar})])</code>. </p>
 </div>
-<p>TO BE COMPLETED</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.conversion</span> <span class="kn">import</span> <span class="n">extra_serializer</span>
+<span class="kn">from</span> <span class="nn">apischema.conversion.converters</span> <span class="kn">import</span> <span class="n">extra_deserializer</span>
+
+<span class="c1"># Set UTC timezone for example</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TZ&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;UTC&quot;</span>
+<span class="n">time</span><span class="o">.</span><span class="n">tzset</span><span class="p">()</span>
+
+
+<span class="nd">@extra_deserializer</span>
+<span class="k">def</span> <span class="nf">datetime_from_timestamp</span><span class="p">(</span><span class="n">timestamp</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span>
+
+
+<span class="n">date</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2017</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="mi">1504310400</span><span class="p">,</span> <span class="n">conversions</span><span class="o">=</span><span class="p">{</span><span class="n">datetime</span><span class="p">:</span> <span class="nb">int</span><span class="p">})</span> <span class="o">==</span> <span class="n">date</span>
+
+<span class="n">Diff</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Diff&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">baz</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="nd">@extra_serializer</span>
+    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bar</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">baz</span>
+
+    <span class="c1"># You can use NewType to disambiguate conversion to int</span>
+    <span class="nd">@extra_serializer</span>
+    <span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Diff</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bar</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">baz</span><span class="p">)</span>
+
+
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">conversions</span><span class="o">=</span><span class="p">{</span><span class="n">Foo</span><span class="p">:</span> <span class="n">Foo</span><span class="p">})</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">conversions</span><span class="o">=</span><span class="p">{</span><span class="n">Foo</span><span class="p">:</span> <span class="nb">int</span><span class="p">})</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">conversions</span><span class="o">=</span><span class="p">{</span><span class="n">Foo</span><span class="p">:</span> <span class="n">Diff</span><span class="p">})</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+</code></pre></div>
+
+
 <h3 id="chain-conversions">Chain conversions<a class="headerlink" href="#chain-conversions" title="Permanent link">&para;</a></h3>
 <p>Conversions mapping put in <code>conversions</code> parameter is not used in all the deserialization/serialization. In fact it is "reset" as soon as a non-builtin type (so, not <code>int</code>/<code>List[int]</code>/<code>NewType</code> instances/etc.) is encountered. Not having this reset would completely break the possibility to have <code>$ref</code> in generated schema, because a <code>conversions</code> could then change the serialization of a field of a dataclass in one particular schema but not in another (and bye-bye <em>OpenAPI</em> components schema).</p>
 <p>But everything is not lost. Let's illustrate with an example. As previously mentioned, <em>Apischema</em> uses its own feature internally at several places. One of them is schema generation. JSON schema is generated using an internal <code>JsonSchema</code> type, and is then serialized; the JSON schema version selection result in fact in a conversion that is selected according to the version (by <code>JsonSchemaVersion.conversions</code> property). However, JSON schema is recursive and the serialization of <code>JsonSchema</code> returns a dictionary which can contain other <code>JsonSchema</code> ... but it has been written above that <code>conversions</code> is reset.</p>
@@ -633,7 +849,7 @@ For deserialization, if there is several possible source, <code>conversions</cod
     <span class="k">pass</span>
 
 
-<span class="n">JsonSchema7</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;JSONSchema7&quot;</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
+<span class="n">JsonSchema7</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;JsonSchema7&quot;</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
 
 
 <span class="k">def</span> <span class="nf">isolate_ref</span><span class="p">(</span><span class="n">schema</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
@@ -657,8 +873,87 @@ For deserialization, if there is several possible source, <code>conversions</cod
 
 
 <h3 id="field-conversions">Field conversions<a class="headerlink" href="#field-conversions" title="Permanent link">&para;</a></h3>
-<p>Fields can also be used to chain conversions using <code>conversions</code> metadata. This metadata has two uses (with overloaded signature)</p>
-<p>TO BE COMPLETED</p>
+<p>Dataclass fields conversions can also be customized using <code>conversions</code> metadata. </p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.conversion</span> <span class="kn">import</span> <span class="n">extra_serializer</span>
+<span class="kn">from</span> <span class="nn">apischema.conversion.converters</span> <span class="kn">import</span> <span class="n">extra_deserializer</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">conversions</span>
+
+<span class="c1"># Set UTC timezone for example</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TZ&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;UTC&quot;</span>
+<span class="n">time</span><span class="o">.</span><span class="n">tzset</span><span class="p">()</span>
+
+<span class="n">extra_deserializer</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">datetime</span><span class="p">)</span>
+
+
+<span class="nd">@extra_serializer</span>
+<span class="k">def</span> <span class="nf">to_timestamp</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">timestamp</span><span class="p">())</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">some_date</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">conversions</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+    <span class="c1"># `conversions(int)` is equivalent to</span>
+    <span class="c1"># `conversions(deserialization={datetime: int}, serialization={datetime: int})`</span>
+    <span class="n">other_date</span><span class="p">:</span> <span class="n">datetime</span>
+
+
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;some_date&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;other_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2019-10-13&quot;</span><span class="p">})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">13</span><span class="p">)))</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;some_date&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;other_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2019-10-13T00:00:00&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<p><code>conversions</code> metadata can also be used to add directly a (de)serializer to a field — <code>deserialization</code> and <code>serialization</code> are then applied after the (de)serializer as <a href="#chain-conversions">chained conversions</a></p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">conversions</span>
+
+<span class="c1"># Set UTC timezone for example</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TZ&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;UTC&quot;</span>
+<span class="n">time</span><span class="o">.</span><span class="n">tzset</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">from_timestamp</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">to_timestamp</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">timestamp</span><span class="p">())</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">some_date</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">conversions</span><span class="p">(</span><span class="n">deserializer</span><span class="o">=</span><span class="n">from_timestamp</span><span class="p">,</span> <span class="n">serializer</span><span class="o">=</span><span class="n">to_timestamp</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">other_date</span><span class="p">:</span> <span class="n">datetime</span>
+
+
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;some_date&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;other_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2019-10-13&quot;</span><span class="p">})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">13</span><span class="p">)))</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;some_date&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;other_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2019-10-13T00:00:00&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
 <h2 id="generic-conversions">Generic conversions<a class="headerlink" href="#generic-conversions" title="Permanent link">&para;</a></h2>
 <p><code>Generic</code> conversions are supported out of the box. However, keep in mind that serialization doesn't use type model, so they will not be used in serialization, but will be used on the other hand in serialization schema generation.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">sys</span>
@@ -715,16 +1010,11 @@ For deserialization, if there is several possible source, <code>conversions</cod
 <p class="admonition-title">Note</p>
 <p><em>Apischema</em> doesn't support specialization of <code>Generic</code> conversion like <code>Foo[bool] -&gt; int</code>.</p>
 </div>
-<h2 id="global-default-conversion">Global default conversion<a class="headerlink" href="#global-default-conversion" title="Permanent link">&para;</a></h2>
-<p><em>Apischema</em> determine if a type has conversion using two functions, one for deserialization and one for serialization. These functions are overridable using <code>apischema.settings</code>, the same way than <a href="../de_serialization/#strictness-configuration"><code>settings.coercer</code></a>.</p>
-<p>TO BE COMPLETED</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Using global default conversion is not the only solution; it's also possible to use <code>__init_subclass__</code> for example, like in the <a href="examples/sqlalchemy.md">SQLAlchemy example</a>.</p>
-</div>
+<h2 id="thats-not-all">That's not all<a class="headerlink" href="#thats-not-all" title="Permanent link">&para;</a></h2>
+<p>Also not (yet) presented in this section : <em>raw deserializers</em>, <em>dataclass serializers</em> and <em>global default (de)serialization</em>.</p>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
-<h4 id="why-deserialization-conversions-are-not-inherited">Why deserialization conversions are not inherited?<a class="headerlink" href="#why-deserialization-conversions-are-not-inherited" title="Permanent link">&para;</a></h4>
-<p>Because a function <code>(Source) -&gt; Target</code> cannot be used to return a subtype of <code>Target</code>; function result is indeed <a href="https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)">contravariant</a>. However, this function can take a subtype of <code>Source</code> and return a <code>Target</code>, that's why serialization conversions are inherited.</p>
+<h4 id="why-conversions-parameter-is-a-mapping-and-not-just-a-tuple-are-there-any-cases-where-it-can-be-several-conversions-at-the-same-time">Why conversions parameter is a mapping and not just a tuple? Are there any cases where it can be several conversions at the same time?<a class="headerlink" href="#why-conversions-parameter-is-a-mapping-and-not-just-a-tuple-are-there-any-cases-where-it-can-be-several-conversions-at-the-same-time" title="Permanent link">&para;</a></h4>
+<p>Tuples (and unions in case of deserialization)</p>
                 
               
               
