@@ -695,7 +695,7 @@
 <span class="k">assert</span> <span class="p">(</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="s2">&quot;2019-10-13&quot;</span><span class="p">)</span>
     <span class="o">==</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
-    <span class="o">==</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="mi">1570917600</span><span class="p">)</span>
+    <span class="o">==</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="mi">1570924800</span><span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
 
@@ -774,6 +774,10 @@
 </code></pre></div>
 
 
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>An "other" way to achieve that would be to use <code>__init_subclass__</code> method in order to add a deserializer to each subclass. In fact, that's what <code>inherited_deserializer</code> is doing behind the scene.</p>
+</div>
 <h2 id="extra-conversions-choose-the-conversion-you-want">Extra conversions - choose the conversion you want<a class="headerlink" href="#extra-conversions-choose-the-conversion-you-want" title="Permanent link">&para;</a></h2>
 <p>Conversion is a powerful feature, but, registering only one (de)serialization by type may not be enough. Some types may have different representations, or you may have different serialization for a given entity with more or less data (for example a "simple" and a "detailed" view). Hopefully, <em>Apischema</em> let you register as many conversion as you want for your classes and gives you the possibility to select the one you want.</p>
 <p>Conversions registered with <code>deserializer</code>/<code>serializer</code> are the default ones, they are selected when no conversion is precised. Other conversions are registered <code>extra_deserializer</code>/<code>extra_serializer</code> (they have the same signature than the previous ones).</p>
