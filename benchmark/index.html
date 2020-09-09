@@ -309,7 +309,19 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/sqlalchemy/" title="SQLAlchemy" class="md-nav__link">
+    <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
+      Recoverable fields
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/sqlalchem—y.md" title="SQLAlchemy" class="md-nav__link">
       SQLAlchemy
     </a>
   </li>
@@ -574,13 +586,17 @@
 </tr>
 </tbody>
 </table>
-<p>Benchmarks were run with Python 3.7.7 and the package versions listed above installed via pypi on macOs 10.15.5</p>
+<p>Benchmarks were run with Python 3.7.7 (CPython) and the package versions listed above installed via pypi on macOs 10.15.5</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Using <em>PyPy</em>, <em>Apischema</em> lead is even more confirmed. </p>
+</div>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
 <h4 id="why-not-use-cython">Why not use <em>Cython</em>?<a class="headerlink" href="#why-not-use-cython" title="Permanent link">&para;</a></h4>
 <p><em>Cython</em> doesn't support yet some of the modern Python features like <code>Generic</code> or <code>dataclass</code> which are intensively used in <em>Apischema</em>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>With some hacks, it has been possible to cythonize some of the modules, with performance increase; it becomes then a little bit slower than cythonized <em>Pydantic</em> (which is optimized for <em>Cython</em>). But this is too dirty to keep it, and <em>Cython</em> is not a priority. </p>
+<p>With some hacks, it has been possible to cythonize some of the modules, with performance increase; it becomes then a little bit slower than cythonized <em>Pydantic</em> (which is optimized for <em>Cython</em>). But this is too dirty to keep it, and <em>Cython</em> is not a priority.</p>
 </div>
 <h4 id="why-not-ask-for-integration-to-pydantic-benchmark">Why not ask for integration to <em>pydantic</em> benchmark?<a class="headerlink" href="#why-not-ask-for-integration-to-pydantic-benchmark" title="Permanent link">&para;</a></h4>
 <p><a href="https://github.com/samuelcolvin/pydantic/pull/1525#issuecomment-630422702">Done, but rejected</a> because "apischema doesn't have enough usage". Let's change that!</p>
@@ -602,7 +618,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../examples/sqlalchemy/" title="SQLAlchemy" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -611,7 +627,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                SQLAlchemy
+                Recoverable fields
               </div>
             </div>
           </a>
