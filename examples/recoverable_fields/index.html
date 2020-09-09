@@ -332,7 +332,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../sqlalchem—y.md" title="SQLAlchemy" class="md-nav__link">
+    <a href="../sqlalchemy/" title="SQLAlchemy" class="md-nav__link">
       SQLAlchemy
     </a>
   </li>
@@ -404,7 +404,67 @@
                 
                 <h1 id="recoverable-fields">Recoverable fields<a class="headerlink" href="#recoverable-fields" title="Permanent link">&para;</a></h1>
 <p>Inspired by <a href="https://github.com/samuelcolvin/pydantic/issues/800">https://github.com/samuelcolvin/pydantic/issues/800</a></p>
-<div class="codehilite"><pre><span></span><code>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Annotated</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Skip</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span><span class="p">,</span> <span class="n">serialization_schema</span>
+
+
+<span class="k">class</span> <span class="nc">RecoverableRaw</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="n">raw</span>
+
+
+<span class="n">deserializer</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">RecoverableRaw</span><span class="p">)</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Recoverable</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">,</span> <span class="n">RecoverableRaw</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
+
+    <span class="nd">@value</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span>
+
+
+<span class="n">deserializer</span><span class="p">(</span>
+    <span class="n">Recoverable</span><span class="p">,</span>
+    <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">RecoverableRaw</span><span class="p">,</span> <span class="n">Skip</span><span class="p">(</span><span class="n">schema_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)]],</span>
+    <span class="n">Recoverable</span><span class="p">[</span><span class="n">T</span><span class="p">],</span>
+<span class="p">)</span>
+
+
+<span class="nd">@serializer</span>
+<span class="k">def</span> <span class="nf">serialize_recoverable</span><span class="p">(</span><span class="n">recoverable</span><span class="p">:</span> <span class="n">Recoverable</span><span class="p">[</span><span class="n">T</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">recoverable</span><span class="o">.</span><span class="n">value</span>
+
+
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="s2">&quot;bad&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">raw</span> <span class="o">==</span> <span class="s2">&quot;bad&quot;</span>
+
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">(</span><span class="s2">&quot;bad&quot;</span><span class="p">)))</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">raw</span> <span class="o">==</span> <span class="s2">&quot;bad&quot;</span>
+
+<span class="k">assert</span> <span class="p">(</span>
+    <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span>
+    <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}</span>
+    <span class="o">==</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span>
+<span class="p">)</span>
 </code></pre></div>
                 
               
@@ -439,13 +499,13 @@
           </a>
         
         
-          <a href="../../benchmark/" title="Benchmark" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../sqlalchemy/" title="SQLAlchemy" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Benchmark
+                SQLAlchemy
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
