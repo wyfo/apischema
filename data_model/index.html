@@ -345,6 +345,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#composed-dataclasses-merging" class="md-nav__link">
+    Composed dataclasses merging
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#custom-types-orm" class="md-nav__link">
     Custom types / ORM
   </a>
@@ -666,6 +673,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#composed-dataclasses-merging" class="md-nav__link">
+    Composed dataclasses merging
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#custom-types-orm" class="md-nav__link">
     Custom types / ORM
   </a>
@@ -977,6 +991,78 @@ Here with string annotations:</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>In fact, <code>NotNull = Union[T, Annotated[None, Skip]]</code>. </p>
+</div>
+<h2 id="composed-dataclasses-merging">Composed dataclasses merging<a class="headerlink" href="#composed-dataclasses-merging" title="Permanent link">&para;</a></h2>
+<p>Dataclass fields which are themselves dataclass can be "merged" into the owning one by using <code>merged</code> metadata.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">alias</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.fields</span> <span class="kn">import</span> <span class="n">with_fields_set</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">merged</span>
+
+
+<span class="nd">@with_fields_set</span>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">JsonSchema</span><span class="p">:</span>
+    <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="nb">format</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="o">...</span>
+
+
+<span class="nd">@with_fields_set</span>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">RootJsonSchema</span><span class="p">:</span>
+    <span class="n">schema</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;$schema&quot;</span><span class="p">))</span>
+    <span class="n">defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">JsonSchema</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;$defs&quot;</span><span class="p">))</span>
+    <span class="n">json_schema</span><span class="p">:</span> <span class="n">JsonSchema</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">JsonSchema</span><span class="p">(),</span> <span class="n">metadata</span><span class="o">=</span><span class="n">merged</span><span class="p">)</span>
+
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;merged example&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">root_schema</span> <span class="o">=</span> <span class="n">RootJsonSchema</span><span class="p">(</span>
+    <span class="n">schema</span><span class="o">=</span><span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="n">json_schema</span><span class="o">=</span><span class="n">JsonSchema</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;merged example&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">RootJsonSchema</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="n">root_schema</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">root_schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">data</span>
+<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">RootJsonSchema</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;$defs&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;JsonSchema&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]},</span>
+                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]},</span>
+                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]},</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;allOf&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]},</span>
+                <span class="s2">&quot;$defs&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span> <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/JsonSchema&quot;</span><span class="p">}},</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/JsonSchema&quot;</span><span class="p">},</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;unevaluatedProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This feature use JSON schema draft 2019-09 <a href="https://json-schema.org/draft/2019-09/json-schema-core.html#unevaluatedProperties"><code>unevaluatedProperties</code> keyword</a>.</p>
 </div>
 <h2 id="custom-types-orm">Custom types / ORM<a class="headerlink" href="#custom-types-orm" title="Permanent link">&para;</a></h2>
 <p>See <a href="../conversions/">conversion</a> in order to support every possible types in a few lines of code.</p>

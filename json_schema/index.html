@@ -1430,7 +1430,7 @@
 <p>Actually, there is a small restriction with <code>NewType</code>: you cannot put a <code>schema_ref</code> if the super type is not a builtin type (<code>List[...]</code>/<code>int</code>/etc.). </p>
 </div>
 <h3 id="ref-factory">Ref factory<a class="headerlink" href="#ref-factory" title="Permanent link">&para;</a></h3>
-<p><code>schema_ref</code> is used to set a short ref, like the name of a class, but in schema, <code>$ref</code> looks like <code>#/$defs/Foo</code>. In fact, schema generation use the ref given by <code>schema_ref</code> and pass it to a <code>ref_factory</code> function (a parameter of schema generation functions) which will convert it to its final form. <a href="#json-schemaopenapi-version">JSON schema version</a> comes with its default <code>ref_factory</code>, for <em>draft 2019-09</em>, it prefixes the ref with <code>#/$defs/</code>, while it prefixes with <code>#/components/schema</code> in case of <em>OpenAPI</em>.</p>
+<p><code>schema_ref</code> is used to set a short ref, like the name of a class, but in schema, <code>$ref</code> looks like <code>#/$defs/Foo</code>. In fact, schema generation use the ref given by <code>schema_ref</code> and pass it to a <code>ref_factory</code> function (a parameter of schema generation functions) which will convert it to its final form. <a href="#json-schemaopenapi-version">JSON schema version</a> comes with its default <code>ref_factory</code>, for draft 2019-09, it prefixes the ref with <code>#/$defs/</code>, while it prefixes with <code>#/components/schema</code> in case of <em>OpenAPI</em>.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
@@ -1458,7 +1458,7 @@
 <p>Passing <code>ref_factory</code> also give a default value of <code>True</code> for <a href="#use-ref-only-for-reused-types"><code>all_refs</code></a> parameters.</p>
 </div>
 <h2 id="json-schema-openapi-version">JSON schema / <em>OpenAPI</em> version<a class="headerlink" href="#json-schema-openapi-version" title="Permanent link">&para;</a></h2>
-<p>JSON schema has several versions — <em>OpenAPI</em> is treated as a JSON schema version. If <em>Apischema</em> natively use the last one: <em>draft 2019-09</em>, it is possible to specify a schema version which will be used for the generation.</p>
+<p>JSON schema has several versions — <em>OpenAPI</em> is treated as a JSON schema version. If <em>Apischema</em> natively use the last one: draft 2019-09, it is possible to specify a schema version which will be used for the generation.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
