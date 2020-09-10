@@ -2,7 +2,7 @@
 
 Makes your life easier when it comes to python API.
 
-JSON (de)serialization + schema generation through python typing, with some sugar and magic.
+JSON (de)serialization + schema generation through python typing, with a spoonful of sugar.
 
 ## Documentation
 
