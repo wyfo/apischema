@@ -47,7 +47,7 @@ def coercer(func=None):
     elif func is coercion_.coerce:
         coercion_._coercer = func
     else:
-        coercion_._coercer = coercion_.wrap_coercer(coercer)
+        coercion_._coercer = coercion_.wrap_coercer(func)
         return func
 
 
@@ -69,7 +69,7 @@ def deserialization(func=None):
     if func is None:
         return DeserializationVisitor.is_conversion
     else:
-        DeserializationVisitor.is_conversion = func
+        DeserializationVisitor.is_conversion = staticmethod(func)
         return func
 
 
@@ -91,7 +91,7 @@ def serialization(func=None):
     if func is None:
         return SerializationVisitor.is_conversion
     else:
-        SerializationVisitor.is_conversion = func
+        SerializationVisitor.is_conversion = staticmethod(func)
         return func
 
 

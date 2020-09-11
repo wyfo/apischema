@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.3
+
+- Fix bugs in settings global default conversion and coercer assignation.
+
 ## 0.7.2
 
 - Coercer exceptions are caught
