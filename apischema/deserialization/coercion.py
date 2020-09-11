@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any, Callable, Dict, NoReturn, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Type, TypeVar, Union
 
 from apischema.json_schema.types import JsonType
 from apischema.types import NoneType
@@ -36,12 +36,12 @@ for false, true in _bool_pairs:
 STR_NONE_VALUES = {""}
 
 
-def coercion_error(cls: Type, data) -> NoReturn:
+def coercion_error(cls: Type, data) -> ValidationError:
     msg = (
         f"cannot coerce {JsonType.from_type(cls)}"
         f" from {JsonType.from_type(type(data))}"
     )
-    raise ValidationError([msg])
+    return ValidationError([msg])
 
 
 def coerce(cls: Type[T], data: Any) -> T:
@@ -58,7 +58,7 @@ def coerce(cls: Type[T], data: Any) -> T:
             raise ValueError()
         return cls(data)  # type: ignore
     except (ValueError, TypeError, KeyError):
-        coercion_error(cls, data)
+        raise coercion_error(cls, data) from None
 
 
 _coercer: Coercer = coerce
@@ -69,9 +69,14 @@ Coercion = Union[bool, Coercer]
 def wrap_coercer(coercer: Coercer) -> Coercer:
     @wraps(coercer)
     def wrapper(cls, data):
-        result = coercer(cls, data)
+        try:
+            result = coercer(cls, data)
+        except AssertionError:
+            raise
+        except Exception:
+            raise coercion_error(cls, data)
         if not isinstance(result, cls):
-            coercion_error(cls, data)
+            raise coercion_error(cls, data)
         return result
 
     return wrapper
