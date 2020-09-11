@@ -18,6 +18,7 @@ __all__ = [
     "serialization",
     "serialize",
     "serializer",
+    "settings",
     "validation",
     "validator",
 ]
@@ -30,6 +31,7 @@ from . import (
     json_schema,
     metadata,
     serialization,
+    settings,
     validation,
 )
 from .aliases import alias
