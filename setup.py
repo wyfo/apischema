@@ -5,15 +5,14 @@ with open("README.md") as f:
 
 setup(
     name="apischema",
-    version="0.7.5",
+    version="0.7.6",
     url="https://github.com/wyfo/apischema",
     author="Joseph Perez",
     author_email="joperez@hotmail.fr",
     license="MIT",
     packages=find_packages(include=["apischema*"]),
     package_data={"apischema": ["py.typed"]},
-    description="Another Python API schema handling and JSON (de)serialization "
-    "through typing annotation; light, simple, powerful.",
+    description="JSON (de)serialization + schema generation through python typing, with a spoonful of sugar.",  # noqa E501
     long_description=README,
     long_description_content_type="text/markdown",
     python_requires=">=3.6",

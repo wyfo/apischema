@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.6
+
+- Update package description.
+
 ## 0.7.5
 
 - Fix support of `Generic` merged dataclasses.
