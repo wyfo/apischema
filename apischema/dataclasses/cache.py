@@ -346,7 +346,7 @@ def _serialization(
 
 def _deserialization_merged_aliases(cls: Type) -> AbstractSet[str]:
     """Return all aliases used in cls deserialization."""
-    assert dataclasses.is_dataclass(cls)
+    cls = getattr(cls, "__origin__", cls)
     types = get_type_hints(cls, include_extras=True)
     result: Set[str] = set()
     for field in fields_items(cls).values():

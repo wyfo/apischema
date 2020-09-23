@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.5
+
+- Fix support of `Generic` merged dataclasses.
+
 ## 0.7.4
 
 - Add `InitVar` support for merged dataclasses.
