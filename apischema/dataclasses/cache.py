@@ -33,6 +33,7 @@ from apischema.conversion.visitor import (
     Deserialization,
     Serialization,
 )
+from apischema.dataclasses import fields_items
 from apischema.dependencies import DependentRequired
 from apischema.metadata.keys import (
     ALIAS_METADATA,
@@ -135,7 +136,7 @@ def _from_aggregate(aggregate_cache: AggregateFieldCache) -> FieldCache:
     for field in aggregate_fields:
         metadata = field.base_field.metadata
         if MERGED_METADATA in metadata:
-            merged_fields.append((frozenset(_merged_aliases(field.type)), field))
+            merged_fields.append((_deserialization_merged_aliases(field.type), field))
         else:
             pattern = metadata[PROPERTIES_METADATA]
             if pattern is not None:
@@ -343,24 +344,23 @@ def _serialization(
     )
 
 
-def _merged_aliases(cls: Type) -> Iterable[str]:
+def _deserialization_merged_aliases(cls: Type) -> AbstractSet[str]:
+    """Return all aliases used in cls deserialization."""
     assert dataclasses.is_dataclass(cls)
     types = get_type_hints(cls, include_extras=True)
-    for field in dataclasses.fields(cls):
+    result: Set[str] = set()
+    for field in fields_items(cls).values():
+        if not field.init:
+            continue
         if MERGED_METADATA in field.metadata:
             # No need to check overlapping here because it will be checked
             # when merged dataclass will be cached
-            yield from _merged_aliases(types[field.name])
+            result |= _deserialization_merged_aliases(types[field.name])
         elif PROPERTIES_METADATA in field.metadata:
             raise TypeError("Merged dataclass cannot have properties field")
         else:
-            yield field.metadata.get(ALIAS_METADATA, field.name)
-
-
-def _check_fields_overlap(present: Set[str], other: AbstractSet[str]):
-    if present & other:
-        raise TypeError(f"Merged fields {present & other} overlap")
-    present.update(other)
+            result.add(field.metadata.get(ALIAS_METADATA, field.name))
+    return result
 
 
 def _update_dependencies(cls: AnyType, all_fields: Mapping[str, Field]):
@@ -390,8 +390,8 @@ F = TypeVar("F", bound=Union[Field, Tuple[Any, Field]])
 
 
 def _filter_by_kind(field_list: Iterable[F], kind: FieldKind) -> Sequence[F]:
-    fields = [(elt, elt[1] if isinstance(elt, tuple) else elt) for elt in field_list]
-    return [elt for elt, field in fields if field.kind != kind]
+    fields = [elt[1] if isinstance(elt, tuple) else elt for elt in field_list]
+    return [elt for elt, field in zip(field_list, fields) if field.kind != kind]
 
 
 @dataclasses.dataclass
@@ -421,10 +421,7 @@ def cache_fields(cls: Type):
     types = get_type_hints(cls, include_extras=True)
     lists = FieldLists(cls)
     all_fields: Dict[str, Field] = {}
-    all_merged_aliases: Set[str] = set()
-    for field in getattr(cls, dataclasses._FIELDS).values():  # type: ignore
-        if field._field_type == dataclasses._FIELD_CLASSVAR:  # type: ignore
-            continue
+    for field in fields_items(cls).values():
         metadata = field.metadata
         if SKIP_METADATA in metadata:
             continue
@@ -492,8 +489,7 @@ def cache_fields(cls: Type):
                 raise TypeError(
                     f"{error_prefix}Merged field must have a dataclass type"
                 )
-            merged_aliases: AbstractSet[str] = frozenset(_merged_aliases(type_))
-            _check_fields_overlap(all_merged_aliases, merged_aliases)
+            merged_aliases = _deserialization_merged_aliases(type_)
             lists.merged.append((merged_aliases, new_field))
         elif PROPERTIES_METADATA in metadata:
             if any(key in metadata for key in INCOMPATIBLE_WITH_PROPERTIES):
@@ -505,7 +501,6 @@ def cache_fields(cls: Type):
                 lists.pattern.append((pattern, new_field))
         else:
             lists.normal.append(new_field)
-    _check_fields_overlap(all_merged_aliases, all_fields.keys())
     _update_dependencies(cls, all_fields)
     _deserialization_fields[cls] = lists.remove_kind(FieldKind.NO_INIT)
     _aggregate_serialization_fields[cls] = _to_aggregate(

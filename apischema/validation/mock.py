@@ -1,14 +1,9 @@
-from dataclasses import (  # type: ignore
-    Field,
-    MISSING,
-    _FIELDS,
-    _FIELD_CLASSVAR,
-    dataclass,
-)
+from dataclasses import MISSING, dataclass
 from functools import partial
 from types import FunctionType, MethodType
 from typing import Any, Mapping, Optional, TYPE_CHECKING, Type, TypeVar
 
+from apischema.dataclasses import fields_items
 from apischema.fields import FIELDS_SET_ATTR
 from apischema.utils import get_default
 
@@ -37,15 +32,12 @@ class ValidatorMock:
         if name in fields:
             return fields[name]
         cls = super().__getattribute__("cls")
-        cls_fields: Mapping[str, Field] = getattr(cls, _FIELDS)
+        cls_fields = fields_items(cls)
         if name in cls_fields:
-            if cls_fields[name]._field_type == _FIELD_CLASSVAR:  # type: ignore
-                return getattr(cls, name)
-            else:
-                try:
-                    return get_default(cls_fields[name])
-                except NotImplementedError:
-                    raise NonTrivialDependency(name)
+            try:
+                return get_default(cls_fields[name])
+            except NotImplementedError:
+                raise NonTrivialDependency(name) from None
         if name == "__class__":
             return cls
         if name == "__dict__":
@@ -54,11 +46,8 @@ class ValidatorMock:
                 **{
                     name: get_default(field)
                     for name, field in cls_fields.items()
-                    if field._field_type != _FIELD_CLASSVAR  # type: ignore
-                    and (
-                        field.default is not MISSING
-                        or field.default_factory is not MISSING  # type: ignore
-                    )
+                    if field.default is not MISSING
+                    or field.default_factory is not MISSING  # type: ignore
                 },
                 FIELDS_SET_ATTR: set(fields),
             }

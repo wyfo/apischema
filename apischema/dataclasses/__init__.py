@@ -1,5 +1,12 @@
 import sys
-from dataclasses import is_dataclass, replace as replace_
+from dataclasses import (  # type: ignore
+    Field,
+    is_dataclass,
+    replace as replace_,
+    _FIELDS,
+    _FIELD_CLASSVAR,
+)
+from typing import Mapping, Type
 
 if sys.version_info <= (3, 7):
     is_dataclass_ = is_dataclass
@@ -16,3 +23,12 @@ def replace(*args, **changes):
     if hasattr(obj, FIELDS_SET_ATTR):
         set_fields(result, *fields_set(obj), *changes, overwrite=True)
     return result
+
+
+def fields_items(cls: Type) -> Mapping[str, Field]:
+    assert is_dataclass(cls)
+    return {
+        name: field
+        for name, field in getattr(cls, _FIELDS).items()
+        if field._field_type != _FIELD_CLASSVAR
+    }
