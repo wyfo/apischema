@@ -176,7 +176,13 @@ In the previous example, only dataclasses has a `$ref`, but it can be fully cust
 {!schema_ref.py!}
 ```
 
-Moreover, there is a default `schema_ref` for each type when the function is not used directly; by default, it's implemented like this `... if is_dataclass(cls) else None`, what means that dataclasses have a default ref with their name but other types don't.
+Moreover, there is a default `schema_ref` for each type when the function is not used directly; following types get a `...` ref (which means a ref with their name) :
+
+- `dataclass`
+- `NewType`
+- `TypedDict`
+- `NamedTuple`
+- every types decorated with `schema`
 
 This default behavior is customizable by setting `settings.default_ref` function like this
 

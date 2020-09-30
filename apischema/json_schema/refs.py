@@ -1,3 +1,4 @@
+from contextlib import suppress
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
@@ -14,7 +15,10 @@ from typing import (
 )
 
 from apischema.dataclasses import is_dataclass
+from apischema.json_schema.annotations import get_annotations
+from apischema.json_schema.constraints import get_constraints
 from apischema.types import AnyType
+from apischema.typing import _TypedDictMeta
 from apischema.utils import type_name
 from apischema.visitor import Visitor
 
@@ -23,7 +27,19 @@ _refs: Dict[AnyType, Optional[Ref]] = {}
 
 
 def _default_ref(cls: AnyType) -> Ref:
-    return ... if is_dataclass(cls) else None
+    if (
+        is_dataclass(cls)
+        or hasattr(cls, "__supertype__")
+        or isinstance(cls, _TypedDictMeta)
+        or get_annotations(cls) is not None
+        or get_constraints(cls) is not None
+    ):
+        return ...
+    else:
+        with suppress(TypeError):
+            if issubclass(cls, tuple) and hasattr(cls, "_field"):
+                return ...
+        return None
 
 
 def get_ref(cls: AnyType) -> Optional[str]:
