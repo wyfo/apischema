@@ -93,5 +93,5 @@ JsonSchemaVersion.DRAFT_7 = JsonSchemaVersion(
     "http://json-schema.org/draft-07/schema#", "#/definitions/", JsonSchema7, False,
 )
 JsonSchemaVersion.OPEN_API_3_0 = JsonSchemaVersion(
-    None, "#/components/schema/", OpenAPI30, True
+    None, "#/components/schemas/", OpenAPI30, True
 )
