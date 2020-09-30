@@ -28,12 +28,13 @@ No known alternative achieves that.
 
 ```python
 from dataclasses import dataclass, field
-from typing import List, Set
+from typing import Set
 from uuid import UUID, uuid4
 
 from pytest import raises
 
-from apischema import ValidationError, deserialization_schema, deserialize, serialize
+from apischema import ValidationError, deserialize, serialize
+from apischema.json_schema import deserialization_schema
 
 
 # Define a schema with standard dataclasses
@@ -72,8 +73,6 @@ assert deserialization_schema(Resource) == {
 }
 ```
 *Apischema* works out of the box with your data model.
-
-(This example and further ones are using pytest stuff because they are in fact run as tests in the library CI; that's very convenient)
 
 [*Let's start the Apischema tour.*](https://wyfo.github.io/apischema/)
 
