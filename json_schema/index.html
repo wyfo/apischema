@@ -1428,7 +1428,14 @@
 </code></pre></div>
 
 
-<p>Moreover, there is a default <code>schema_ref</code> for each type when the function is not used directly; by default, it's implemented like this <code>... if is_dataclass(cls) else None</code>, what means that dataclasses have a default ref with their name but other types don't.</p>
+<p>Moreover, there is a default <code>schema_ref</code> for each type when the function is not used directly; following types get a <code>...</code> ref (which means a ref with their name) :</p>
+<ul>
+<li><code>dataclass</code></li>
+<li><code>NewType</code></li>
+<li><code>TypedDict</code></li>
+<li><code>NamedTuple</code></li>
+<li>every types decorated with <code>schema</code></li>
+</ul>
 <p>This default behavior is customizable by setting <code>settings.default_ref</code> function like this</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="nd">@settings</span><span class="o">.</span><span class="n">default_ref</span>
@@ -1532,14 +1539,14 @@
 <span class="p">}</span>
 <span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">JsonSchemaVersion</span><span class="o">.</span><span class="n">OPEN_API_3_0</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="c1"># No definitions for OpenAPI, use refs_schema for it</span>
-    <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schema/Foo&quot;</span><span class="p">,</span>  <span class="c1"># OpenAPI prefix</span>
+    <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schemas/Foo&quot;</span><span class="p">,</span>  <span class="c1"># OpenAPI prefix</span>
 <span class="p">}</span>
 <span class="k">assert</span> <span class="n">definitions_schema</span><span class="p">(</span>
     <span class="n">deserialization</span><span class="o">=</span><span class="p">[</span><span class="n">Foo</span><span class="p">],</span> <span class="n">version</span><span class="o">=</span><span class="n">JsonSchemaVersion</span><span class="o">.</span><span class="n">OPEN_API_3_0</span>
 <span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="s2">&quot;Foo&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schema/Bar&quot;</span><span class="p">}},</span>
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schemas/Bar&quot;</span><span class="p">}},</span>
         <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span>
         <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">},</span>

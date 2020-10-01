@@ -761,7 +761,7 @@
 <p>On the other hand, deserializers cannot be inherited, because the same <code>Source</code> passed to a conversion function <code>(Source) -&gt; Target</code> will always give the same <code>Target</code> (not ensured to be the desired subtype).</p>
 <p>However, there is one way to do it by using a <code>classmethod</code> and the special decorator <code>inherited_deserializer</code>; the class parameter of the method is then assumed to be used to instantiate the return.  </p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span>
-<span class="kn">from</span> <span class="nn">apischema.conversion</span> <span class="kn">import</span> <span class="n">inherited_deserializer</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">inherited_deserializer</span>
 
 
 <span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
@@ -811,8 +811,7 @@ For deserialization, if there is <a href="#multiple-deserializers">several possi
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
-<span class="kn">from</span> <span class="nn">apischema.conversion</span> <span class="kn">import</span> <span class="n">extra_serializer</span>
-<span class="kn">from</span> <span class="nn">apischema.conversion.converters</span> <span class="kn">import</span> <span class="n">extra_deserializer</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">extra_deserializer</span><span class="p">,</span> <span class="n">extra_serializer</span>
 
 <span class="c1"># Set UTC timezone for example</span>
 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TZ&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;UTC&quot;</span>
@@ -858,7 +857,7 @@ For deserialization, if there is <a href="#multiple-deserializers">several possi
 <p>That's why <code>deserializer</code> and others conversion registers have a <code>conversions</code> parameter that will be taken as the new <code>conversions</code> after the conversion application. In JSON schema example, it allows sub-<code>JsonSchema</code> to be serialized with the correct <code>conversions</code>. The following example is extracted from <a href="https://github.com/wyfo/apischema/blob/master/apischema/json_schema/versions.py"><em>Apischema</em> code</a>:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">NewType</span>
 
-<span class="kn">from</span> <span class="nn">apischema.conversion</span> <span class="kn">import</span> <span class="n">extra_serializer</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">extra_serializer</span>
 
 
 <span class="k">class</span> <span class="nc">JsonSchema</span><span class="p">(</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
@@ -896,8 +895,7 @@ For deserialization, if there is <a href="#multiple-deserializers">several possi
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
-<span class="kn">from</span> <span class="nn">apischema.conversion</span> <span class="kn">import</span> <span class="n">extra_serializer</span>
-<span class="kn">from</span> <span class="nn">apischema.conversion.converters</span> <span class="kn">import</span> <span class="n">extra_deserializer</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">extra_deserializer</span><span class="p">,</span> <span class="n">extra_serializer</span>
 <span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">conversions</span>
 
 <span class="c1"># Set UTC timezone for example</span>
