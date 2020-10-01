@@ -10,7 +10,7 @@ from typing import (  # type: ignore
     Type,
 )
 
-from apischema.conversion.utils import Conversions
+from apischema.conversions.utils import Conversions
 from apischema.json_schema.generation.visitor import SchemaVisitor
 from apischema.json_schema.refs import get_ref, schema_ref
 from apischema.types import AnyType

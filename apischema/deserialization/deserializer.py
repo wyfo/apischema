@@ -15,17 +15,16 @@ from typing import (
 )
 
 from apischema import settings
-from apischema.conversion.utils import Conversions
-from apischema.conversion.visitor import (
+from apischema.conversions.utils import Conversions
+from apischema.conversions.visitor import (
     Deserialization,
     DeserializationVisitor,
 )
 from apischema.dataclasses import is_dataclass
 from apischema.dataclasses.cache import (
     Field,
-    FieldKind,
     get_deserialization_fields,
-    has_post_init_fields,
+    get_post_init_fields,
 )
 from apischema.deserialization.coercion import Coercer, Coercion, get_coercer
 from apischema.json_schema.constraints import (
@@ -38,6 +37,7 @@ from apischema.json_schema.schema import Schema
 from apischema.types import (
     AnyType,
     COLLECTION_TYPES,
+    DICT_TYPE,
     LIST_TYPE,
     MAPPING_TYPES,
     NoneType,
@@ -55,7 +55,7 @@ from apischema.validation.errors import (
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validator import (
     Validator,
-    Validators,
+    ValidatorsMetadata,
     get_validators,
     validate,
 )
@@ -114,7 +114,7 @@ class Deserializer(DeserializationVisitor[DataWithConstraint, Any],):
                     constraints = annotation.constraints
                 else:
                     constraints = constraints.merge(annotation.constraints)
-            if isinstance(annotation, Validators):
+            if isinstance(annotation, ValidatorsMetadata):
                 validators = annotation.validators
         result = self.visit(cls, (data, constraints))
         return validate(result, validators) if validators is not None else result
@@ -218,13 +218,13 @@ class Deserializer(DeserializationVisitor[DataWithConstraint, Any],):
             except ValidationError as err:
                 error = merge_errors(error, err)
         init: Dict[str, Any] = {}
-        if has_post_init_fields(cls):
-            for field in fields:
-                if field.kind == FieldKind.INIT:
-                    if field.name in values:
-                        init[field.name] = values[field.name]
-                    elif field.name not in field_errors and field.default:
-                        init[field.name] = get_default(field.base_field)
+        post_init_fields = get_post_init_fields(cls)
+        if post_init_fields:
+            for field in post_init_fields:
+                if field.name in values:
+                    init[field.name] = values[field.name]
+                elif field.name not in field_errors and field.default:
+                    init[field.name] = get_default(field.base_field)
         # Don't keep validators when all dependencies are default
         validators = [v for v in get_validators(cls) if v.dependencies & values.keys()]
         if error:
@@ -295,7 +295,7 @@ class Deserializer(DeserializationVisitor[DataWithConstraint, Any],):
             except ValidationError as err:
                 errors[key] = err
         validate_with_errors(data, constraints, errors)
-        return MAPPING_TYPES[cls](items)
+        return items if cls is DICT_TYPE else MAPPING_TYPES[cls](items)
 
     def named_tuple(
         self,

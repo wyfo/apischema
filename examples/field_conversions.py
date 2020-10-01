@@ -4,8 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from apischema import deserialize, serialize
-from apischema.conversion import extra_serializer
-from apischema.conversion.converters import extra_deserializer
+from apischema.conversions import extra_deserializer, extra_serializer
 from apischema.metadata import conversions
 
 # Set UTC timezone for example

@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 from apischema.aliases import alias
-from apischema.conversion.conversions import conversions
+from apischema.conversions.metadata import conversions
 from apischema.validation.validator import validators
 from .misc import (
     default_as_set,

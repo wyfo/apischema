@@ -13,7 +13,7 @@ from typing import (
     overload,
 )
 
-from apischema.conversion.utils import (
+from apischema.conversions.utils import (
     Conversions,
     ConverterWithConversions,
     check_converter,

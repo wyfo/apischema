@@ -215,7 +215,7 @@ def validator(arg=None, *, discard=None):
 
 
 @dataclass(frozen=True)
-class Validators(MetadataMixin):
+class ValidatorsMetadata(MetadataMixin):
     validators: Sequence[Validator]
 
     def __post_init__(self):
@@ -224,5 +224,5 @@ class Validators(MetadataMixin):
         MetadataMixin.__init__(self, VALIDATORS_METADATA)
 
 
-def validators(*validator: Callable) -> Validators:
-    return Validators(list(map(Validator, validator)))
+def validators(*validator: Callable) -> ValidatorsMetadata:
+    return ValidatorsMetadata(list(map(Validator, validator)))

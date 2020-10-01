@@ -2,8 +2,8 @@ from dataclasses import MISSING, field, make_dataclass
 from inspect import Parameter, signature
 from typing import Any, Callable, List, Mapping, TypeVar
 
-from apischema.conversion.converters import deserializer
-from apischema.conversion.utils import Conversions, Converter
+from apischema.conversions.converters import deserializer
+from apischema.conversions.utils import Conversions, Converter
 from apischema.fields import with_fields_set
 from apischema.typing import get_type_hints
 from apischema.utils import MakeDataclassField, as_dict, to_camel_case

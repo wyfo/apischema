@@ -3,8 +3,8 @@ from dataclasses import is_dataclass
 from enum import Enum
 from typing import Any, Collection, Mapping, Optional, Type, TypeVar
 
-from apischema.conversion.utils import Conversions
-from apischema.conversion.visitor import (
+from apischema.conversions.utils import Conversions
+from apischema.conversions.visitor import (
     Serialization,
     SerializationVisitor,
 )

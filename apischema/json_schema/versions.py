@@ -10,8 +10,8 @@ from typing import (
     Type,
 )
 
-from apischema.conversion.converters import extra_serializer
-from apischema.conversion.utils import Conversions
+from apischema.conversions.converters import extra_serializer
+from apischema.conversions.utils import Conversions
 from apischema.json_schema.types import JsonSchema
 
 RefFactory = Callable[[str], str]

@@ -5,7 +5,7 @@ __all__ = [
     "ValidationError",
     "alias",
     "check_types",
-    "conversion",
+    "conversions",
     "deserialization",
     "deserialize",
     "deserializer",
@@ -25,7 +25,7 @@ __all__ = [
 
 
 from . import (
-    conversion,
+    conversions,
     deserialization,
     fields,
     json_schema,
@@ -35,7 +35,7 @@ from . import (
     validation,
 )
 from .aliases import alias
-from .conversion import deserializer, serializer
+from .conversions import deserializer, serializer
 from .deserialization import deserialize
 from .json_schema.refs import schema_ref
 from .json_schema.schema import schema

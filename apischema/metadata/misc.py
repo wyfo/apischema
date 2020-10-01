@@ -15,7 +15,7 @@ from apischema.types import AnyType, MappingWithUnion, Metadata
 
 
 def simple_metadata(key: str) -> Metadata:
-    return MappingWithUnion({key: True})
+    return MappingWithUnion({key: ...})
 
 
 default_as_set = simple_metadata(DEFAULT_AS_SET)
@@ -32,7 +32,7 @@ merged = simple_metadata(MERGED_METADATA)
 post_init = simple_metadata(POST_INIT_METADATA)
 
 
-class Properties(dict, Metadata):
+class PropertiesMetadata(dict, Metadata):
     def __init__(self):
         super().__init__({PROPERTIES_METADATA: None})
 
@@ -44,7 +44,7 @@ class Properties(dict, Metadata):
         return MappingWithUnion({PROPERTIES_METADATA: pattern})
 
 
-properties = Properties()
+properties = PropertiesMetadata()
 
 
 required = simple_metadata(REQUIRED_METADATA)

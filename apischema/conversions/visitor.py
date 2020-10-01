@@ -8,13 +8,13 @@ from typing import (  # type: ignore
     TypeVar,
 )
 
-from apischema.conversion.converters import (
+from apischema.conversions.converters import (
     _deserializers,
     _extra_deserializers,
     _extra_serializers,
     _serializers,
 )
-from apischema.conversion.utils import Conversions, ConverterWithConversions
+from apischema.conversions.utils import Conversions, ConverterWithConversions
 from apischema.visitor import (
     Arg,
     Return,

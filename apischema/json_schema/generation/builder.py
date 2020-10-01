@@ -21,8 +21,8 @@ from typing import (  # type: ignore
 )
 
 from apischema import settings
-from apischema.conversion.utils import Conversions
-from apischema.conversion.visitor import Conv
+from apischema.conversions.utils import Conversions
+from apischema.conversions.visitor import Conv
 from apischema.dataclasses import is_dataclass, replace
 from apischema.dataclasses.cache import Field, FieldKind
 from apischema.json_schema.constraints import (
@@ -403,7 +403,7 @@ class SerializationSchemaBuilder(SerializationSchemaVisitor, SchemaBuilder):
         pass
 
 
-TypesWithConversions = Sequence[Union[AnyType, Tuple[AnyType, Conversions]]]
+TypesWithConversions = Collection[Union[AnyType, Tuple[AnyType, Conversions]]]
 
 
 def _default_version(

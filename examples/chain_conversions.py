@@ -1,6 +1,6 @@
 from typing import Any, Dict, Mapping, NewType
 
-from apischema.conversion import extra_serializer
+from apischema.conversions import extra_serializer
 
 
 class JsonSchema(Dict[str, Any]):

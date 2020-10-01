@@ -6,7 +6,7 @@ from dataclasses import (  # type: ignore
     _FIELDS,
     _FIELD_CLASSVAR,
 )
-from typing import Mapping, Type
+from typing import Mapping, Type, TypeVar
 
 if sys.version_info <= (3, 7):
     is_dataclass_ = is_dataclass
@@ -15,13 +15,15 @@ if sys.version_info <= (3, 7):
         return is_dataclass_(obj) and getattr(obj, "__origin__", None) is None
 
 
-def replace(*args, **changes):
+T = TypeVar("T")
+
+
+def replace(__obj: T, **changes) -> T:
     from apischema.fields import FIELDS_SET_ATTR, fields_set, set_fields
 
-    result = replace_(*args, **changes)
-    obj = args[0]
-    if hasattr(obj, FIELDS_SET_ATTR):
-        set_fields(result, *fields_set(obj), *changes, overwrite=True)
+    result = replace_(__obj, **changes)
+    if hasattr(__obj, FIELDS_SET_ATTR):
+        set_fields(result, *fields_set(__obj), *changes, overwrite=True)
     return result
 
 

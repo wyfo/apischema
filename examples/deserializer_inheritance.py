@@ -1,5 +1,5 @@
 from apischema import deserialize
-from apischema.conversion import inherited_deserializer
+from apischema.conversions import inherited_deserializer
 
 
 class Foo:

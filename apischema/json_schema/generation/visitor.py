@@ -1,6 +1,6 @@
 from typing import AbstractSet, Any, Sequence, Type
 
-from apischema.conversion.visitor import (
+from apischema.conversions.visitor import (
     Conv,
     ConversionsVisitor,
     Deserialization,

@@ -16,7 +16,7 @@ from typing import NewType, Type, TypeVar
 from uuid import UUID
 
 from apischema.json_schema.schema import schema
-from apischema.conversion.converters import deserializer, serializer
+from apischema.conversions.converters import deserializer, serializer
 
 Cls = TypeVar("Cls", bound=Type)
 

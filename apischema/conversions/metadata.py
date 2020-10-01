@@ -1,27 +1,18 @@
 from collections import ChainMap
 from dataclasses import dataclass, fields
 from types import MappingProxyType
-from typing import (
-    Callable,
-    Mapping,
-    Optional,
-    Type,
-    TypeVar,
-    Union,
-    overload,
-)
+from typing import Callable, Mapping, Optional, Type, TypeVar, overload
 
-from apischema.conversion.raw import to_raw_deserializer
-from apischema.conversion.utils import Conversions, Converter
+from apischema.conversions.raw import to_raw_deserializer
+from apischema.conversions.utils import Conversions, Converter
 from apischema.dataclasses import is_dataclass
-from apischema.types import AnyType, MetadataMixin
+from apischema.types import AnyType, Metadata, MetadataMixin
 
 Cls = TypeVar("Cls", bound=Type)
 
 
 @dataclass
 class ConversionsMetadata(MetadataMixin):
-    both: Optional[AnyType] = None
     deserialization: Optional[Conversions] = None
     serialization: Optional[Conversions] = None
     deserializer: Optional[Converter] = None
@@ -31,11 +22,6 @@ class ConversionsMetadata(MetadataMixin):
         from apischema.metadata.keys import CONVERSIONS_METADATA
 
         super().__init__(CONVERSIONS_METADATA)
-        if (
-            self.both is not None
-            and len([f for f in fields(self) if getattr(self, f.name) is not None]) > 1
-        ):
-            raise ValueError("Cannot set both and (de)serialization/(de)serializers")
 
     def __call__(self, dataclass: Cls) -> Cls:
         from apischema.metadata.keys import CONVERSIONS_METADATA, MERGED_METADATA
@@ -46,7 +32,7 @@ class ConversionsMetadata(MetadataMixin):
             if conv is not None and not isinstance(conv, Mapping):
                 raise TypeError("Dataclasses conversions must be a Mapping instance")
         for field in fields(dataclass):
-            if MERGED_METADATA in field.metadata:
+            if field.metadata.get(MERGED_METADATA):
                 continue
             if CONVERSIONS_METADATA in field.metadata:
                 conversions: ConversionsMetadata = field.metadata[CONVERSIONS_METADATA]
@@ -67,11 +53,18 @@ class ConversionsMetadata(MetadataMixin):
         return dataclass
 
 
-Conversions_ = Union[Mapping[AnyType, AnyType], AnyType]
+@dataclass
+class ConversionsMetadataFactory(MetadataMixin):
+    factory: Callable[[AnyType], ConversionsMetadata]
+
+    def __post_init__(self):
+        from apischema.metadata.keys import CONVERSIONS_METADATA
+
+        super().__init__(CONVERSIONS_METADATA)
 
 
 @overload
-def conversions(both: AnyType = None) -> ConversionsMetadata:
+def conversions(model: AnyType) -> Metadata:
     ...
 
 
@@ -88,16 +81,21 @@ def conversions(
 
 
 def conversions(
-    both: AnyType = None,
+    model: AnyType = None,
     *,
     deserialization: Conversions = None,
     serialization: Conversions = None,
     deserializer: Converter = None,
     serializer: Converter = None,
     raw_deserializer: Callable = None,
-) -> ConversionsMetadata:
-    if raw_deserializer is not None:
-        deserializer = to_raw_deserializer(raw_deserializer)
-    return ConversionsMetadata(
-        both, deserialization, serialization, deserializer, serializer
-    )
+) -> Metadata:
+    if model is not None:
+        return ConversionsMetadataFactory(
+            lambda cls: ConversionsMetadata({cls: model}, {cls: model})
+        )
+    else:
+        if raw_deserializer is not None:
+            deserializer = to_raw_deserializer(raw_deserializer)
+        return ConversionsMetadata(
+            deserialization, serialization, deserializer, serializer
+        )

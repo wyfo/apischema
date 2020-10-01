@@ -3,7 +3,7 @@ from typing import Dict
 from pytest import mark, raises
 
 from apischema import ValidationError, deserialize, deserializer
-from apischema.conversion.raw import to_raw_deserializer
+from apischema.conversions.raw import to_raw_deserializer
 
 
 def untyped_return():

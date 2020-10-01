@@ -1,4 +1,5 @@
 import collections.abc
+import re
 import sys
 from types import MappingProxyType
 from typing import (
@@ -11,6 +12,7 @@ from typing import (
     Mapping,
     MutableMapping,
     MutableSequence,
+    Pattern,
     Sequence,
     Set,
     Tuple,
@@ -63,6 +65,33 @@ else:  # pragma: no cover
     LIST_TYPE = List
     TUPLE_TYPE = Tuple
     DICT_TYPE = Dict
+
+
+if sys.version_info >= (3, 7):  # pragma: no cover
+    TYPED_ORIGINS = {
+        tuple: Tuple,
+        list: List,
+        frozenset: AbstractSet,
+        set: Set,
+        dict: Dict,
+        collections.abc.Collection: Collection,
+        collections.abc.Sequence: Sequence,
+        collections.abc.MutableSequence: MutableSequence,
+        collections.abc.Set: AbstractSet,
+        collections.abc.MutableSet: Set,
+        collections.abc.Mapping: Mapping,
+        collections.abc.MutableMapping: MutableMapping,
+        re.Pattern: Pattern,
+    }
+
+    def get_typed_origin(cls: AnyType) -> Type:  # type: ignore
+        return TYPED_ORIGINS.get(cls.__origin__, cls.__origin__)  # type: ignore
+
+
+else:  # pragma: no cover
+
+    def get_typed_origin(cls: AnyType) -> Type:  # type: ignore
+        return cls.__origin__  # type: ignore
 
 
 if sys.version_info >= (3, 7):  # pragma: no cover

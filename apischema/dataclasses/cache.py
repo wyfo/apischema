@@ -1,4 +1,5 @@
 import dataclasses
+from collections import defaultdict
 from enum import Enum, auto
 from inspect import getmembers
 from typing import (  # type: ignore
@@ -8,6 +9,7 @@ from typing import (  # type: ignore
     Collection,
     Dict,
     Iterable,
+    Iterator,
     List,
     Mapping,
     Optional,
@@ -22,13 +24,12 @@ from typing import (  # type: ignore
     cast,
 )
 
-from apischema.conversion.conversions import ConversionsMetadata
-from apischema.conversion.utils import (
-    Conversions,
-    check_converter,
-    substitute_type_vars,
+from apischema.conversions.metadata import (
+    ConversionsMetadata,
+    ConversionsMetadataFactory,
 )
-from apischema.conversion.visitor import (
+from apischema.conversions.utils import Conversions, check_converter
+from apischema.conversions.visitor import (
     ConversionsVisitor,
     Deserialization,
     Serialization,
@@ -50,7 +51,7 @@ from apischema.metadata.keys import (
     SKIP_METADATA,
     VALIDATORS_METADATA,
 )
-from apischema.types import AnyType
+from apischema.types import AnyType, get_typed_origin
 from apischema.typing import get_type_hints
 from apischema.utils import PREFIX
 from apischema.validation.validator import VALIDATORS_ATTR, Validator, validate
@@ -101,7 +102,6 @@ class Field:
     serialization_conversions: Optional[Conversions]
     serialization_method: Callable
     serialization_type: AnyType
-    type: AnyType
     validators: Optional[Sequence[Validator]]
 
     deserialization_required_by: AbstractSet[str] = frozenset()
@@ -119,7 +119,7 @@ AggregateFieldCache = Tuple[Sequence[Field], Sequence[Field]]
 _aggregate_serialization_fields: Dict[Type, AggregateFieldCache] = {}
 # Because dataclasses with InitVar doesn't have to have a __post_init__
 # (they could only be used in validators), theses classes has to be flagged
-_post_init_classes: Set[Type] = set()
+_post_init_fields: Dict[Type, List[Field]] = defaultdict(list)
 
 
 def _to_aggregate(cache: FieldCache) -> AggregateFieldCache:
@@ -136,7 +136,7 @@ def _from_aggregate(aggregate_cache: AggregateFieldCache) -> FieldCache:
     for field in aggregate_fields:
         metadata = field.base_field.metadata
         if MERGED_METADATA in metadata:
-            merged_fields.append((_deserialization_merged_aliases(field.type), field))
+            merged_fields.append((cast(AbstractSet[str], ...), field))
         else:
             pattern = metadata[PROPERTIES_METADATA]
             if pattern is not None:
@@ -174,6 +174,47 @@ def _resolve_init_var(cls: AnyType, field: dataclasses.Field) -> AnyType:
         bases=(cls,),
     )
     return get_type_hints(tmp_cls, include_extras=True)[PREFIX]
+
+
+TV = AnyType
+
+
+def _type_var_substitutions(
+    base: AnyType, other: AnyType
+) -> Iterator[Tuple[TV, TV]]:  # type: ignore
+    if isinstance(base, TypeVar) and isinstance(other, TypeVar):  # type: ignore
+        yield other, base
+        return
+    if (
+        getattr(base, "__origin__", None) is None
+        or getattr(other, "__origin__", None) is None
+        or len(base.__args__) != len(other.__args__)
+        or not issubclass(get_typed_origin(other), get_typed_origin(base))
+    ):
+        return
+    for base_arg, other_arg in zip(base.__args__, other.__args__):
+        yield from _type_var_substitutions(base_arg, other_arg)
+
+
+def _rec_substitute_type_vars(
+    cls: AnyType, substitutions: Mapping[TV, TV]  # type: ignore
+) -> AnyType:
+    if isinstance(cls, TypeVar):  # type: ignore
+        return substitutions.get(cls, cls)
+    elif getattr(cls, "__origin__", None) is None:
+        return cls
+    else:
+        return get_typed_origin(cls)[
+            tuple(_rec_substitute_type_vars(arg, substitutions) for arg in cls.__args__)
+        ]
+
+
+def _substitute_type_vars(
+    field_type: AnyType, base: AnyType, other: AnyType
+) -> AnyType:
+    return _rec_substitute_type_vars(
+        other, dict(_type_var_substitutions(field_type, base))
+    )
 
 
 def _handle_method_conversions(
@@ -231,26 +272,25 @@ def _deserialization(
     if VALIDATORS_METADATA in metadata:
         validators = metadata[VALIDATORS_METADATA].validators
     conversions = metadata.get(CONVERSIONS_METADATA, ConversionsMetadata())
-    deserialization_conversions: Optional[Conversions]
+    if isinstance(conversions, ConversionsMetadataFactory):
+        conversions = conversions.factory(field_type)  # type: ignore
     deserialization: Optional[Deserialization]
-    if conversions.both is not None:
-        deserialization_conversions = {field_type: conversions.both}
-    elif conversions.deserialization is not None:
-        deserialization_conversions = conversions.deserialization
-    else:
-        deserialization_conversions = None
     # Embed validators in conversion in order to have only one if in deserialization
     # `if field.deserializer is not None`
     if conversions.deserializer is not None:
         converter = conversions.deserializer
-        param, ret = check_converter(converter, None, field_type)  # type: ignore
-        ret, param = substitute_type_vars(ret, param)  # type: ignore
+        try:
+            param, ret = check_converter(converter, None, None)  # type: ignore
+        except TypeError:
+            param, _ = check_converter(converter, None, field_type)  # type: ignore
+        else:
+            param = _substitute_type_vars(field_type, ret, param)
         if validators:
             converter = lambda data, conv=converter: validate(  # noqa E731
                 conv(data), validators
             )
         deserialization_type = param
-        deserialization = {param: (converter, deserialization_conversions)}
+        deserialization = {param: (converter, conversions.deserialization)}
     elif validators:
         deserialization_type = field_type
         deserialization = {
@@ -262,9 +302,9 @@ def _deserialization(
     return (
         deserialization_type,
         deserialization,
-        deserialization_conversions,
+        conversions.deserialization,
         _deserialization_method(
-            field_type, deserialization, deserialization_conversions
+            deserialization_type, deserialization, conversions.deserialization
         ),
         validators,
     )
@@ -317,29 +357,28 @@ def _serialization(
     field_type: AnyType, metadata: Mapping[str, Any]
 ) -> Tuple[AnyType, Optional[Serialization], Optional[Conversions], Callable]:
     conversions = metadata.get(CONVERSIONS_METADATA, ConversionsMetadata())
-    serialization_conversions: Optional[Conversions]
+    if isinstance(conversions, ConversionsMetadataFactory):
+        conversions = conversions.factory(field_type)  # type: ignore
     serialization: Optional[Serialization]
-    if conversions.both is not None:
-        serialization_conversions = {field_type: conversions.both}
-    elif conversions.deserialization is not None:
-        serialization_conversions = conversions.deserialization
-    else:
-        serialization_conversions = None
     if conversions.serializer is not None:
         converter = conversions.serializer
-        param, ret = check_converter(converter, field_type, None)  # type: ignore
-        param, ret = substitute_type_vars(param, ret)  # type: ignore
+        try:
+            param, ret = check_converter(converter, None, None)  # type: ignore
+        except TypeError:
+            _, ret = check_converter(converter, field_type, None)  # type: ignore
+        else:
+            ret = _substitute_type_vars(field_type, param, ret)
         serialization_type = ret
-        serialization = ret, (converter, serialization_conversions)
+        serialization = ret, (converter, conversions.serialization)
     else:
         serialization_type = field_type
         serialization = None
     return (
         serialization_type,
         serialization,
-        serialization_conversions,
+        conversions.serialization,
         _serialization_method(
-            serialization_type, serialization, serialization_conversions
+            serialization_type, serialization, conversions.serialization
         ),
     )
 
@@ -426,19 +465,17 @@ def cache_fields(cls: Type):
         if SKIP_METADATA in metadata:
             continue
         error_prefix = f"{cls.__name__}.{field.name}: "
-        type_ = types[field.name]
-        if isinstance(type_, dataclasses.InitVar):
+        field_type = types[field.name]
+        if isinstance(field_type, dataclasses.InitVar):
             kind = FieldKind.INIT
-            type_ = type_.type  # type: ignore
-        elif type_ is dataclasses.InitVar:
+            field_type = field_type.type  # type: ignore
+        elif field_type is dataclasses.InitVar:
             kind = FieldKind.INIT
-            type_ = _resolve_init_var(cls, field)
+            field_type = _resolve_init_var(cls, field)
         elif field.init:
             kind = FieldKind.NORMAL
         else:
             kind = FieldKind.NO_INIT
-        if kind == FieldKind.INIT:
-            _post_init_classes.add(cls)
         default = REQUIRED_METADATA not in metadata and (
             field.default is not dataclasses.MISSING
             or field.default_factory is not dataclasses.MISSING  # type: ignore
@@ -449,13 +486,13 @@ def cache_fields(cls: Type):
             deserialization_conversions,
             deserialization_method,
             validators,
-        ) = _deserialization(type_, metadata)
+        ) = _deserialization(field_type, metadata)
         (
             serialization_type,
             serialization,
             serialization_conversions,
             serialization_method,
-        ) = _serialization(type_, metadata)
+        ) = _serialization(field_type, metadata)
 
         from apischema import settings
         from apischema.json_schema.schema import Schema
@@ -478,18 +515,19 @@ def cache_fields(cls: Type):
             serialization_conversions=serialization_conversions,
             serialization_method=serialization_method,
             serialization_type=serialization_type,
-            type=field.type,
             validators=validators,
         )
         all_fields[field.name] = new_field
+        if kind == FieldKind.INIT:
+            _post_init_fields[cls].append(new_field)
         if MERGED_METADATA in metadata:
             if any(key in metadata for key in INCOMPATIBLE_WITH_MERGED):
                 raise TypeError(f"{error_prefix}Incompatible metadata with merged")
-            if not dataclasses.is_dataclass(type_):
+            if not dataclasses.is_dataclass(field_type):
                 raise TypeError(
                     f"{error_prefix}Merged field must have a dataclass type"
                 )
-            merged_aliases = _deserialization_merged_aliases(type_)
+            merged_aliases = _deserialization_merged_aliases(field_type)
             lists.merged.append((merged_aliases, new_field))
         elif PROPERTIES_METADATA in metadata:
             if any(key in metadata for key in INCOMPATIBLE_WITH_PROPERTIES):
@@ -529,10 +567,10 @@ def get_aggregate_serialization_fields(cls: Type) -> AggregateFieldCache:
         return get_aggregate_serialization_fields(cls)
 
 
-def has_post_init_fields(cls: Type) -> bool:
+def get_post_init_fields(cls: Type) -> Optional[Collection[Field]]:
     if cls not in _deserialization_fields:
         cache_fields(cls)
-    return cls in _post_init_classes
+    return _post_init_fields.get(cls)
 
 
 def reset_dataclasses_cache():

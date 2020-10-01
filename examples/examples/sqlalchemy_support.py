@@ -8,6 +8,7 @@ from apischema import deserialize, deserializer, serialize, serializer
 from apischema.fields import fields_set, with_fields_set
 
 
+# Very basic SQLAlchemy support
 @as_declarative()
 class Base:
     def __init_subclass__(cls):

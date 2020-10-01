@@ -12,8 +12,8 @@ __all__ = [
 from typing import Callable, Optional, Type, TypeVar, overload
 
 from apischema import aliases
-from apischema.conversion.utils import Conversions
-from apischema.conversion.visitor import (
+from apischema.conversions.utils import Conversions
+from apischema.conversions.visitor import (
     Deserialization,
     DeserializationVisitor,
     Serialization,
