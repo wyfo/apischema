@@ -363,6 +363,21 @@ class SchemaBuilder(SchemaVisitor[Conv, Optional[Schema], JsonSchema]):
                 for res in results
             )
             result = json_schema(type=list(types))
+        elif (
+            len(results) == 2
+            and all("type" in res for res in results)
+            and {"type": "null"} in results
+        ):
+            for result in results:
+                if result != {"type": "null"}:
+                    types = result["type"]
+                    if isinstance(types, str):
+                        types = [types]  # type: ignore
+                    if "null" not in types:
+                        result = JsonSchema({**result, "type": [*types, "null"]})
+                    break
+            else:
+                raise NotImplementedError()
         else:
             result = json_schema(anyOf=results)
         return _with_schema(schema, result)

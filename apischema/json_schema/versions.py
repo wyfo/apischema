@@ -61,6 +61,9 @@ def to_open_api_3_0(schema: JsonSchema) -> OpenAPI30:
         else:
             types = [t for t in result["type"] if t != "null"]
             result["type"] = types if len(types) > 1 else types[0]
+    if {"type": "null"} in result.get("anyOf", ()):
+        result.setdefault("nullable", True)
+        result["anyOf"] = [a for a in result["anyOf"] if a != {"type": "null"}]
     if "examples" in result:
         result.setdefault("example", result.pop("examples")[0])
     return OpenAPI30(result)
