@@ -165,8 +165,16 @@ def schema(**kwargs) -> Schema:
     return Schema(annotations, constraints)
 
 
+def _default_schema(cls: AnyType) -> Optional[Schema]:
+    return None
+
+
 def get_schema(cls: AnyType) -> Schema:
-    return Schema(get_annotations(cls), get_constraints(cls))
+    return (
+        Schema(get_annotations(cls), get_constraints(cls))
+        or _default_schema(cls)
+        or Schema()
+    )
 
 
 @merge_opts

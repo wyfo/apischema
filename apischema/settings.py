@@ -21,7 +21,7 @@ from apischema.conversions.visitor import (
 )
 from apischema.dataclasses.cache import reset_dataclasses_cache
 from apischema.deserialization import coercion as coercion_
-from apischema.json_schema import refs, versions
+from apischema.json_schema import refs, schema, versions
 from apischema.types import AnyType
 from apischema.utils import to_camel_case
 
@@ -145,3 +145,23 @@ def default_ref(func=None):
         return refs._default_ref
     else:
         refs._default_ref = func
+
+
+SchemaFunc = Callable[[AnyType], Optional[schema.Schema]]
+
+
+@overload
+def default_schema() -> SchemaFunc:
+    ...
+
+
+@overload
+def default_schema(func: SchemaFunc) -> SchemaFunc:
+    ...
+
+
+def default_schema(func=None):
+    if func is None:
+        return schema._default_schema
+    else:
+        schema._default_schema = func

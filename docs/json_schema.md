@@ -92,6 +92,24 @@ JSON schema constrains the data deserialized; this constraints are naturally use
 {!validation_error.py!}
 ```
 
+### Default `schema`
+
+When no schema are defined, a default schema can be computed using `settings.default_schema` like this:
+
+```python
+from typing import Optional
+from apischema import schema, settings
+from apischema.json_schema.schema import Schema
+@settings.default_schema
+def default_schema(cls) -> Optional[Schema]:
+    if not ...:
+        return None
+    return schema(...)
+    
+``` 
+
+Default implementation returns `None` for every types.
+
 ## Required field with default value
 
 By default, a dataclass/namedtuple field will be tagged `required` if it doesn't have a default value.
@@ -165,18 +183,25 @@ Sometimes you need to extract only the definitions in a separate schema (especia
 
 ## Customize `$ref`
 
-### Adds `$ref` for every types
+### Add `$ref` to every types
 
 In the previous example, only dataclasses has a `$ref`, but it can be fully customized. You can use `schema_ref` on any defined types (`NewType`/`class`/`Annotated`/etc.). `schema_ref` argument can be:
 - `str` -> this string will be used directly in schema generation
-- `...` -> schema generation will use the name of the 
+- `...` -> schema generation will use the name of the type
 - `None` -> this type will have no `$ref` in schema
 
 ```python
 {!schema_ref.py!}
 ```
 
-Moreover, there is a default `schema_ref` for each type when the function is not used directly; following types get a `...` ref (which means a ref with their name) :
+!!! note
+    Actually, there is a small restriction with `NewType`: you cannot put a `schema_ref` if the super type is not a builtin type (`List[...]`/`int`/etc.). 
+    
+    In fact, `NewType` super type serialization could be affected by different conversions and a same `$ref` would embed different schema.
+    
+### Default `$ref`
+
+There is a default `schema_ref` for each type; following types get a `...` ref (which means a ref with their name):
 
 - `dataclass`
 - `NewType`
@@ -190,12 +215,9 @@ This default behavior is customizable by setting `settings.default_ref` function
 from apischema import settings
 @settings.default_ref
 def default_ref(cls):
-    return None # This example remove default ref for every types
+    return None  # This example remove default ref for every types
 ``` 
 
-!!! note
-    Actually, there is a small restriction with `NewType`: you cannot put a `schema_ref` if the super type is not a builtin type (`List[...]`/`int`/etc.). 
-    
 ### Ref factory
 
 `schema_ref` is used to set a short ref, like the name of a class, but in schema, `$ref` looks like `#/$defs/Foo`. In fact, schema generation use the ref given by `schema_ref` and pass it to a `ref_factory` function (a parameter of schema generation functions) which will convert it to its final form. [JSON schema version](#json-schemaopenapi-version) comes with its default `ref_factory`, for draft 2019-09, it prefixes the ref with `#/$defs/`, while it prefixes with `#/components/schema` in case of *OpenAPI*.
