@@ -12,10 +12,10 @@ theme:
 nav:
 - Overview: index.md
 - data_model.md
-- "(De)serialization: The basics": de_serialization.md
+- "(De)serialization": de_serialization.md
 - JSON schema: json_schema.md
 - validation.md
-- "(De)serialization: Customize with conversions": conversions.md
+- Conversions – (de)serialization customization: conversions.md
 - configuration_management.md
 - Examples:
   - OpenRPC: examples/open_rpc.md
