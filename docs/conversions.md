@@ -6,6 +6,8 @@ Actually, *Apischema* uses internally its own feature to support standard librar
 
 ORM support can easily be achieved with this feature (see [SQLAlchemy example](examples/sqlalchemy.md)).
 
+In fact, you can even add support of other "rival" libraries like *Pydantic* (see [*Pydantic* compatibility example](examples/pydantic_compatibility.md))
+
 ## Principle - *Apischema* conversions
 
 An *Apischema* conversion is composed of a source type, let's call it `Source`, a target type `Target` and a function of signature `(Source) -> Target`.

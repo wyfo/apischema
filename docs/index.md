@@ -22,6 +22,9 @@ This library fulfill the following goals:
 
 No known alternative achieves that.
 
+!!! note
+    Actually, *Apischema* is even adaptable enough to enable support of "rival" libraries in a few dozens of line of code (see [conversions section](conversions.md))  
+
 ## Example
 
 ```python
@@ -29,7 +32,8 @@ No known alternative achieves that.
 ```
 *Apischema* works out of the box with you data model.
 
-(This example and further ones are using pytest stuff because they are in fact run as tests in the library CI)
+!!! note
+    This example and further ones are using pytest stuff because they are in fact run as tests in the library CI
 
 ## FAQ
 

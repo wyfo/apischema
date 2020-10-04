@@ -19,8 +19,9 @@ nav:
 - configuration_management.md
 - Examples:
   - OpenRPC: examples/open_rpc.md
+  - SQLAlchemy support: examples/sqlalchemy.md
+  - examples/pydantic_compatibility.md
   - examples/recoverable_fields.md
-  - SQLAlchemy: examples/sqlalchemy.md
 - benchmark.md
 - changelog.md
 
