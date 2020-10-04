@@ -2,7 +2,7 @@ import collections.abc
 import re
 import sys
 from dataclasses import Field, dataclass, field
-from functools import wraps
+from functools import reduce, wraps
 from inspect import isgeneratorfunction
 from typing import (
     Any,
@@ -39,26 +39,34 @@ class LocalizedError:
     loc: Sequence[ErrorKey]
     err: Sequence[ErrorMsg]
 
+    def nested(self, index=0) -> "ValidationError":
+        if index == len(self.loc):
+            return ValidationError(self.err)
+        else:
+            assert index < len(self.loc)
+            return ValidationError(children={self.loc[index]: self.nested(index + 1)})
+
 
 @dataclass
 class ValidationError(Exception):
     messages: Sequence[ErrorMsg] = field(default_factory=list)
     children: Mapping[ErrorKey, "ValidationError"] = field(default_factory=dict)
 
-    def _flat(self) -> Iterator[Tuple[Tuple[ErrorKey, ...], Sequence[ErrorMsg]]]:
+    def flat(self) -> Iterator[Tuple[Tuple[ErrorKey, ...], Sequence[ErrorMsg]]]:
         if self.messages:
             yield (), self.messages
         for child_path, child in self.children.items():
-            for path, errors in child._flat():
+            for path, errors in child.flat():
                 yield (child_path, *path), errors
 
-    def flat(self) -> Iterator[Tuple[Tuple[ErrorKey, ...], ErrorMsg]]:
-        for key, errors in self._flat():
-            for err in errors:
-                yield key, err
+    def serialize(self) -> Sequence[LocalizedError]:
+        return [LocalizedError(loc, err) for loc, err in self.flat()]
 
-    def format(self) -> Sequence[LocalizedError]:
-        return [LocalizedError(loc, err) for loc, err in self._flat()]
+    @staticmethod
+    def deserialize(errors: Sequence[LocalizedError]) -> "ValidationError":
+        return reduce(
+            merge_errors, map(LocalizedError.nested, errors), ValidationError()
+        )
 
 
 @overload

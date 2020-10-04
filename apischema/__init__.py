@@ -49,8 +49,16 @@ from .validation import (
 )
 from .visitor import Unsupported
 
-# Handle standard library + internal types
-serializer(ValidationError.format, ValidationError)
-from . import std_types  # noqa: E402
 
-del std_types  # clean namespace
+def default_conversions():
+    """Handle standard library + internal types"""
+    from typing import Sequence
+    from . import std_types  # noqa F401
+    from .validation.errors import LocalizedError
+
+    deserializer(ValidationError.deserialize, Sequence[LocalizedError], ValidationError)
+    serializer(ValidationError.serialize, ValidationError)
+
+
+default_conversions()
+del default_conversions  # clean namespace
