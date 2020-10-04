@@ -12,6 +12,8 @@ Coercer = Callable[[Type[T], Any], T]
 
 def no_coercion(expected: Type[T], data: Any) -> T:
     if not isinstance(data, expected):
+        if expected is float and isinstance(data, int):
+            return float(data)  # type: ignore
         msg = (
             f"expected type {JsonType.from_type(expected)},"
             f" found {JsonType.from_type(type(data))}"

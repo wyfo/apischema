@@ -343,13 +343,7 @@ class Deserializer(DeserializationVisitor[DataWithConstraint, Any],):
 
     def primitive(self, cls: Type, data2: DataWithConstraint):
         data, constraints = data2
-        try:
-            data = self.coercer(cls, data)
-        except ValidationError:
-            if cls is float and isinstance(data, int):
-                data = float(data)
-            else:
-                raise
+        data = self.coercer(cls, data)
         if constraints is not None and data is not None:
             constraints.validate(data)
         return data

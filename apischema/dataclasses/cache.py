@@ -245,9 +245,16 @@ def _deserialization_method(
     )
 
     if deserialization is None:
-        return _handle_method_conversions(
-            visitor_method(deserialization_type, Deserializer), conversions
-        )
+        method = visitor_method(deserialization_type, Deserializer)
+        if method is Deserializer.primitive:
+
+            def method(  # type: ignore
+                deserializer: Deserializer, cls: AnyType, data2: DataWithConstraint
+            ) -> Any:
+                data, _ = data2
+                return deserializer.coercer(cls, data)
+
+        return _handle_method_conversions(method, conversions)
     else:
 
         def deserialization_method(  # type: ignore
