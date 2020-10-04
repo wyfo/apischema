@@ -9,6 +9,7 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    Union,
     cast,
     overload,
 )
@@ -39,7 +40,7 @@ class MethodConverter:
     def __init__(
         self,
         decorator: _ConverterSetter,
-        method: Callable,
+        method: Union[Callable, classmethod, staticmethod],
         conversions: Optional[Conversions],
         extra: bool,
         instance_method: bool,
@@ -49,7 +50,6 @@ class MethodConverter:
         self.conversions = conversions
         self.extra = extra
         self.instance_method = instance_method
-        wraps(method)(self)
 
     def __call__(self, *args, **kwargs):
         raise RuntimeError(
@@ -194,7 +194,7 @@ def reset_deserializers(cls: AnyType):
 
 class InheritedDeserializer(MethodConverter):
     def __init__(
-        self, method: Callable, conversions: Optional[Conversions], extra: bool
+        self, method: classmethod, conversions: Optional[Conversions], extra: bool
     ):
         super().__init__(_deserializer, method, conversions, extra, False)
 
@@ -213,20 +213,23 @@ class InheritedDeserializer(MethodConverter):
         super().__set_name__(owner, name)
 
 
+ClsMethod = TypeVar("ClsMethod")
+
+
 @overload
-def inherited_deserializer(func: Func) -> Func:
+def inherited_deserializer(func: ClsMethod) -> ClsMethod:
     ...
 
 
 @overload
 def inherited_deserializer(
     *, conversions: Conversions = None, extra: bool = False
-) -> Callable[[Func], Func]:
+) -> Callable[[ClsMethod], ClsMethod]:
     ...
 
 
 def inherited_deserializer(
-    func: Callable = None, *, conversions: Conversions = None, extra: bool = False
+    func=None, *, conversions: Conversions = None, extra: bool = False
 ):
     if func is None:
         return lambda func: inherited_deserializer(  # type: ignore
