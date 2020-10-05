@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.9
+
+- Improve Optional handling in schema generation
+- Improve deserialization performance for dataclass primitive fields
+- Add ValidationError deserializer
+- settings.default_schema
+- Pydantic compatibility example
+
+## 0.8
+
+- Fix openAPI definitions path
+- Add default ref for other standard types or types with schema
+
 ## 0.7.6
 
 - Update package description.
