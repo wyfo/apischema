@@ -170,11 +170,11 @@ def _default_schema(cls: AnyType) -> Optional[Schema]:
 
 
 def get_schema(cls: AnyType) -> Schema:
-    return (
-        Schema(get_annotations(cls), get_constraints(cls))
-        or _default_schema(cls)
-        or Schema()
-    )
+    annotations, constraints = get_annotations(cls), get_constraints(cls)
+    if annotations is not None or constraints is not None:
+        return Schema(annotations, constraints)
+    else:
+        return _default_schema(cls) or Schema()
 
 
 @merge_opts

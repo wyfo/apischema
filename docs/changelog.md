@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1
+
+- Fix default_schema not being called
+
 ## 0.9
 
 - Improve Optional handling in schema generation
