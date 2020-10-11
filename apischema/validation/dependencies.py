@@ -50,7 +50,7 @@ def find_all_dependencies(
     cls: type, func: Callable, rec_guard: Collection[str] = ()
 ) -> Dependencies:
     """Dependencies contains class variables (because they can be "fake" ones as in
-       dataclasses)"""
+    dataclasses)"""
     if func not in cache:
         dependencies = set(find_dependencies(func))
         for attr in list(dependencies):

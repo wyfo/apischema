@@ -90,10 +90,10 @@ class JsonSchemaVersion:
 
 
 JsonSchemaVersion.DRAFT_2019_09 = JsonSchemaVersion(
-    "http://json-schema.org/draft/2019-09/schema#", "#/$defs/", None, False,
+    "http://json-schema.org/draft/2019-09/schema#", "#/$defs/", None, False
 )
 JsonSchemaVersion.DRAFT_7 = JsonSchemaVersion(
-    "http://json-schema.org/draft-07/schema#", "#/definitions/", JsonSchema7, False,
+    "http://json-schema.org/draft-07/schema#", "#/definitions/", JsonSchema7, False
 )
 JsonSchemaVersion.OPEN_API_3_0 = JsonSchemaVersion(
     None, "#/components/schemas/", OpenAPI30, True

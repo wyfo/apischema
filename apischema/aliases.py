@@ -23,7 +23,7 @@ def alias(aliaser: Callable[[str], str]) -> Callable[[Cls], Cls]:
 
 
 def alias(arg=None, *, override: bool = True):  # type: ignore
-    """ Field alias or class aliaser
+    """Field alias or class aliaser
 
     :param alias_: alias of the field
     :param override: alias can be overridden by a class aliaser

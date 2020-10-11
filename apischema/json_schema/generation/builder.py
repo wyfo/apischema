@@ -537,7 +537,7 @@ def _defs_schema(
 
 
 def _set_missing_properties(
-    schema: JsonSchema, properties: Optional[Mapping[str, JsonSchema]], key: str,
+    schema: JsonSchema, properties: Optional[Mapping[str, JsonSchema]], key: str
 ) -> JsonSchema:
     if properties is None:
         return schema
@@ -564,12 +564,8 @@ def definitions_schema(
     for duplicate in deserialization_schemas.keys() & serialization_schemas.keys():
         d_schema = deserialization_schemas[duplicate]
         s_schema = serialization_schemas[duplicate]
-        _set_missing_properties(
-            s_schema, d_schema.get("properties"), "writeOnly",
-        )
-        _set_missing_properties(
-            d_schema, s_schema.get("properties"), "readOnly",
-        )
+        _set_missing_properties(s_schema, d_schema.get("properties"), "writeOnly")
+        _set_missing_properties(d_schema, s_schema.get("properties"), "readOnly")
         if "required" in d_schema and "required" in s_schema:
             s_schema["required"] = d_schema["required"]
         if d_schema != s_schema:

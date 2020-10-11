@@ -80,7 +80,7 @@ class SchemaVisitor(ConversionsVisitor[Conv, Arg, Return]):
 
 
 class DeserializationSchemaVisitor(
-    DeserializationVisitor[Arg, Return], SchemaVisitor[Deserialization, Arg, Return],
+    DeserializationVisitor[Arg, Return], SchemaVisitor[Deserialization, Arg, Return]
 ):
     def visit_conversion(
         self, cls: Type, conversion: Deserialization, arg: Arg
@@ -104,7 +104,7 @@ class DeserializationSchemaVisitor(
 
 
 class SerializationSchemaVisitor(
-    SerializationVisitor[Arg, Return], SchemaVisitor[Serialization, Arg, Return],
+    SerializationVisitor[Arg, Return], SchemaVisitor[Serialization, Arg, Return]
 ):
     def visit_conversion(
         self, cls: Type, conversion: Serialization, arg: Arg

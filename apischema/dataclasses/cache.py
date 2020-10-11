@@ -267,7 +267,7 @@ def _deserialization_method(
 
 
 def _deserialization(
-    field_type: AnyType, metadata: Mapping[str, Any],
+    field_type: AnyType, metadata: Mapping[str, Any]
 ) -> Tuple[
     AnyType,
     Optional[Deserialization],

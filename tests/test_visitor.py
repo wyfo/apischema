@@ -199,9 +199,7 @@ def test_default_implementations(visitor):
         Visitor.unsupported(..., Generic, ARG)
     assert err.value.cls == Generic
     with raises(Unsupported) as err:
-        Visitor.unsupported(
-            ..., Generic[T], ARG,
-        )
+        Visitor.unsupported(..., Generic[T], ARG)
     assert err.value.cls == Generic[T]
 
     with raises(NotImplementedError):

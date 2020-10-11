@@ -84,6 +84,6 @@ NO_OBJ = object()
 
 
 def serialize(
-    obj: Any, *, conversions: Conversions = None, exclude_unset: bool = True,
+    obj: Any, *, conversions: Conversions = None, exclude_unset: bool = True
 ) -> Any:
     return Serializer(conversions, exclude_unset).visit(type(obj), obj)

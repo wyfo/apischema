@@ -87,7 +87,7 @@ T = TypeVar("T")
 DataWithConstraint = Tuple[Any, Optional[Constraints]]
 
 
-class Deserializer(DeserializationVisitor[DataWithConstraint, Any],):
+class Deserializer(DeserializationVisitor[DataWithConstraint, Any]):
     def __init__(
         self,
         conversions: Optional[Conversions],
@@ -338,7 +338,7 @@ class Deserializer(DeserializationVisitor[DataWithConstraint, Any],):
         else:
             constraints = get_constraints(cls)
         return validate(
-            self.visit(super_type, (data, constraints)), get_validators(cls),
+            self.visit(super_type, (data, constraints)), get_validators(cls)
         )
 
     def primitive(self, cls: Type, data2: DataWithConstraint):
