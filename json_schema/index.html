@@ -212,8 +212,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../de_serialization/" title="(De)serialization: The basics" class="md-nav__link">
-      (De)serialization: The basics
+    <a href="../de_serialization/" title="(De)serialization" class="md-nav__link">
+      (De)serialization
     </a>
   </li>
 
@@ -314,6 +314,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#default-schema" class="md-nav__link">
+    Default schema
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -396,8 +403,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#adds-ref-for-every-types" class="md-nav__link">
-    Adds $ref for every types
+  <a href="#add-ref-to-every-types" class="md-nav__link">
+    Add $ref to every types
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#default-ref" class="md-nav__link">
+    Default $ref
   </a>
   
 </li>
@@ -473,8 +487,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../conversions/" title="(De)serialization: Customize with conversions" class="md-nav__link">
-      (De)serialization: Customize with conversions
+    <a href="../conversions/" title="Conversions – (de)serialization customization" class="md-nav__link">
+      Conversions – (de)serialization customization
     </a>
   </li>
 
@@ -534,8 +548,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
-      Recoverable fields
+    <a href="../examples/sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+      SQLAlchemy support
     </a>
   </li>
 
@@ -546,8 +560,20 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/sqlalchemy/" title="SQLAlchemy" class="md-nav__link">
-      SQLAlchemy
+    <a href="../examples/pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
+      Pydantic compatibility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
+      Recoverable fields
     </a>
   </li>
 
@@ -575,8 +601,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../changelog/" title="Changelog" class="md-nav__link">
-      Changelog
+    <a href="https://github.com/wyfo/apischema/releases" title="Releases" class="md-nav__link">
+      Releases
     </a>
   </li>
 
@@ -662,6 +688,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#default-schema" class="md-nav__link">
+    Default schema
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -744,8 +777,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#adds-ref-for-every-types" class="md-nav__link">
-    Adds $ref for every types
+  <a href="#add-ref-to-every-types" class="md-nav__link">
+    Add $ref to every types
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#default-ref" class="md-nav__link">
+    Default $ref
   </a>
   
 </li>
@@ -907,7 +947,7 @@
 <h2 id="schema-annotations">Schema annotations<a class="headerlink" href="#schema-annotations" title="Permanent link">&para;</a></h2>
 <p>Type annotations are not enough to express a complete schema, but <em>Apischema</em> has a function for that; <code>schema</code> can be used both as type decorator or field metadata.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">NewType</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
@@ -919,7 +959,7 @@
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Resource</span><span class="p">:</span>
     <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">tags</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+    <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
         <span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
         <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
             <span class="n">description</span><span class="o">=</span><span class="s2">&quot;regroup multiple resources&quot;</span><span class="p">,</span> <span class="n">max_items</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span>
@@ -1090,7 +1130,7 @@
 <h3 id="constraints-validation">Constraints validation<a class="headerlink" href="#constraints-validation" title="Permanent link">&para;</a></h3>
 <p>JSON schema constrains the data deserialized; this constraints are naturally used for validation.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">NewType</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
@@ -1103,7 +1143,7 @@
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Resource</span><span class="p">:</span>
     <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">tags</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+    <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
         <span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
         <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
             <span class="n">description</span><span class="o">=</span><span class="s2">&quot;regroup multiple resources&quot;</span><span class="p">,</span> <span class="n">max_items</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span>
@@ -1126,6 +1166,20 @@
 </code></pre></div>
 
 
+<h3 id="default-schema">Default <code>schema</code><a class="headerlink" href="#default-schema" title="Permanent link">&para;</a></h3>
+<p>When no schema are defined, a default schema can be computed using <code>settings.default_schema</code> like this:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema.schema</span> <span class="kn">import</span> <span class="n">Schema</span>
+<span class="nd">@settings</span><span class="o">.</span><span class="n">default_schema</span>
+<span class="k">def</span> <span class="nf">default_schema</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Schema</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="o">...</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">schema</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</code></pre></div>
+
+
+<p>Default implementation returns <code>None</code> for every types.</p>
 <h2 id="required-field-with-default-value">Required field with default value<a class="headerlink" href="#required-field-with-default-value" title="Permanent link">&para;</a></h2>
 <p>By default, a dataclass/namedtuple field will be tagged <code>required</code> if it doesn't have a default value.</p>
 <p>However, you may want to have a default value for a field in order to be more convenient in your code, but still make the field required. One could think about some schema model where version is fixed but is required, for example JSON-RPC with <code>"jsonrpc": "2.0"</code>. That's done with field metadata <code>required</code>.</p>
@@ -1151,12 +1205,12 @@
 
 <h2 id="additional-properties-pattern-properties">Additional properties / pattern properties<a class="headerlink" href="#additional-properties-pattern-properties" title="Permanent link">&para;</a></h2>
 <h3 id="with-mapping">With <code>Mapping</code><a class="headerlink" href="#with-mapping" title="Permanent link">&para;</a></h3>
-<p>Schema of a <code>Mapping</code>/<code>Dict</code> type is naturally translated to <code>"additionalProperties": &lt;schema of the value type&gt;</code>.</p>
+<p>Schema of a <code>Mapping</code>/<code>dict</code> type is naturally translated to <code>"additionalProperties": &lt;schema of the value type&gt;</code>.</p>
 <p>However when the schema of the key has a <code>pattern</code>, it will give a <code>"patternProperties": {&lt;key pattern&gt;: &lt;schema of the value type&gt;}</code>  </p>
 <h3 id="with-dataclass">With dataclass<a class="headerlink" href="#with-dataclass" title="Permanent link">&para;</a></h3>
 <p><code>additionalProperties</code>/<code>patternProperties</code> can be added to dataclasses by using  fields annotated with <code>properties</code> metadata. Properties not mapped on regular fields will be deserialized into this fields; they must have a <code>Mapping</code> type (or be <a href="../conversions/">convertible</a> from <code>Mapping</code>) because they are instanciated with a mapping.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Mapping</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 
 <span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Annotated</span>
 
@@ -1176,9 +1230,9 @@
     <span class="n">server_options</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
         <span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">properties</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^server_&quot;</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">client_options</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^client_&quot;</span><span class="p">)],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">properties</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-    <span class="p">)</span>
+    <span class="n">client_options</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span>
+        <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^client_&quot;</span><span class="p">)],</span> <span class="nb">bool</span>  <span class="c1"># noqa F722 E501</span>
+    <span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">properties</span><span class="p">(</span><span class="o">...</span><span class="p">))</span>
     <span class="n">options</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">properties</span><span class="p">)</span>
 
 
@@ -1359,7 +1413,6 @@
 <h3 id="definitions-schema-only">Definitions schema only<a class="headerlink" href="#definitions-schema-only" title="Permanent link">&para;</a></h3>
 <p>Sometimes you need to extract only the definitions in a separate schema (especially OpenAPI components). That's done with the <code>definitions_schema</code> function. It takes two lists <code>deserializations</code> and <code>serializations</code> of schema (or schema + <a href="../conversions/">conversions</a>) and combines the definitions of all the schema that would have been generated with types given in the list of schema.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">definitions_schema</span>
 
@@ -1374,7 +1427,7 @@
     <span class="n">bar</span><span class="p">:</span> <span class="n">Bar</span>
 
 
-<span class="k">assert</span> <span class="n">definitions_schema</span><span class="p">(</span><span class="n">deserialization</span><span class="o">=</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Foo</span><span class="p">]],</span> <span class="n">all_refs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+<span class="k">assert</span> <span class="n">definitions_schema</span><span class="p">(</span><span class="n">deserialization</span><span class="o">=</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Foo</span><span class="p">]],</span> <span class="n">all_refs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="s2">&quot;Foo&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
         <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Bar&quot;</span><span class="p">}},</span>
@@ -1391,18 +1444,19 @@
 
 
 <h2 id="customize-ref">Customize <code>$ref</code><a class="headerlink" href="#customize-ref" title="Permanent link">&para;</a></h2>
-<h3 id="adds-ref-for-every-types">Adds <code>$ref</code> for every types<a class="headerlink" href="#adds-ref-for-every-types" title="Permanent link">&para;</a></h3>
+<h3 id="add-ref-to-every-types">Add <code>$ref</code> to every types<a class="headerlink" href="#add-ref-to-every-types" title="Permanent link">&para;</a></h3>
 <p>In the previous example, only dataclasses has a <code>$ref</code>, but it can be fully customized. You can use <code>schema_ref</code> on any defined types (<code>NewType</code>/<code>class</code>/<code>Annotated</code>/etc.). <code>schema_ref</code> argument can be:
 - <code>str</code> -&gt; this string will be used directly in schema generation
-- <code>...</code> -&gt; schema generation will use the name of the 
+- <code>...</code> -&gt; schema generation will use the name of the type
 - <code>None</code> -&gt; this type will have no <code>$ref</code> in schema</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">AbstractSet</span><span class="p">,</span> <span class="n">NewType</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Set</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema_ref</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 
-<span class="n">Tags</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Tags&quot;</span><span class="p">,</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span>
+<span class="n">Tags</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Tags&quot;</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span>
 <span class="n">schema_ref</span><span class="p">(</span><span class="o">...</span><span class="p">)(</span><span class="n">Tags</span><span class="p">)</span>
 
 
@@ -1428,7 +1482,13 @@
 </code></pre></div>
 
 
-<p>Moreover, there is a default <code>schema_ref</code> for each type when the function is not used directly; following types get a <code>...</code> ref (which means a ref with their name) :</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Actually, there is a small restriction with <code>NewType</code>: you cannot put a <code>schema_ref</code> if the super type is not a builtin type (<code>list[...]</code>/<code>int</code>/etc.). </p>
+<p>In fact, <code>NewType</code> super type serialization could be affected by different conversions and a same <code>$ref</code> would embed different schema.</p>
+</div>
+<h3 id="default-ref">Default <code>$ref</code><a class="headerlink" href="#default-ref" title="Permanent link">&para;</a></h3>
+<p>There is a default <code>schema_ref</code> for each type; following types get a <code>...</code> ref (which means a ref with their name):</p>
 <ul>
 <li><code>dataclass</code></li>
 <li><code>NewType</code></li>
@@ -1440,14 +1500,10 @@
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="nd">@settings</span><span class="o">.</span><span class="n">default_ref</span>
 <span class="k">def</span> <span class="nf">default_ref</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-    <span class="k">return</span> <span class="kc">None</span> <span class="c1"># This example remove default ref for every types</span>
+    <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># This example remove default ref for every types</span>
 </code></pre></div>
 
 
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Actually, there is a small restriction with <code>NewType</code>: you cannot put a <code>schema_ref</code> if the super type is not a builtin type (<code>List[...]</code>/<code>int</code>/etc.). </p>
-</div>
 <h3 id="ref-factory">Ref factory<a class="headerlink" href="#ref-factory" title="Permanent link">&para;</a></h3>
 <p><code>schema_ref</code> is used to set a short ref, like the name of a class, but in schema, <code>$ref</code> looks like <code>#/$defs/Foo</code>. In fact, schema generation use the ref given by <code>schema_ref</code> and pass it to a <code>ref_factory</code> function (a parameter of schema generation functions) which will convert it to its final form. <a href="#json-schemaopenapi-version">JSON schema version</a> comes with its default <code>ref_factory</code>, for draft 2019-09, it prefixes the ref with <code>#/$defs/</code>, while it prefixes with <code>#/components/schema</code> in case of <em>OpenAPI</em>.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -1585,7 +1641,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../de_serialization/" title="(De)serialization: The basics" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../de_serialization/" title="(De)serialization" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -1594,7 +1650,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                (De)serialization: The basics
+                (De)serialization
               </div>
             </div>
           </a>

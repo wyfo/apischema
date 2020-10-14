@@ -212,8 +212,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../de_serialization/" title="(De)serialization: The basics" class="md-nav__link">
-      (De)serialization: The basics
+    <a href="../de_serialization/" title="(De)serialization" class="md-nav__link">
+      (De)serialization
     </a>
   </li>
 
@@ -248,8 +248,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../conversions/" title="(De)serialization: Customize with conversions" class="md-nav__link">
-      (De)serialization: Customize with conversions
+    <a href="../conversions/" title="Conversions – (de)serialization customization" class="md-nav__link">
+      Conversions – (de)serialization customization
     </a>
   </li>
 
@@ -351,8 +351,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
-      Recoverable fields
+    <a href="../examples/sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+      SQLAlchemy support
     </a>
   </li>
 
@@ -363,8 +363,20 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/sqlalchemy/" title="SQLAlchemy" class="md-nav__link">
-      SQLAlchemy
+    <a href="../examples/pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
+      Pydantic compatibility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
+      Recoverable fields
     </a>
   </li>
 
@@ -392,8 +404,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../changelog/" title="Changelog" class="md-nav__link">
-      Changelog
+    <a href="https://github.com/wyfo/apischema/releases" title="Releases" class="md-nav__link">
+      Releases
     </a>
   </li>
 
@@ -457,9 +469,9 @@
 <h2 id="dot-seraparated-key-value">Dot-seraparated key-value<a class="headerlink" href="#dot-seraparated-key-value" title="Permanent link">&para;</a></h2>
 <p>A common way of storing complex nested structures into flat key-value stores is to use dot-separated keys. </p>
 <p><em>Apischema</em> provides an utility function to unflat this kind of data into nested JSON-like data, which can then be deserialized.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Collection</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">ipaddress</span> <span class="kn">import</span> <span class="n">IPv4Address</span><span class="p">,</span> <span class="n">IPv4Network</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Collection</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span>
 <span class="kn">from</span> <span class="nn">apischema.deserialization</span> <span class="kn">import</span> <span class="n">unflat_key_value</span>
@@ -518,7 +530,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../conversions/" title="(De)serialization: Customize with conversions" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../conversions/" title="Conversions – (de)serialization customization" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -527,7 +539,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                (De)serialization: Customize with conversions
+                Conversions – (de)serialization customization
               </div>
             </div>
           </a>

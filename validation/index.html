@@ -212,8 +212,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../de_serialization/" title="(De)serialization: The basics" class="md-nav__link">
-      (De)serialization: The basics
+    <a href="../de_serialization/" title="(De)serialization" class="md-nav__link">
+      (De)serialization
     </a>
   </li>
 
@@ -433,8 +433,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../conversions/" title="(De)serialization: Customize with conversions" class="md-nav__link">
-      (De)serialization: Customize with conversions
+    <a href="../conversions/" title="Conversions – (de)serialization customization" class="md-nav__link">
+      Conversions – (de)serialization customization
     </a>
   </li>
 
@@ -494,8 +494,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
-      Recoverable fields
+    <a href="../examples/sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+      SQLAlchemy support
     </a>
   </li>
 
@@ -506,8 +506,20 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/sqlalchemy/" title="SQLAlchemy" class="md-nav__link">
-      SQLAlchemy
+    <a href="../examples/pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
+      Pydantic compatibility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
+      Recoverable fields
     </a>
   </li>
 
@@ -535,8 +547,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../changelog/" title="Changelog" class="md-nav__link">
-      Changelog
+    <a href="https://github.com/wyfo/apischema/releases" title="Releases" class="md-nav__link">
+      Releases
     </a>
   </li>
 
@@ -741,7 +753,7 @@
 <h2 id="deserialization-and-validation-error">Deserialization and validation error<a class="headerlink" href="#deserialization-and-validation-error" title="Permanent link">&para;</a></h2>
 <p><code>ValidationError</code> is raised when validation fails. This exception will contains all the information about the ill-formed part of the data. By the way this exception is also serializable and can be sent back directly to client.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">NewType</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
@@ -754,7 +766,7 @@
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Resource</span><span class="p">:</span>
     <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">tags</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+    <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
         <span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
         <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
             <span class="n">description</span><span class="o">=</span><span class="s2">&quot;regroup multiple resources&quot;</span><span class="p">,</span> <span class="n">max_items</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span>
@@ -853,7 +865,6 @@
 <p>However, <em>Apischema</em> provides a way or raising as many errors as needed by using <code>yield</code>. Moreover, with this syntax, it is possible to add a "path" to the error to precise its location in the validated data. This path will be added to the <code>loc</code> key of the error.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">ipaddress</span> <span class="kn">import</span> <span class="n">IPv4Address</span><span class="p">,</span> <span class="n">IPv4Network</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
@@ -864,7 +875,7 @@
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">SubnetIps</span><span class="p">:</span>
     <span class="n">subnet</span><span class="p">:</span> <span class="n">IPv4Network</span>
-    <span class="n">ips</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">IPv4Address</span><span class="p">]</span>
+    <span class="n">ips</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">IPv4Address</span><span class="p">]</span>
 
     <span class="nd">@validator</span>
     <span class="k">def</span> <span class="nf">check_ips_in_subnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -902,7 +913,6 @@
 <h3 id="discard">Discard<a class="headerlink" href="#discard" title="Permanent link">&para;</a></h3>
 <p>If one of your validators fails because a field is corrupted, maybe you don't want following validators to be executed. <code>validator</code> decorator provides a <code>discard</code> parameter to discard fields of the remaining validation. All the remaining validators having discarded fields in <a href="#computed-dependencies">dependencies</a> will not be executed.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
@@ -912,8 +922,8 @@
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">BoundedValues</span><span class="p">:</span>
-    <span class="n">bounds</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">()</span>
-    <span class="n">values</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">bounds</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">()</span>
+    <span class="n">values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 
     <span class="nd">@validator</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">bounds_are_sorted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1132,8 +1142,8 @@ lt values, they are not run; make sure your default values make sens.</p>
 
 <h2 id="type-checker">Type checker<a class="headerlink" href="#type-checker" title="Permanent link">&para;</a></h2>
 <p>Validation is done only at deserialization (see <a href="#why-only-validate-at-deserialization-and-not-at-instantiation">FAQ</a>). However, it is possible at runtime to check the type of an object, and to do it descending all the type model of the given types (dataclass fields, list elements, etc.) with the function <code>check_types</code>. It can also "validate" the object (running all its validator and validate its constraints) if needed.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">AbstractSet</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Set</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">uuid4</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
@@ -1144,7 +1154,7 @@ lt values, they are not run; make sure your default values make sens.</p>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Resource</span><span class="p">:</span>
     <span class="nb">id</span><span class="p">:</span> <span class="n">UUID</span>
-    <span class="n">tags</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">max_items</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">tags</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">max_items</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
 
 
 <span class="n">check_types</span><span class="p">(</span><span class="n">Resource</span><span class="p">,</span> <span class="n">Resource</span><span class="p">(</span><span class="n">uuid4</span><span class="p">(),</span> <span class="p">{</span><span class="s2">&quot;tag&quot;</span><span class="p">}))</span>  <span class="c1"># no error</span>
@@ -1205,13 +1215,13 @@ By the way, if it was implemented, in order to be consistent, validation should 
           </a>
         
         
-          <a href="../conversions/" title="(De)serialization: Customize with conversions" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../conversions/" title="Conversions – (de)serialization customization" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                (De)serialization: Customize with conversions
+                Conversions – (de)serialization customization
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

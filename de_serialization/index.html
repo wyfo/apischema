@@ -15,7 +15,7 @@
     
     
       
-        <title>(De)serialization: The basics - Apischema</title>
+        <title>(De)serialization - Apischema</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#deserialization-the-basics" class="md-skip">
+        <a href="#deserialization" class="md-skip">
           Skip to content
         </a>
       
@@ -88,7 +88,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              (De)serialization: The basics
+              (De)serialization
             
           </span>
         </div>
@@ -221,14 +221,14 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="__toc">
-        (De)serialization: The basics
+        (De)serialization
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
         </span>
       </label>
     
-    <a href="./" title="(De)serialization: The basics" class="md-nav__link md-nav__link--active">
-      (De)serialization: The basics
+    <a href="./" title="(De)serialization" class="md-nav__link md-nav__link--active">
+      (De)serialization
     </a>
     
       
@@ -247,7 +247,7 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#deserialization" class="md-nav__link">
+  <a href="#deserialization_1" class="md-nav__link">
     Deserialization
   </a>
   
@@ -391,8 +391,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../conversions/" title="(De)serialization: Customize with conversions" class="md-nav__link">
-      (De)serialization: Customize with conversions
+    <a href="../conversions/" title="Conversions – (de)serialization customization" class="md-nav__link">
+      Conversions – (de)serialization customization
     </a>
   </li>
 
@@ -452,8 +452,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
-      Recoverable fields
+    <a href="../examples/sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+      SQLAlchemy support
     </a>
   </li>
 
@@ -464,8 +464,20 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/sqlalchemy/" title="SQLAlchemy" class="md-nav__link">
-      SQLAlchemy
+    <a href="../examples/pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
+      Pydantic compatibility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
+      Recoverable fields
     </a>
   </li>
 
@@ -493,8 +505,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../changelog/" title="Changelog" class="md-nav__link">
-      Changelog
+    <a href="https://github.com/wyfo/apischema/releases" title="Releases" class="md-nav__link">
+      Releases
     </a>
   </li>
 
@@ -525,7 +537,7 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#deserialization" class="md-nav__link">
+  <a href="#deserialization_1" class="md-nav__link">
     Deserialization
   </a>
   
@@ -652,11 +664,10 @@
                   
                 
                 
-                <h1 id="deserialization-the-basics">(De)serialization: the basics<a class="headerlink" href="#deserialization-the-basics" title="Permanent link">&para;</a></h1>
+                <h1 id="deserialization">(De)serialization<a class="headerlink" href="#deserialization" title="Permanent link">&para;</a></h1>
 <p><em>Apischema</em> aims to help API with deserialization/serialization of data, mostly JSON.</p>
 <p>Let start again with the <a href="..#example">overview example</a></p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Set</span>
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">uuid4</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
@@ -671,7 +682,7 @@
 <span class="k">class</span> <span class="nc">Resource</span><span class="p">:</span>
     <span class="nb">id</span><span class="p">:</span> <span class="n">UUID</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">tags</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">set</span><span class="p">)</span>
+    <span class="n">tags</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">set</span><span class="p">)</span>
 
 
 <span class="c1"># Get some data</span>
@@ -703,7 +714,7 @@
 </code></pre></div>
 
 
-<h2 id="deserialization">Deserialization<a class="headerlink" href="#deserialization" title="Permanent link">&para;</a></h2>
+<h2 id="deserialization_1">Deserialization<a class="headerlink" href="#deserialization_1" title="Permanent link">&para;</a></h2>
 <p>Deserialization is done through the function <code>apischema.deserialize</code> with the following simplified signature:</p>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
     <span class="o">...</span>
@@ -715,8 +726,9 @@
 <li><code>data</code> must be a JSON-like serialized data: <code>dict</code>/<code>list</code>/<code>str</code>/<code>int</code>/<code>float</code>/<code>bool</code>/<code>None</code>, in short, what you get when you execute <code>json.loads</code>.</li>
 </ul>
 <p>Deserialization performs a validation of data, based on typing annotations and other information (see <a href="../json_schema/">schema</a> and <a href="../validation/">validation</a>).</p>
-<p>from dataclasses import dataclass
-from typing import Collection, Mapping, NewType</p>
+<p>from collections.abc import Collection, Mapping
+from dataclasses import dataclass
+from typing import NewType</p>
 <p>from apischema import deserialize</p>
 <p>@dataclass
 class Foo:
@@ -786,7 +798,7 @@ assert deserialize(Mapping[str, Collection[Foo]], {"key": [{"bar": "42"}]}) == {
 <p>There is also a global <code>set[str]</code> named <code>apischema.data.coercion.STR_NONE_VALUES</code> for <code>None</code> coercion.</p>
 </div>
 <p><code>coercion</code> parameter can also receive a coercion function which will then be used instead of default one.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Type</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">cast</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
@@ -795,7 +807,7 @@ assert deserialize(Mapping[str, Collection[Foo]], {"key": [{"bar": "42"}]}) == {
 <span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">coerce</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">coerce</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Only coerce int to bool&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="nb">bool</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="nb">bool</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>

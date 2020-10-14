@@ -405,8 +405,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../de_serialization/" title="(De)serialization: The basics" class="md-nav__link">
-      (De)serialization: The basics
+    <a href="../de_serialization/" title="(De)serialization" class="md-nav__link">
+      (De)serialization
     </a>
   </li>
 
@@ -441,8 +441,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../conversions/" title="(De)serialization: Customize with conversions" class="md-nav__link">
-      (De)serialization: Customize with conversions
+    <a href="../conversions/" title="Conversions – (de)serialization customization" class="md-nav__link">
+      Conversions – (de)serialization customization
     </a>
   </li>
 
@@ -502,8 +502,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
-      Recoverable fields
+    <a href="../examples/sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+      SQLAlchemy support
     </a>
   </li>
 
@@ -514,8 +514,20 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/sqlalchemy/" title="SQLAlchemy" class="md-nav__link">
-      SQLAlchemy
+    <a href="../examples/pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
+      Pydantic compatibility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
+      Recoverable fields
     </a>
   </li>
 
@@ -543,8 +555,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../changelog/" title="Changelog" class="md-nav__link">
-      Changelog
+    <a href="https://github.com/wyfo/apischema/releases" title="Releases" class="md-nav__link">
+      Releases
     </a>
   </li>
 
@@ -756,7 +768,8 @@
 <p><em>Apischema</em> handle every classes/types you need.</p>
 <p>By the way, it's done in an additive way, meaning that it doesn't affect your types.</p>
 <h3 id="pep-585">PEP 585<a class="headerlink" href="#pep-585" title="Permanent link">&para;</a></h3>
-<p>With Python 3.9 and <a href="https://www.python.org/dev/peps/pep-0585/">PEP 585</a>, typing is substantially shaken up. Because <em>Apischema</em> must be up-to-date with modern Python, support of Python 3.9 covers PEP 585. But because 3.9 is not yet released and far from being widely adopted, the following documentation will use old fashioned Python typing with <code>typing</code> module.</p>
+<p>With Python 3.9 and <a href="https://www.python.org/dev/peps/pep-0585/">PEP 585</a>, typing is substantially shaken up; all collection types of <code>typing</code> module are now deprecated.</p>
+<p>Apischema fully support 3.9 and PEP 585, as shown in the different examples.</p>
 <h2 id="dataclasses">Dataclasses<a class="headerlink" href="#dataclasses" title="Permanent link">&para;</a></h2>
 <p>Because the library aims to bring the minimum boilerplate, it's build on the top of standard library. <a href="https://docs.python.org/3/library/dataclasses.html">Dataclasses</a> are thus the core structure of the data model.</p>
 <p>Dataclasses bring the possibility of field customization, with more than just a default value.
@@ -794,19 +807,24 @@ In addition to the common parameters of <a href="https://docs.python.org/3/libra
 <p>They correspond to JSON primitive types.</p>
 <h4 id="collection">Collection<a class="headerlink" href="#collection" title="Permanent link">&para;</a></h4>
 <ul>
-<li><code>typing.Collection</code></li>
-<li><code>typing.Sequence</code></li>
-<li><code>typing.Tuple</code></li>
-<li><code>typing.MutableSequence</code></li>
-<li><code>typing.List</code></li>
-<li><code>typing.AbstractSet</code></li>
-<li><code>typing.FrozenSet</code></li>
-<li><code>typing.Set</code></li>
+<li><code>collection.abc.Collection</code> (<em><code>typing.Collection</code></em>)</li>
+<li><code>collection.abc.Sequence</code> (<em><code>typing.Sequence</code></em>)</li>
+<li><code>tuple</code> (<em><code>typing.Tuple</code></em>)</li>
+<li><code>collection.abc.MutableSequence</code> (<em><code>typing.MutableSequence</code></em>)</li>
+<li><code>list</code> (<em><code>typing.List</code></em>)</li>
+<li><code>collection.abc.Set</code> (<em><code>typing.AbstractSet</code></em>)</li>
+<li><code>collection.abc.MutableSet</code> (<em><code>typing.MutableSet</code></em>)</li>
+<li><code>frozenset</code> (<em><code>typing.FrozenSet</code></em>)</li>
+<li><code>set</code> (<em><code>typing.Set</code></em>)</li>
 </ul>
 <p>They correspond to JSON <em>array</em> and are serialized to <code>list</code>.</p>
-<p>Some of them are abstract; deserialization will instantiate a concrete child class. For example <code>typing.Sequence</code> will be instantiated with <code>tuple</code> while <code>typing.MutableSequence</code> will be instantiated with <code>list</code>.</p>
+<p>Some of them are abstract; deserialization will instantiate a concrete child class. For example <code>collection.abc.Sequence</code> will be instantiated with <code>tuple</code> while <code>collection.MutableSequence</code> will be instantiated with <code>list</code>.</p>
 <h4 id="mapping">Mapping<a class="headerlink" href="#mapping" title="Permanent link">&para;</a></h4>
-<p><code>typing.Mapping</code>, <code>typing.MutableMapping</code>, <code>typing.Dict</code>.</p>
+<ul>
+<li><code>collection.abc.Mapping</code> (<em><code>typing.Mapping</code></em>)</li>
+<li><code>collection.abc.MutableMapping</code> (<em><code>typing.MutableMapping</code></em>)</li>
+<li><code>dict</code> (<em><code>typing.Dict</code></em>)</li>
+</ul>
 <p>They correpond to JSON <em>object</em> and are serialized to <code>dict</code>.</p>
 <h4 id="enumeration">Enumeration<a class="headerlink" href="#enumeration" title="Permanent link">&para;</a></h4>
 <p><code>enum.Enum</code> subclasses, <code>typing.Literal</code></p>
@@ -819,10 +837,10 @@ In addition to the common parameters of <a href="https://docs.python.org/3/libra
 <dd>Deserialization select the first matching alternative (see below how to <a href="#skip-union-member">skip some union member</a>)</dd>
 </dl>
 <ul>
-<li><code>typing.Tuple</code></li>
+<li><code>tuple</code> (<em><code>typing.Tuple</code></em>)</li>
 </ul>
 <dl>
-<dd>Can be used as collection as well as true Tuple, like <code>Tuple[str, int]</code></dd>
+<dd>Can be used as collection as well as true tuple, like <code>tuple[str, int]</code></dd>
 </dl>
 <ul>
 <li><code>typing.NewType</code></li>
@@ -871,7 +889,7 @@ In addition to the common parameters of <a href="https://docs.python.org/3/libra
 <li><code>ipaddress.IPv6Interface</code></li>
 <li><code>ipaddress.IPv6Network</code></li>
 <li><code>pathlib.Path</code></li>
-<li><code>typing.Pattern</code>/<code>re.Pattern</code></li>
+<li><code>re.Pattern</code> (<em><code>typing.Pattern</code></em>)</li>
 <li><code>uuid.UUID</code></li>
 </ul>
 <dl>
@@ -1011,7 +1029,7 @@ Here with string annotations:</p>
 <h2 id="composed-dataclasses-merging">Composed dataclasses merging<a class="headerlink" href="#composed-dataclasses-merging" title="Permanent link">&para;</a></h2>
 <p>Dataclass fields which are themselves dataclass can be "merged" into the owning one by using <code>merged</code> metadata.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">alias</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">apischema.fields</span> <span class="kn">import</span> <span class="n">with_fields_set</span>
@@ -1032,7 +1050,7 @@ Here with string annotations:</p>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">RootJsonSchema</span><span class="p">:</span>
     <span class="n">schema</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;$schema&quot;</span><span class="p">))</span>
-    <span class="n">defs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">JsonSchema</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;$defs&quot;</span><span class="p">))</span>
+    <span class="n">defs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">JsonSchema</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;$defs&quot;</span><span class="p">))</span>
     <span class="n">json_schema</span><span class="p">:</span> <span class="n">JsonSchema</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">JsonSchema</span><span class="p">(),</span> <span class="n">metadata</span><span class="o">=</span><span class="n">merged</span><span class="p">)</span>
 
 
@@ -1139,13 +1157,13 @@ Here with string annotations:</p>
           </a>
         
         
-          <a href="../de_serialization/" title="(De)serialization: The basics" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../de_serialization/" title="(De)serialization" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                (De)serialization: The basics
+                (De)serialization
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

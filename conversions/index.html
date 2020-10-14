@@ -15,7 +15,7 @@
     
     
       
-        <title>(De)serialization: Customize with conversions - Apischema</title>
+        <title>Conversions – (de)serialization customization - Apischema</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#deserialization-customize-with-conversions" class="md-skip">
+        <a href="#conversions-deserialization-customization" class="md-skip">
           Skip to content
         </a>
       
@@ -88,7 +88,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              (De)serialization: Customize with conversions
+              Conversions – (de)serialization customization
             
           </span>
         </div>
@@ -212,8 +212,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../de_serialization/" title="(De)serialization: The basics" class="md-nav__link">
-      (De)serialization: The basics
+    <a href="../de_serialization/" title="(De)serialization" class="md-nav__link">
+      (De)serialization
     </a>
   </li>
 
@@ -257,14 +257,14 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="__toc">
-        (De)serialization: Customize with conversions
+        Conversions – (de)serialization customization
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
         </span>
       </label>
     
-    <a href="./" title="(De)serialization: Customize with conversions" class="md-nav__link md-nav__link--active">
-      (De)serialization: Customize with conversions
+    <a href="./" title="Conversions – (de)serialization customization" class="md-nav__link md-nav__link--active">
+      Conversions – (de)serialization customization
     </a>
     
       
@@ -439,8 +439,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
-      Recoverable fields
+    <a href="../examples/sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+      SQLAlchemy support
     </a>
   </li>
 
@@ -451,8 +451,20 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/sqlalchemy/" title="SQLAlchemy" class="md-nav__link">
-      SQLAlchemy
+    <a href="../examples/pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
+      Pydantic compatibility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
+      Recoverable fields
     </a>
   </li>
 
@@ -480,8 +492,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../changelog/" title="Changelog" class="md-nav__link">
-      Changelog
+    <a href="https://github.com/wyfo/apischema/releases" title="Releases" class="md-nav__link">
+      Releases
     </a>
   </li>
 
@@ -626,13 +638,14 @@
                   
                 
                 
-                <h1 id="deserialization-customize-with-conversions">(De)serialization: Customize with conversions<a class="headerlink" href="#deserialization-customize-with-conversions" title="Permanent link">&para;</a></h1>
+                <h1 id="conversions-deserialization-customization">Conversions – (de)serialization customization<a class="headerlink" href="#conversions-deserialization-customization" title="Permanent link">&para;</a></h1>
 <p><em>Apischema</em> covers majority of standard data types, but it's of course not enough, that's why it gives you the way to add support for all your classes and the libraries you use.</p>
 <p>Actually, <em>Apischema</em> uses internally its own feature to support standard library data types like UUID/datetime/etc. (see <a href="https://github.com/wyfo/apischema/blob/master/apischema/std_types.py">std_types.py</a>)</p>
 <p>ORM support can easily be achieved with this feature (see <a href="../examples/sqlalchemy/">SQLAlchemy example</a>).</p>
+<p>In fact, you can even add support of other "rival" libraries like <em>Pydantic</em> (see <a href="../examples/pydantic_compatibility/"><em>Pydantic</em> compatibility example</a>)</p>
 <h2 id="principle-apischema-conversions">Principle - <em>Apischema</em> conversions<a class="headerlink" href="#principle-apischema-conversions" title="Permanent link">&para;</a></h2>
 <p>An <em>Apischema</em> conversion is composed of a source type, let's call it <code>Source</code>, a target type <code>Target</code> and a function of signature <code>(Source) -&gt; Target</code>.</p>
-<p>When a type (actually, a non-builtin type, so not <code>int</code>/<code>List[str]</code>/etc.) is deserialized, <em>Apischema</em> will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then conversion function will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply conversion (normally get the target type).</p>
+<p>When a type (actually, a non-builtin type, so not <code>int</code>/<code>list[str]</code>/etc.) is deserialized, <em>Apischema</em> will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then conversion function will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply conversion (normally get the target type).</p>
 <p>Conversions are also handled in schema generation: for a deserialization schema, source schema is used (after merging target schema annotations) while target schema is used (after merging source schema annotations) for a serialization schema.</p>
 <h2 id="register-a-conversion">Register a conversion<a class="headerlink" href="#register-a-conversion" title="Permanent link">&para;</a></h2>
 <p>Conversion is registered using <code>deserializer</code>/<code>serializer</code> for deserialization/serialization respectively.</p>
@@ -802,7 +815,7 @@
 For deserialization, if there is <a href="#multiple-deserializers">several possible source</a>, <code>conversions</code> values can also be a collection of types. It will again result in a <code>Union</code> deserialization.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For <code>definitions_schema</code>, conversions can be added with types by using a tuple instead, for example <code>definitions_schema(serializations=[(List[Foo], {Foo: Bar})])</code>. </p>
+<p>For <code>definitions_schema</code>, conversions can be added with types by using a tuple instead, for example <code>definitions_schema(serializations=[(list[Foo], {Foo: Bar})])</code>. </p>
 </div>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
@@ -852,22 +865,23 @@ For deserialization, if there is <a href="#multiple-deserializers">several possi
 
 
 <h3 id="chain-conversions">Chain conversions<a class="headerlink" href="#chain-conversions" title="Permanent link">&para;</a></h3>
-<p>Conversions mapping put in <code>conversions</code> parameter is not used in all the deserialization/serialization. In fact it is "reset" as soon as a non-builtin type (so, not <code>int</code>/<code>List[int]</code>/<code>NewType</code> instances/etc.) is encountered. Not having this reset would completely break the possibility to have <code>$ref</code> in generated schema, because a <code>conversions</code> could then change the serialization of a field of a dataclass in one particular schema but not in another (and bye-bye <em>OpenAPI</em> components schema).</p>
+<p>Conversions mapping put in <code>conversions</code> parameter is not used in all the deserialization/serialization. In fact it is "reset" as soon as a non-builtin type (so, not <code>int</code>/<code>list[int]</code>/<code>NewType</code> instances/etc.) is encountered. Not having this reset would completely break the possibility to have <code>$ref</code> in generated schema, because a <code>conversions</code> could then change the serialization of a field of a dataclass in one particular schema but not in another (and bye-bye <em>OpenAPI</em> components schema).</p>
 <p>But everything is not lost. Let's illustrate with an example. As previously mentioned, <em>Apischema</em> uses its own feature internally at several places. One of them is schema generation. JSON schema is generated using an internal <code>JsonSchema</code> type, and is then serialized; the JSON schema version selection result in fact in a conversion that is selected according to the version (by <code>JsonSchemaVersion.conversions</code> property). However, JSON schema is recursive and the serialization of <code>JsonSchema</code> returns a dictionary which can contain other <code>JsonSchema</code> ... but it has been written above that <code>conversions</code> is reset.</p>
 <p>That's why <code>deserializer</code> and others conversion registers have a <code>conversions</code> parameter that will be taken as the new <code>conversions</code> after the conversion application. In JSON schema example, it allows sub-<code>JsonSchema</code> to be serialized with the correct <code>conversions</code>. The following example is extracted from <a href="https://github.com/wyfo/apischema/blob/master/apischema/json_schema/versions.py"><em>Apischema</em> code</a>:</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">NewType</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">NewType</span>
 
 <span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">extra_serializer</span>
 
 
-<span class="k">class</span> <span class="nc">JsonSchema</span><span class="p">(</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+<span class="k">class</span> <span class="nc">JsonSchema</span><span class="p">(</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
     <span class="k">pass</span>
 
 
 <span class="n">JsonSchema7</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;JsonSchema7&quot;</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
 
 
-<span class="k">def</span> <span class="nf">isolate_ref</span><span class="p">(</span><span class="n">schema</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+<span class="k">def</span> <span class="nf">isolate_ref</span><span class="p">(</span><span class="n">schema</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
     <span class="k">if</span> <span class="s2">&quot;$ref&quot;</span> <span class="ow">in</span> <span class="n">schema</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">schema</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;allOf&quot;</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="n">schema</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;$ref&quot;</span><span class="p">)})</span>
 
@@ -971,7 +985,7 @@ For deserialization, if there is <a href="#multiple-deserializers">several possi
 <h2 id="generic-conversions">Generic conversions<a class="headerlink" href="#generic-conversions" title="Permanent link">&para;</a></h2>
 <p><code>Generic</code> conversions are supported out of the box. However, keep in mind that serialization doesn't use type model, so they will not be used in serialization, but will be used on the other hand in serialization schema generation.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">TypeVar</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">TypeVar</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
@@ -1004,7 +1018,7 @@ For deserialization, if there is <a href="#multiple-deserializers">several possi
 <span class="n">deserializer</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Wrapper</span><span class="p">[</span><span class="n">U</span><span class="p">])</span>
 
 
-<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">wrapped</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">wrapped</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="s2">&quot;wrapped&quot;</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">(</span><span class="s2">&quot;wrapped&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;wrapped&quot;</span>
