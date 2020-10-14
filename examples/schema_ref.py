@@ -1,10 +1,11 @@
+from collections.abc import Set
 from dataclasses import dataclass
-from typing import AbstractSet, NewType
+from typing import NewType
 
 from apischema import schema_ref
 from apischema.json_schema import deserialization_schema
 
-Tags = NewType("Tags", AbstractSet[str])
+Tags = NewType("Tags", Set[str])
 schema_ref(...)(Tags)
 
 

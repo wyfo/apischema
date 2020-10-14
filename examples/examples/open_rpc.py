@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Generic, List, TypeVar, Union
+from typing import Any, Generic, TypeVar, Union
 
 from pytest import raises
 from typing_extensions import Annotated
@@ -41,7 +41,7 @@ class Result(Generic[T]):
         return self.result
 
 
-assert deserialization_schema(Result[List[int]]) == {
+assert deserialization_schema(Result[list[int]]) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "additionalProperties": False,
     "maxProperties": 1,

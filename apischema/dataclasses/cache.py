@@ -51,7 +51,7 @@ from apischema.metadata.keys import (
     SKIP_METADATA,
     VALIDATORS_METADATA,
 )
-from apischema.types import AnyType, get_typed_origin
+from apischema.types import AnyType, subscriptable_origin
 from apischema.typing import get_type_hints
 from apischema.utils import PREFIX
 from apischema.validation.validator import VALIDATORS_ATTR, Validator, validate
@@ -189,7 +189,7 @@ def _type_var_substitutions(
         getattr(base, "__origin__", None) is None
         or getattr(other, "__origin__", None) is None
         or len(base.__args__) != len(other.__args__)
-        or not issubclass(get_typed_origin(other), get_typed_origin(base))
+        or not issubclass(other.__origin__, base.__origin__)
     ):
         return
     for base_arg, other_arg in zip(base.__args__, other.__args__):
@@ -204,7 +204,7 @@ def _rec_substitute_type_vars(
     elif getattr(cls, "__origin__", None) is None:
         return cls
     else:
-        return get_typed_origin(cls)[
+        return subscriptable_origin(cls)[
             tuple(_rec_substitute_type_vars(arg, substitutions) for arg in cls.__args__)
         ]
 

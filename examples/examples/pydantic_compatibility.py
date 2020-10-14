@@ -1,4 +1,5 @@
-from typing import Any, Mapping, Optional, Type, TypeVar
+from collections.abc import Mapping
+from typing import Any, Optional, TypeVar
 
 import pydantic
 from pydantic import BaseModel
@@ -24,7 +25,7 @@ Model = TypeVar("Model", bound=pydantic.BaseModel)
 # This could be replaced by overriding `settings.deserialization`
 # (it would not force to assign __init_subclass__ before subclassing
 # but it would add a little overhead and more code)
-def __init_subclass__(cls: Type[Model]):
+def __init_subclass__(cls: type[Model]):
     def deserialize_pydantic(data: Mapping[str, Any]) -> Model:
         try:
             return cls(**data)

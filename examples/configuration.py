@@ -1,6 +1,6 @@
+from collections.abc import Collection
 from dataclasses import dataclass
 from ipaddress import IPv4Address, IPv4Network
-from typing import Collection
 
 from apischema import deserialize
 from apischema.deserialization import unflat_key_value

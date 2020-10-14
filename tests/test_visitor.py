@@ -88,11 +88,31 @@ py37 = [
     (Sized, Visitor.unsupported, [collections.abc.Sized]),
 ]
 
+pep_585: List = []
+if sys.version_info >= (3, 9):
+    pep_585 = [
+        (list[int], Visitor.collection, [list, int]),
+        (tuple[str, ...], Visitor.collection, [tuple, str]),
+        (
+            collections.abc.Collection[int],
+            Visitor.collection,
+            [collections.abc.Collection, int],
+        ),
+        (
+            collections.abc.Mapping[str, int],
+            Visitor.mapping,
+            [collections.abc.Mapping, str, int],
+        ),
+        (dict[str, int], Visitor.mapping, [dict, str, int]),
+        (collections.abc.Sized, Visitor.unsupported, [collections.abc.Sized]),
+    ]
+
 
 @mark.parametrize(
     "cls, method, args",
     [
         *(py37 if sys.version_info >= (3, 7) else py36),
+        *pep_585,
         (Annotated[int, 42, "42"], Visitor.annotated, [int, (42, "42")]),
         (Any, Visitor.any, []),
         (DataclassExample, Visitor.dataclass, [DataclassExample]),

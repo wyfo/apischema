@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Set
 from uuid import UUID, uuid4
 
 from pytest import raises
@@ -14,7 +13,7 @@ from apischema.json_schema import deserialization_schema
 class Resource:
     id: UUID
     name: str
-    tags: Set[str] = field(default_factory=set)
+    tags: set[str] = field(default_factory=set)
 
 
 # Get some data

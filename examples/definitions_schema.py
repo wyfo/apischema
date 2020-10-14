@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 
 from apischema.json_schema import definitions_schema
 
@@ -14,7 +13,7 @@ class Foo:
     bar: Bar
 
 
-assert definitions_schema(deserialization=[List[Foo]], all_refs=True) == {
+assert definitions_schema(deserialization=[list[Foo]], all_refs=True) == {
     "Foo": {
         "type": "object",
         "properties": {"bar": {"$ref": "#/$defs/Bar"}},

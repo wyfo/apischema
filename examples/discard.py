@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import List, Tuple
 
 from pytest import raises
 
@@ -9,8 +8,8 @@ from apischema.fields import fields
 
 @dataclass
 class BoundedValues:
-    bounds: Tuple[int, int] = field()
-    values: List[int]
+    bounds: tuple[int, int] = field()
+    values: list[int]
 
     @validator(discard=bounds)
     def bounds_are_sorted(self):

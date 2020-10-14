@@ -1,5 +1,5 @@
 import sys
-from typing import Generic, List, TypeVar
+from typing import Generic, TypeVar
 
 from pytest import raises
 
@@ -32,7 +32,7 @@ U = TypeVar("U")
 deserializer(Wrapper, U, Wrapper[U])
 
 
-assert deserialize(Wrapper[List[int]], [0, 1]).wrapped == [0, 1]
+assert deserialize(Wrapper[list[int]], [0, 1]).wrapped == [0, 1]
 with raises(ValidationError):
     deserialize(Wrapper[int], "wrapped")
 assert serialize(Wrapper("wrapped")) == "wrapped"

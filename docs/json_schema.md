@@ -123,7 +123,7 @@ However, you may want to have a default value for a field in order to be more co
 ## Additional properties / pattern properties
 
 ### With `Mapping`
-Schema of a `Mapping`/`Dict` type is naturally translated to `"additionalProperties": <schema of the value type>`.
+Schema of a `Mapping`/`dict` type is naturally translated to `"additionalProperties": <schema of the value type>`.
 
 However when the schema of the key has a `pattern`, it will give a `"patternProperties": {<key pattern>: <schema of the value type>}`  
 
@@ -195,7 +195,7 @@ In the previous example, only dataclasses has a `$ref`, but it can be fully cust
 ```
 
 !!! note
-    Actually, there is a small restriction with `NewType`: you cannot put a `schema_ref` if the super type is not a builtin type (`List[...]`/`int`/etc.). 
+    Actually, there is a small restriction with `NewType`: you cannot put a `schema_ref` if the super type is not a builtin type (`list[...]`/`int`/etc.). 
     
     In fact, `NewType` super type serialization could be affected by different conversions and a same `$ref` would embed different schema.
     

@@ -34,9 +34,7 @@ else:  # pragma: no cover
     except ImportError:
         from typing import get_type_hints as _gth
 
-        def gth(  # type: ignore
-            obj, globalns=None, localns=None, include_extras=False
-        ):
+        def gth(obj, globalns=None, localns=None, include_extras=False):  # type: ignore
             return _gth(obj, globalns, localns)
 
     def get_type_hints(  # type: ignore
@@ -61,12 +59,13 @@ else:  # pragma: no cover
         Literal = NO_TYPE
         TypedDict = NO_TYPE
 
-Annotated = Annotated
-Literal = Literal
-TypedDict = TypedDict
+
+class _TypedDictImplem(TypedDict):
+    pass
+
 
 _T = TypeVar("_T")
-_AnnotatedAlias = type(Annotated[_T, ...])
-_GenericAlias = type(Generic[_T])
-_LiteralMeta = type(Literal)
-_TypedDictMeta = type(TypedDict)
+_AnnotatedAlias: Any = type(Annotated[_T, ...])
+_GenericAlias: Any = type(Generic[_T])
+_LiteralMeta: Any = type(Literal)
+_TypedDictMeta: Any = type(_TypedDictImplem)

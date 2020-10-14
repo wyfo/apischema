@@ -1,5 +1,5 @@
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Mapping
 
 from typing_extensions import Annotated
 
@@ -19,9 +19,9 @@ class Config:
     server_options: Mapping[str, bool] = field(
         default_factory=dict, metadata=properties(pattern=r"^server_")
     )
-    client_options: Mapping[Annotated[str, schema(pattern=r"^client_")], bool] = field(
-        default_factory=dict, metadata=properties(...)
-    )
+    client_options: Mapping[
+        Annotated[str, schema(pattern=r"^client_")], bool  # noqa F722 E501
+    ] = field(default_factory=dict, metadata=properties(...))
     options: Mapping[str, bool] = field(default_factory=dict, metadata=properties)
 
 

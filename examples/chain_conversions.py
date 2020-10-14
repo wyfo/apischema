@@ -1,16 +1,17 @@
-from typing import Any, Dict, Mapping, NewType
+from collections.abc import Mapping
+from typing import Any, NewType
 
 from apischema.conversions import extra_serializer
 
 
-class JsonSchema(Dict[str, Any]):
+class JsonSchema(dict[str, Any]):
     pass
 
 
 JsonSchema7 = NewType("JsonSchema7", Mapping[str, Any])
 
 
-def isolate_ref(schema: Dict[str, Any]):
+def isolate_ref(schema: dict[str, Any]):
     if "$ref" in schema and len(schema) > 1:
         schema.setdefault("allOf", []).append({"$ref": schema.pop("$ref")})
 

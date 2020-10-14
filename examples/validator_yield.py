@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from ipaddress import IPv4Address, IPv4Network
-from typing import List
 
 from pytest import raises
 
@@ -11,7 +10,7 @@ from apischema.fields import fields
 @dataclass
 class SubnetIps:
     subnet: IPv4Network
-    ips: List[IPv4Address]
+    ips: list[IPv4Address]
 
     @validator
     def check_ips_in_subnet(self):

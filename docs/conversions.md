@@ -12,7 +12,7 @@ In fact, you can even add support of other "rival" libraries like *Pydantic* (se
 
 An *Apischema* conversion is composed of a source type, let's call it `Source`, a target type `Target` and a function of signature `(Source) -> Target`.
 
-When a type (actually, a non-builtin type, so not `int`/`List[str]`/etc.) is deserialized, *Apischema* will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then conversion function will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply conversion (normally get the target type).
+When a type (actually, a non-builtin type, so not `int`/`list[str]`/etc.) is deserialized, *Apischema* will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then conversion function will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply conversion (normally get the target type).
 
 Conversions are also handled in schema generation: for a deserialization schema, source schema is used (after merging target schema annotations) while target schema is used (after merging source schema annotations) for a serialization schema.
 
@@ -81,7 +81,7 @@ Conversions can then be selected using the `conversions` parameter of *Apischema
 For deserialization, if there is [several possible source](#multiple-deserializers), `conversions` values can also be a collection of types. It will again result in a `Union` deserialization.
 
 !!! note
-    For `definitions_schema`, conversions can be added with types by using a tuple instead, for example `definitions_schema(serializations=[(List[Foo], {Foo: Bar})])`. 
+    For `definitions_schema`, conversions can be added with types by using a tuple instead, for example `definitions_schema(serializations=[(list[Foo], {Foo: Bar})])`. 
     
 ```python
 {!extra_de_serializer.py!}
@@ -89,7 +89,7 @@ For deserialization, if there is [several possible source](#multiple-deserialize
 
 ### Chain conversions
 
-Conversions mapping put in `conversions` parameter is not used in all the deserialization/serialization. In fact it is "reset" as soon as a non-builtin type (so, not `int`/`List[int]`/`NewType` instances/etc.) is encountered. Not having this reset would completely break the possibility to have `$ref` in generated schema, because a `conversions` could then change the serialization of a field of a dataclass in one particular schema but not in another (and bye-bye *OpenAPI* components schema).
+Conversions mapping put in `conversions` parameter is not used in all the deserialization/serialization. In fact it is "reset" as soon as a non-builtin type (so, not `int`/`list[int]`/`NewType` instances/etc.) is encountered. Not having this reset would completely break the possibility to have `$ref` in generated schema, because a `conversions` could then change the serialization of a field of a dataclass in one particular schema but not in another (and bye-bye *OpenAPI* components schema).
 
 But everything is not lost. Let's illustrate with an example. As previously mentioned, *Apischema* uses its own feature internally at several places. One of them is schema generation. JSON schema is generated using an internal `JsonSchema` type, and is then serialized; the JSON schema version selection result in fact in a conversion that is selected according to the version (by `JsonSchemaVersion.conversions` property). However, JSON schema is recursive and the serialization of `JsonSchema` returns a dictionary which can contain other `JsonSchema` ... but it has been written above that `conversions` is reset.
 

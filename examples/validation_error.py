@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, NewType
+from typing import NewType
 
 from pytest import raises
 
@@ -12,7 +12,7 @@ schema(min_len=3, pattern=r"^\w*$", examples=["available", "EMEA"])(Tag)
 @dataclass
 class Resource:
     id: int
-    tags: List[Tag] = field(
+    tags: list[Tag] = field(
         default_factory=list,
         metadata=schema(
             description="regroup multiple resources", max_items=3, unique=True

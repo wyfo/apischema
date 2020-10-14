@@ -12,7 +12,7 @@ from typing import (
     cast,
 )
 
-from apischema.types import AnyType, get_typed_origin
+from apischema.types import AnyType, subscriptable_origin
 from apischema.typing import get_type_hints
 from apischema.utils import type_name
 from apischema.visitor import Visitor
@@ -80,16 +80,16 @@ def substitute_type_vars(base: Cls, other: Other) -> Tuple[Cls, Other]:
             f"Generic conversion doesn't support partial specialization,"
             f" aka {type_name(base)}[{','.join(map(type_name, base.__args__))}]"
         )
-    substitution = dict(zip(base.__args__, get_typed_origin(base).__parameters__))
+    substitution = dict(zip(base.__args__, subscriptable_origin(base).__parameters__))
     if isinstance(other, TypeVar):  # type: ignore
         new_other = substitution.get(other, other)
     elif getattr(other, "__origin__", None) is not None:
-        new_other = get_typed_origin(other)[
+        new_other = subscriptable_origin(other)[
             tuple(substitution.get(arg, arg) for arg in other.__args__)
         ]
     else:
         new_other = other
-    return cast(Tuple[Cls, Other], (get_typed_origin(base), new_other))
+    return cast(Tuple[Cls, Other], (subscriptable_origin(base), new_other))
 
 
 class ConvertibleVisitor(Visitor):

@@ -1,5 +1,5 @@
+from collections.abc import Set
 from dataclasses import dataclass, field
-from typing import AbstractSet
 from uuid import UUID, uuid4
 
 from pytest import raises
@@ -10,7 +10,7 @@ from apischema import ValidationError, check_types, schema, serialize
 @dataclass
 class Resource:
     id: UUID
-    tags: AbstractSet[str] = field(metadata=schema(max_items=3))
+    tags: Set[str] = field(metadata=schema(max_items=3))
 
 
 check_types(Resource, Resource(uuid4(), {"tag"}))  # no error

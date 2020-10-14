@@ -1,4 +1,4 @@
-from typing import Type, TypeVar, cast
+from typing import TypeVar, cast
 
 from pytest import raises
 
@@ -7,7 +7,7 @@ from apischema import ValidationError, deserialize
 T = TypeVar("T")
 
 
-def coerce(cls: Type[T], data) -> T:
+def coerce(cls: type[T], data) -> T:
     """Only coerce int to bool"""
     if cls is bool and isinstance(data, int):
         return cast(T, bool(data))

@@ -5,7 +5,9 @@
 By the way, it's done in an additive way, meaning that it doesn't affect your types.
 
 ### PEP 585
-With Python 3.9 and [PEP 585](https://www.python.org/dev/peps/pep-0585/), typing is substantially shaken up. Because *Apischema* must be up-to-date with modern Python, support of Python 3.9 covers PEP 585. But because 3.9 is not yet released and far from being widely adopted, the following documentation will use old fashioned Python typing with `typing` module.
+With Python 3.9 and [PEP 585](https://www.python.org/dev/peps/pep-0585/), typing is substantially shaken up; all collection types of `typing` module are now deprecated.
+
+Apischema fully support 3.9 and PEP 585, as shown in the different examples.
 
 ## Dataclasses
 
@@ -41,23 +43,26 @@ They correspond to JSON primitive types.
 
 #### Collection
 
-- `typing.Collection`
-- `typing.Sequence`
-- `typing.Tuple`
-- `typing.MutableSequence`
-- `typing.List`
-- `typing.AbstractSet`
-- `typing.FrozenSet`
-- `typing.Set`
+- `collection.abc.Collection` (*`typing.Collection`*)
+- `collection.abc.Sequence` (*`typing.Sequence`*)
+- `tuple` (*`typing.Tuple`*)
+- `collection.abc.MutableSequence` (*`typing.MutableSequence`*)
+- `list` (*`typing.List`*)
+- `collection.abc.Set` (*`typing.AbstractSet`*)
+- `collection.abc.MutableSet` (*`typing.MutableSet`*)
+- `frozenset` (*`typing.FrozenSet`*)
+- `set` (*`typing.Set`*)
 
 They correspond to JSON *array* and are serialized to `list`.
 
-Some of them are abstract; deserialization will instantiate a concrete child class. For example `typing.Sequence` will be instantiated with `tuple` while `typing.MutableSequence` will be instantiated with `list`.
+Some of them are abstract; deserialization will instantiate a concrete child class. For example `collection.abc.Sequence` will be instantiated with `tuple` while `collection.MutableSequence` will be instantiated with `list`.
 
 
 #### Mapping
 
-`typing.Mapping`, `typing.MutableMapping`, `typing.Dict`.
+- `collection.abc.Mapping` (*`typing.Mapping`*)
+- `collection.abc.MutableMapping` (*`typing.MutableMapping`*)
+- `dict` (*`typing.Dict`*)
 
 They correpond to JSON *object* and are serialized to `dict`.
 
@@ -73,9 +78,9 @@ For `Enum`, this is the value and not the attribute name that is serialized
 
 : Deserialization select the first matching alternative (see below how to [skip some union member](#skip-union-member))
 
-- `typing.Tuple`
+- `tuple` (*`typing.Tuple`*)
 
-: Can be used as collection as well as true Tuple, like `Tuple[str, int]`
+: Can be used as collection as well as true tuple, like `tuple[str, int]`
 
 - `typing.NewType`
 
@@ -112,7 +117,7 @@ For `Enum`, this is the value and not the attribute name that is serialized
 - `ipaddress.IPv6Interface`
 - `ipaddress.IPv6Network`
 - `pathlib.Path`
-- `typing.Pattern`/`re.Pattern`
+- `re.Pattern` (*`typing.Pattern`*)
 - `uuid.UUID`
 
 : With `str` (de)serialization

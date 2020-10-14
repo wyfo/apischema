@@ -7,7 +7,12 @@ from pytest import raises
 from apischema import ValidationError, validator
 from apischema.fields import fields
 from apischema.validation.mock import NonTrivialDependency, ValidatorMock
-from apischema.validation.validator import Validator, get_validators, validate, validators
+from apischema.validation.validator import (
+    Validator,
+    get_validators,
+    validate,
+    validators,
+)
 
 
 @dataclass

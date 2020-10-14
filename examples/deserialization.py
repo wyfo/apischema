@@ -1,5 +1,6 @@
+from collections.abc import Collection, Mapping
 from dataclasses import dataclass
-from typing import Collection, Mapping, NewType
+from typing import NewType
 
 from apischema import deserialize
 

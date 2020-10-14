@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Optional
 
 from apischema import alias, deserialize, serialize
 from apischema.fields import with_fields_set
@@ -20,7 +20,7 @@ class JsonSchema:
 @dataclass
 class RootJsonSchema:
     schema: Optional[str] = field(default=None, metadata=alias("$schema"))
-    defs: List[JsonSchema] = field(default_factory=list, metadata=alias("$defs"))
+    defs: list[JsonSchema] = field(default_factory=list, metadata=alias("$defs"))
     json_schema: JsonSchema = field(default=JsonSchema(), metadata=merged)
 
 

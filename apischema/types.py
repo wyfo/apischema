@@ -12,6 +12,7 @@ from typing import (
     Mapping,
     MutableMapping,
     MutableSequence,
+    MutableSet,
     Pattern,
     Sequence,
     Set,
@@ -59,6 +60,7 @@ else:  # pragma: no cover
         List: list,
         AbstractSet: frozenset,
         FrozenSet: frozenset,
+        MutableSet: set,
         Set: set,
     }
     MAPPING_TYPES = {Mapping: MappingProxyType, MutableMapping: dict, Dict: dict}
@@ -67,8 +69,8 @@ else:  # pragma: no cover
     DICT_TYPE = Dict
 
 
-if sys.version_info >= (3, 7):  # pragma: no cover
-    TYPED_ORIGINS = {
+if (3, 7) <= sys.version_info < (3, 9):  # pragma: no cover
+    SUBSCRIPTABLE_ORIGIN = {
         tuple: Tuple,
         list: List,
         frozenset: AbstractSet,
@@ -84,13 +86,13 @@ if sys.version_info >= (3, 7):  # pragma: no cover
         re.Pattern: Pattern,
     }
 
-    def get_typed_origin(cls: AnyType) -> Type:  # type: ignore
-        return TYPED_ORIGINS.get(cls.__origin__, cls.__origin__)  # type: ignore
+    def subscriptable_origin(cls: AnyType) -> Type:  # type: ignore
+        return SUBSCRIPTABLE_ORIGIN.get(cls.__origin__, cls.__origin__)  # type: ignore
 
 
 else:  # pragma: no cover
 
-    def get_typed_origin(cls: AnyType) -> Type:  # type: ignore
+    def subscriptable_origin(cls: AnyType) -> Type:  # type: ignore
         return cls.__origin__  # type: ignore
 
 
@@ -99,20 +101,25 @@ if sys.version_info >= (3, 7):  # pragma: no cover
 else:  # pragma: no cover
     from collections import OrderedDict  # noqa
 
+
+class MetadataUnion(Mapping[str, Any]):
+    def __or__(self, other: Mapping[str, Any]) -> "Metadata":
+        return MappingWithUnion({**self, **other})
+
+    def __ror__(self, other: Mapping[str, Any]) -> "Metadata":
+        return MappingWithUnion({**other, **self})
+
+
 # Kind of hack to benefit of PEP 584
 if sys.version_info >= (3, 9):  # pragma: no cover
     Metadata = Mapping[str, Any]
 else:  # pragma: no cover
-
-    class Metadata(Mapping[str, Any]):
-        def __or__(self, other: Mapping[str, Any]) -> "Metadata":
-            return MappingWithUnion({**self, **other})
-
-        def __ror__(self, other: Mapping[str, Any]) -> "Metadata":
-            return MappingWithUnion({**other, **self})
+    Metadata = MetadataUnion
 
 
-class MetadataMixin(Metadata):
+class MetadataMixin(MetadataUnion):
+    _key: str
+
     def __init__(self, key: str):
         super().__setattr__("_key", key)
 
@@ -128,11 +135,11 @@ class MetadataMixin(Metadata):
         return 1
 
 
-if sys.version_info >= (3, 9):
+if sys.version_info >= (3, 9):  # pragma: no cover
     MappingWithUnion = MappingProxyType
-else:
+else:  # pragma: no cover
 
-    class MappingWithUnion(dict, Metadata):
+    class MappingWithUnion(dict, MetadataUnion):
         pass
 
 
