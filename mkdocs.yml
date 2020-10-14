@@ -23,7 +23,7 @@ nav:
   - examples/pydantic_compatibility.md
   - examples/recoverable_fields.md
 - benchmark.md
-- changelog.md
+- Releases: https://github.com/wyfo/apischema/releases
 
 
 markdown_extensions:
