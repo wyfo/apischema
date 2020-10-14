@@ -1,0 +1,6 @@
+dataclasses==0.7;python_version<'3.7'
+pydantic
+pytest
+pytest-cov
+sqlalchemy
+typing_extensions

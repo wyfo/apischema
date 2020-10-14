@@ -17,9 +17,6 @@ setup(
     long_description_content_type="text/markdown",
     python_requires=">=3.6",
     install_requires=["dataclasses==0.7;python_version<'3.7'"],
-    extras_require={
-        "test": ["typing_extensions", "tox", "pytest", "sqlalchemy", "pydantic"]
-    },
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
