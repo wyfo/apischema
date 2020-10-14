@@ -1,4 +1,4 @@
-# (De)serialization: the basics
+# (De)serialization
 
 *Apischema* aims to help API with deserialization/serialization of data, mostly JSON.
 

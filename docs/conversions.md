@@ -1,4 +1,4 @@
-# (De)serialization: Customize with conversions
+# Conversions – (de)serialization customization
 
 *Apischema* covers majority of standard data types, but it's of course not enough, that's why it gives you the way to add support for all your classes and the libraries you use.
 
