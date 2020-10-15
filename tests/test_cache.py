@@ -34,4 +34,4 @@ class D(Generic[T]):
 
 
 def test_merged_aliases():
-    assert _deserialization_merged_aliases(A) == {"a", "g", "h", "i", "e"}
+    assert _deserialization_merged_aliases(A, "") == {"a", "g", "h", "i", "e"}

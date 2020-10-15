@@ -390,9 +390,13 @@ def _serialization(
     )
 
 
-def _deserialization_merged_aliases(cls: Type) -> AbstractSet[str]:
+def _deserialization_merged_aliases(cls: Type, field_name: str) -> AbstractSet[str]:
     """Return all aliases used in cls deserialization."""
     cls = getattr(cls, "__origin__", None) or cls
+    if not dataclasses.is_dataclass(cls):
+        raise TypeError(
+            f"{cls.__name__}.{field_name}: Merged field must have a dataclass type"
+        )
     types = get_type_hints(cls, include_extras=True)
     result: Set[str] = set()
     for field in fields_items(cls).values():
@@ -401,7 +405,7 @@ def _deserialization_merged_aliases(cls: Type) -> AbstractSet[str]:
         if MERGED_METADATA in field.metadata:
             # No need to check overlapping here because it will be checked
             # when merged dataclass will be cached
-            result |= _deserialization_merged_aliases(types[field.name])
+            result |= _deserialization_merged_aliases(types[field.name], field.name)
         elif PROPERTIES_METADATA in field.metadata:
             raise TypeError("Merged dataclass cannot have properties field")
         else:
@@ -530,11 +534,7 @@ def cache_fields(cls: Type):
         if MERGED_METADATA in metadata:
             if any(key in metadata for key in INCOMPATIBLE_WITH_MERGED):
                 raise TypeError(f"{error_prefix}Incompatible metadata with merged")
-            if not dataclasses.is_dataclass(field_type):
-                raise TypeError(
-                    f"{error_prefix}Merged field must have a dataclass type"
-                )
-            merged_aliases = _deserialization_merged_aliases(field_type)
+            merged_aliases = _deserialization_merged_aliases(field_type, field.name)
             lists.merged.append((merged_aliases, new_field))
         elif PROPERTIES_METADATA in metadata:
             if any(key in metadata for key in INCOMPATIBLE_WITH_PROPERTIES):
