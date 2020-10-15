@@ -5,6 +5,7 @@ from dataclasses import (  # type: ignore
     _FIELDS,
     _FIELD_INITVAR,
     fields as fields_,
+    is_dataclass,
 )
 from functools import wraps
 from inspect import signature
@@ -20,7 +21,6 @@ from typing import (
     overload,
 )
 
-from apischema.dataclasses import is_dataclass, is_dataclass_origin
 from apischema.utils import PREFIX
 
 FIELDS_SET_ATTR = f"{PREFIX}fields_set"
@@ -41,7 +41,7 @@ def with_fields_set(cls: Cls) -> Cls:
 
     init_fields = set()
     post_init_fields = set()
-    if is_dataclass_origin(cls):
+    if is_dataclass(cls):
         for field in getattr(cls, _FIELDS).values():
             assert isinstance(field, Field)
             if field._field_type == _FIELD_INITVAR:  # type: ignore
