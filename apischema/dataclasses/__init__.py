@@ -8,7 +8,7 @@ from dataclasses import (  # type: ignore
 )
 from typing import Mapping, Type, TypeVar
 
-if sys.version_info <= (3, 7):
+if sys.version_info <= (3, 7):  # pragma: no cover
     is_dataclass_ = is_dataclass
 
     def is_dataclass(obj) -> bool:
