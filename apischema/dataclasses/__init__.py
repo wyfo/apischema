@@ -15,6 +15,10 @@ if sys.version_info <= (3, 7):  # pragma: no cover
         return is_dataclass_(obj) and getattr(obj, "__origin__", None) is None
 
 
+def is_dataclass_origin(cls: Type) -> bool:
+    return is_dataclass(getattr(cls, "__origin__", cls))
+
+
 T = TypeVar("T")
 
 

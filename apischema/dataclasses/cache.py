@@ -34,7 +34,7 @@ from apischema.conversions.visitor import (
     Deserialization,
     Serialization,
 )
-from apischema.dataclasses import fields_items
+from apischema.dataclasses import fields_items, is_dataclass_origin
 from apischema.dependencies import DependentRequired
 from apischema.metadata.keys import (
     ALIAS_METADATA,
@@ -530,7 +530,7 @@ def cache_fields(cls: Type):
         if MERGED_METADATA in metadata:
             if any(key in metadata for key in INCOMPATIBLE_WITH_MERGED):
                 raise TypeError(f"{error_prefix}Incompatible metadata with merged")
-            if not dataclasses.is_dataclass(field_type):
+            if not is_dataclass_origin(field_type):
                 raise TypeError(
                     f"{error_prefix}Merged field must have a dataclass type"
                 )

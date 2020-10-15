@@ -5,7 +5,7 @@ from typing import Callable, Mapping, Optional, Type, TypeVar, overload
 
 from apischema.conversions.raw import to_raw_deserializer
 from apischema.conversions.utils import Conversions, Converter
-from apischema.dataclasses import is_dataclass
+from apischema.dataclasses import is_dataclass_origin
 from apischema.types import AnyType, Metadata, MetadataMixin
 
 Cls = TypeVar("Cls", bound=Type)
@@ -26,7 +26,7 @@ class ConversionsMetadata(MetadataMixin):
     def __call__(self, dataclass: Cls) -> Cls:
         from apischema.metadata.keys import CONVERSIONS_METADATA, MERGED_METADATA
 
-        if not is_dataclass(dataclass):
+        if not is_dataclass_origin(dataclass):
             raise TypeError("Must be applied to dataclass")
         for conv in (self.deserialization, self.serialization):
             if conv is not None and not isinstance(conv, Mapping):
