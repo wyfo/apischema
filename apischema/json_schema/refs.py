@@ -27,7 +27,7 @@ _refs: Dict[AnyType, Optional[Ref]] = {}
 
 
 def _default_ref(cls: AnyType) -> Ref:
-    if (
+    if not hasattr(cls, "__parameters__") and (
         is_dataclass(cls)
         or hasattr(cls, "__supertype__")
         or isinstance(cls, _TypedDictMeta)
@@ -59,13 +59,21 @@ class schema_ref:
             raise ValueError("Empty schema ref not allowed")
 
     def check_type(self, cls: AnyType):
-        """Check if the given type can have a ref
-
-        NewType of non-builtin types cannot have a ref because their serialization
-        could be customized, but the NewType ref would then erase this customization
-        in the schema"""
         if hasattr(cls, "__supertype__") and not is_builtin(cls):
+            # NewType of non-builtin types cannot have a ref because their serialization
+            # could be customized, but the NewType ref would then erase this
+            # customization in the schema.
             raise TypeError("NewType of non-builtin type can not have a ref")
+        if hasattr(cls, "__parameters__") and (
+            not hasattr(cls, "__origin__")
+            or any(
+                isinstance(arg, TypeVar)  # type: ignore
+                for arg in getattr(cls, "__args__", ())
+            )
+        ):
+            raise TypeError("Unspecialized generic types cannot have a ref")
+        if hasattr(cls, "__origin__") and self.ref is ...:
+            raise TypeError(f"Generic alias {cls} cannot have ... ref")
 
     def __call__(self, cls: T) -> T:
         self.check_type(cls)
