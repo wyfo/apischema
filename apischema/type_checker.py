@@ -20,8 +20,9 @@ from typing import (
 
 from apischema.dataclasses.cache import get_aggregate_serialization_fields
 from apischema.fields import fields_set
-from apischema.json_schema.constraints import get_constraints
-from apischema.types import AnyType
+from apischema.json_schema.constraints import ArrayConstraints, get_constraints
+from apischema.json_schema.schema import Schema
+from apischema.types import AnyType, Skip, Skipped
 from apischema.typing import get_type_hints
 from apischema.utils import type_name
 from apischema.validation import get_validators, validate
@@ -61,9 +62,23 @@ def catcher() -> Iterator[Callable[[ErrorKey], ContextManager]]:
 
 
 class TypeChecker(Visitor[Any, Any]):
-    def __init__(self, validate: bool):
+    def __init__(self, validation: bool):
         super().__init__()
-        self.validate = validate
+        self.validation = validation
+
+    def annotated(self, cls: AnyType, annotations: Sequence[Any], obj):
+        for annotation in reversed(annotations):
+            if annotation is Skip:
+                raise Skipped()
+        self.visit(cls, obj)
+        if self.validation:
+            for annotation in reversed(annotations):
+                if (
+                    isinstance(annotation, Schema)
+                    and annotation.constraints is not None
+                    and isinstance(obj, annotation.constraints.valid_types)
+                ):
+                    annotation.constraints.validate(obj)
 
     def any(self, obj):
         pass
@@ -92,8 +107,10 @@ class TypeChecker(Visitor[Any, Any]):
             try:
                 attr = getattr(obj, field.name)
                 self.visit(types[field.name], attr)
-                if self.validate:
-                    if attr is not None and field.constraints is not None:
+                if self.validation:
+                    if field.constraints is not None and isinstance(
+                        attr, field.constraints.valid_types
+                    ):
                         field.constraints.validate(attr)
                     if field.validators:
                         validate(attr, field.validators)
@@ -101,10 +118,8 @@ class TypeChecker(Visitor[Any, Any]):
                 errors[field.name] = err
         if errors:
             raise ValidationError(children=errors)
-        constraints = get_constraints(cls)
-        if constraints is not None:
-            constraints.validate(obj)
-        validate(obj, [v for v in get_validators(cls) if not v.params])
+        if self.validation:
+            validate(obj, [v for v in get_validators(cls) if not v.params])
 
     def enum(self, cls: Type[Enum], obj):
         check_type(obj, cls)
@@ -144,27 +159,30 @@ class TypeChecker(Visitor[Any, Any]):
                 errors[field] = err
         if errors:
             raise ValidationError(children=errors)
-        constraints = get_constraints(cls)
-        if constraints is not None:
-            constraints.validate(obj)
-        validate(obj)
+        if self.validation:
+            validate(obj)
+
+    def new_type(self, cls: AnyType, super_type: AnyType, obj):
+        self.visit(super_type, obj)
+        if self.validation:
+            constraints = get_constraints(cls)
+            if constraints is not None and isinstance(obj, constraints.valid_types):
+                constraints.validate(obj)
 
     def primitive(self, cls: Type, obj):
         check_type(obj, cls)
 
     def subprimitive(self, cls: Type, superclass: Type, obj):
         check_type(obj, cls)
-        constraints = get_constraints(cls)
-        if constraints is not None:
-            constraints.validate(obj)
-        validate(obj)
+        if self.validation:
+            constraints = get_constraints(cls)
+            if constraints is not None:
+                constraints.validate(obj)
+            validate(obj)
 
     def tuple(self, types: Sequence[AnyType], obj):
         check_type(obj, tuple)
-        if len(obj) != len(types):
-            raise ValidationError(
-                [f"expected tuple of length {len(types)}, found {len(obj)}"]
-            )
+        ArrayConstraints(min_items=len(types), max_items=len(types)).validate(obj)
         errors: Dict[ErrorKey, ValidationError] = {}
         for (i, type_), elt in zip(enumerate(types), obj):
             try:
@@ -187,10 +205,11 @@ class TypeChecker(Visitor[Any, Any]):
                 errors[key] = ValidationError("missing property")
         if errors:
             raise ValidationError(children=errors)
-        constraints = get_constraints(cls)
-        if constraints is not None:
-            constraints.validate(obj)
-        validate(obj, get_validators(cls))
+        if self.validation:
+            constraints = get_constraints(cls)
+            if constraints is not None:
+                constraints.validate(obj)
+            validate(obj, get_validators(cls))
 
     def union(self, alternatives: Sequence[AnyType], obj):
         error: Optional[ValidationError] = None
@@ -202,12 +221,12 @@ class TypeChecker(Visitor[Any, Any]):
         raise error if error is not None else RuntimeError("Empty union")
 
     def unsupported(self, cls: AnyType, obj):
-        check_type(obj, cls)
+        check_type(obj, getattr(cls, "__origin__", None) or cls)
 
 
 T = TypeVar("T")
 
 
-def check_types(cls: AnyType, obj: T, *, validate: bool = False) -> T:
+def check_types(cls: AnyType, obj: T, *, validate: bool = True) -> T:
     TypeChecker(validate).visit(cls, obj)
     return obj

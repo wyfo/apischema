@@ -21,9 +21,9 @@ assert serialize(err.value) == [
     {"loc": ["tags", 0], "err": ["expected str, found type int"]},
 ]
 too_many_tags = Resource(uuid4(), {"0", "1", "2", "3"})
-assert check_types(Resource, too_many_tags)  # No error because no validation
+assert check_types(Resource, too_many_tags, validate=False)  # just type checking
 with raises(ValidationError) as err:
-    check_types(Resource, too_many_tags, validate=True)  # type: ignore
+    check_types(Resource, too_many_tags)
 assert serialize(err.value) == [
     {"loc": ["tags"], "err": ["size greater than 3 (maxItems)"]}
 ]
