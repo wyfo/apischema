@@ -15,8 +15,6 @@ from typing import (
 )
 
 from apischema.dataclasses import is_dataclass
-from apischema.json_schema.annotations import get_annotations
-from apischema.json_schema.constraints import get_constraints
 from apischema.types import AnyType
 from apischema.typing import _TypedDictMeta
 from apischema.utils import type_name
@@ -29,10 +27,8 @@ _refs: Dict[AnyType, Optional[Ref]] = {}
 def _default_ref(cls: AnyType) -> Ref:
     if not hasattr(cls, "__parameters__") and (
         is_dataclass(cls)
-        or hasattr(cls, "__supertype__")
+        or (hasattr(cls, "__supertype__") and is_builtin(cls))
         or isinstance(cls, _TypedDictMeta)
-        or get_annotations(cls) is not None
-        or get_constraints(cls) is not None
     ):
         return ...
     else:
