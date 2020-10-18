@@ -29,6 +29,6 @@ assert serialize(err.value) == [
         "loc": ["tags"],
         "err": ["size greater than 3 (maxItems)", "duplicate items (uniqueItems)"],
     },
-    {"loc": ["tags", 3], "err": ["unmatched pattern '^\\w*$'"]},
+    {"loc": ["tags", 3], "err": ["'^\\w*$' not matched (pattern)"]},
     {"loc": ["tags", 4], "err": ["length less than 3 (minLength)"]},
 ]

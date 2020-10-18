@@ -1,14 +1,14 @@
+import operator
 import re
-from dataclasses import InitVar, dataclass, field, fields
+from dataclasses import dataclass, field, fields
 from math import gcd
-from operator import or_
 from typing import (
     Any,
     Callable,
     ClassVar,
     Collection,
     Dict,
-    Iterator,
+    List,
     Mapping,
     Optional,
     Pattern,
@@ -19,16 +19,30 @@ from typing import (
 )
 
 from apischema.types import Number
-from apischema.utils import to_hashable
+from apischema.utils import to_camel_case, to_hashable
 from apischema.validation.errors import ValidationError
 
+VALIDATION_METADATA = "validation"
+MODIFIER_METADATA = "modifier"
 MERGE_METADATA = "merge"
 
 T = TypeVar("T")
 
 
-def merge(operation: Callable[[Any, Any], Any], *, init=True) -> Optional[Any]:
-    return field(default=None, init=init, metadata={MERGE_METADATA: operation})
+def comparison_field(comparison: Callable):
+    by_comp = {
+        operator.lt: (max, "less than"),
+        operator.le: (max, "less than or equal to"),
+        operator.gt: (min, "greater than"),
+        operator.ge: (min, "greater than or equal to"),
+    }
+    merge, err = by_comp[comparison]
+    metadata = {
+        VALIDATION_METADATA: (comparison, err + " {}"),
+        MODIFIER_METADATA: ...,
+        MERGE_METADATA: merge,
+    }
+    return field(default=None, metadata=metadata)
 
 
 _Constraints = TypeVar("_Constraints", bound="Constraints")
@@ -36,41 +50,58 @@ _Constraints = TypeVar("_Constraints", bound="Constraints")
 
 @dataclass(frozen=True)
 class Constraints:
-    valid_types: ClassVar[Union[Type, Tuple[Type, ...]]] = object
-    _cache: ClassVar[Dict["Constraints", "Constraints"]]
+    valid_types: ClassVar[Union[Type, Tuple[Type, ...]]]
+    collection_prefix: ClassVar[Optional[str]] = None
 
-    def _validate(self, data) -> Iterator[str]:
-        yield from ()
+    def __post_init__(self):
+        checks: List[Tuple[Any, Callable, Callable, str]] = []
+        for f in fields(self):
+            attr = getattr(self, f.name)
+            if attr is None:
+                continue
+            comp, err = f.metadata[VALIDATION_METADATA]
+            error = err.format(attr) + f" ({to_camel_case(f.name)})"
+            modif = f.metadata.get(MODIFIER_METADATA)
+            if modif is ...:
+                if self.collection_prefix is not None:
+                    error = f"{self.collection_prefix} {error}"
+                    modif = len
+                else:
+                    modif = None
+            if modif is None:
+                modif = lambda x: x  # noqa E731
+            checks.append((attr, comp, modif, error))
 
-    def validate(self, data: T) -> T:
-        errors = list(self._validate(data))
+        def validation_errors(data: Any) -> List[str]:
+            assert isinstance(data, self.valid_types)
+            return [err for attr, comp, modif, err in checks if comp(modif(data), attr)]
+
+        object.__setattr__(self, self.validation_errors.__name__, validation_errors)
+
+    def validate(self, data: Any):
+        errors = self.validation_errors(data)
         if errors:
             raise ValidationError(errors)
-        return data
+
+    def validation_errors(self, data: Any) -> List[str]:
+        raise NotImplementedError()  # initialized in __post_init__
 
     def merge(self: _Constraints, other: Optional[_Constraints]) -> _Constraints:
         if other is None:
             return self
-        try:
-            return self._cache[other]  # type: ignore
-        except (KeyError, AttributeError):
-            if type(other) != type(self):
-                raise TypeError("Incompatible constraints types")
-            constraints: Dict[str, Any] = {}
-            for field_ in fields(self):
-                if getattr(self, field_.name) is None:
-                    constraints[field_.name] = getattr(other, field_.name)
-                elif getattr(other, field_.name) is None:
-                    constraints[field_.name] = getattr(self, field_.name)
-                else:
-                    constraints[field_.name] = field_.metadata[MERGE_METADATA](
-                        getattr(self, field_.name), getattr(other, field_.name)
-                    )
-            result = type(self)(**constraints)  # type: ignore
-            if not hasattr(self, "_cache"):
-                super().__setattr__("_cache", {})
-            self._cache[other] = result
-            return result
+        if type(other) != type(self):
+            raise TypeError("Incompatible constraints types")
+        constraints: Dict[str, Any] = {}
+        for field_ in fields(self):
+            if getattr(self, field_.name) is None:
+                constraints[field_.name] = getattr(other, field_.name)
+            elif getattr(other, field_.name) is None:
+                constraints[field_.name] = getattr(self, field_.name)
+            else:
+                constraints[field_.name] = field_.metadata[MERGE_METADATA](
+                    getattr(self, field_.name), getattr(other, field_.name)
+                )
+        return type(self)(**constraints)  # type: ignore
 
 
 _constraints: Dict[Any, Constraints] = {}
@@ -83,80 +114,67 @@ Cls = TypeVar("Cls", bound=type)
 @dataclass(frozen=True)
 class NumberConstraints(Constraints):
     valid_types = (int, float)
-    minimum: Optional[Number] = merge(max)
-    maximum: Optional[Number] = merge(min)
-    exclusive_minimum: Optional[Number] = merge(min)
-    exclusive_maximum: Optional[Number] = merge(max)
-    multiple_of: Optional[Number] = merge(lambda m1, m2: m1 * m2 / gcd(m1, m2))
-
-    def _validate(self, data: Any) -> Iterator[str]:
-        assert isinstance(data, self.valid_types)
-        if self.minimum is not None and data < self.minimum:
-            yield f"less than {self.minimum} (minimum)"
-        if self.maximum is not None and data > self.maximum:
-            yield f"greater than {self.maximum} (maximum)"
-        if self.exclusive_minimum is not None and data <= self.exclusive_minimum:
-            yield f"less than or equal to {self.exclusive_minimum} (exclusiveMinimum)"
-        if self.exclusive_maximum is not None and data >= self.exclusive_maximum:
-            yield f"greater than or equal to {self.exclusive_maximum} (exclusiveMaximum)"  # noqa: E501
-        if self.multiple_of is not None and (data % self.multiple_of) != 0:
-            yield f"not a multiple of {self.multiple_of} (multipleOf)"
+    minimum: Optional[Number] = comparison_field(operator.lt)
+    maximum: Optional[Number] = comparison_field(operator.gt)
+    exclusive_minimum: Optional[Number] = comparison_field(operator.le)
+    exclusive_maximum: Optional[Number] = comparison_field(operator.ge)
+    multiple_of: Optional[Number] = field(
+        default=None,
+        metadata={
+            VALIDATION_METADATA: (operator.mod, "not a multiple of {}"),
+            MERGE_METADATA: lambda m1, m2: m1 * m2 / gcd(m1, m2),
+        },
+    )
 
 
 def merge_pattern(p1: Pattern, p2: Pattern) -> Pattern:
     raise TypeError("Cannot merge patterns")
 
 
+class PatternNotMatched(str):
+    def format(self, arg: Pattern) -> str:  # type: ignore
+        return f"'{arg.pattern}' not matched"
+
+
 @dataclass(frozen=True)
 class StringConstraints(Constraints):
     valid_types = str
-    min_length: Optional[int] = merge(max)
-    max_length: Optional[int] = merge(min)
-    pattern: InitVar[Optional[Union[str, Pattern]]] = merge(merge_pattern)
-    _pattern: Optional[Pattern] = field(init=False)
+    collection_prefix = "length"
+    min_length: Optional[int] = comparison_field(operator.lt)
+    max_length: Optional[int] = comparison_field(operator.gt)
+    pattern: Optional[Union[str, Pattern]] = field(
+        default=None,
+        metadata={
+            VALIDATION_METADATA: (lambda d, p: not p.match(d), PatternNotMatched()),
+            MERGE_METADATA: merge_pattern,
+        },
+    )
 
-    def __post_init__(self, pattern: Optional[Union[str, Pattern]]):
-        super().__setattr__(
-            "_pattern", re.compile(pattern) if pattern is not None else None
-        )
-
-    def _validate(self, data: Any) -> Iterator[str]:
-        assert isinstance(data, self.valid_types)
-        if self.min_length is not None and len(data) < self.min_length:
-            yield f"length less than {self.min_length} (minLength)"
-        if self.max_length is not None and len(data) > self.max_length:
-            yield f"length greater than {self.max_length} (maxLength)"
-        if self._pattern is not None and not re.match(self._pattern, data):
-            yield f"unmatched pattern '{self._pattern.pattern}'"
+    def __post_init__(self):
+        if self.pattern is not None:
+            object.__setattr__(self, "pattern", re.compile(self.pattern))
+        super().__post_init__()
 
 
 @dataclass(frozen=True)
 class ArrayConstraints(Constraints):
     valid_types = Collection
-    min_items: Optional[int] = merge(max)
-    max_items: Optional[int] = merge(min)
-    unique_items: Optional[bool] = merge(or_)
-
-    def _validate(self, data: Any) -> Iterator[str]:
-        assert isinstance(data, self.valid_types)
-        if self.min_items is not None and len(data) < self.min_items:
-            yield f"size less than {self.min_items} (minItems)"
-        if self.max_items is not None and len(data) > self.max_items:
-            yield f"size greater than {self.max_items} (maxItems)"
-        if self.unique_items is not None:
-            if len(set(map(to_hashable, data))) != len(data):
-                yield "duplicate items (uniqueItems)"
+    collection_prefix = "size"
+    min_items: Optional[int] = comparison_field(operator.lt)
+    max_items: Optional[int] = comparison_field(operator.gt)
+    unique_items: Optional[bool] = field(
+        default=None,
+        metadata={
+            VALIDATION_METADATA: (operator.ne, "duplicate items"),
+            MODIFIER_METADATA: lambda d: len(set(map(to_hashable, d))) == len(d),
+            MERGE_METADATA: operator.or_,
+        },
+    )
 
 
 @dataclass(frozen=True)
 class ObjectConstraints(Constraints):
     valid_types = Mapping
-    min_properties: Optional[int] = merge(max)
-    max_properties: Optional[int] = merge(min)
-
-    def _validate(self, data: Any) -> Iterator[str]:
-        assert isinstance(data, self.valid_types)
-        if self.min_properties is not None and len(data) < self.min_properties:
-            yield f"size less than {self.min_properties} (minProperties)"
-        if self.max_properties is not None and len(data) > self.max_properties:
-            yield f"size greater than {self.max_properties} (maxProperties)"
+    collection_prefix = "size"
+    min_properties: Optional[int] = comparison_field(operator.lt)
+    max_properties: Optional[int] = comparison_field(operator.gt)

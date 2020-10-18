@@ -6,4 +6,3 @@ def test_merge_constraints():
     c2 = NumberConstraints(minimum=1, maximum=5)
     merged = c1.merge(c2)
     assert merged == NumberConstraints(minimum=1, maximum=5)
-    assert c1.merge(c2) is merged

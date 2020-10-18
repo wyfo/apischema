@@ -71,15 +71,11 @@ def not_one_of(values: Iterable[Any]) -> ValidationError:
 def validate_with_errors(
     data: Any,
     constraints: Optional[Constraints],
-    errors: Mapping[ErrorKey, ValidationError],
+    children_errors: Mapping[ErrorKey, ValidationError],
 ):
-    if constraints is not None:
-        try:
-            constraints.validate(data)
-        except ValidationError as err:
-            raise ValidationError(err.messages, errors)
-    if errors:
-        raise ValidationError(children=errors)
+    errors = constraints.validation_errors(data) if constraints is not None else []
+    if children_errors or errors:
+        raise ValidationError(errors, children_errors)
 
 
 T = TypeVar("T")
@@ -148,6 +144,7 @@ class Deserializer(DeserializationVisitor[DataWithConstraint, Any]):
         values: Dict[str, Any] = {}
         aliases: List[str] = []
         errors: List[ErrorMsg] = []
+        errors = constraints.validation_errors(data) if constraints is not None else []
         field_errors: Dict[ErrorKey, ValidationError] = OrderedDict()
 
         def set_field(field: Field, value: Any, alias: Optional[str] = None):
@@ -209,14 +206,6 @@ class Deserializer(DeserializationVisitor[DataWithConstraint, Any]):
                 set_field(field, {})
             if additional_field is not None:
                 set_field(additional_field, {})
-        error: Optional[ValidationError] = None
-        if field_errors or errors:
-            error = ValidationError(errors, field_errors)
-        if constraints is not None:
-            try:
-                constraints.validate(data)
-            except ValidationError as err:
-                error = merge_errors(error, err)
         init: Dict[str, Any] = {}
         post_init_fields = get_post_init_fields(cls)
         if post_init_fields:
@@ -227,7 +216,8 @@ class Deserializer(DeserializationVisitor[DataWithConstraint, Any]):
                     init[field.name] = get_default(field.base_field)
         # Don't keep validators when all dependencies are default
         validators = [v for v in get_validators(cls) if v.dependencies & values.keys()]
-        if error:
+        if field_errors or errors:
+            error = ValidationError(errors, field_errors)
             invalid_fields = field_errors.keys() | {
                 field.name for field in fields if field.post_init
             }
@@ -359,7 +349,8 @@ class Deserializer(DeserializationVisitor[DataWithConstraint, Any]):
     def tuple(self, types: Sequence[AnyType], data2: DataWithConstraint):
         data, constraints = data2
         data = self.coercer(list, data)
-        ArrayConstraints(min_items=len(types), max_items=len(types)).validate(data)
+        if len(data) != len(types):
+            ArrayConstraints(min_items=len(types), max_items=len(types)).validate(data)
         elts: List[Any] = []
         errors: Dict[ErrorKey, ValidationError] = OrderedDict()
         for i, (cls, elt) in enumerate(zip(types, data)):
