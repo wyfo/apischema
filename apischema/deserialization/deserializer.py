@@ -100,7 +100,7 @@ class Deserializer(DeserializationVisitor[DataWithConstraint, Any]):
         self, cls: AnyType, annotations: Sequence[Any], data2: DataWithConstraint
     ):
         data, constraints = data2
-        validators: Optional[Sequence[Validator]] = None
+        validators: List[Validator] = []
         # Highest schema is the last annotations
         for annotation in reversed(annotations):
             if annotation is Skip:
@@ -111,9 +111,9 @@ class Deserializer(DeserializationVisitor[DataWithConstraint, Any]):
                 else:
                     constraints = constraints.merge(annotation.constraints)
             if isinstance(annotation, ValidatorsMetadata):
-                validators = annotation.validators
+                validators.extend(annotation.validators)
         result = self.visit(cls, (data, constraints))
-        return validate(result, validators) if validators is not None else result
+        return validate(result, validators) if validators else result
 
     def any(self, data2: DataWithConstraint):
         return data2[0]
