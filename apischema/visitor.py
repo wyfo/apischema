@@ -29,8 +29,6 @@ from apischema.types import (
 from apischema.typing import Literal, _AnnotatedAlias, _LiteralMeta, _TypedDictMeta
 from apischema.utils import type_hints_cache
 
-PRIMITIVE_TYPE_IDS = set(map(id, PRIMITIVE_TYPES))
-
 
 class Unsupported(TypeError):
     def __init__(self, cls: Type):
@@ -139,8 +137,7 @@ class Visitor(Generic[Arg, Return]):
         raise Unsupported(cls) from None
 
     def visit(self, cls: AnyType, arg: Arg) -> Return:
-        # Use `id` to avoid useless costly generic types hashing
-        if id(cls) in PRIMITIVE_TYPE_IDS:
+        if cls in PRIMITIVE_TYPES:
             return self.primitive(cls, arg)
         origin = getattr(cls, "__origin__", None)  # because of 3.6
         if origin is not None:
