@@ -3,6 +3,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Iterator,
     Mapping,
     Optional,
     Sequence,
@@ -13,7 +14,7 @@ from typing import (
 )
 
 from apischema.types import AnyType, subscriptable_origin
-from apischema.typing import get_type_hints
+from apischema.typing import Annotated, get_args, get_origin, get_type_hints
 from apischema.utils import type_name
 from apischema.visitor import Visitor
 
@@ -21,16 +22,13 @@ Conversions = Mapping[AnyType, Any]
 Converter = Callable[[Any], Any]
 ConverterWithConversions = Tuple[Converter, Optional[Conversions]]
 
-Param = TypeVar("Param")
-Return = TypeVar("Return")
-
 
 def check_converter(
     converter: Converter,
-    param: Optional[Type[Param]],
-    ret: Optional[Type[Return]],
+    param: Optional[AnyType],
+    ret: Optional[AnyType],
     namespace: Dict[str, Any] = None,
-) -> Tuple[Type[Param], Type[Return]]:
+) -> Tuple[AnyType, AnyType]:
     try:
         parameters = iter(signature(converter).parameters.values())
     except ValueError:  # builtin types
@@ -65,50 +63,84 @@ def check_converter(
                     ret = cast(Type, converter)
                 else:
                     raise TypeError("converter return must be typed")
-    return cast(Type[Param], param), cast(Type[Return], ret)
+    return param, ret
 
 
-Cls = TypeVar("Cls", bound=Type)
-Other = TypeVar("Other", bound=Type)
+TV = AnyType
 
 
-def substitute_type_vars(base: Cls, other: Other) -> Tuple[Cls, Other]:
-    if getattr(base, "__origin__", None) is None:
-        return base, other
-    if not all(isinstance(arg, TypeVar) for arg in base.__args__):  # type: ignore
-        raise TypeError(
-            f"Generic conversion doesn't support partial specialization,"
-            f" aka {type_name(base)}[{','.join(map(type_name, base.__args__))}]"
-        )
-    substitution = dict(zip(base.__args__, subscriptable_origin(base).__parameters__))
-    if isinstance(other, TypeVar):  # type: ignore
-        new_other = substitution.get(other, other)
-    elif getattr(other, "__origin__", None) is not None:
-        new_other = subscriptable_origin(other)[
-            tuple(substitution.get(arg, arg) for arg in other.__args__)
-        ]
+def type_var_remap(
+    base: AnyType, other: AnyType
+) -> Iterator[Tuple[TV, TV]]:  # type: ignore
+    if isinstance(base, TypeVar) and isinstance(other, TypeVar):  # type: ignore
+        yield other, base
+        return
+    base_origin, other_origin = get_origin(base), get_origin(other)
+    if (
+        base_origin is None
+        or other_origin is None
+        or len(get_args(base)) != len(get_args(other))
+        or not issubclass(other_origin, base_origin)
+    ):
+        return
+    for base_arg, other_arg in zip(get_args(base), get_args(other)):
+        yield from type_var_remap(base_arg, other_arg)
+
+
+def substitute_type_vars(
+    cls: AnyType, substitutions: Mapping[TV, TV]  # type: ignore
+) -> AnyType:
+    if isinstance(cls, TypeVar):  # type: ignore
+        return substitutions.get(cls, cls)
+    elif get_origin(cls) is not None:
+        if get_origin(cls) is Annotated:
+            annotated, *metadata = get_args(cls)
+            return Annotated[  # type: ignore
+                (substitute_type_vars(annotated, substitutions), *metadata)
+            ]
+        else:
+            return subscriptable_origin(cls)[  # type: ignore
+                tuple(substitute_type_vars(arg, substitutions) for arg in get_args(cls))
+            ]
     else:
-        new_other = other
-    return cast(Tuple[Cls, Other], (subscriptable_origin(base), new_other))
+        return cls
+
+
+def _substitute_type_vars(
+    field_type: AnyType, base: AnyType, other: AnyType
+) -> AnyType:
+    return substitute_type_vars(other, dict(type_var_remap(field_type, base)))
+
+
+def use_origin_type_vars(base: AnyType, other: AnyType) -> Tuple[AnyType, AnyType]:
+    if get_origin(base) is None:
+        return base, other
+    if not all(isinstance(arg, TypeVar) for arg in get_args(base)):  # type: ignore
+        raise TypeError(
+            f"Generic conversion doesn't support specialization,"
+            f" aka {type_name(base)}[{','.join(map(type_name, get_args(base)))}]"
+        )
+    substitution = dict(zip(get_args(base), subscriptable_origin(base).__parameters__))
+    return subscriptable_origin(base), substitute_type_vars(other, substitution)
 
 
 class ConvertibleVisitor(Visitor):
-    def annotated(self, cls: AnyType, annotations: Sequence[Any], _):
+    def annotated(self, cls: AnyType, annotations: Sequence[Any]):
         raise NotImplementedError()
 
-    def new_type(self, cls: AnyType, super_type: AnyType, _):
+    def new_type(self, cls: AnyType, super_type: AnyType):
         raise NotImplementedError()
 
-    def _type_var(self, tv: AnyType, _):
+    def _type_var(self, tv: AnyType):
         raise NotImplementedError()
 
-    def visit_not_builtin(self, cls: AnyType, _):
+    def visit_not_builtin(self, cls: AnyType):
         return
 
 
 def is_convertible(cls: AnyType):
     try:
-        ConvertibleVisitor().visit(cls, ...)
+        ConvertibleVisitor().visit(cls)
     except NotImplementedError:
         return False
     else:
@@ -118,3 +150,13 @@ def is_convertible(cls: AnyType):
 def check_convertible(cls: AnyType):
     if not is_convertible(cls):
         raise TypeError(f"{type_name(cls)} is not a class")
+
+
+class ConversionsWrapper:
+    """Allows to hash conversions — conversions must be immutable"""
+
+    def __init__(self, conversions: Conversions):
+        self.conversions = conversions
+
+    def __hash__(self):
+        return id(self.conversions)

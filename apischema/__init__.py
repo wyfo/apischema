@@ -4,8 +4,8 @@ __all__ = [
     "Unsupported",
     "ValidationError",
     "alias",
-    "check_types",
     "conversions",
+    "dataclasses",
     "deserialization",
     "deserialize",
     "deserializer",
@@ -13,6 +13,7 @@ __all__ = [
     "json_schema",
     "metadata",
     "properties",
+    "reset_cache",
     "schema",
     "schema_ref",
     "serialization",
@@ -26,6 +27,7 @@ __all__ = [
 
 from . import (
     conversions,
+    dataclasses,
     deserialization,
     fields,
     json_schema,
@@ -35,14 +37,14 @@ from . import (
     validation,
 )
 from .aliases import alias
+from .cache import reset_cache
 from .conversions import deserializer, serializer
 from .deserialization import deserialize
 from .json_schema.refs import schema_ref
 from .json_schema.schema import schema
 from .metadata import properties
 from .serialization import serialize
-from .type_checker import check_types
-from .types import NotNull, Skip
+from .skip import NotNull, Skip
 from .validation import (
     ValidationError,
     validator,

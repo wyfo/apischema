@@ -1,11 +1,18 @@
 from collections import ChainMap
-from dataclasses import dataclass, fields
+from dataclasses import Field, dataclass, fields
 from types import MappingProxyType
 from typing import Callable, Mapping, Optional, Type, TypeVar, overload
 
 from apischema.conversions.raw import to_raw_deserializer
-from apischema.conversions.utils import Conversions, Converter
-from apischema.dataclasses import is_dataclass
+from apischema.conversions.utils import (
+    Conversions,
+    Converter,
+    check_converter,
+    substitute_type_vars,
+    type_var_remap,
+)
+from apischema.conversions.visitor import Deserialization, Serialization
+from apischema.dataclass_utils import is_dataclass
 from apischema.types import AnyType, Metadata, MetadataMixin
 
 Cls = TypeVar("Cls", bound=Type)
@@ -51,6 +58,26 @@ class ConversionsMetadata(MetadataMixin):
                 )
                 field.metadata = MappingProxyType({CONVERSIONS_METADATA: conversions})
         return dataclass
+
+    def deserialization_conversion(self, field_type: AnyType) -> Deserialization:
+        assert self.deserializer is not None
+        try:
+            param, ret = check_converter(self.deserializer, None, None)
+        except TypeError:
+            param, _ = check_converter(self.deserializer, None, field_type)
+        else:
+            param = substitute_type_vars(param, dict(type_var_remap(field_type, ret)))
+        return {param: (self.deserializer, self.deserialization)}
+
+    def serialization_conversion(self, field_type: AnyType) -> Serialization:
+        assert self.serializer is not None
+        try:
+            param, ret = check_converter(self.serializer, None, None)
+        except TypeError:
+            param, _ = check_converter(self.serializer, field_type, None)
+        else:
+            param = substitute_type_vars(ret, dict(type_var_remap(field_type, param)))
+        return param, (self.serializer, self.serialization)
 
 
 @dataclass
@@ -99,3 +126,17 @@ def conversions(
         return ConversionsMetadata(
             deserialization, serialization, deserializer, serializer
         )
+
+
+def get_field_conversions(
+    field: Field, field_type: AnyType
+) -> Optional[ConversionsMetadata]:
+    from apischema.metadata.keys import CONVERSIONS_METADATA
+
+    if CONVERSIONS_METADATA not in field.metadata:
+        return None
+    else:
+        conversions = field.metadata[CONVERSIONS_METADATA]
+        if isinstance(conversions, ConversionsMetadataFactory):
+            conversions = conversions.factory(field_type)  # type: ignore
+        return conversions

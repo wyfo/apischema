@@ -3,9 +3,9 @@ from typing import Collection, Generic, List, TypeVar
 
 from pytest import raises
 
+from apischema.conversions.utils import use_origin_type_vars
 from apischema.json_schema import deserialization_schema
 from apischema.metadata import conversions
-from apischema.conversions.utils import substitute_type_vars
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -21,9 +21,9 @@ class B(Generic[T, U]):
 
 
 def test_substitute_type_vars():
-    assert substitute_type_vars(A[U], B[U, int]) == (A, B[T, int])
+    assert use_origin_type_vars(A[U], B[U, int]) == (A, B[T, int])
     with raises(TypeError):
-        substitute_type_vars(A[int], B[int, int])
+        use_origin_type_vars(A[int], B[int, int])
 
 
 def wrap_a(a: List[U]) -> List[A[U]]:

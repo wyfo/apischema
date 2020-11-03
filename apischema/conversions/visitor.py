@@ -1,12 +1,5 @@
-from typing import (  # type: ignore
-    Generic,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    TypeVar,
-)
+from contextlib import contextmanager
+from typing import Generic, Mapping, Optional, Sequence, Tuple, Type, TypeVar
 
 from apischema.conversions.converters import (
     _deserializers,
@@ -15,18 +8,14 @@ from apischema.conversions.converters import (
     _serializers,
 )
 from apischema.conversions.utils import Conversions, ConverterWithConversions
-from apischema.visitor import (
-    Arg,
-    Return,
-    Visitor,
-)
+from apischema.visitor import Return, Visitor
 
 Conv = TypeVar("Conv")
 Deserialization = Mapping[Type, ConverterWithConversions]
 Serialization = Tuple[Type, ConverterWithConversions]
 
 
-class ConversionsVisitor(Generic[Conv, Arg, Return], Visitor[Arg, Return]):
+class ConversionsVisitor(Generic[Conv, Return], Visitor[Return]):
     def __init__(self, conversions: Optional[Conversions]):
         super().__init__()
         self.conversions = conversions
@@ -35,29 +24,37 @@ class ConversionsVisitor(Generic[Conv, Arg, Return], Visitor[Arg, Return]):
     def is_conversion(cls: Type, conversions: Optional[Conversions]) -> Optional[Conv]:
         raise NotImplementedError()
 
-    def visit_conversion(self, cls: Type, conversion: Conv, arg: Arg) -> Return:
+    def visit_conversion(self, cls: Type, conversion: Conv) -> Return:
         raise NotImplementedError()
 
     # For typing
-    def visit_not_conversion(self, cls: Type, arg: Arg) -> Return:
+    def visit_not_conversion(self, cls: Type) -> Return:
         ...
 
+    _name = visit_not_conversion.__name__
     visit_not_conversion = Visitor.visit_not_builtin  # noqa F811
+    visit_not_conversion.__name__ = _name
+    del _name
 
-    def visit_not_builtin(self, cls: Type, arg: Arg) -> Return:
-        conversions = self.conversions
-        conversion = self.is_conversion(cls, conversions)
+    @contextmanager
+    def _replace_conversions(self, conversions: Optional[Conversions]):
+        conversions_save = self.conversions
+        self.conversions = conversions
+        try:
+            yield
+        finally:
+            self.conversions = conversions_save
+
+    def visit_not_builtin(self, cls: Type) -> Return:
+        conversion = self.is_conversion(cls, self.conversions)
         if conversion is None:
-            self.conversions = None
-            try:
-                return self.visit_not_conversion(cls, arg)
-            finally:
-                self.conversions = conversions
+            with self._replace_conversions(None):
+                return self.visit_not_conversion(cls)
         else:
-            return self.visit_conversion(cls, conversion, arg)
+            return self.visit_conversion(cls, conversion)
 
 
-class DeserializationVisitor(ConversionsVisitor[Deserialization, Arg, Return]):
+class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
     @staticmethod
     def is_conversion(
         cls: Type, conversions: Optional[Conversions]
@@ -79,7 +76,7 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Arg, Return]):
         return _deserializers.get(cls)
 
 
-class SerializationVisitor(ConversionsVisitor[Serialization, Arg, Return]):
+class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
     @staticmethod
     def is_conversion(
         cls: Type, conversions: Optional[Conversions]

@@ -14,10 +14,10 @@ from typing import (
     cast,
 )
 
-from apischema.dataclasses import is_dataclass
+from apischema.dataclass_utils import is_dataclass
 from apischema.types import AnyType
-from apischema.typing import _TypedDictMeta
-from apischema.utils import type_name
+from apischema.typing import _TypedDictMeta, get_origin
+from apischema.utils import has_free_type_vars, type_name
 from apischema.visitor import Visitor
 
 Ref = Union[str, "ellipsis", None]  # noqa: F821
@@ -60,15 +60,9 @@ class schema_ref:
             # could be customized, but the NewType ref would then erase this
             # customization in the schema.
             raise TypeError("NewType of non-builtin type can not have a ref")
-        if hasattr(cls, "__parameters__") and (
-            not hasattr(cls, "__origin__")
-            or any(
-                isinstance(arg, TypeVar)  # type: ignore
-                for arg in getattr(cls, "__args__", ())
-            )
-        ):
+        if has_free_type_vars(cls):
             raise TypeError("Unspecialized generic types cannot have a ref")
-        if hasattr(cls, "__origin__") and self.ref is ...:
+        if get_origin(cls) is not None and self.ref is ...:
             raise TypeError(f"Generic alias {cls} cannot have ... ref")
 
     def __call__(self, cls: T) -> T:
@@ -78,35 +72,35 @@ class schema_ref:
 
 
 class BuiltinVisitor(Visitor):
-    def collection(self, cls: Type[Iterable], value_type: AnyType, _):
-        self.visit(value_type, _)
+    def collection(self, cls: Type[Iterable], value_type: AnyType):
+        self.visit(value_type)
 
-    def enum(self, cls: Type[Enum], _):
+    def enum(self, cls: Type[Enum]):
         pass
 
-    def literal(self, values: Sequence[Any], _):
+    def literal(self, values: Sequence[Any]):
         pass
 
-    def mapping(self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType, _):
-        self.visit(key_type, _), self.visit(value_type, _)
+    def mapping(self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType):
+        self.visit(key_type), self.visit(value_type)
 
-    def primitive(self, cls: Type, _):
+    def primitive(self, cls: Type):
         pass
 
-    def subprimitive(self, cls: Type, superclass: Type, _):
+    def subprimitive(self, cls: Type, superclass: Type):
         raise NotImplementedError()
 
-    def union(self, alternatives: Sequence[AnyType], _):
+    def union(self, alternatives: Sequence[AnyType]):
         for alt in alternatives:
-            self.visit(alt, _)
+            self.visit(alt)
 
-    def unsupported(self, cls: Type, _):
+    def unsupported(self, cls: Type):
         raise NotImplementedError()
 
 
 def is_builtin(cls: AnyType) -> bool:
     try:
-        BuiltinVisitor().visit(cls, ...)
+        BuiltinVisitor().visit(cls)
     except NotImplementedError:
         return False
     else:

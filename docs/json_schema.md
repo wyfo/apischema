@@ -74,7 +74,13 @@ unique | / | `list`
 min_props | minProperties | `dict`
 max_props | maxProperties | `dict`
 
-`schema` function has an overloaded signature which prevents to mix incompatible keywords. By the way, one other `extra` keyword allows to add arbitrary keys to JSON schema generated; setting `extra_only` to `True` force *Apischema* to use only `extra` keys. 
+!!! note
+    `schema` function has an overloaded signature which prevents to mix incompatible keywords. 
+    
+Two other arguments enable a finer control of the JSON schema generated : 
+
+- `extra` enable to add arbitrary keys to schema;
+- `override=True` prevents *Apischema* to use the annotated type schema, using only `schema` annotation.  
 
 ```python
 {!schema_extra.py!}

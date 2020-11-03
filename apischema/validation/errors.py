@@ -22,7 +22,8 @@ from typing import (
     overload,
 )
 
-from apischema.metadata.keys import ALIAS_METADATA
+from apischema.dataclass_utils import get_alias
+from apischema.typing import get_args, get_origin
 from apischema.utils import merge_opts
 
 ErrorMsg = str
@@ -55,9 +56,9 @@ class ValidationError(Exception):
     def flat(self) -> Iterator[Tuple[Tuple[ErrorKey, ...], Sequence[ErrorMsg]]]:
         if self.messages:
             yield (), self.messages
-        for child_path, child in self.children.items():
-            for path, errors in child.flat():
-                yield (child_path, *path), errors
+        for child_key in sorted(self.children):
+            for path, errors in self.children[child_key].flat():
+                yield (child_key, *path), errors
 
     def serialize(self) -> Sequence[LocalizedError]:
         return [LocalizedError(loc, err) for loc, err in self.flat()]
@@ -125,7 +126,7 @@ def _check_error_path(path) -> Sequence[ErrorKey]:
         path = list(path)
     for i, elt in enumerate(path):
         if isinstance(elt, Field):
-            path[i] = elt.metadata.get(ALIAS_METADATA, elt.name)
+            path[i] = get_alias(elt)
         if not isinstance(path[i], (str, int)):
             raise TypeError(
                 f"Bad error path, expected Field, int or str," f" found {type(i)}"
@@ -184,7 +185,7 @@ def with_validation_error(func: Callable[..., ValidatorResult[T]]) -> Callable[.
             match = re.match(r"ValidatorResult\[(?P<ret>.*)\]", ret)
             if match is not None:
                 ret = match.groupdict("ret")
-        elif getattr(ret, "__origin__", None) == GeneratorOrigin:
-            ret = ret.__args__[2]
+        elif get_origin(ret) == GeneratorOrigin:
+            ret = get_args(ret)[2]
         wrapper.__annotations__["return"] = ret
     return wrapper

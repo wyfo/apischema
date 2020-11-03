@@ -1,3 +1,4 @@
+from dataclasses import Field
 from enum import Enum
 from typing import (  # type: ignore
     Any,
@@ -40,7 +41,7 @@ class RefsExtractor(SchemaVisitor):
             return count > 0
         return False
 
-    def _annotated(self, cls: AnyType, annotations: Sequence[Any], _):
+    def annotated(self, cls: AnyType, annotations: Sequence[Any]):
         for annotation in reversed(annotations):
             if isinstance(annotation, schema_ref):
                 annotation.check_type(cls)
@@ -52,35 +53,30 @@ class RefsExtractor(SchemaVisitor):
                     return
         return self.visit(cls)
 
-    def any(self, _):
+    def any(self):
         pass
 
-    def collection(self, cls: Type[Iterable], value_type: AnyType, _):
+    def collection(self, cls: Type[Iterable], value_type: AnyType):
         return self.visit(value_type)
 
-    def dataclass(self, cls: Type, _):
-        (
-            fields,
-            merged_fields,
-            pattern_fields,
-            additional_field,
-        ) = self._dataclass_fields(cls)
-        for field in fields:
-            self._field_visit(field, _)
-        for _, field in merged_fields:
-            self._field_visit(field, _)
-        for _, field in pattern_fields:
-            self._field_visit(field, _)
-        if additional_field:
-            self._field_visit(additional_field, _)
+    def dataclass(
+        self,
+        cls: Type,
+        types: Mapping[str, AnyType],
+        fields: Sequence[Field],
+        init_vars: Sequence[Field],
+    ):
 
-    def enum(self, cls: Type[Enum], _):
+        for field in self._dataclass_fields(cls, fields, init_vars):
+            self._visit_field(field, types[field.name])
+
+    def enum(self, cls: Type[Enum]):
         pass
 
-    def literal(self, values: Sequence[Any], _):
+    def literal(self, values: Sequence[Any]):
         pass
 
-    def mapping(self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType, _):
+    def mapping(self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType):
         self.visit(key_type)
         self.visit(value_type)
 
@@ -89,39 +85,32 @@ class RefsExtractor(SchemaVisitor):
         cls: Type[Tuple],
         types: Mapping[str, AnyType],
         defaults: Mapping[str, Any],
-        _,
     ):
         for cls in types.values():
             self.visit(cls)
 
-    def new_type(self, cls: AnyType, super_type: AnyType, _):
+    def new_type(self, cls: AnyType, super_type: AnyType):
         self.visit(super_type)
 
-    def primitive(self, cls: Type, _):
+    def primitive(self, cls: Type):
         pass
 
-    def subprimitive(self, cls: Type, superclass: Type, _):
+    def subprimitive(self, cls: Type, superclass: Type):
         self.visit(superclass)
 
-    def tuple(self, types: Sequence[AnyType], _):
+    def tuple(self, types: Sequence[AnyType]):
         for cls in types:
             self.visit(cls)
 
-    def typed_dict(self, cls: Type, keys: Mapping[str, AnyType], total: bool, _):
+    def typed_dict(self, cls: Type, keys: Mapping[str, AnyType], total: bool):
         for cls in keys.values():
             self.visit(cls)
 
-    def _union_arg(self, cls: AnyType, _):
-        return None
-
-    def _union_result(self, results: Sequence, _):
-        pass
-
-    def visit(self, cls: AnyType, _=None):
+    def visit(self, cls: AnyType):
         if self._is_conversion(cls):
-            return self.visit_not_builtin(cls, _)
+            return self.visit_not_builtin(cls)
         # Annotated is not always hashable
         if is_hashable(cls):
             if self._incr_ref(get_ref(cls), cls):
                 return
-        super().visit(cls, _)
+        super().visit(cls)

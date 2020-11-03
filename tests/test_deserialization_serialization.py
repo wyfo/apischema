@@ -12,7 +12,6 @@ from apischema.metadata import properties
 from apischema.serialization import serialize
 from apischema.typing import Literal
 from apischema.validation.errors import ValidationError
-from apischema.validation.validator import validator
 
 uuid = str(uuid4())
 

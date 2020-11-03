@@ -1,5 +1,8 @@
-from typing import AbstractSet, Any, Sequence, Type
+from dataclasses import Field
+from typing import Collection, Iterable, Mapping, Optional, Sequence, Tuple, Type
 
+from apischema.conversions.metadata import get_field_conversions
+from apischema.conversions.utils import Conversions
 from apischema.conversions.visitor import (
     Conv,
     ConversionsVisitor,
@@ -8,70 +11,53 @@ from apischema.conversions.visitor import (
     Serialization,
     SerializationVisitor,
 )
-from apischema.dataclasses.cache import (
-    Field,
-    FieldCache,
-    get_deserialization_fields,
-    get_serialization_fields,
+from apischema.dataclass_utils import (
+    Requirements,
+    get_requiring,
 )
-from apischema.fields import fields
-from apischema.types import AnyType, Skip, SkipSchema, Skipped
-from apischema.visitor import Arg, Return
+from apischema.skip import filter_skipped
+from apischema.types import AnyType
+from apischema.typing import get_origin
+from apischema.visitor import Return
 
 
-class SchemaVisitor(ConversionsVisitor[Conv, Arg, Return]):
-    def annotated(self, cls: AnyType, annotations: Sequence[Any], arg: Arg) -> Return:
-        for annotation in reversed(annotations):
-            if annotation in {Skip, SkipSchema}:
-                raise Skipped
-        return self._annotated(cls, annotations, arg)
-
-    def _annotated(self, cls: AnyType, annotations: Sequence[Any], arg: Arg) -> Return:
-        return self.visit(cls, arg)
-
-    @staticmethod
-    def _dataclass_fields(cls: Type) -> FieldCache:
+class SchemaVisitor(ConversionsVisitor[Conv, Return]):
+    def _dataclass_fields(
+        self, cls: Type, fields: Sequence[Field], init_vars: Sequence[Field]
+    ) -> Iterable[Field]:
         raise NotImplementedError()
 
-    _field_type: Any
-    _field_conversions: Any
-
-    def _field_visit(self, field: Field, arg: Arg) -> Return:
-        conversions_save = self.conversions
-        self.conversions = getattr(field, self._field_conversions.name)
-        try:
-            return self.visit(getattr(field, self._field_type.name), arg)
-        finally:
-            self.conversions = conversions_save
-
-    _field_required_by: Any
-
-    @classmethod
-    def _required_by(cls, field: Field) -> AbstractSet[str]:
-        return getattr(field, cls._field_required_by.name)
-
-    @staticmethod
-    def _override_arg(cls: AnyType, arg: Arg) -> Arg:  # type: ignore
-        return arg
-
-    def _union_arg(self, cls: AnyType, arg: Arg) -> Arg:  # type: ignore
+    def _field_conversions(
+        self, field: Field, field_type: AnyType
+    ) -> Tuple[AnyType, Optional[Conversions]]:
         raise NotImplementedError()
 
-    def _union_result(self, results: Sequence[Return], arg: Arg) -> Return:
+    def _visit_field_(self, field: Field, field_type: AnyType) -> Return:
+        return self.visit(field_type)
+
+    def _visit_field(self, field: Field, field_type: AnyType) -> Return:
+        field_type, conversions = self._field_conversions(field, field_type)
+        with self._replace_conversions(conversions):
+            return self._visit_field_(field, field_type)
+
+    def _dependent_required_(self, cls: Type) -> Requirements:
         raise NotImplementedError()
 
-    def union(self, alternatives: Sequence[AnyType], arg: Arg) -> Return:
-        results = []
-        for cls in alternatives:
-            try:
-                results.append(self.visit(cls, self._union_arg(cls, arg)))
-            except Skipped:
-                pass
-        return self._union_result(results, arg)
+    def _dependent_required(self, cls: Type) -> Mapping[str, Collection[str]]:
+        dep_req = self._dependent_required_(cls)
+        return {req: sorted(dep_req[req]) for req in sorted(dep_req)}
+
+    def _union_result(self, results: Sequence[Return]) -> Return:
+        pass
+
+    def union(self, alternatives: Sequence[AnyType]) -> Return:
+        return self._union_result(
+            [self.visit(cls) for cls in filter_skipped(alternatives, schema_only=True)]
+        )
 
     def _is_conversion(self, cls: AnyType) -> bool:
         # In 3.6, GenericAlias are classes with mro
-        if getattr(cls, "__origin__", None) is not None:
+        if get_origin(cls) is not None:
             return False
         try:
             return bool(self.is_conversion(cls, self.conversions))
@@ -80,43 +66,66 @@ class SchemaVisitor(ConversionsVisitor[Conv, Arg, Return]):
 
 
 class DeserializationSchemaVisitor(
-    DeserializationVisitor[Arg, Return], SchemaVisitor[Deserialization, Arg, Return]
+    DeserializationVisitor[Return], SchemaVisitor[Deserialization, Return]
 ):
-    def visit_conversion(
-        self, cls: Type, conversion: Deserialization, arg: Arg
-    ) -> Return:
-        assert conversion
+    def visit_conversion(self, cls: Type, conversion: Deserialization) -> Return:
         results = []
-        conversions = self.conversions
-        for cls_, (converter, self.conversions) in conversion.items():
-            try:
-                results.append(self.visit(cls_, self._union_arg(cls, arg)))
-            except Skipped:
-                raise TypeError("Deserialization type cannot be skipped")
-            finally:
-                self.conversions = conversions
-        return self._union_result(results, self._override_arg(cls, arg))
+        for source, (_, conversions) in conversion.items():
+            with self._replace_conversions(conversions):
+                results.append(self.visit(source))
+        return self._union_result(results)
 
-    _dataclass_fields = staticmethod(get_deserialization_fields)  # type: ignore
-    _field_type = fields(Field).deserialization_type
-    _field_conversions = fields(Field).deserialization_conversions
-    _field_required_by = fields(Field).deserialization_required_by
+    @staticmethod
+    def _dataclass_fields(
+        cls: Type, fields: Sequence[Field], init_vars: Sequence[Field]
+    ) -> Iterable[Field]:
+        return (*(f for f in fields if f.init), *init_vars)
+
+    @staticmethod
+    def _field_conversions(
+        field: Field, field_type: AnyType
+    ) -> Tuple[AnyType, Optional[Conversions]]:
+        conversions = get_field_conversions(field, field_type)
+        if conversions is None:
+            return field_type, None
+        elif conversions.deserializer is None:
+            return field_type, conversions.deserialization
+        else:
+            type_ = next(iter(conversions.deserialization_conversion(field_type)))
+            return type_, conversions.deserialization
+
+    @staticmethod
+    def _dependent_required_(cls: Type) -> Requirements:
+        return get_requiring(cls)[0]
 
 
 class SerializationSchemaVisitor(
-    SerializationVisitor[Arg, Return], SchemaVisitor[Serialization, Arg, Return]
+    SerializationVisitor[Return], SchemaVisitor[Serialization, Return]
 ):
-    def visit_conversion(
-        self, cls: Type, conversion: Serialization, arg: Arg
-    ) -> Return:
-        conversions = self.conversions
-        target, (converter, self.conversions) = conversion
-        try:
-            return self.visit(target, self._override_arg(cls, arg))
-        finally:
-            self.conversions = conversions
+    def visit_conversion(self, cls: Type, conversion: Serialization) -> Return:
+        target, (converter, conversions) = conversion
+        with self._replace_conversions(conversions):
+            return self.visit(target)
 
-    _dataclass_fields = staticmethod(get_serialization_fields)  # type: ignore
-    _field_type = fields(Field).serialization_type
-    _field_conversions = fields(Field).serialization_conversions
-    _field_required_by = fields(Field).serialization_required_by
+    @staticmethod
+    def _dataclass_fields(
+        cls: Type, fields: Sequence[Field], init_vars: Sequence[Field]
+    ) -> Iterable[Field]:
+        return fields
+
+    @staticmethod
+    def _field_conversions(
+        field: Field, field_type: AnyType
+    ) -> Tuple[AnyType, Optional[Conversions]]:
+        conversions = get_field_conversions(field, field_type)
+        if conversions is None:
+            return field_type, None
+        elif conversions.serializer is None:
+            return field_type, conversions.serialization
+        else:
+            type_, *_ = conversions.serialization_conversion(field_type)
+            return type_, conversions.serialization
+
+    @staticmethod
+    def _dependent_required_(cls: Type) -> Requirements:
+        return get_requiring(cls)[1]

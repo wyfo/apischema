@@ -18,11 +18,10 @@ from typing import (
     Set,
     Tuple,
     Type,
-    TypeVar,
     Union,
 )
 
-from apischema.typing import Annotated, NO_TYPE
+from apischema.typing import get_origin
 
 AnyType = Any
 NoneType: Type[None] = type(None)
@@ -86,14 +85,13 @@ if (3, 7) <= sys.version_info < (3, 9):  # pragma: no cover
         re.Pattern: Pattern,
     }
 
-    def subscriptable_origin(cls: AnyType) -> Type:  # type: ignore
-        return SUBSCRIPTABLE_ORIGIN.get(cls.__origin__, cls.__origin__)  # type: ignore
+    def subscriptable_origin(cls: AnyType) -> AnyType:
+        origin = get_origin(cls)
+        return SUBSCRIPTABLE_ORIGIN.get(origin, origin) if origin is not None else None
 
 
 else:  # pragma: no cover
-
-    def subscriptable_origin(cls: AnyType) -> Type:  # type: ignore
-        return cls.__origin__  # type: ignore
+    subscriptable_origin = get_origin  # type: ignore
 
 
 if sys.version_info >= (3, 7):  # pragma: no cover
@@ -141,29 +139,3 @@ else:  # pragma: no cover
 
     class MappingWithUnion(dict, MetadataUnion):
         pass
-
-
-class Skipped(Exception):
-    pass
-
-
-class _Skip:
-    def __call__(self, *, schema_only: bool):
-        return SkipSchema if schema_only else self
-
-
-Skip = _Skip()
-SkipSchema = object()
-
-
-T = TypeVar("T")
-
-if Annotated is not NO_TYPE:
-    NotNull = Union[T, Annotated[None, Skip]]
-else:
-
-    class _NotNull:
-        def __getitem__(self, item):
-            raise TypeError("NotNull requires Annotated (PEP 593)")
-
-    NotNull = _NotNull()  # type: ignore

@@ -123,14 +123,6 @@ Validators can be added to other user-defined types. When a user type is deseria
 {!validator_user_type.py!}
 ```
 
-## Type checker
-
-Validation is done only at deserialization (see [FAQ](#why-only-validate-at-deserialization-and-not-at-instantiation)). However, it is possible at runtime to check the type of an object, and to do it descending all the type model of the given types (dataclass fields, list elements, etc.) with the function `check_types`. It can also "validate" the object (running all its validator and validate its constraints) if needed.
-
-```python
-{!check_types.py!}
-```
-
 ## FAQ
 
 #### How are computed validator depedencies?
@@ -138,9 +130,7 @@ Validation is done only at deserialization (see [FAQ](#why-only-validate-at-dese
 `ast.NodeVisitor` and the Python black magic begins...
 
 #### Why only validate at deserialization and not at instantiation?
-Dataclass are typed-checked, so data put in the constructor are supposed to be typed-checked too, so validation would be useless most of the time. That's why it doesn't seem justified to add this high overhead everywhere for everyone. 
-By the way, if it was implemented, in order to be consistent, validation should be performed each time the instance is modified (if you don't trust `__init__` argument, why would it be different for `__setattr__`) and it would add even more overhead. Other libraries exist to ensure preservation of class invariants.
-
+*Apischema* uses type annotations, so every objects used can already be statically type-checked (with *Mypy*/*Pycharm*/etc.) at instantiation but also at modification.
 
 #### Why use validators for dataclasses instead of doing validation in `__post_init__`?
-Actually, validation can completly be done in `__post_init__`, there is not problem with that. However, validators offers one thing that cannot be achieved with `__post_init__`: they are run before `__init__`, so they can validate incomplete data. Moreover, they are only run during deserialization, so they don't add overhead to normal class instantiation (yes, that's a minor argument). Of course, there is also features like dependencies computing, discard ... (which could be achieved in `__post_init__` but require some lines of code).
+Actually, validation can completly be done in `__post_init__`, there is not problem with that. However, validators offers one thing that cannot be achieved with `__post_init__`: they are run before `__init__`, so they can validate incomplete data. Moreover, they are only run during deserialization, so they don't add overhead to normal class instantiation.

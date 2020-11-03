@@ -4,11 +4,10 @@ from uuid import UUID, uuid4
 from pytest import raises
 
 from apischema import ValidationError, deserialize, serialize
-
-# Define a schema with standard dataclasses
 from apischema.json_schema import deserialization_schema
 
 
+# Define a schema with standard dataclasses
 @dataclass
 class Resource:
     id: UUID

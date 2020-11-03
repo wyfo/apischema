@@ -12,6 +12,7 @@ __all__ = [
 from typing import Callable, Optional, Type, TypeVar, overload
 
 from apischema import aliases
+from apischema.cache import reset_cache
 from apischema.conversions.utils import Conversions
 from apischema.conversions.visitor import (
     Deserialization,
@@ -19,7 +20,6 @@ from apischema.conversions.visitor import (
     Serialization,
     SerializationVisitor,
 )
-from apischema.dataclasses.cache import reset_dataclasses_cache
 from apischema.deserialization import coercion as coercion_
 from apischema.json_schema import refs, schema, versions
 from apischema.types import AnyType
@@ -70,6 +70,7 @@ def deserialization(func=None):
         return DeserializationVisitor.is_conversion
     else:
         DeserializationVisitor.is_conversion = staticmethod(func)
+        reset_cache()
         return func
 
 
@@ -92,6 +93,7 @@ def serialization(func=None):
         return SerializationVisitor.is_conversion
     else:
         SerializationVisitor.is_conversion = staticmethod(func)
+        reset_cache()
         return func
 
 
@@ -116,14 +118,14 @@ def aliaser(*, camel_case: bool):
 
 def aliaser(func=None, *, camel_case: bool = None):
     if camel_case is True:
-        aliases._global_aliaser = to_camel_case
+        func = to_camel_case
     elif camel_case is False:
-        aliases._global_aliaser = lambda s: s
-    elif func is None:
+        func = lambda s: s  # noqa E731
+    if func is None:
         return aliases._global_aliaser
     else:
         aliases._global_aliaser = func
-    reset_dataclasses_cache()
+        reset_cache()
     return func
 
 
@@ -165,3 +167,4 @@ def default_schema(func=None):
         return schema._default_schema
     else:
         schema._default_schema = func
+        reset_cache()

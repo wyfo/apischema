@@ -1,7 +1,7 @@
 from dataclasses import InitVar, dataclass, field
 from typing import Generic, TypeVar
 
-from apischema.dataclasses.cache import _deserialization_merged_aliases
+from apischema.deserialization.deserializer import get_init_merged_alias
 from apischema.metadata import merged
 
 
@@ -34,4 +34,4 @@ class D(Generic[T]):
 
 
 def test_merged_aliases():
-    assert _deserialization_merged_aliases(A, "") == {"a", "g", "h", "i", "e"}
+    assert get_init_merged_alias(A) == {"a", "g", "h", "i", "e"}

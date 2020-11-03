@@ -65,7 +65,7 @@ def default_schema(cls: Any) -> Optional[Schema]:
                 return None
         except TypeError:
             return None
-        return schema(extra=cls.schema(), extra_only=True)
+        return schema(extra=cls.schema(), override=True)
 
 
 class Foo(pydantic.BaseModel):

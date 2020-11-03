@@ -1,5 +1,4 @@
-from contextlib import suppress
-from dataclasses import Field, MISSING, fields, is_dataclass
+from dataclasses import fields, is_dataclass
 from typing import (
     Any,
     Callable,
@@ -14,7 +13,7 @@ from typing import (
 )
 
 from apischema.types import AnyType
-from apischema.typing import get_type_hints
+from apischema.typing import get_args
 
 PREFIX = "_apischema_"
 Nil = object()
@@ -51,24 +50,6 @@ def as_dict(obj) -> Dict[str, Any]:
 _type_hints: Dict[str, Mapping[str, Type]] = {}
 
 
-def type_hints_cache(obj):
-    try:
-        return _type_hints[obj]
-    except (KeyError, TypeError):
-        types = get_type_hints(obj, include_extras=True)
-        with suppress(TypeError):
-            _type_hints[obj] = types
-        return types
-
-
-def get_default(field: Field) -> Any:
-    if field.default_factory is not MISSING:  # type: ignore
-        return field.default_factory()  # type: ignore
-    if field.default is not MISSING:
-        return field.default
-    raise NotImplementedError()
-
-
 def type_name(cls: AnyType) -> str:
     for attr in ("__name__", "name", "_name"):
         if hasattr(cls, attr):
@@ -101,3 +82,11 @@ V = TypeVar("V")
 @merge_opts
 def merge_opts_mapping(m1: Mapping[K, V], m2: Mapping[K, V]) -> Mapping[K, V]:
     return {**m1, **m2}
+
+
+def has_free_type_vars(cls: AnyType):
+    return (
+        isinstance(cls, TypeVar)  # type: ignore
+        or getattr(cls, "__parameters__", ())
+        or any(has_free_type_vars(arg) for arg in get_args(cls))
+    )

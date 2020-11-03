@@ -1,8 +1,8 @@
-from apischema.json_schema.constraints import NumberConstraints
+from apischema.json_schema.constraints import NumberConstraints, merge_constraints
 
 
 def test_merge_constraints():
-    c1 = NumberConstraints(minimum=0, maximum=10)
-    c2 = NumberConstraints(minimum=1, maximum=5)
-    merged = c1.merge(c2)
-    assert merged == NumberConstraints(minimum=1, maximum=5)
+    c1 = NumberConstraints(min=0, max=10)
+    c2 = NumberConstraints(min=1, max=5)
+    merged = merge_constraints(c1, c2)
+    assert merged == NumberConstraints(min=1, max=5)

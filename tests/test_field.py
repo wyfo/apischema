@@ -2,6 +2,7 @@ from dataclasses import dataclass, field, fields
 
 from pytest import raises
 
+from apischema.dataclass_utils import get_default
 from apischema.fields import (
     FIELDS_SET_ATTR,
     fields_set,
@@ -9,7 +10,6 @@ from apischema.fields import (
     unset_fields,
     with_fields_set,
 )
-from apischema.utils import get_default
 
 
 @with_fields_set

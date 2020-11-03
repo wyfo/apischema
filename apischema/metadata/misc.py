@@ -2,10 +2,10 @@ import re
 from typing import Pattern, Union
 
 from apischema.metadata.keys import (
-    MERGED_METADATA,
     DEFAULT_AS_SET,
     DEFAULT_FALLBACK_METADATA,
     INIT_VAR_METADATA,
+    MERGED_METADATA,
     POST_INIT_METADATA,
     PROPERTIES_METADATA,
     REQUIRED_METADATA,

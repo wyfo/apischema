@@ -8,7 +8,7 @@ from apischema import (
     deserialize,
     serialize,
 )
-from apischema.dependencies import DependentRequired
+from apischema.dependent_required import DependentRequired
 from apischema.json_schema import deserialization_schema
 
 

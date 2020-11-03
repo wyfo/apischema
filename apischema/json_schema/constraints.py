@@ -1,6 +1,5 @@
 import operator
 import re
-from dataclasses import dataclass, field, fields
 from math import gcd
 from typing import (
     Any,
@@ -18,18 +17,21 @@ from typing import (
     Union,
 )
 
+from dataclasses import dataclass, field, fields
+
 from apischema.types import Number
-from apischema.utils import to_camel_case, to_hashable
+from apischema.utils import merge_opts, to_hashable
 from apischema.validation.errors import ValidationError
 
 VALIDATION_METADATA = "validation"
 MODIFIER_METADATA = "modifier"
 MERGE_METADATA = "merge"
+ALIAS_METADATA = "alias"
 
 T = TypeVar("T")
 
 
-def comparison_field(comparison: Callable):
+def comparison_field(comparison: Callable, alias: str = None):
     by_comp = {
         operator.lt: (max, "less than"),
         operator.le: (max, "less than or equal to"),
@@ -42,6 +44,8 @@ def comparison_field(comparison: Callable):
         MODIFIER_METADATA: ...,
         MERGE_METADATA: merge,
     }
+    if alias is not None:
+        metadata[ALIAS_METADATA] = alias
     return field(default=None, metadata=metadata)
 
 
@@ -60,7 +64,7 @@ class Constraints:
             if attr is None:
                 continue
             comp, err = f.metadata[VALIDATION_METADATA]
-            error = err.format(attr) + f" ({to_camel_case(f.name)})"
+            error = err.format(attr) + f" ({f.metadata.get(ALIAS_METADATA, f.name)})"
             modif = f.metadata.get(MODIFIER_METADATA)
             if modif is ...:
                 if self.collection_prefix is not None:
@@ -72,41 +76,28 @@ class Constraints:
                 modif = lambda x: x  # noqa E731
             checks.append((attr, comp, modif, error))
 
-        def validation_errors(data: Any) -> List[str]:
+        def errors(data: Any) -> List[str]:
             assert isinstance(data, self.valid_types)
             return [err for attr, comp, modif, err in checks if comp(modif(data), attr)]
 
-        object.__setattr__(self, self.validation_errors.__name__, validation_errors)
+        object.__setattr__(self, self.errors.__name__, errors)
 
-    def validate(self, data: Any):
-        errors = self.validation_errors(data)
+    def validate(self, data: T) -> T:
+        errors = self.errors(data)
         if errors:
             raise ValidationError(errors)
+        return data
 
-    def validation_errors(self, data: Any) -> List[str]:
+    def errors(self, data: Any) -> List[str]:
         raise NotImplementedError()  # initialized in __post_init__
 
-    def merge(self: _Constraints, other: Optional[_Constraints]) -> _Constraints:
-        if other is None:
-            return self
-        if type(other) != type(self):
-            raise TypeError("Incompatible constraints types")
-        constraints: Dict[str, Any] = {}
-        for field_ in fields(self):
-            if getattr(self, field_.name) is None:
-                constraints[field_.name] = getattr(other, field_.name)
-            elif getattr(other, field_.name) is None:
-                constraints[field_.name] = getattr(self, field_.name)
-            else:
-                constraints[field_.name] = field_.metadata[MERGE_METADATA](
-                    getattr(self, field_.name), getattr(other, field_.name)
-                )
-        return type(self)(**constraints)  # type: ignore
+    def as_dict(self) -> Mapping[str, Any]:
+        return {
+            f.metadata.get(ALIAS_METADATA, f.name): getattr(self, f.name)
+            for f in fields(self)
+            if getattr(self, f.name) is not None
+        }
 
-
-_constraints: Dict[Any, Constraints] = {}
-
-get_constraints = _constraints.get
 
 Cls = TypeVar("Cls", bound=type)
 
@@ -114,15 +105,16 @@ Cls = TypeVar("Cls", bound=type)
 @dataclass(frozen=True)
 class NumberConstraints(Constraints):
     valid_types = (int, float)
-    minimum: Optional[Number] = comparison_field(operator.lt)
-    maximum: Optional[Number] = comparison_field(operator.gt)
-    exclusive_minimum: Optional[Number] = comparison_field(operator.le)
-    exclusive_maximum: Optional[Number] = comparison_field(operator.ge)
-    multiple_of: Optional[Number] = field(
+    min: Optional[Number] = comparison_field(operator.lt, "minimum")
+    max: Optional[Number] = comparison_field(operator.gt, "maximum")
+    exc_min: Optional[Number] = comparison_field(operator.le, "exclusiveMinimum")
+    exc_max: Optional[Number] = comparison_field(operator.ge, "exclusiveMaximum")
+    mult_of: Optional[Number] = field(
         default=None,
         metadata={
             VALIDATION_METADATA: (operator.mod, "not a multiple of {}"),
             MERGE_METADATA: lambda m1, m2: m1 * m2 / gcd(m1, m2),
+            ALIAS_METADATA: "multipleOf",
         },
     )
 
@@ -140,8 +132,8 @@ class PatternNotMatched(str):
 class StringConstraints(Constraints):
     valid_types = str
     collection_prefix = "length"
-    min_length: Optional[int] = comparison_field(operator.lt)
-    max_length: Optional[int] = comparison_field(operator.gt)
+    min_len: Optional[int] = comparison_field(operator.lt, "minLength")
+    max_len: Optional[int] = comparison_field(operator.gt, "maxLength")
     pattern: Optional[Union[str, Pattern]] = field(
         default=None,
         metadata={
@@ -160,14 +152,15 @@ class StringConstraints(Constraints):
 class ArrayConstraints(Constraints):
     valid_types = Collection
     collection_prefix = "size"
-    min_items: Optional[int] = comparison_field(operator.lt)
-    max_items: Optional[int] = comparison_field(operator.gt)
-    unique_items: Optional[bool] = field(
+    min_items: Optional[int] = comparison_field(operator.lt, "minItems")
+    max_items: Optional[int] = comparison_field(operator.gt, "maxItems")
+    unique: Optional[bool] = field(
         default=None,
         metadata={
             VALIDATION_METADATA: (operator.ne, "duplicate items"),
             MODIFIER_METADATA: lambda d: len(set(map(to_hashable, d))) == len(d),
             MERGE_METADATA: operator.or_,
+            ALIAS_METADATA: "uniqueItems",
         },
     )
 
@@ -176,5 +169,22 @@ class ArrayConstraints(Constraints):
 class ObjectConstraints(Constraints):
     valid_types = Mapping
     collection_prefix = "size"
-    min_properties: Optional[int] = comparison_field(operator.lt)
-    max_properties: Optional[int] = comparison_field(operator.gt)
+    min_props: Optional[int] = comparison_field(operator.lt, "minProperties")
+    max_props: Optional[int] = comparison_field(operator.gt, "maxProperties")
+
+
+@merge_opts
+def merge_constraints(c1: Constraints, c2: Constraints) -> Constraints:
+    if type(c2) != type(c1):
+        raise TypeError("Incompatible constraints types")
+    constraints: Dict[str, Any] = {}
+    for field_ in fields(c1):
+        if getattr(c1, field_.name) is None:
+            constraints[field_.name] = getattr(c2, field_.name)
+        elif getattr(c2, field_.name) is None:
+            constraints[field_.name] = getattr(c1, field_.name)
+        else:
+            constraints[field_.name] = field_.metadata[MERGE_METADATA](
+                getattr(c1, field_.name), getattr(c2, field_.name)
+            )
+    return type(c1)(**constraints)  # type: ignore

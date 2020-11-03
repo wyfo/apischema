@@ -1,4 +1,5 @@
 from dataclasses import Field
+from typing import Mapping
 
 from apischema.utils import PREFIX
 
@@ -16,7 +17,7 @@ SCHEMA_METADATA = f"{PREFIX}schema"
 SKIP_METADATA = f"{PREFIX}skip"
 VALIDATORS_METADATA = f"{PREFIX}validators"
 
-INCOMPATIBLE_WITH_AGGREGATE = {
+FORBIDDEN_WITH_AGGREGATE = {
     ALIAS_METADATA,
     ALIAS_NO_OVERRIDE_METADATA,
     CONVERSIONS_METADATA,
@@ -24,9 +25,17 @@ INCOMPATIBLE_WITH_AGGREGATE = {
     SCHEMA_METADATA,
     VALIDATORS_METADATA,
 }
-INCOMPATIBLE_WITH_MERGED = {PROPERTIES_METADATA, *INCOMPATIBLE_WITH_AGGREGATE}
-INCOMPATIBLE_WITH_PROPERTIES = {MERGED_METADATA, *INCOMPATIBLE_WITH_AGGREGATE}
 
 
 def is_aggregate_field(field: Field) -> bool:
     return MERGED_METADATA in field.metadata or PROPERTIES_METADATA in field.metadata
+
+
+def check_metadata(field: Field) -> Mapping:
+    if MERGED_METADATA in field.metadata and PROPERTIES_METADATA in field.metadata:
+        raise TypeError("merged and properties metadata are incompatible")
+    if is_aggregate_field(field):
+        forbidden = FORBIDDEN_WITH_AGGREGATE & field.metadata.keys()
+        if forbidden:
+            raise TypeError(f"{forbidden} metadata are not allowed in aggregate field")
+    return field.metadata

@@ -1,22 +1,17 @@
 from contextlib import suppress
 from dataclasses import dataclass, fields
-from typing import Any, Mapping, Optional, Sequence, TypeVar, overload
+from typing import Any, Dict, Mapping, Optional, Sequence, TypeVar, overload
 
 from apischema.types import AnyType, MetadataMixin, Number
-from apischema.utils import Nil, as_dict, merge_opts, merge_opts_mapping, to_camel_case
-from .annotations import (
-    Annotations,
-    _annotations,
-    get_annotations,
-)
+from apischema.utils import Nil, merge_opts
+from .annotations import Annotations, merge_annotations
 from .constraints import (
     ArrayConstraints,
     Constraints,
     NumberConstraints,
     ObjectConstraints,
     StringConstraints,
-    _constraints,
-    get_constraints,
+    merge_constraints,
 )
 
 T = TypeVar("T")
@@ -26,6 +21,7 @@ T = TypeVar("T")
 class Schema(MetadataMixin):
     annotations: Optional[Annotations] = None
     constraints: Optional[Constraints] = None
+    override: bool = False
 
     def __post_init__(self):
         from apischema.metadata.keys import SCHEMA_METADATA
@@ -33,29 +29,19 @@ class Schema(MetadataMixin):
         super().__init__(SCHEMA_METADATA)
 
     def __call__(self, obj: T) -> T:
-        if self.annotations is not None:
-            _annotations[obj] = self.annotations
-        if self.constraints is not None:
-            _constraints[obj] = self.constraints
+        _schema[obj] = self
         return obj
 
-    @property
-    def override(self) -> bool:
-        return self.annotations is not None and self.annotations.extra_only
+    def as_dict(self) -> Mapping[str, Any]:
+        result: Dict[str, Any] = {}
+        if self.constraints is not None:
+            result.update(self.constraints.as_dict())
+        if self.annotations is not None:
+            result.update(self.annotations.as_dict())
+        return result
 
 
-_constraint_rewrite = {
-    "min": "minimum",
-    "max": "maximum",
-    "exc_min": "exclusive_minimum",
-    "exc_max": "exclusive_maximum",
-    "mult_of": "multiple_of",
-    "min_len": "min_length",
-    "max_len": "max_length",
-    "unique": "unique_items",
-    "min_props": "min_properties",
-    "max_props": "max_properties",
-}
+_annotations_fields = {f.name for f in fields(Annotations)}
 
 
 @overload
@@ -66,7 +52,7 @@ def schema(
     default: Any = Nil,
     examples: Optional[Sequence[Any]] = None,
     extra: Mapping[str, Any] = None,
-    extra_only: bool = False,
+    override: bool = False,
 ) -> Schema:
     ...
 
@@ -84,7 +70,7 @@ def schema(
     exc_max: Optional[Number] = None,
     mult_of: Optional[Number] = None,
     extra: Mapping[str, Any] = None,
-    extra_only: bool = False,
+    override: bool = False,
 ) -> Schema:
     ...
 
@@ -101,7 +87,7 @@ def schema(
     max_len: Optional[int] = None,
     pattern: Optional[str] = None,
     extra: Mapping[str, Any] = None,
-    extra_only: bool = False,
+    override: bool = False,
 ) -> Schema:
     ...
 
@@ -117,39 +103,20 @@ def schema(
     max_items: Optional[int] = None,
     unique: Optional[bool] = None,
     extra: Mapping[str, Any] = None,
-    extra_only: bool = False,
+    override: bool = False,
 ) -> Schema:
     ...
 
 
-@overload
-def schema(
-    *,
-    title: Optional[str] = None,
-    description: Optional[str] = None,
-    default: Any = Nil,
-    examples: Optional[Sequence[Any]] = None,
-    min_props: Optional[int] = None,
-    max_props: Optional[int] = None,
-    extra: Mapping[str, Any] = None,
-    extra_only: bool = False,
-) -> Schema:
-    ...
-
-
-def schema(**kwargs) -> Schema:
-    kwargs_ = {_constraint_rewrite.get(k, k): v for k, v in kwargs.items()}
-    annotations_fields = {f.name for f in fields(Annotations)}
-    annotations_kwargs = {k: v for k, v in kwargs_.items() if k in annotations_fields}
-    constraint_kwargs = {
-        k: v for k, v in kwargs_.items() if k not in annotations_kwargs
+def schema(override=False, **kwargs) -> Schema:
+    annotations_kwargs = {k: v for k, v in kwargs.items() if k in _annotations_fields}
+    constraints_kwargs = {
+        k: v for k, v in kwargs.items() if k not in _annotations_fields
     }
-    annotations = None
-    if annotations_kwargs:
-        annotations = Annotations(**annotations_kwargs)
+    annotations = Annotations(**annotations_kwargs) if annotations_kwargs else None
 
     constraints = None
-    if constraint_kwargs:
+    if constraints_kwargs:
         for cls in (
             NumberConstraints,
             StringConstraints,
@@ -157,67 +124,32 @@ def schema(**kwargs) -> Schema:
             ObjectConstraints,
         ):
             with suppress(TypeError):
-                constraints = cls(**constraint_kwargs)
+                constraints = cls(**constraints_kwargs)
                 break
         else:
-            raise TypeError("Invalid constraints")
+            raise TypeError("Invalid schema")
 
-    return Schema(annotations, constraints)
+    return Schema(annotations, constraints, override)
 
 
 def _default_schema(cls: AnyType) -> Optional[Schema]:
     return None
 
 
-def get_schema(cls: AnyType) -> Schema:
-    annotations, constraints = get_annotations(cls), get_constraints(cls)
-    if annotations is not None or constraints is not None:
-        return Schema(annotations, constraints)
-    else:
-        return _default_schema(cls) or Schema()
+_schema: Dict[Any, Schema] = {}
 
 
-@merge_opts
-def merge_annotations(default: Annotations, override: Annotations) -> Annotations:
-    return Annotations(
-        **{
-            **as_dict(default),
-            **as_dict(override),
-            "extra": merge_opts_mapping(default.extra, override.extra),  # type: ignore
-            "extra_only": default.extra_only or override.extra_only,
-        }
-    )
-
-
-@merge_opts
-def merge_constraints(default: Constraints, override: Constraints) -> Constraints:
-    return default.merge(override)
+def get_schema(cls: AnyType) -> Optional[Schema]:
+    return _schema[cls] if cls in _schema else _default_schema(cls)
 
 
 @merge_opts
 def merge_schema(default: Schema, override: Schema) -> Schema:
+    # override will be the higher level schema, so schema generation
+    # should not go further and merge not happen
+    assert not override.override
     return Schema(
         merge_annotations(default.annotations, override.annotations),
         merge_constraints(default.constraints, override.constraints),
+        override.override,
     )
-
-
-def _camel_case_and_remove_none(obj: Any) -> Mapping[str, Any]:
-    if obj is None:
-        return {}
-    return {to_camel_case(k): v for k, v in as_dict(obj).items() if v is not None}
-
-
-def serialize_schema(schema: Schema) -> Mapping[str, Any]:
-    result = {
-        **_camel_case_and_remove_none(schema.annotations),
-        **_camel_case_and_remove_none(schema.constraints),
-    }
-    if schema.annotations is not None:
-        if schema.annotations.default is Nil:
-            result.pop("default")
-        elif schema.annotations.default is None:
-            result["default"] = None
-    result.pop("extraOnly", ...)
-    result.update(result.pop("extra", {}))
-    return result

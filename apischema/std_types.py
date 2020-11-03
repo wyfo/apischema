@@ -15,8 +15,8 @@ from pathlib import Path
 from typing import NewType, Type, TypeVar
 from uuid import UUID
 
-from apischema.json_schema.schema import schema
 from apischema.conversions.converters import deserializer, serializer
+from apischema.json_schema.schema import schema
 
 Cls = TypeVar("Cls", bound=Type)
 

@@ -101,6 +101,5 @@ def json_schema(
     uniqueItems: bool = False,
     unevaluatedProperties: Union[bool, JsonSchema] = JsonSchema(),
     writeOnly: bool = False,
-    **kwargs,
 ) -> JsonSchema:
     ...
