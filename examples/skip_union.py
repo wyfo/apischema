@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from typing import Union
+from typing import Annotated, Union
 
 from pytest import raises
-from typing_extensions import Annotated
 
 from apischema import Skip, ValidationError, deserialize, serialize
 

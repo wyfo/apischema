@@ -14,9 +14,14 @@ from typing import (
 )
 
 from apischema.types import AnyType, subscriptable_origin
-from apischema.typing import Annotated, get_args, get_origin, get_type_hints
+from apischema.typing import get_args, get_origin, get_type_hints
 from apischema.utils import type_name
 from apischema.visitor import Visitor
+
+try:
+    from apischema.typing import Annotated
+except ImportError:
+    Annotated = ...  # type: ignore
 
 Conversions = Mapping[AnyType, Any]
 Converter = Callable[[Any], Any]

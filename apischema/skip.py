@@ -1,7 +1,6 @@
 from typing import Any, Iterable, Iterator, Sequence, TypeVar, Union
 
 from apischema.types import AnyType
-from apischema.typing import Annotated, NO_TYPE
 from apischema.visitor import Visitor
 
 
@@ -18,7 +17,15 @@ Skip = _Skip()
 SkipSchema = object()
 
 T = TypeVar("T")
-if Annotated is not NO_TYPE:
+try:
+    from typing import Annotated  # type: ignore
+except ImportError:
+    try:
+        from typing_extensions import Annotated  # type: ignore
+    except ImportError:
+        Annotated = None  # type: ignore
+
+if Annotated is not None:
     NotNull = Union[T, Annotated[None, Skip]]
 else:
 

@@ -1,5 +1,4 @@
-from typing import Any, Generic, TypeVar, Union
-from typing_extensions import Annotated
+from typing import Annotated, Any, Generic, TypeVar, Union
 
 from pytest import raises
 

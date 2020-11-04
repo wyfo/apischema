@@ -1,3 +1,4 @@
+from dataclasses import Field, dataclass, field, replace
 from enum import Enum
 from functools import wraps
 from itertools import chain
@@ -18,8 +19,6 @@ from typing import (
     cast,
     overload,
 )
-
-from dataclasses import Field, dataclass, field, replace
 
 from apischema import settings
 from apischema.cache import cache
@@ -63,7 +62,6 @@ from apischema.types import (
     NoneType,
     OrderedDict,
 )
-from apischema.typing import Literal
 from apischema.validation.errors import ErrorKey, ValidationError, merge_errors
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validator import (
@@ -461,8 +459,7 @@ class DeserializationMethodVisitor(
         return factory
 
     def enum(self, cls: Type[Enum]) -> DeserializationMethodFactory:
-        literal = Literal[tuple(elt.value for elt in cls)]  # type: ignore
-        deserialize_literal = self.method(literal)
+        deserialize_literal = self.literal([elt.value for elt in cls]).method
 
         @DeserializationMethodFactory.from_type(cls)
         def factory(

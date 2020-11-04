@@ -1,7 +1,7 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from typing import Annotated
 
-from typing_extensions import Annotated
 
 from apischema import deserialize, properties, schema, schema_ref
 from apischema.json_schema import deserialization_schema

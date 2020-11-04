@@ -1,6 +1,19 @@
 # flake8: noqa
 # type: ignore
+import sys
+import typing
+from unittest.mock import MagicMock
 from typing import *
+from apischema.typing import Annotated, Literal, TypedDict
+
+typing.Annotated, typing.Literal, typing.TypedDict = Annotated, Literal, TypedDict
+if sys.version_info < (3, 9):
+
+    class CollectionABC:
+        def __getattribute__(self, name):
+            return globals()[name] if name in globals() else MagicMock()
+
+    sys.modules["collections.abc"] = CollectionABC()
 
 
 class Wrapper:
@@ -19,4 +32,4 @@ for cls in (Dict, List, Set, FrozenSet, Tuple, Type):  # noqa
     wrapper = Wrapper(cls)
     globals()[wrapper.implem.__name__] = wrapper
 
-Set = AbstractSet  # type: ignore
+Set = AbstractSet

@@ -30,22 +30,18 @@ def generate():
     for example_path, test_path in iter_paths():
         with open(example_path) as example:
             with open(test_path, "w") as test:
-                # Test function cannot be put at the top of the file because:
-                # - __future__ imports must be at top
-                # - class must be declared in global namespace for get_type_hints
-                for line in example:
-                    # 3.9 compatibility is added at the end of import section
-                    if line.strip() and not any(
-                        line.startswith(pfx) for pfx in ("import", "from", "    ", ")")
-                    ):
-                        test.writelines(compatibility_lines)
-                        test.write(line)
-                        break
-                    test.write(line)
+                # 3.9 compatibility is added after __future__ import
+                # However, Annotated/Literal/etc. can be an issue
+                first_line = next(example)
+                if first_line.startswith("from __future__ import"):
+                    test.write(first_line)
+                    test.writelines(compatibility_lines)
                 else:
-                    raise NotImplementedError()
+                    test.writelines(compatibility_lines)
+                    test.write(first_line)
+                # Test function begin at the first assertion because all declarations
+                # must be done in global namespace for get_type_hints to work
                 for line in example:
-                    # test function begin at the first test assertion
                     if line.startswith("assert ") or line.startswith("with raises("):
                         test.write(f"def {test_path.stem}():\n")
                         test.writelines(f"    {l}" for l in chain([line], example))

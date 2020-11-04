@@ -15,8 +15,12 @@ from apischema.conversions.utils import Conversions
 from apischema.json_schema.generation.visitor import SchemaVisitor
 from apischema.json_schema.refs import get_ref, schema_ref
 from apischema.types import AnyType
-from apischema.typing import Annotated
 from apischema.utils import is_hashable
+
+try:
+    from apischema.typing import Annotated
+except ImportError:
+    Annotated = ...  # type: ignore
 
 Refs = Dict[str, Tuple[AnyType, int]]
 

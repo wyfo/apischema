@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from typing import Any, Generic, TypeVar, Union
+from typing import Annotated, Any, Generic, TypeVar, Union
 
 from pytest import raises
-from typing_extensions import Annotated
 
 from apischema import NotNull, Skip, ValidationError, deserialize, schema, serialize
 from apischema.fields import with_fields_set

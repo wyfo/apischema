@@ -25,14 +25,17 @@ from apischema.types import (
     TUPLE_TYPE,
 )
 from apischema.typing import (
-    Literal,
-    Annotated,
     _LiteralMeta,
     _TypedDictMeta,
     get_args,
     get_origin,
     get_type_hints,
 )
+
+try:
+    from apischema.typing import Annotated, Literal
+except ImportError:
+    Annotated, Literal = ..., ...  # type: ignore
 
 
 @lru_cache()

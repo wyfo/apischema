@@ -1,8 +1,5 @@
 """Kind of typing_extensions for this package"""
 __all__ = [
-    "Annotated",
-    "Literal",
-    "TypedDict",
     "_LiteralMeta",
     "_TypedDictMeta",
     "get_type_hints",
@@ -15,15 +12,9 @@ from types import ModuleType
 from typing import Any, Callable, Generic, TypeVar
 
 
-class NoType:
-    def __getitem__(self, key):  # pragma: no cover
-        generic = NoType()
-        setattr(generic, "__origin__", self)
-        setattr(generic, "__args__", key if isinstance(key, tuple) else (key,))
-        return generic
+class _FakeType:
+    pass
 
-
-NO_TYPE: Any = NoType()
 
 if sys.version_info >= (3, 9):  # pragma: no cover
     from typing import Annotated, get_type_hints, get_origin, get_args
@@ -31,7 +22,7 @@ else:  # pragma: no cover
     try:
         from typing_extensions import Annotated
     except ImportError:
-        Annotated = NO_TYPE
+        pass
     try:
         from typing_extensions import get_type_hints as gth
     except ImportError:
@@ -79,16 +70,21 @@ else:  # pragma: no cover
     try:
         from typing_extensions import Literal, TypedDict, Protocol  # noqa F401
     except ImportError:
-        Literal = NO_TYPE
-        TypedDict = NO_TYPE
-
-
-class _TypedDictImplem(TypedDict):
-    pass
+        Literal, TypedDict = _FakeType, _FakeType
 
 
 _T = TypeVar("_T")
-_AnnotatedAlias: Any = type(Annotated[_T, ...])
 _GenericAlias: Any = type(Generic[_T])
-_LiteralMeta: Any = type(Literal)
-_TypedDictMeta: Any = type(_TypedDictImplem)
+try:
+    _AnnotatedAlias: Any = type(Annotated[_T, ...])
+except NameError:
+    _AnnotatedAlias = _FakeType
+try:
+
+    class _TypedDictImplem(TypedDict):
+        pass
+
+    _LiteralMeta: Any = type(Literal)
+    _TypedDictMeta: Any = type(_TypedDictImplem)
+except NameError:
+    _LiteralMeta, _TypedDictMeta = _FakeType, _FakeType  # type: ignore
