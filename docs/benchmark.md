@@ -7,35 +7,33 @@ Below are the results of crude benchmark comparing *apischema* to *pydantic* and
 
 Package | Version | Relative Performance | Mean deserialization time
 --- | --- | --- | ---
-apischema | `0.7.0` |  | 108.0μs
-pydantic | `1.6.1` | 1.1x slower | 119.5μs
-attrs + cattrs | `19.1.0` | 1.1x slower | 123.1μs
-valideer | `0.4.2` | 1.2x slower | 124.5μs
-marshmallow | `3.5.2` | 1.9x slower | 203.9μs
-voluptuous | `0.11.7` | 2.4x slower | 254.2μs
-trafaret | `1.2.0` | 2.9x slower | 312.2μs
-django-rest-framework | `3.10.2` | 8.4x slower | 911.3μs
-cerberus | `1.3.2` | 22.4x slower | 2416.6μs
+apischema | `0.11` |  | 50.7μs
+valideer | `0.4.2` | 2.3x slower | 118.2μs
+pydantic | `1.7.2` | 2.4x slower | 120.1μs
+attrs + cattrs | `20.2.0` | 2.5x slower | 125.6μs
+marshmallow | `3.8.0` | 3.9x slower | 198.1μs
+voluptuous | `0.12.0` | 5.1x slower | 257.6μs
+trafaret | `2.1.0` | 5.5x slower | 280.6μs
+django-rest-framework | `3.12.1` | 20.0x slower | 1016.4μs
+cerberus | `1.3.2` | 40.3x slower | 2043.3μs
 
 Package | Version | Relative Performance | Mean serialization time
 --- | --- | --- | ---
-apischema | `0.7.0` |  | 29.3μs
-pydantic | `1.6.1` | 2.0x slower | 58.2μs
+apischema | `0.1` |  | 24.8μs
+pydantic | `1.7.2` | 2.3x slower | 57.5μs
 
-Benchmarks were run with Python 3.7.7 (CPython) and the package versions listed above installed via pypi on macOs 10.15.5
-    
+Benchmarks were run with Python 3.8 (*CPython*) and the package versions listed above installed via *pypi* on *macOs* 10.15.7
+
 !!! note
-    Using *PyPy*, *Apischema* lead is even more confirmed. 
-
+    A few precisions have to be written about these results:
+    
+    - *pydantic* version executed is not *Cythonised*; by the way, even with *Cython*, *Apischema* is still faster than *pydantic*
+    - *Apischema* is optimized enough to not have a real performance improvement using *Pypy* instead of *CPython*
+    - *pydantic* benchmark is biased by the implementation of `datetime` parsing for *cattrs* (see [this post](https://stefan.sofa-rockers.org/2020/05/29/attrs-dataclasses-pydantic/) about it); in fact, if *cattrs* use a decently fast implementation, like the standard `datetime.fromisoformat`, *cattrs* becomes 3 times faster than *pydantic*, even faster than *Apischema*. Of course, you don't get the same features, like complete error handling, aggregate fields, etc. In fact, performance difference between *Apischema* and *cattrs* comes mostly of error handling (*cattrs* doesn't catch errors to gather them) and the gap between them is a lot reduced when playing benchmark only on valid cases.
+    
+    
 ## FAQ
 
-#### Why not use *Cython*?
-*Cython* doesn't support yet some of the modern Python features like `Generic` or `dataclass` which are intensively used in *Apischema*.
-
-!!! note
-    With some hacks, it has been possible to cythonize some of the modules, with performance increase; it becomes then a little bit slower than cythonized *Pydantic* (which is optimized for *Cython*). But this is too dirty to keep it, and *Cython* is not a priority.
-
-
-#### Why not ask for integration to *pydantic* benchmark?
+#### Why not ask directly for integration to *pydantic* benchmark?
 [Done, but rejected](https://github.com/samuelcolvin/pydantic/pull/1525#issuecomment-630422702) because "apischema doesn't have enough usage". Let's change that!
 
