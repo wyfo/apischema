@@ -1,7 +1,7 @@
 from dataclasses import InitVar, dataclass, field
 from typing import Generic, TypeVar
 
-from apischema.deserialization.deserializer import get_init_merged_alias
+from apischema.deserialization import get_init_merged_alias
 from apischema.metadata import merged
 
 

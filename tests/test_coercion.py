@@ -1,6 +1,6 @@
 from pytest import mark, raises
 
-from apischema.deserialization.coercion import coerce
+from apischema.coercion import coerce
 from apischema.types import NoneType
 
 

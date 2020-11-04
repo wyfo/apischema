@@ -27,7 +27,7 @@ Deserialization performs a validation of data, based on typing annotations and o
 
 *Apischema* is strict by default. You ask for an integer, you have to receive an integer. 
 
-However, in some cases, particularly concerning stringified configuration (see [Configuration management](configuration_management.md)), data must be coerced. That can be done using `coerce` parameter; when set to `True`, all primitive types will be coerce to the expected type of the data model like the following:
+However, in some cases, data has to be be coerced, for example when parsing aconfiguration file. That can be done using `coerce` parameter; when set to `True`, all primitive types will be coerce to the expected type of the data model like the following:
 
 ```python
 {!coercion.py!}
@@ -60,7 +60,7 @@ However, in some cases, particularly concerning stringified configuration (see [
     If coercer result is not an instance of class passed in argument, a ValidationError will be raised with an appropriate error message
     
 !!! warning
-    Coercer first argument can is a primitive json type `str`/`bool`/`int`/`float`/`list`/`dict`/`type(None)`; it can be `type(None)`, so returning `cls(data)` will fail in this case.
+    Coercer first argument is a primitive json type `str`/`bool`/`int`/`float`/`list`/`dict`/`type(None)`; it can be `type(None)`, so returning `cls(data)` will fail in this case.
     
 #### Additional properties
 

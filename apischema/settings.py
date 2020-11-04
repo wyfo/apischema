@@ -11,7 +11,7 @@ __all__ = [
 
 from typing import Callable, Optional, Type, TypeVar, overload
 
-from apischema import aliases
+from apischema import aliases, coercion as coercion_
 from apischema.cache import reset_cache
 from apischema.conversions.utils import Conversions
 from apischema.conversions.visitor import (
@@ -20,7 +20,6 @@ from apischema.conversions.visitor import (
     Serialization,
     SerializationVisitor,
 )
-from apischema.deserialization import coercion as coercion_
 from apischema.json_schema import refs, schema, versions
 from apischema.types import AnyType
 from apischema.utils import to_camel_case

@@ -34,7 +34,7 @@ from apischema.dataclass_utils import (
     has_default,
     is_required,
 )
-from apischema.deserialization.coercion import Coercion, get_coercer
+from apischema.coercion import Coercion, get_coercer
 from apischema.json_schema.constraints import (
     ArrayConstraints,
     Constraints,

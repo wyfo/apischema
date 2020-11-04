@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, AnyStr, Generic, TypeVar, Union
 
-from pytest import fixture, mark, raises
+from pytest import fixture, mark
 
 from apischema import deserialize
 from apischema.type_vars import TypeVarResolver
@@ -65,13 +65,12 @@ def test_type_vars_nested(type_vars):
 
 
 def test_type_vars_nested_without_context(type_vars):
-    with raises(AssertionError):
-        with type_vars.generic_context(Double[int, str]):
-            with type_vars.generic_context(Simple[Simple[T]]):
-                # Without using the context
-                assert type_vars.resolve(T) == Simple[T]
-                with type_vars.generic_context(Simple[T]):
-                    assert type_vars.resolve(T) == int
+    with type_vars.generic_context(Double[int, str]):
+        with type_vars.generic_context(Simple[Simple[T]]):
+            # Without using the context
+            assert type_vars.resolve(T) == Simple[T]
+            with type_vars.generic_context(Simple[T]):
+                assert type_vars.resolve(T) != int
 
 
 @dataclass
