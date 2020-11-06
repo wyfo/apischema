@@ -356,30 +356,18 @@
       
 
 
-  <li class="md-nav__item">
-    <a href="configuration_management/" title="Configuration management" class="md-nav__link">
-      Configuration management
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
     
-    <label class="md-nav__link" for="nav-8">
+    <label class="md-nav__link" for="nav-7">
       Examples
       <span class="md-nav__icon md-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
       </span>
     </label>
     <nav class="md-nav" aria-label="Examples" data-md-level="1">
-      <label class="md-nav__title" for="nav-8">
+      <label class="md-nav__title" for="nav-7">
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
         </span>
@@ -582,6 +570,7 @@
 
 
 <p>It requires only Python 3.6+ (and dataclasses <a href="https://pypi.org/project/dataclasses/">official backport</a> for version 3.6 only)</p>
+<p><em>PyPy3</em> is fully supported.</p>
 <h2 id="why-another-library">Why another library?<a class="headerlink" href="#why-another-library" title="Permanent link">&para;</a></h2>
 <p>This library fulfill the following goals:</p>
 <ul>
@@ -592,7 +581,7 @@
 <p>No known alternative achieves that.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Actually, <em>Apischema</em> is even adaptable enough to enable support of "rival" libraries in a few dozens of line of code (see <a href="conversions/">conversions section</a>)  </p>
+<p>Actually, <em>Apischema</em> is even adaptable enough to enable support of competitor libraries in a few dozens of line of code (see <a href="conversions/">conversions section</a>)  </p>
 </div>
 <h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
@@ -601,11 +590,10 @@
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
-
-<span class="c1"># Define a schema with standard dataclasses</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 
 
+<span class="c1"># Define a schema with standard dataclasses</span>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Resource</span><span class="p">:</span>
     <span class="nb">id</span><span class="p">:</span> <span class="n">UUID</span>

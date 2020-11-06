@@ -380,13 +380,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#type-checker" class="md-nav__link">
-    Type checker
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#faq" class="md-nav__link">
     FAQ
   </a>
@@ -444,30 +437,18 @@
       
 
 
-  <li class="md-nav__item">
-    <a href="../configuration_management/" title="Configuration management" class="md-nav__link">
-      Configuration management
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
     
-    <label class="md-nav__link" for="nav-8">
+    <label class="md-nav__link" for="nav-7">
       Examples
       <span class="md-nav__icon md-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
       </span>
     </label>
     <nav class="md-nav" aria-label="Examples" data-md-level="1">
-      <label class="md-nav__title" for="nav-8">
+      <label class="md-nav__title" for="nav-7">
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
         </span>
@@ -688,13 +669,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#type-checker" class="md-nav__link">
-    Type checker
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#faq" class="md-nav__link">
     FAQ
   </a>
@@ -783,7 +757,7 @@
         <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span>
         <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;size greater than 3 (maxItems)&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">],</span>
     <span class="p">},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;unmatched pattern &#39;^</span><span class="se">\\</span><span class="s2">w*$&#39;&quot;</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&#39;^</span><span class="se">\\</span><span class="s2">w*$&#39; not matched (pattern)&quot;</span><span class="p">]},</span>
     <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;length less than 3 (minLength)&quot;</span><span class="p">]},</span>
 <span class="p">]</span>
 </code></pre></div>
@@ -1140,48 +1114,13 @@ lt values, they are not run; make sure your default values make sens.</p>
 </code></pre></div>
 
 
-<h2 id="type-checker">Type checker<a class="headerlink" href="#type-checker" title="Permanent link">&para;</a></h2>
-<p>Validation is done only at deserialization (see <a href="#why-only-validate-at-deserialization-and-not-at-instantiation">FAQ</a>). However, it is possible at runtime to check the type of an object, and to do it descending all the type model of the given types (dataclass fields, list elements, etc.) with the function <code>check_types</code>. It can also "validate" the object (running all its validator and validate its constraints) if needed.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Set</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">uuid4</span>
-
-<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
-
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">check_types</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">serialize</span>
-
-
-<span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Resource</span><span class="p">:</span>
-    <span class="nb">id</span><span class="p">:</span> <span class="n">UUID</span>
-    <span class="n">tags</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">max_items</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
-
-
-<span class="n">check_types</span><span class="p">(</span><span class="n">Resource</span><span class="p">,</span> <span class="n">Resource</span><span class="p">(</span><span class="n">uuid4</span><span class="p">(),</span> <span class="p">{</span><span class="s2">&quot;tag&quot;</span><span class="p">}))</span>  <span class="c1"># no error</span>
-<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-    <span class="n">check_types</span><span class="p">(</span><span class="n">Resource</span><span class="p">,</span> <span class="n">Resource</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="p">{</span><span class="mi">0</span><span class="p">}))</span>  <span class="c1"># type: ignore</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;expected UUID, found type str&quot;</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;expected str, found type int&quot;</span><span class="p">]},</span>
-<span class="p">]</span>
-<span class="n">too_many_tags</span> <span class="o">=</span> <span class="n">Resource</span><span class="p">(</span><span class="n">uuid4</span><span class="p">(),</span> <span class="p">{</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">})</span>
-<span class="k">assert</span> <span class="n">check_types</span><span class="p">(</span><span class="n">Resource</span><span class="p">,</span> <span class="n">too_many_tags</span><span class="p">)</span>  <span class="c1"># No error because no validation</span>
-<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-    <span class="n">check_types</span><span class="p">(</span><span class="n">Resource</span><span class="p">,</span> <span class="n">too_many_tags</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;size greater than 3 (maxItems)&quot;</span><span class="p">]}</span>
-<span class="p">]</span>
-</code></pre></div>
-
-
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
 <h4 id="how-are-computed-validator-depedencies">How are computed validator depedencies?<a class="headerlink" href="#how-are-computed-validator-depedencies" title="Permanent link">&para;</a></h4>
 <p><code>ast.NodeVisitor</code> and the Python black magic begins...</p>
 <h4 id="why-only-validate-at-deserialization-and-not-at-instantiation">Why only validate at deserialization and not at instantiation?<a class="headerlink" href="#why-only-validate-at-deserialization-and-not-at-instantiation" title="Permanent link">&para;</a></h4>
-<p>Dataclass are typed-checked, so data put in the constructor are supposed to be typed-checked too, so validation would be useless most of the time. That's why it doesn't seem justified to add this high overhead everywhere for everyone. 
-By the way, if it was implemented, in order to be consistent, validation should be performed each time the instance is modified (if you don't trust <code>__init__</code> argument, why would it be different for <code>__setattr__</code>) and it would add even more overhead. Other libraries exist to ensure preservation of class invariants.</p>
+<p><em>Apischema</em> uses type annotations, so every objects used can already be statically type-checked (with <em>Mypy</em>/<em>Pycharm</em>/etc.) at instantiation but also at modification.</p>
 <h4 id="why-use-validators-for-dataclasses-instead-of-doing-validation-in-__post_init__">Why use validators for dataclasses instead of doing validation in <code>__post_init__</code>?<a class="headerlink" href="#why-use-validators-for-dataclasses-instead-of-doing-validation-in-__post_init__" title="Permanent link">&para;</a></h4>
-<p>Actually, validation can completly be done in <code>__post_init__</code>, there is not problem with that. However, validators offers one thing that cannot be achieved with <code>__post_init__</code>: they are run before <code>__init__</code>, so they can validate incomplete data. Moreover, they are only run during deserialization, so they don't add overhead to normal class instantiation (yes, that's a minor argument). Of course, there is also features like dependencies computing, discard ... (which could be achieved in <code>__post_init__</code> but require some lines of code).</p>
+<p>Actually, validation can completly be done in <code>__post_init__</code>, there is not problem with that. However, validators offers one thing that cannot be achieved with <code>__post_init__</code>: they are run before <code>__init__</code>, so they can validate incomplete data. Moreover, they are only run during deserialization, so they don't add overhead to normal class instantiation.</p>
                 
               
               

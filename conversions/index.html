@@ -389,30 +389,18 @@
       
 
 
-  <li class="md-nav__item">
-    <a href="../configuration_management/" title="Configuration management" class="md-nav__link">
-      Configuration management
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
     
-    <label class="md-nav__link" for="nav-8">
+    <label class="md-nav__link" for="nav-7">
       Examples
       <span class="md-nav__icon md-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
       </span>
     </label>
     <nav class="md-nav" aria-label="Examples" data-md-level="1">
-      <label class="md-nav__title" for="nav-8">
+      <label class="md-nav__title" for="nav-7">
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
         </span>
@@ -642,7 +630,7 @@
 <p><em>Apischema</em> covers majority of standard data types, but it's of course not enough, that's why it gives you the way to add support for all your classes and the libraries you use.</p>
 <p>Actually, <em>Apischema</em> uses internally its own feature to support standard library data types like UUID/datetime/etc. (see <a href="https://github.com/wyfo/apischema/blob/master/apischema/std_types.py">std_types.py</a>)</p>
 <p>ORM support can easily be achieved with this feature (see <a href="../examples/sqlalchemy/">SQLAlchemy example</a>).</p>
-<p>In fact, you can even add support of other "rival" libraries like <em>Pydantic</em> (see <a href="../examples/pydantic_compatibility/"><em>Pydantic</em> compatibility example</a>)</p>
+<p>In fact, you can even add support of competitor libraries like <em>Pydantic</em> (see <a href="../examples/pydantic_compatibility/"><em>Pydantic</em> compatibility example</a>)</p>
 <h2 id="principle-apischema-conversions">Principle - <em>Apischema</em> conversions<a class="headerlink" href="#principle-apischema-conversions" title="Permanent link">&para;</a></h2>
 <p>An <em>Apischema</em> conversion is composed of a source type, let's call it <code>Source</code>, a target type <code>Target</code> and a function of signature <code>(Source) -&gt; Target</code>.</p>
 <p>When a type (actually, a non-builtin type, so not <code>int</code>/<code>list[str]</code>/etc.) is deserialized, <em>Apischema</em> will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then conversion function will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply conversion (normally get the target type).</p>
@@ -734,7 +722,7 @@
 <p>This is not possible to overwrite this way deserializers (because they stack), but <code>reset_deserializers</code> can be used to reset them before adding new ones. Also, <code>self_deserializer</code> can be used to add a class itself as a deserializer (when it's a supported type like a dataclass).</p>
 <h3 id="inheritance">Inheritance<a class="headerlink" href="#inheritance" title="Permanent link">&para;</a></h3>
 <p>All serializers are naturally inherited. In fact, with a conversion function <code>(Source) -&gt; Target</code>, you can always pass a subtype of <code>Source</code> and get a <code>Target</code> in return.</p>
-<p>Moreover, when serializer is a method (and no <code>param</code> is passed to <code>serializer</code>, overriding this method in a subclass will override the inherited serializer.</p>
+<p>Moreover, when serializer is a method, overriding this method in a subclass will override the inherited serializer.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
 
 
@@ -1076,13 +1064,13 @@ For deserialization, if there is <a href="#multiple-deserializers">several possi
           </a>
         
         
-          <a href="../configuration_management/" title="Configuration management" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../examples/open_rpc/" title="OpenRPC" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Configuration management
+                OpenRPC
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

@@ -498,30 +498,18 @@
       
 
 
-  <li class="md-nav__item">
-    <a href="../configuration_management/" title="Configuration management" class="md-nav__link">
-      Configuration management
-    </a>
-  </li>
-
-    
-      
-      
-      
-
-
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
     
-    <label class="md-nav__link" for="nav-8">
+    <label class="md-nav__link" for="nav-7">
       Examples
       <span class="md-nav__icon md-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
       </span>
     </label>
     <nav class="md-nav" aria-label="Examples" data-md-level="1">
-      <label class="md-nav__title" for="nav-8">
+      <label class="md-nav__title" for="nav-7">
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
         </span>
@@ -1097,7 +1085,15 @@
 </tr>
 </tbody>
 </table>
-<p><code>schema</code> function has an overloaded signature which prevents to mix incompatible keywords. By the way, one other <code>extra</code> keyword allows to add arbitrary keys to JSON schema generated; setting <code>extra_only</code> to <code>True</code> force <em>Apischema</em> to use only <code>extra</code> keys. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>schema</code> function has an overloaded signature which prevents to mix incompatible keywords. </p>
+</div>
+<p>Two other arguments enable a finer control of the JSON schema generated : </p>
+<ul>
+<li><code>extra</code> enable to add arbitrary keys to schema;</li>
+<li><code>override=True</code> prevents <em>Apischema</em> to use the annotated type schema, using only <code>schema</code> annotation.  </li>
+</ul>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span>
@@ -1109,7 +1105,7 @@
 <span class="n">Bar</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Bar&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
 <span class="n">schema</span><span class="p">(</span>
     <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;http://some-domain.org/path/tp/schema.json#/$defs/Bar&quot;</span><span class="p">},</span>
-    <span class="n">extra_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)(</span><span class="n">Bar</span><span class="p">)</span>
 
 <span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
@@ -1122,6 +1118,11 @@
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;http://some-domain.org/path/tp/schema.json#/$defs/Bar&quot;</span><span class="p">,</span>
 <span class="p">}</span>
+<span class="c1"># Without override=True, it would be {</span>
+<span class="c1">#     &quot;$schema&quot;: &quot;http://json-schema.org/draft/2019-09/schema#&quot;,</span>
+<span class="c1">#     &quot;$ref&quot;: &quot;http://some-domain.org/path/tp/schema.json#/$defs/Bar&quot;,</span>
+<span class="c1">#     &quot;type&quot;: &quot;integer&quot;,</span>
+<span class="c1"># }</span>
 </code></pre></div>
 
 
@@ -1160,7 +1161,7 @@
         <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span>
         <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;size greater than 3 (maxItems)&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">],</span>
     <span class="p">},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;unmatched pattern &#39;^</span><span class="se">\\</span><span class="s2">w*$&#39;&quot;</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&#39;^</span><span class="se">\\</span><span class="s2">w*$&#39; not matched (pattern)&quot;</span><span class="p">]},</span>
     <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;length less than 3 (minLength)&quot;</span><span class="p">]},</span>
 <span class="p">]</span>
 </code></pre></div>
@@ -1211,15 +1212,10 @@
 <p><code>additionalProperties</code>/<code>patternProperties</code> can be added to dataclasses by using  fields annotated with <code>properties</code> metadata. Properties not mapped on regular fields will be deserialized into this fields; they must have a <code>Mapping</code> type (or be <a href="../conversions/">convertible</a> from <code>Mapping</code>) because they are instanciated with a mapping.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Mapping</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span>
 
-<span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Annotated</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">deserialize</span><span class="p">,</span>
-    <span class="n">properties</span><span class="p">,</span>
-    <span class="n">schema</span><span class="p">,</span>
-    <span class="n">schema_ref</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">schema_ref</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 
 
@@ -1278,7 +1274,7 @@
     <span class="n">deserialize</span><span class="p">,</span>
     <span class="n">serialize</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">apischema.dependencies</span> <span class="kn">import</span> <span class="n">DependentRequired</span>
+<span class="kn">from</span> <span class="nn">apischema.dependent_required</span> <span class="kn">import</span> <span class="n">DependentRequired</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 
 
