@@ -592,6 +592,7 @@
 <li><em>pydantic</em> version executed is not <em>Cythonised</em>; by the way, even with <em>Cython</em>, <em>Apischema</em> is still faster than <em>pydantic</em></li>
 <li><em>Apischema</em> is optimized enough to not have a real performance improvement using <em>Pypy</em> instead of <em>CPython</em></li>
 <li><em>pydantic</em> benchmark is biased by the implementation of <code>datetime</code> parsing for <em>cattrs</em> (see <a href="https://stefan.sofa-rockers.org/2020/05/29/attrs-dataclasses-pydantic/">this post</a> about it); in fact, if <em>cattrs</em> use a decently fast implementation, like the standard <code>datetime.fromisoformat</code>, <em>cattrs</em> becomes 3 times faster than <em>pydantic</em>, even faster than <em>Apischema</em>. Of course, you don't get the same features, like complete error handling, aggregate fields, etc. In fact, performance difference between <em>Apischema</em> and <em>cattrs</em> comes mostly of error handling (<em>cattrs</em> doesn't catch errors to gather them) and the gap between them is a lot reduced when playing benchmark only on valid cases.</li>
+<li>Pydantic benchmark mixes valid with invalid data (around 50/50) — in real use, I hope your APIs receive less than 50% bad request. It means that error handling is very (too much?) important in this benchmark, and libraries like <em>cattrs</em> which raise and end simply at the first error encountered have a big advantage.</li>
 </ul>
 </div>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
