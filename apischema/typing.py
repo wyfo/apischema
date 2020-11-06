@@ -70,7 +70,7 @@ else:  # pragma: no cover
     try:
         from typing_extensions import Literal, TypedDict, Protocol  # noqa F401
     except ImportError:
-        Literal, TypedDict = _FakeType, _FakeType
+        pass
 
 
 _T = TypeVar("_T")
