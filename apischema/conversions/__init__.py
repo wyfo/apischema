@@ -1,4 +1,7 @@
 __all__ = [
+    "Deserialization",
+    "Conversions",
+    "Serialization",
     "deserializer",
     "extra_deserializer",
     "extra_serializer",
@@ -19,3 +22,5 @@ from .converters import (
     serializer,
 )
 from .raw import raw_deserializer
+from .utils import Conversions
+from .visitor import Deserialization, Serialization

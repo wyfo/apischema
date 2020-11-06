@@ -3,7 +3,6 @@ __all__ = ["serialize"]
 from dataclasses import dataclass, is_dataclass
 from enum import Enum
 from functools import partial
-from types import MappingProxyType
 from typing import Any, Callable, Collection, Mapping, Sequence, Tuple, Type
 
 from apischema.cache import cache
@@ -13,12 +12,12 @@ from apischema.conversions.visitor import SerializationVisitor
 from apischema.dataclass_utils import get_alias
 from apischema.fields import FIELDS_SET_ATTR, fields_set
 from apischema.metadata.keys import check_metadata, is_aggregate_field
-from apischema.types import PRIMITIVE_TYPES
+from apischema.types import COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES
 from apischema.visitor import Unsupported, dataclass_types_and_fields
 
 PRIMITIVE_TYPES_SET = set(PRIMITIVE_TYPES)
-COLLECTION_TYPE_SET = {list, tuple, set, frozenset}
-MAPPING_TYPE_SET = {dict, MappingProxyType}
+COLLECTION_TYPE_SET = set(COLLECTION_TYPES.values())
+MAPPING_TYPE_SET = set(MAPPING_TYPES.values())
 
 
 try:
@@ -78,9 +77,6 @@ def serialization_fields(
     return normal_fields, aggregate_fields
 
 
-is_conversion = SerializationVisitor.is_conversion
-
-
 def serialize(
     obj: Any, *, conversions: Conversions = None, exclude_unset: bool = True
 ) -> Any:
@@ -99,7 +95,7 @@ def serialize(
             ): serialize(value, conversions=conversions, exclude_unset=exclude_unset)
             for key, value in obj.items()
         }
-    conversion = is_conversion(cls, conversions)
+    conversion = SerializationVisitor.is_conversion(cls, conversions)
     if conversion is not None:
         _, (converter, sub_conversions) = conversion
         # TODO Maybe add exclude_unset parameter to serializers
