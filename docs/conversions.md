@@ -6,7 +6,7 @@ Actually, *Apischema* uses internally its own feature to support standard librar
 
 ORM support can easily be achieved with this feature (see [SQLAlchemy example](examples/sqlalchemy.md)).
 
-In fact, you can even add support of other "rival" libraries like *Pydantic* (see [*Pydantic* compatibility example](examples/pydantic_compatibility.md))
+In fact, you can even add support of competitor libraries like *Pydantic* (see [*Pydantic* compatibility example](examples/pydantic_compatibility.md))
 
 ## Principle - *Apischema* conversions
 
@@ -49,7 +49,7 @@ This is not possible to overwrite this way deserializers (because they stack), b
 
 All serializers are naturally inherited. In fact, with a conversion function `(Source) -> Target`, you can always pass a subtype of `Source` and get a `Target` in return.
 
-Moreover, when serializer is a method (and no `param` is passed to `serializer`, overriding this method in a subclass will override the inherited serializer.
+Moreover, when serializer is a method, overriding this method in a subclass will override the inherited serializer.
 
 ```python
 {!serializer_inheritance.py!}

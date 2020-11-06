@@ -25,7 +25,7 @@ This library fulfill the following goals:
 No known alternative achieves that.
 
 !!! note
-    Actually, *Apischema* is even adaptable enough to enable support of "rival" libraries in a few dozens of line of code (see [conversions section](conversions.md))  
+    Actually, *Apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code (see [conversions section](conversions.md))  
 
 ## Example
 

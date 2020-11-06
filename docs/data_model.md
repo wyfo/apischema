@@ -90,7 +90,7 @@ For `Enum`, this is the value and not the attribute name that is serialized
 
 : Kind of discount dataclass without field customization
 
-- `Any`
+- `typing.Any`
 
 : Untouched by deserialization
 

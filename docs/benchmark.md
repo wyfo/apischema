@@ -19,7 +19,7 @@ cerberus | `1.3.2` | 40.3x slower | 2043.3μs
 
 Package | Version | Relative Performance | Mean serialization time
 --- | --- | --- | ---
-apischema | `0.1` |  | 24.8μs
+apischema | `0.11` |  | 24.8μs
 pydantic | `1.7.2` | 2.3x slower | 57.5μs
 
 Benchmarks were run with Python 3.8 (*CPython*) and the package versions listed above installed via *pypi* on *macOs* 10.15.7

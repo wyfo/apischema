@@ -20,6 +20,7 @@ nav:
   - OpenRPC: examples/open_rpc.md
   - SQLAlchemy support: examples/sqlalchemy.md
   - examples/pydantic_compatibility.md
+  - examples/attrs_compatibility.md
   - examples/recoverable_fields.md
 - benchmark.md
 - Releases: https://github.com/wyfo/apischema/releases
