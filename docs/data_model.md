@@ -178,14 +178,16 @@ To solve this issue, *Apischema* defines a `NotNull` type.
     
 ## Composed dataclasses merging
 
-Dataclass fields which are themselves dataclass can be "merged" into the owning one by using `merged` metadata.
+Dataclass fields which are themselves dataclass can be "merged" into the owning one by using `merged` metadata. Then, when the class will be (de)serialized, "merged" fields will be (de)serialized at the same level than the owning class.
 
 ```python
 {!merged.py!}
 ```
 
 !!! note
-    This feature use JSON schema draft 2019-09 [`unevaluatedProperties` keyword](https://json-schema.org/draft/2019-09/json-schema-core.html#unevaluatedProperties).
+    This feature use JSON schema draft 2019-09 [`unevaluatedProperties` keyword](https://json-schema.org/draft/2019-09/json-schema-core.html#unevaluatedProperties). However, this keyword is removed when JSON schema is converted in a version that doesn't support it, like OpenAPI 3.0.
+
+This feature is very convenient for building model by composing smaller components. If some kind of reuse could also be achieved with inheritance, it can be less practical when it comes to use it in code, because there is no easy way to build an inherited class when you have an instance of the super class ; you have to copy all the fields by hand. On the other hand, using composition (of merged fields), it's easy to instantiate the class when the smaller component is just a field of it.
     
 
 ## Custom types / ORM

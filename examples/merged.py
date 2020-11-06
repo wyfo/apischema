@@ -21,6 +21,7 @@ class JsonSchema:
 class RootJsonSchema:
     schema: Optional[str] = field(default=None, metadata=alias("$schema"))
     defs: list[JsonSchema] = field(default_factory=list, metadata=alias("$defs"))
+    # This field schema is merged inside the owning one
     json_schema: JsonSchema = field(default=JsonSchema(), metadata=merged)
 
 
@@ -48,7 +49,9 @@ assert deserialization_schema(RootJsonSchema) == {
         }
     },
     "type": "object",
+    # It results in allOf + unevaluatedProperties=False
     "allOf": [
+        # RootJsonSchema (without JsonSchema)
         {
             "type": "object",
             "properties": {
@@ -57,6 +60,7 @@ assert deserialization_schema(RootJsonSchema) == {
             },
             "additionalProperties": False,
         },
+        # JonsSchema
         {"$ref": "#/$defs/JsonSchema"},
     ],
     "unevaluatedProperties": False,
