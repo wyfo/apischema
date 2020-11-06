@@ -8,7 +8,6 @@ from apischema import Skip, ValidationError, deserialize, serialize
 
 @dataclass
 class Foo:
-    # by the way NotNull = Optional[T, Annotated[None, Skip]]
     bar: Union[int, Annotated[None, Skip]] = None
 
 

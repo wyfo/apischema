@@ -151,7 +151,7 @@ Here with PEP 563 (requires 3.7+)
 
 [PEP 593](https://www.python.org/dev/peps/pep-0593/) is fully supported; annotations stranger to *Apischema* are simlply ignored.
 
-## Skip `Union` member
+### Skip `Union` member
 
 Sometimes, one of the `Union` members has not to be taken in account during validation; it can just be here to match the type of the default value of the field. This member can be marked as to be skipped with [PEP 593](https://www.python.org/dev/peps/pep-0593/) `Annotated`
 
