@@ -30,6 +30,7 @@ Benchmarks were run with Python 3.8 (*CPython*) and the package versions listed 
     - *pydantic* version executed is not *Cythonised*; by the way, even with *Cython*, *Apischema* is still faster than *pydantic*
     - *Apischema* is optimized enough to not have a real performance improvement using *Pypy* instead of *CPython*
     - *pydantic* benchmark is biased by the implementation of `datetime` parsing for *cattrs* (see [this post](https://stefan.sofa-rockers.org/2020/05/29/attrs-dataclasses-pydantic/) about it); in fact, if *cattrs* use a decently fast implementation, like the standard `datetime.fromisoformat`, *cattrs* becomes 3 times faster than *pydantic*, even faster than *Apischema*. Of course, you don't get the same features, like complete error handling, aggregate fields, etc. In fact, performance difference between *Apischema* and *cattrs* comes mostly of error handling (*cattrs* doesn't catch errors to gather them) and the gap between them is a lot reduced when playing benchmark only on valid cases.
+    - Pydantic benchmark mixes valid with invalid data (around 50/50) — in real use, I hope your APIs receive less than 50% bad request. It means that error handling is very (too much?) important in this benchmark, and libraries like *cattrs* which raise and end simply at the first error encountered have a big advantage.
     
     
 ## FAQ
