@@ -111,12 +111,6 @@ def substitute_type_vars(
         return cls
 
 
-def _substitute_type_vars(
-    field_type: AnyType, base: AnyType, other: AnyType
-) -> AnyType:
-    return substitute_type_vars(other, dict(type_var_remap(field_type, base)))
-
-
 def use_origin_type_vars(base: AnyType, other: AnyType) -> Tuple[AnyType, AnyType]:
     if get_origin(base) is None:
         return base, other

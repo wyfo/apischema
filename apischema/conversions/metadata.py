@@ -74,10 +74,10 @@ class ConversionsMetadata(MetadataMixin):
         try:
             param, ret = check_converter(self.serializer, None, None)
         except TypeError:
-            param, _ = check_converter(self.serializer, field_type, None)
+            _, ret = check_converter(self.serializer, field_type, None)
         else:
-            param = substitute_type_vars(ret, dict(type_var_remap(field_type, param)))
-        return param, (self.serializer, self.serialization)
+            ret = substitute_type_vars(param, dict(type_var_remap(field_type, ret)))
+        return ret, (self.serializer, self.serialization)
 
 
 @dataclass
