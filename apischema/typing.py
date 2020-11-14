@@ -9,7 +9,7 @@ __all__ = [
 
 import sys
 from types import ModuleType
-from typing import Any, Callable, Generic, TypeVar
+from typing import Any, Callable, Generic, Tuple, TypeVar
 
 
 class _FakeType:
@@ -48,7 +48,20 @@ else:  # pragma: no cover
         from typing_extensions import get_origin, get_args
     except ImportError:
 
+        def _assemble_tree(tree: Tuple[Any]) -> Any:
+            if not isinstance(tree, tuple):
+                return tree
+            else:
+                origin, *args = tree
+                if origin is Annotated:
+                    return Annotated[(_assemble_tree(args[0]), *args[1])]
+                else:
+                    return origin[tuple(map(_assemble_tree, args))]
+
         def get_origin(tp):  # type: ignore
+            # In Python 3.6: List[Collection[T]][int]._args__ == int != Collection[int]
+            if hasattr(tp, "_subs_tree"):
+                tp = _assemble_tree(tp._subs_tree())
             if isinstance(tp, _AnnotatedAlias):
                 return Annotated
             if tp is Generic:
@@ -56,6 +69,9 @@ else:  # pragma: no cover
             return getattr(tp, "__origin__", None)
 
         def get_args(tp):  # type: ignore
+            # In Python 3.6: List[Collection[T]][int]._args__ == int != Collection[int]
+            if hasattr(tp, "_subs_tree"):
+                tp = _assemble_tree(tp._subs_tree())
             if isinstance(tp, _AnnotatedAlias):
                 return (tp.__args__[0], *tp.__metadata__)
             res = getattr(tp, "__args__", ())

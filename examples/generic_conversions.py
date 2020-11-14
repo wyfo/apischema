@@ -16,20 +16,24 @@ class Wrapper(Generic[T]):
     if sys.version_info >= (3, 7):
         # Methods of generic classes are not handled before 3.7
         @serializer
-        def _wrapped(self) -> T:
+        def unwrap(self) -> T:
             return self.wrapped
 
     else:
 
-        def _wrapped(self) -> T:
+        def unwrap(self) -> T:
             return self.wrapped
 
 
 if sys.version_info <= (3, 7):
-    serializer(Wrapper._wrapped, Wrapper[T])
+    serializer(Wrapper.unwrap, Wrapper[T])
 
 U = TypeVar("U")
 deserializer(Wrapper, U, Wrapper[U])
+# Roughly equivalent to:
+# @deserializer
+# def wrap(obj: U) -> Wrapper[U]:
+#     return Wrapper(obj)
 
 
 assert deserialize(Wrapper[list[int]], [0, 1]).wrapped == [0, 1]

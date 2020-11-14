@@ -19,7 +19,7 @@ from apischema.conversions.utils import (
     ConverterWithConversions,
     check_converter,
     check_convertible,
-    use_origin_type_vars,
+    handle_generic_conversions,
 )
 from apischema.types import AnyType, OrderedDict
 
@@ -141,7 +141,7 @@ def _deserializer(
     conversions: Optional[Conversions],
     extra: bool,
 ) -> Func:
-    ret, param = use_origin_type_vars(ret, param)
+    ret, param = handle_generic_conversions(ret, param)
     check_convertible(ret)
     if param == ret:
         raise ValueError("Use self_deserializer")
@@ -162,7 +162,7 @@ def _serializer(
     conversions: Optional[Conversions],
     extra: bool,
 ) -> Func:
-    param, ret = use_origin_type_vars(param, ret)
+    param, ret = handle_generic_conversions(param, ret)
     check_convertible(param)
     if param == ret:
         if conversions:

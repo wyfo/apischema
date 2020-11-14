@@ -22,6 +22,8 @@ from typing import (
 
 from apischema import settings
 from apischema.cache import cache
+from apischema.coercion import Coercion, get_coercer
+from apischema.conversions import identity
 from apischema.conversions.metadata import get_field_conversions
 from apischema.conversions.utils import Conversions, ConversionsWrapper
 from apischema.conversions.visitor import Deserialization, DeserializationVisitor
@@ -34,7 +36,6 @@ from apischema.dataclass_utils import (
     has_default,
     is_required,
 )
-from apischema.coercion import Coercion, get_coercer
 from apischema.json_schema.constraints import (
     ArrayConstraints,
     Constraints,
@@ -75,6 +76,7 @@ from apischema.visitor import Unsupported
 T = TypeVar("T")
 
 
+# TODO maybe ctx parameters to deserializers
 @dataclass
 class DeserializationContext:
     additional_properties: bool = field(
@@ -226,13 +228,13 @@ class DeserializationMethodVisitor(
         super().__init__(conversions)
         self._rec_sentinel: Dict[Any, RecDeserializerMethodFactory] = {}
 
-    def visit_not_builtin(self, cls: AnyType) -> DeserializationMethodFactory:
-        key = self._type_vars.specialize(cls), id(self.conversions)
+    def _visit(self, cls: AnyType) -> DeserializationMethodFactory:
+        key = self._resolve_type_vars(cls), id(self.conversions)
         if key in self._rec_sentinel:
             return cast(DeserializationMethodFactory, self._rec_sentinel[key])
         else:
             self._rec_sentinel[key] = RecDeserializerMethodFactory()
-            factory = super().visit_not_builtin(cls)
+            factory = super()._visit(cls)
             return self._rec_sentinel.pop(key).set_ref(factory)
 
     def method(self, cls) -> DeserializationMethod:
@@ -697,16 +699,18 @@ class DeserializationMethodVisitor(
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            methods = [fact.merge(constraints, validators).method for fact in factories]
+            alt_deserializers = [
+                fact.merge(constraints, validators).method for fact in factories
+            ]
 
             def method(ctx: DeserializationContext, data: Any) -> Any:
                 # Optional optimization
                 if data is None and optional:
                     return None
                 error: Optional[ValidationError] = None
-                for method in methods:
+                for deserialize_alt in alt_deserializers:
                     try:
-                        return method(ctx, data)
+                        return deserialize_alt(ctx, data)
                     except ValidationError as err:
                         error = merge_errors(error, err)
                 else:
@@ -720,8 +724,9 @@ class DeserializationMethodVisitor(
         return factory
 
     def visit_conversion(
-        self, cls: Type, conversion: Deserialization
+        self, cls: AnyType, conversion: Deserialization
     ) -> DeserializationMethodFactory:
+        assert conversion
         factories = []
         for source, (converter, conversions) in conversion.items():
             with self._replace_conversions(conversions):
@@ -731,28 +736,43 @@ class DeserializationMethodVisitor(
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            methods = [
+            alt_deserializers = [
                 (fact.merge(constraints, validators).method, converter)
                 for fact, converter in factories
             ]
-
-            def method(ctx: DeserializationContext, data: Any) -> Any:
-                error: Optional[ValidationError] = None
-                for method, converter in methods:
-                    try:
-                        value = method(ctx, data)
-                        break
-                    except ValidationError as err:
-                        error = merge_errors(error, err)
+            if len(alt_deserializers) == 1:
+                ((deserialize_alt, converter),) = alt_deserializers
+                if converter is identity:
+                    method = deserialize_alt
                 else:
-                    assert error is not None
-                    raise error
-                try:
-                    return converter(value)
-                except (ValidationError, AssertionError):
-                    raise
-                except Exception as err:
-                    raise ValidationError([str(err)])
+
+                    def method(ctx: DeserializationContext, data: Any) -> Any:
+                        try:
+                            return converter(deserialize_alt(ctx, data))
+                        except (ValidationError, AssertionError):
+                            raise
+                        except Exception as err:
+                            raise ValidationError([str(err)])
+
+            else:
+
+                def method(ctx: DeserializationContext, data: Any) -> Any:
+                    error: Optional[ValidationError] = None
+                    for deserialize_alt, converter in alt_deserializers:
+                        try:
+                            value = deserialize_alt(ctx, data)
+                            break
+                        except ValidationError as err:
+                            error = merge_errors(error, err)
+                    else:
+                        assert error is not None
+                        raise error
+                    try:
+                        return converter(value)
+                    except (ValidationError, AssertionError):
+                        raise
+                    except Exception as err:
+                        raise ValidationError([str(err)])
 
             return method
 
@@ -760,15 +780,11 @@ class DeserializationMethodVisitor(
 
 
 @cache
-def get_method_without_conversions(cls: AnyType) -> DeserializationMethod:
-    return DeserializationMethodVisitor(None).method(cls)
-
-
-@cache
-def get_method_with_conversions(
-    wrapper: ConversionsWrapper, cls: AnyType
+def get_method(
+    cls: AnyType, wrapper: Optional[ConversionsWrapper]
 ) -> DeserializationMethod:
-    return DeserializationMethodVisitor(wrapper.conversions).method(cls)
+    conversions = wrapper.conversions if wrapper is not None else None
+    return DeserializationMethodVisitor(conversions).method(cls)
 
 
 @overload
@@ -813,8 +829,5 @@ def deserialize(
     if default_fallback is None:
         default_fallback = settings.default_fallback
     ctx = DeserializationContext(additional_properties, coercion, default_fallback)
-    if conversions is None:
-        method = get_method_without_conversions(cls)
-    else:
-        method = get_method_with_conversions(ConversionsWrapper(conversions), cls)
-    return method(ctx, data)
+    wrapper = ConversionsWrapper(conversions) if conversions is not None else None
+    return get_method(cls, wrapper)(ctx, data)

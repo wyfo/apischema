@@ -1,6 +1,7 @@
 import re
 import sys
 from base64 import b64decode, b64encode
+from collections import deque
 from datetime import date, datetime, time
 from decimal import Decimal
 from ipaddress import (
@@ -11,20 +12,28 @@ from ipaddress import (
     IPv6Interface,
     IPv6Network,
 )
-from pathlib import Path
-from typing import NewType, Type, TypeVar
+from pathlib import (
+    Path,
+    PosixPath,
+    PurePath,
+    PurePosixPath,
+    PureWindowsPath,
+    WindowsPath,
+)
+from typing import Deque, List, NewType, Type, TypeVar
 from uuid import UUID
 
 from apischema.conversions.converters import deserializer, serializer
 from apischema.json_schema.schema import schema
 
-Cls = TypeVar("Cls", bound=Type)
 
-
-def as_str(cls: Cls, format: str = None):
+def as_str(cls: Type, format: str = None):
     str_type = schema(format=format)(NewType(cls.__name__, str))
     deserializer(cls, str_type, cls)
     serializer(str, cls, str_type)
+
+
+T = TypeVar("T")
 
 
 # =================== bytes =====================
@@ -35,6 +44,15 @@ deserializer(b64decode, str, bytes)
 @serializer
 def to_base64(b: bytes) -> str:
     return b64encode(b).decode()
+
+
+# ================ collections ==================
+
+deserializer(deque, List[T], Deque[T])
+serializer(list, Deque[T], List[T])
+if sys.version_info < (3, 7):
+    deserializer(deque, List, deque)
+    serializer(list, deque, List)
 
 
 # ================== datetime ===================
@@ -59,7 +77,8 @@ for cls in (IPv6Address, IPv6Interface, IPv6Network):
 
 # ==================== path =====================
 
-as_str(Path)
+for cls in (PurePath, PurePosixPath, PureWindowsPath, Path, PosixPath, WindowsPath):
+    as_str(cls)
 
 # =================== pattern ===================
 

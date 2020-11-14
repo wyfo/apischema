@@ -29,10 +29,11 @@ class Foo:
     baz: int
 
     @extra_serializer
-    def summary(self) -> int:
+    def sum(self) -> int:
         return self.bar + self.baz
 
     # You can use NewType to disambiguate conversion to int
+    # Actually, it could work using something like Diff = Annotated[int, "diff"]
     @extra_serializer
     def diff(self) -> Diff:
         return Diff(self.bar - self.baz)

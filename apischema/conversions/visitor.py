@@ -1,3 +1,4 @@
+import warnings
 from contextlib import contextmanager
 from typing import Generic, Mapping, Optional, Sequence, Tuple, Type, TypeVar
 
@@ -7,7 +8,13 @@ from apischema.conversions.converters import (
     _extra_serializers,
     _serializers,
 )
-from apischema.conversions.utils import Conversions, ConverterWithConversions
+from apischema.conversions.utils import (
+    Conversions,
+    ConverterWithConversions,
+    get_parameters,
+)
+from apischema.type_vars import resolve_type_vars
+from apischema.types import AnyType
 from apischema.visitor import Return, Visitor
 
 Conv = TypeVar("Conv")
@@ -20,21 +27,16 @@ class ConversionsVisitor(Generic[Conv, Return], Visitor[Return]):
         super().__init__()
         self.conversions = conversions
 
-    @staticmethod
-    def is_conversion(cls: Type, conversions: Optional[Conversions]) -> Optional[Conv]:
+    def is_conversion(
+        self, cls: Type, conversions: Optional[Conversions]
+    ) -> Optional[Conv]:
         raise NotImplementedError()
 
-    def visit_conversion(self, cls: Type, conversion: Conv) -> Return:
+    def visit_conversion(self, cls: AnyType, conversion: Conv) -> Return:
         raise NotImplementedError()
 
-    # For typing
-    def visit_not_conversion(self, cls: Type) -> Return:
-        ...
-
-    _name = visit_not_conversion.__name__
-    visit_not_conversion = Visitor.visit_not_builtin  # noqa F811
-    visit_not_conversion.__name__ = _name
-    del _name
+    def visit_not_conversion(self, cls: AnyType) -> Return:
+        return super()._visit(cls)
 
     @contextmanager
     def _replace_conversions(self, conversions: Optional[Conversions]):
@@ -45,13 +47,23 @@ class ConversionsVisitor(Generic[Conv, Return], Visitor[Return]):
         finally:
             self.conversions = conversions_save
 
-    def visit_not_builtin(self, cls: Type) -> Return:
+    def _visit(self, cls: Type) -> Return:
+        if not isinstance(cls, type):
+            return self.visit_not_conversion(cls)
         conversion = self.is_conversion(cls, self.conversions)
-        if conversion is None:
-            with self._replace_conversions(None):
+        with self._replace_conversions(None):
+            if conversion is None:
                 return self.visit_not_conversion(cls)
-        else:
-            return self.visit_conversion(cls, conversion)
+            else:
+                return self.visit_conversion(cls, conversion)
+
+
+def handle_generic_conversion(base: AnyType, other: AnyType) -> AnyType:
+    if isinstance(other, tuple):
+        type_vars, other = other
+        return resolve_type_vars(other, dict(zip(type_vars, get_parameters(base))))
+    else:
+        return other
 
 
 class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
@@ -67,12 +79,15 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
             else:
                 if not isinstance(sources, Sequence):
                     sources = [sources]
-                try:
-                    return {
-                        source: _extra_deserializers[cls][source] for source in sources
-                    }
-                except KeyError:
-                    pass
+                result = {}
+                for source in sources:
+                    source2 = handle_generic_conversion(cls, source)
+                    if source2 not in _extra_deserializers[cls]:
+                        warnings.warn(f"Deserializer {source} -> {cls} doesn't exists")
+                    else:
+                        result[source2] = _extra_deserializers[cls][source2]
+                if result:
+                    return result
         return _deserializers.get(cls)
 
 
@@ -92,10 +107,11 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
                 else:
                     if target is sub_cls:
                         return None
-                    try:
-                        return target, _extra_serializers[sub_cls][target]
-                    except KeyError:
-                        pass
+                    target2 = handle_generic_conversion(sub_cls, target)
+                    if target2 not in _extra_serializers[sub_cls]:
+                        warnings.warn(f"Serializer {cls} -> {target} doesn't exists")
+                    else:
+                        return target2, _extra_serializers[sub_cls][target2]
             if sub_cls in _serializers:
                 return _serializers[sub_cls]
         return None

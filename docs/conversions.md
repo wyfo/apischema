@@ -107,15 +107,23 @@ Dataclass fields conversions can also be customized using `conversions` metadata
 {!field_conversions.py!}
 ```
 
+#### Field (de)serializer
+
 `conversions` metadata can also be used to add directly a (de)serializer to a field — `deserialization` and `serialization` are then applied after the (de)serializer as [chained conversions](#chain-conversions)
 
 ```python
 {!field_de_serializer.py!}
 ```
 
+Generic converters are handled naturally
+
+```python
+{!field_generic_de_serializer.py!}
+```
+
 ## Generic conversions
 
-`Generic` conversions are supported out of the box. However, keep in mind that serialization doesn't use type model, so they will not be used in serialization, but will be used on the other hand in serialization schema generation.
+`Generic` conversions are supported out of the box.
 
 ```python
 {!generic_conversions.py!}
@@ -126,7 +134,12 @@ Dataclass fields conversions can also be customized using `conversions` metadata
     
 !!! note
     *Apischema* doesn't support specialization of `Generic` conversion like `Foo[bool] -> int`.
+    
+By the way, it's also possible to use *extra* conversions and select them the following way:
 
+```python
+{!generic_extra_conversions.py!}
+```
 
 ## That's not all
 

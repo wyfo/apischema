@@ -2,26 +2,21 @@ from inspect import Parameter, isclass, signature
 from typing import (
     Any,
     Callable,
+    Collection,
     Dict,
-    Iterator,
     Mapping,
     Optional,
     Sequence,
     Tuple,
     Type,
-    TypeVar,
     cast,
 )
 
-from apischema.types import AnyType, subscriptable_origin
+from apischema.type_vars import get_parameters, resolve_type_vars
+from apischema.types import AnyType, DICT_TYPE, LIST_TYPE
 from apischema.typing import get_args, get_origin, get_type_hints
-from apischema.utils import type_name
+from apischema.utils import is_type_var, type_name
 from apischema.visitor import Visitor
-
-try:
-    from apischema.typing import Annotated
-except ImportError:
-    Annotated = ...  # type: ignore
 
 Conversions = Mapping[AnyType, Any]
 Converter = Callable[[Any], Any]
@@ -71,78 +66,62 @@ def check_converter(
     return param, ret
 
 
-TV = AnyType
-
-
-def type_var_remap(
+def handle_generic_conversions(
     base: AnyType, other: AnyType
-) -> Iterator[Tuple[TV, TV]]:  # type: ignore
-    if isinstance(base, TypeVar) and isinstance(other, TypeVar):  # type: ignore
-        yield other, base
-        return
-    base_origin, other_origin = get_origin(base), get_origin(other)
-    if (
-        base_origin is None
-        or other_origin is None
-        or len(get_args(base)) != len(get_args(other))
-        or not issubclass(other_origin, base_origin)
-    ):
-        return
-    for base_arg, other_arg in zip(get_args(base), get_args(other)):
-        yield from type_var_remap(base_arg, other_arg)
-
-
-def substitute_type_vars(
-    cls: AnyType, substitutions: Mapping[TV, TV]  # type: ignore
-) -> AnyType:
-    if isinstance(cls, TypeVar):  # type: ignore
-        return substitutions.get(cls, cls)
-    elif get_origin(cls) is not None:
-        if get_origin(cls) is Annotated:
-            annotated, *metadata = get_args(cls)
-            return Annotated[  # type: ignore
-                (substitute_type_vars(annotated, substitutions), *metadata)
-            ]
-        else:
-            return subscriptable_origin(cls)[  # type: ignore
-                tuple(substitute_type_vars(arg, substitutions) for arg in get_args(cls))
-            ]
-    else:
-        return cls
-
-
-def use_origin_type_vars(base: AnyType, other: AnyType) -> Tuple[AnyType, AnyType]:
-    if get_origin(base) is None:
+) -> Tuple[AnyType, AnyType]:
+    origin = get_origin(base)
+    if origin is None:
         return base, other
-    if not all(isinstance(arg, TypeVar) for arg in get_args(base)):  # type: ignore
+    args = get_args(base)
+    if not all(map(is_type_var, args)):
         raise TypeError(
             f"Generic conversion doesn't support specialization,"
-            f" aka {type_name(base)}[{','.join(map(type_name, get_args(base)))}]"
+            f" aka {type_name(base)}[{','.join(map(type_name, args))}]"
         )
-    substitution = dict(zip(get_args(base), subscriptable_origin(base).__parameters__))
-    return subscriptable_origin(base), substitute_type_vars(other, substitution)
+    return origin, resolve_type_vars(other, dict(zip(args, get_parameters(origin))))
 
 
-class ConvertibleVisitor(Visitor):
-    def annotated(self, cls: AnyType, annotations: Sequence[Any]):
-        raise NotImplementedError()
+class ConvertibleVisitor(Visitor[bool]):
+    collection_types = (LIST_TYPE,)
+    mapping_types = (DICT_TYPE,)
 
-    def new_type(self, cls: AnyType, super_type: AnyType):
-        raise NotImplementedError()
+    def annotated(self, cls: AnyType, annotations: Sequence[Any]) -> bool:
+        return False
 
-    def _type_var(self, tv: AnyType):
-        raise NotImplementedError()
+    def any(self) -> bool:
+        return False
 
-    def visit_not_builtin(self, cls: AnyType):
-        return
+    def collection(self, cls: Type[Collection], value_type: AnyType) -> bool:
+        return False
+
+    def generic(self, cls: AnyType) -> bool:
+        return True
+
+    def literal(self, values: Sequence[Any]) -> bool:
+        return False
+
+    def mapping(
+        self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType
+    ) -> bool:
+        return False
+
+    def new_type(self, cls: AnyType, super_type: AnyType) -> bool:
+        return False
+
+    def tuple(self, types: Sequence[AnyType]) -> bool:
+        return False
+
+    def union(self, alternatives: Sequence[AnyType]) -> bool:
+        return False
+
+    def unsupported(self, cls: AnyType) -> bool:
+        return True
 
 
 def is_convertible(cls: AnyType):
     try:
-        ConvertibleVisitor().visit(cls)
+        return ConvertibleVisitor().visit(cls)
     except NotImplementedError:
-        return False
-    else:
         return True
 
 

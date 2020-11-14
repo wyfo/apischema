@@ -7,6 +7,7 @@ from typing import (
     Generic,
     Iterable,
     Mapping,
+    Optional,
     Sequence,
     Tuple,
     Type,
@@ -15,7 +16,7 @@ from typing import (
 )
 
 from apischema.dataclass_utils import get_all_fields, resolve_dataclass_types
-from apischema.type_vars import TypeVarResolver
+from apischema.type_vars import TypeVarContext, resolve_type_vars, type_var_context
 from apischema.types import (
     AnyType,
     COLLECTION_TYPES,
@@ -31,6 +32,7 @@ from apischema.typing import (
     get_origin,
     get_type_hints,
 )
+from apischema.utils import is_type_var
 
 try:
     from apischema.typing import Annotated, Literal
@@ -67,7 +69,10 @@ Return = TypeVar("Return", covariant=True)
 
 class Visitor(Generic[Return]):
     def __init__(self):
-        self._type_vars = TypeVarResolver()
+        self._type_vars: Optional[TypeVarContext] = None
+
+    def _resolve_type_vars(self, cls: AnyType) -> Any:
+        return resolve_type_vars(cls, self._type_vars)
 
     def annotated(self, cls: AnyType, annotations: Sequence[Any]) -> Return:
         return self.visit(cls)
@@ -90,9 +95,13 @@ class Visitor(Generic[Return]):
     def enum(self, cls: Type[Enum]) -> Return:
         raise NotImplementedError()
 
-    def _generic(self, cls: AnyType) -> Return:
-        with self._type_vars.generic_context(cls):
-            return self.visit(cls.__origin__)
+    def generic(self, cls: AnyType) -> Return:
+        type_vars = self._type_vars
+        try:
+            self._type_vars = type_var_context(cls, self._type_vars)
+            return self._visit(get_origin(cls))
+        finally:
+            self._type_vars = type_vars
 
     def literal(self, values: Sequence[Any]) -> Return:
         raise NotImplementedError()
@@ -125,80 +134,83 @@ class Visitor(Generic[Return]):
     def typed_dict(self, cls: Type, keys: Mapping[str, AnyType], total: bool) -> Return:
         raise NotImplementedError()
 
-    def _type_var(self, tv: AnyType) -> Return:
-        with self._type_vars.resolve_context(tv) as cls:
-            return self.visit(cls)
-
-    def _merge_union(self, alternatives: Iterable[Return]) -> Return:
+    def _union_result(self, alternatives: Iterable[Return]) -> Return:
         raise NotImplementedError()
 
     def union(self, alternatives: Sequence[AnyType]) -> Return:
-        return self._merge_union(map(self.visit, alternatives))
+        return self._union_result(map(self.visit, alternatives))
 
     def unsupported(self, cls: AnyType) -> Return:
         raise Unsupported(cls) from None
 
-    def visit(self, cls: AnyType) -> Return:
+    def _visit_generic(self, cls: AnyType) -> Return:
+        origin, args = get_origin(cls), get_args(cls)
+        assert origin is not None
+        if origin is Annotated:
+            return self.annotated(args[0], args[1:])
+        if origin is Union:
+            return self.union(args)
+        if origin is TUPLE_TYPE:
+            if len(args) < 2 or args[1] is not ...:
+                return self.tuple(args)
+        if origin in COLLECTION_TYPES:
+            return self.collection(origin, args[0])
+        if origin in MAPPING_TYPES:
+            return self.mapping(origin, args[0], args[1])
+        if origin is Literal:  # pragma: no cover py37+
+            return self.literal(args)
+        return self.generic(cls)
+
+    def _visit(self, cls: AnyType) -> Return:
         if cls in PRIMITIVE_TYPES:
             return self.primitive(cls)
-        origin = get_origin(cls)
-        if origin is not None:
-            args = get_args(cls)
-            if origin is Annotated:
-                return self.annotated(args[0], args[1:])
-            if origin is Union:
-                return self.union(args)
-            if origin is TUPLE_TYPE:
-                if len(args) < 2 or args[1] is not ...:
-                    return self.tuple(args)
-            if origin in COLLECTION_TYPES:
-                return self.collection(origin, args[0])
-            if origin in MAPPING_TYPES:
-                return self.mapping(origin, args[0], args[1])
-            if origin is Literal:  # pragma: no cover py37+
-                return self.literal(args)
-            # TypeVar handling
-            if not hasattr(origin, "__parameters__"):  # pragma: no cover
-                return self.unsupported(origin)
-            return self._generic(cls)
+        if is_dataclass(cls):
+            return self.dataclass(cls, *dataclass_types_and_fields(cls))  # type: ignore
         if hasattr(cls, "__supertype__"):
             return self.new_type(cls, cls.__supertype__)
-        if isinstance(cls, TypeVar):  # type: ignore
-            return self._type_var(cls)
         if cls is Any:
             return self.any()
         if cls in COLLECTION_TYPES:
             return self.collection(cls, Any)
         if cls in MAPPING_TYPES:
             return self.mapping(cls, Any, Any)
+        try:
+            issubclass(cls, object)
+        except TypeError:
+            pass
+        else:
+            if issubclass(cls, Enum):
+                return self.enum(cls)
+            for primitive in PRIMITIVE_TYPES:
+                if issubclass(cls, primitive):
+                    return self.subprimitive(cls, primitive)
+            # NamedTuple
+            if issubclass(cls, tuple) and hasattr(cls, "_fields"):
+                if hasattr(cls, "__annotations__"):
+                    types = type_hints_cache(cls)
+                elif hasattr(cls, "__field_types"):  # pragma: no cover
+                    types = cls._field_types  # type: ignore
+                else:  # pragma: no cover
+                    types = OrderedDict((f, Any) for f in cls._fields)  # type: ignore
+                return self.named_tuple(cls, types, cls._field_defaults)  # type: ignore
         if isinstance(cls, _LiteralMeta):  # pragma: no cover py36
             return self.literal(cls.__values__)  # type: ignore
-        # cannot use isinstance(..., TypedDict)
+        # cannot use issubclass(..., TypedDict)
         if isinstance(cls, _TypedDictMeta):
             total = cls.__total__  # type: ignore
             assert isinstance(cls, type)
             return self.typed_dict(cls, type_hints_cache(cls), total)
-        return self.visit_not_builtin(cls)
-
-    def visit_not_builtin(self, cls: Type) -> Return:
-        if is_dataclass(cls):
-            return self.dataclass(cls, *dataclass_types_and_fields(cls))  # type: ignore
-        try:
-            issubclass(cls, object)
-        except TypeError:
-            return self.unsupported(cls)
-        if issubclass(cls, Enum):
-            return self.enum(cls)
-        for primitive in PRIMITIVE_TYPES:
-            if issubclass(cls, primitive):
-                return self.subprimitive(cls, primitive)
-        # NamedTuple
-        if issubclass(cls, tuple) and hasattr(cls, "_fields"):
-            if hasattr(cls, "__annotations__"):
-                types = type_hints_cache(cls)
-            elif hasattr(cls, "__field_types"):  # pragma: no cover
-                types = cls._field_types  # type: ignore
-            else:  # pragma: no cover
-                types = OrderedDict((f, Any) for f in cls._fields)  # type: ignore
-            return self.named_tuple(cls, types, cls._field_defaults)  # type: ignore
         return self.unsupported(cls)
+
+    def visit(self, cls: AnyType) -> Return:
+        if get_origin(cls) is not None:
+            return self._visit_generic(cls)
+        if is_type_var(cls):
+            return self.visit(self._resolve_type_vars(cls))
+        else:
+            type_vars = self._type_vars
+            self._type_vars = None
+            try:
+                return self._visit(cls)
+            finally:
+                self._type_vars = type_vars

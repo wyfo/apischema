@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from dataclasses import Field
 from enum import Enum
 from functools import wraps
 from itertools import chain
@@ -18,8 +19,6 @@ from typing import (  # type: ignore
     Union,
     cast,
 )
-
-from dataclasses import Field
 
 from apischema import settings
 from apischema.conversions.utils import Conversions
@@ -331,7 +330,8 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
         )
 
     @with_schema
-    def _union_result(self, results: Sequence[JsonSchema]) -> JsonSchema:
+    def _union_result(self, results: Iterable[JsonSchema]) -> JsonSchema:
+        results = list(results)
         if len(results) == 1:
             return results[0]
         elif all(alt.keys() == {"type"} for alt in results):
@@ -361,24 +361,24 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
     def visit_with_schema(self, cls: AnyType, schema: Optional[Schema]) -> JsonSchema:
         schema_save = self.schema
         self.schema = schema
+        if is_hashable(cls):
+            ref = get_ref(cls)
+            if ref in self.refs:
+                if self.ignore_first_ref:
+                    self.ignore_first_ref = False
+                else:
+                    assert isinstance(ref, str)
+                    return self._ref_schema(ref)
         try:
-            if self._is_conversion(cls):
-                self._merge_schema(get_schema(cls))
-                return self.visit_not_builtin(cls)
-            if is_hashable(cls):
-                ref = get_ref(cls)
-                if ref in self.refs:
-                    if self.ignore_first_ref:
-                        self.ignore_first_ref = False
-                    else:
-                        assert isinstance(ref, str)
-                        return self._ref_schema(ref)
-                self._merge_schema(get_schema(cls))
             return super().visit(cls)
         finally:
             self.schema = schema_save
 
-    def visit(self, cls: AnyType):
+    def visit_not_conversion(self, cls: AnyType) -> JsonSchema:
+        self._merge_schema(get_schema(cls))
+        return super().visit_not_conversion(cls)
+
+    def visit(self, cls: AnyType) -> JsonSchema:
         return self.visit_with_schema(cls, None)
 
     @contextmanager

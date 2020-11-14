@@ -1,3 +1,4 @@
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import AbstractSet, Any, List, Mapping, Optional, Sequence, Set, Union
@@ -173,3 +174,7 @@ def test_properties():
         others: Mapping[str, Any] = field(metadata=properties)
 
     assert deserialize(Test, {"plop": 0, "allo": 1}) == Test({"allo": 1}, {"plop": 0})
+
+
+def test_deque():
+    bijection(deque, [0, 1], deque([0, 1]))

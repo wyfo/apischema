@@ -13,7 +13,6 @@ from typing import (
 )
 
 from apischema.types import AnyType
-from apischema.typing import get_args
 
 PREFIX = "_apischema_"
 Nil = object()
@@ -84,9 +83,5 @@ def merge_opts_mapping(m1: Mapping[K, V], m2: Mapping[K, V]) -> Mapping[K, V]:
     return {**m1, **m2}
 
 
-def has_free_type_vars(cls: AnyType):
-    return (
-        isinstance(cls, TypeVar)  # type: ignore
-        or getattr(cls, "__parameters__", ())
-        or any(has_free_type_vars(arg) for arg in get_args(cls))
-    )
+def is_type_var(cls: AnyType) -> bool:
+    return isinstance(cls, TypeVar)  # type: ignore
