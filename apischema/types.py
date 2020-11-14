@@ -1,6 +1,6 @@
 import collections.abc
-import re
 import sys
+import typing
 from types import MappingProxyType
 from typing import (
     AbstractSet,
@@ -13,7 +13,6 @@ from typing import (
     MutableMapping,
     MutableSequence,
     MutableSet,
-    Pattern,
     Sequence,
     Set,
     Tuple,
@@ -28,66 +27,58 @@ NoneType: Type[None] = type(None)
 Number = Union[int, float]
 
 PRIMITIVE_TYPES = (str, int, bool, float, NoneType)
+COLLECTION_TYPES = {
+    Collection: tuple,
+    collections.abc.Collection: tuple,
+    Sequence: tuple,
+    collections.abc.Sequence: tuple,
+    Tuple: tuple,
+    tuple: tuple,
+    MutableSequence: list,
+    collections.abc.MutableSequence: list,
+    List: list,
+    list: list,
+    AbstractSet: frozenset,
+    collections.abc.Set: frozenset,
+    FrozenSet: frozenset,
+    frozenset: frozenset,
+    MutableSet: set,
+    collections.abc.MutableSet: set,
+    Set: set,
+    set: set,
+}
+MAPPING_TYPES = {
+    Mapping: MappingProxyType,
+    collections.abc.Mapping: MappingProxyType,
+    MutableMapping: dict,
+    collections.abc.MutableMapping: dict,
+    Dict: dict,
+    dict: dict,
+    MappingProxyType: MappingProxyType,
+}
 
 if sys.version_info >= (3, 7):  # pragma: no cover
-    COLLECTION_TYPES = {
-        collections.abc.Collection: tuple,
-        collections.abc.Sequence: tuple,
-        tuple: tuple,
-        collections.abc.MutableSequence: list,
-        list: list,
-        collections.abc.Set: frozenset,
-        frozenset: frozenset,
-        collections.abc.MutableSet: set,
-        set: set,
-    }
-    MAPPING_TYPES = {
-        collections.abc.Mapping: MappingProxyType,
-        collections.abc.MutableMapping: dict,
-        dict: dict,
-    }
     LIST_TYPE = list
     TUPLE_TYPE = tuple
     DICT_TYPE = dict
 
 else:  # pragma: no cover
-    COLLECTION_TYPES = {
-        Collection: tuple,
-        Sequence: tuple,
-        Tuple: tuple,
-        MutableSequence: list,
-        List: list,
-        AbstractSet: frozenset,
-        FrozenSet: frozenset,
-        MutableSet: set,
-        Set: set,
-    }
-    MAPPING_TYPES = {Mapping: MappingProxyType, MutableMapping: dict, Dict: dict}
     LIST_TYPE = List
     TUPLE_TYPE = Tuple
     DICT_TYPE = Dict
 
 
 if (3, 7) <= sys.version_info < (3, 9):  # pragma: no cover
-    SUBSCRIPTABLE_ORIGIN = {
-        tuple: Tuple,
-        list: List,
-        frozenset: AbstractSet,
-        set: Set,
-        dict: Dict,
-        collections.abc.Collection: Collection,
-        collections.abc.Sequence: Sequence,
-        collections.abc.MutableSequence: MutableSequence,
-        collections.abc.Set: AbstractSet,
-        collections.abc.MutableSet: Set,
-        collections.abc.Mapping: Mapping,
-        collections.abc.MutableMapping: MutableMapping,
-        re.Pattern: Pattern,
-    }
 
     def subscriptable_origin(cls: AnyType) -> AnyType:
-        origin = get_origin(cls)
-        return SUBSCRIPTABLE_ORIGIN.get(origin, origin) if origin is not None else None
+        if (
+            type(cls) == type(List[int])  # noqa E721
+            and cls.__module__ == "typing"
+            and hasattr(cls, "_name")
+        ):
+            return getattr(typing, cls._name)
+        else:
+            return get_origin(cls)
 
 
 else:  # pragma: no cover

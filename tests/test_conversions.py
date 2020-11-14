@@ -1,11 +1,12 @@
-from dataclasses import dataclass, field
-from typing import Collection, Generic, List, TypeVar
+from dataclasses import dataclass
+from typing import Any, Collection, Generic, List, Mapping, TypeVar
 
-from pytest import raises
+from pytest import mark, raises
 
-from apischema.conversions.utils import use_origin_type_vars
-from apischema.json_schema import deserialization_schema
-from apischema.metadata import conversions
+from apischema import serialize
+from apischema.conversions import extra_serializer
+from apischema.conversions.metadata import handle_generic_field_type
+from apischema.conversions.utils import handle_generic_conversions
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -21,25 +22,34 @@ class B(Generic[T, U]):
 
 
 def test_substitute_type_vars():
-    assert use_origin_type_vars(A[U], B[U, int]) == (A, B[T, int])
+    assert handle_generic_conversions(A[U], B[U, int]) == (A, B[T, int])
     with raises(TypeError):
-        use_origin_type_vars(A[int], B[int, int])
+        handle_generic_conversions(A[int], B[int, int])
 
 
-def wrap_a(a: List[U]) -> List[A[U]]:
-    ...
+@extra_serializer
+def serialize_a(a: A[T]) -> T:
+    return a.a
 
 
-@dataclass
-class C(Generic[T]):
-    a: Collection[A[T]] = field(metadata=conversions(deserializer=wrap_a))
+def test_generic_selection():
+    assert serialize(A(0), conversions={A: ([T], T)}) == 0
+    assert serialize(A(0), conversions={A: T}) == 0
 
 
-def test_generic_conversions():
-    assert deserialization_schema(C[int]) == {
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
-        "additionalProperties": False,
-        "properties": {"a": {"items": {"type": "integer"}, "type": "array"}},
-        "required": ["a"],
-        "type": "object",
-    }
+@mark.parametrize(
+    "field_type, base, other, covariant, expected",
+    [
+        (int, int, str, ..., str),
+        (int, U, List[U], ..., List[int]),
+        (T, U, List[U], ..., List[T]),
+        (List[T], List[U], Mapping[str, U], ..., Mapping[str, T]),
+        (List[int], List[U], Mapping[str, U], ..., Mapping[str, int]),
+        (Collection[T], List[U], Mapping[str, U], True, Mapping[str, T]),
+        (List[T], Collection[U], Mapping[str, U], True, Mapping[str, Any]),
+        (List[T], Collection[U], Mapping[str, U], False, Mapping[str, T]),
+        (Collection[T], List[U], Mapping[str, U], False, Mapping[str, Any]),
+    ],
+)
+def test_handle_generic_field_type(field_type, base, other, covariant, expected):
+    assert handle_generic_field_type(field_type, base, other, covariant) == expected

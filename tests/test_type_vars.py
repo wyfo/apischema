@@ -1,76 +1,51 @@
 from dataclasses import dataclass
-from typing import Any, AnyStr, Generic, TypeVar, Union
+from typing import Any, AnyStr, Deque, Generic, TypeVar, Union
 
-from pytest import fixture, mark
+from pytest import mark
 
 from apischema import deserialize
-from apischema.type_vars import TypeVarResolver
+from apischema.type_vars import get_parameters, resolve_type_vars, type_var_context
+from apischema.typing import get_origin
 
 T = TypeVar("T")
 U = TypeVar("U")
-V = TypeVar("V")
 
 
-class Double(Generic[T, U]):
+class Foo(Generic[T]):
     pass
 
 
-class Simple(Generic[T]):
-    pass
+@mark.parametrize(
+    "ctx, tv, expected",
+    [
+        (None, int, int),
+        (None, T, Any),
+        (None, AnyStr, Union[str, bytes]),
+        (None, Foo[T], Foo[Any]),
+        ({T: int}, int, int),
+        ({T: int}, T, int),
+        ({T: int}, Foo[T], Foo[int]),
+    ],
+)
+def test_resolve_type_vars_no_context(ctx, tv, expected):
+    assert resolve_type_vars(tv, ctx) == expected
 
 
-@fixture
-def type_vars() -> TypeVarResolver:
-    return TypeVarResolver()
+T0 = next(iter(get_parameters(get_origin(Deque[Any]))))
 
 
-@mark.parametrize("tv, expected", [(int, int), (T, Any), (AnyStr, Union[str, bytes])])
-def test_type_vars_resolve_no_context(type_vars, tv, expected):
-    assert type_vars.resolve(tv) == expected
-
-
-def test_type_vars_specialize_no_context(type_vars):
-    assert type_vars.specialize(Double) == Double[Any, Any]
-
-
-def test_type_vars_context(type_vars):
-    with type_vars.generic_context(Double[int, str]):
-        assert type_vars.resolve(T) == int
-        assert type_vars.resolve(V) == Any
-        assert type_vars.specialize(Double) == Double[int, str]
-        with type_vars.generic_context(Double[U, T]):
-            assert type_vars.specialize(Double) == Double[str, int]
-        assert type_vars.specialize(Double) == Double[int, str]
-
-
-def test_type_vars_partial(type_vars):
-    with type_vars.generic_context(Double[int, T]):
-        assert type_vars.resolve(T) == int
-        assert type_vars.resolve(U) == Any
-        assert type_vars.specialize(Double) == Double[int, Any]
-        with type_vars.generic_context(Double[T, str]):
-            assert type_vars.specialize(Double) == Double[int, str]
-        with type_vars.generic_context(Double[Simple[T], str]):
-            # B[T] is not recursively resolved
-            assert type_vars.specialize(Double) == Double[Simple[T], str]
-
-
-def test_type_vars_nested(type_vars):
-    with type_vars.generic_context(Double[int, str]):
-        with type_vars.generic_context(Simple[Simple[T]]):
-            with type_vars.resolve_context(T) as tv:
-                assert tv == Simple[T]
-                with type_vars.generic_context(Simple[T]):
-                    assert type_vars.resolve(T) == int
-
-
-def test_type_vars_nested_without_context(type_vars):
-    with type_vars.generic_context(Double[int, str]):
-        with type_vars.generic_context(Simple[Simple[T]]):
-            # Without using the context
-            assert type_vars.resolve(T) == Simple[T]
-            with type_vars.generic_context(Simple[T]):
-                assert type_vars.resolve(T) != int
+@mark.parametrize(
+    "ctx, cls, expected",
+    [
+        (None, Foo[int], {T: int}),
+        (None, Foo[U], {T: Any}),
+        ({T: int}, Foo[T], {T: int}),
+        (None, Deque[T], {T0: Any}),
+        ({T: int}, Deque[T], {T0: int}),
+    ],
+)
+def test_type_vars_context(ctx, cls, expected):
+    assert type_var_context(cls, ctx) == expected
 
 
 @dataclass

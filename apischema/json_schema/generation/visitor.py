@@ -17,7 +17,6 @@ from apischema.dataclass_utils import (
 )
 from apischema.skip import filter_skipped
 from apischema.types import AnyType
-from apischema.typing import get_origin
 from apischema.visitor import Return
 
 
@@ -47,28 +46,19 @@ class SchemaVisitor(ConversionsVisitor[Conv, Return]):
         dep_req = self._dependent_required_(cls)
         return {req: sorted(dep_req[req]) for req in sorted(dep_req)}
 
-    def _union_result(self, results: Sequence[Return]) -> Return:
-        pass
+    def _union_result(self, results: Iterable[Return]) -> Return:
+        raise NotImplementedError()
 
     def union(self, alternatives: Sequence[AnyType]) -> Return:
         return self._union_result(
-            [self.visit(cls) for cls in filter_skipped(alternatives, schema_only=True)]
+            map(self.visit, filter_skipped(alternatives, schema_only=True))
         )
-
-    def _is_conversion(self, cls: AnyType) -> bool:
-        # In 3.6, GenericAlias are classes with mro
-        if get_origin(cls) is not None:
-            return False
-        try:
-            return bool(self.is_conversion(cls, self.conversions))
-        except Exception:
-            return False
 
 
 class DeserializationSchemaVisitor(
     DeserializationVisitor[Return], SchemaVisitor[Deserialization, Return]
 ):
-    def visit_conversion(self, cls: Type, conversion: Deserialization) -> Return:
+    def visit_conversion(self, cls: AnyType, conversion: Deserialization) -> Return:
         results = []
         for source, (_, conversions) in conversion.items():
             with self._replace_conversions(conversions):
@@ -102,7 +92,7 @@ class DeserializationSchemaVisitor(
 class SerializationSchemaVisitor(
     SerializationVisitor[Return], SchemaVisitor[Serialization, Return]
 ):
-    def visit_conversion(self, cls: Type, conversion: Serialization) -> Return:
+    def visit_conversion(self, cls: AnyType, conversion: Serialization) -> Return:
         target, (converter, conversions) = conversion
         with self._replace_conversions(conversions):
             return self.visit(target)

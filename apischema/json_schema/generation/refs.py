@@ -35,7 +35,9 @@ class RefsExtractor(SchemaVisitor):
         self.refs = refs
 
     def _incr_ref(self, ref: Optional[str], cls: AnyType) -> bool:
-        if ref is not None:
+        if ref is None:
+            return False
+        else:
             ref_cls, count = self.refs.get(ref, (cls, 0))
             if ref_cls != cls:
                 raise ValueError(
@@ -43,7 +45,6 @@ class RefsExtractor(SchemaVisitor):
                 )
             self.refs[ref] = (ref_cls, count + 1)
             return count > 0
-        return False
 
     def annotated(self, cls: AnyType, annotations: Sequence[Any]):
         for annotation in reversed(annotations):
@@ -110,11 +111,14 @@ class RefsExtractor(SchemaVisitor):
         for cls in keys.values():
             self.visit(cls)
 
+    def _union_result(self, results: Iterable):
+        for _ in results:
+            pass
+
     def visit(self, cls: AnyType):
-        if self._is_conversion(cls):
-            return self.visit_not_builtin(cls)
-        # Annotated is not always hashable
-        if is_hashable(cls):
-            if self._incr_ref(get_ref(cls), cls):
-                return
-        super().visit(cls)
+        if (
+            not is_hashable(cls)
+            or (self.conversions is not None and cls in self.conversions)
+            or not self._incr_ref(get_ref(cls), cls)
+        ):
+            super().visit(cls)

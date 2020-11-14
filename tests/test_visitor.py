@@ -13,7 +13,6 @@ from typing import (
     NamedTuple,
     NewType,
     Optional,
-    Sized,
     Tuple,
     TypeVar,
     Union,
@@ -34,8 +33,8 @@ ARG = object()
 def visitor() -> Mock:
     mock = Mock()
     Visitor.__init__(mock)
-    mock._generic = MethodType(Visitor._generic, mock)
-    mock.visit_not_builtin = MethodType(Visitor.visit_not_builtin, mock)
+    mock._visit_generic = MethodType(Visitor._visit_generic, mock)
+    mock._visit = MethodType(Visitor._visit, mock)
     return mock
 
 
@@ -77,7 +76,6 @@ py36 = [
     (Collection[int], Visitor.collection, [Collection, int]),
     (Mapping[str, int], Visitor.mapping, [Mapping, str, int]),
     (Dict[str, int], Visitor.mapping, [Dict, str, int]),
-    (Sized, Visitor.unsupported, [Sized]),
 ]
 py37 = [
     (List[int], Visitor.collection, [list, int]),
@@ -85,7 +83,6 @@ py37 = [
     (Collection[int], Visitor.collection, [collections.abc.Collection, int]),
     (Mapping[str, int], Visitor.mapping, [collections.abc.Mapping, str, int]),
     (Dict[str, int], Visitor.mapping, [dict, str, int]),
-    (Sized, Visitor.unsupported, [collections.abc.Sized]),
 ]
 
 pep_585: List = []
@@ -104,7 +101,6 @@ if sys.version_info >= (3, 9):
             [collections.abc.Mapping, str, int],
         ),
         (dict[str, int], Visitor.mapping, [dict, str, int]),
-        (collections.abc.Sized, Visitor.unsupported, [collections.abc.Sized]),
     ]
 
 
@@ -157,10 +153,6 @@ T = TypeVar("T")
 @dataclass
 class GenericExample(Generic[T]):
     attr: T
-
-
-class Custom:
-    pass
 
 
 def test_default_implementations(visitor):

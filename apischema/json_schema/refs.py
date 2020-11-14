@@ -17,7 +17,7 @@ from typing import (
 from apischema.dataclass_utils import is_dataclass
 from apischema.types import AnyType
 from apischema.typing import _TypedDictMeta, get_origin
-from apischema.utils import has_free_type_vars, type_name
+from apischema.utils import is_type_var, type_name
 from apischema.visitor import Visitor
 
 Ref = Union[str, "ellipsis", None]  # noqa: F821
@@ -60,7 +60,9 @@ class schema_ref:
             # could be customized, but the NewType ref would then erase this
             # customization in the schema.
             raise TypeError("NewType of non-builtin type can not have a ref")
-        if has_free_type_vars(cls):
+        if is_type_var(cls):
+            raise TypeError("TypeVar cannot have a ref")
+        elif getattr(cls, "__parameters__", ()):
             raise TypeError("Unspecialized generic types cannot have a ref")
         if get_origin(cls) is not None and self.ref is ...:
             raise TypeError(f"Generic alias {cls} cannot have ... ref")

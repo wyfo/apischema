@@ -16,8 +16,8 @@ from apischema.types import COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES
 from apischema.visitor import Unsupported, dataclass_types_and_fields
 
 PRIMITIVE_TYPES_SET = set(PRIMITIVE_TYPES)
-COLLECTION_TYPE_SET = set(COLLECTION_TYPES.values())
-MAPPING_TYPE_SET = set(MAPPING_TYPES.values())
+COLLECTION_TYPE_SET = set(COLLECTION_TYPES)
+MAPPING_TYPE_SET = set(MAPPING_TYPES)
 
 
 try:
@@ -51,7 +51,7 @@ def serialization_fields(
         method: Callable
         conversions = get_field_conversions(field, field_type)
         if conversions is not None:
-            if conversions.deserializer is None:
+            if conversions.serializer is None:
                 method = partial(serialize, conversions=conversions.serialization)
             else:
                 _, (converter, sub_conversions) = conversions.serialization_conversion(

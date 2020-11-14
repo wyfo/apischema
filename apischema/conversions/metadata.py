@@ -8,12 +8,48 @@ from apischema.conversions.utils import (
     Conversions,
     Converter,
     check_converter,
-    substitute_type_vars,
-    type_var_remap,
 )
 from apischema.conversions.visitor import Deserialization, Serialization
 from apischema.dataclass_utils import is_dataclass
+from apischema.type_vars import resolve_type_vars
 from apischema.types import AnyType, Metadata, MetadataMixin
+from apischema.typing import get_args, get_origin
+from apischema.utils import is_type_var
+
+
+def handle_generic_field_type(
+    field_type: AnyType, base: AnyType, other: AnyType, covariant: bool
+) -> AnyType:
+    contravariant = not covariant
+    type_vars = None
+    if is_type_var(base):
+        type_vars = {base: field_type}
+    if (
+        get_origin(base) is not None
+        and getattr(base, "__parameters__", ())
+        and len(get_args(base)) == len(get_args(field_type))
+        and not any(map(get_origin, get_args(base)))
+        and not any(map(get_origin, get_args(field_type)))
+        and not any(
+            not is_type_var(base_arg) and base_arg != field_arg
+            for base_arg, field_arg in zip(get_args(base), get_args(field_type))
+        )
+    ):
+        type_vars = {}
+        for base_arg, field_arg in zip(get_args(base), get_args(field_type)):
+            if base_arg in type_vars and type_vars[base_arg] != field_arg:
+                type_vars = None
+                break
+            type_vars[base_arg] = field_arg
+        field_type_origin, base_origin = get_origin(field_type), get_origin(base)
+        assert field_type_origin is not None and base_origin is not None
+        if base_origin != field_type_origin:
+            if covariant and not issubclass(base_origin, field_type_origin):
+                type_vars = None
+            if contravariant and not issubclass(field_type_origin, base_origin):
+                type_vars = None
+    return resolve_type_vars(other, type_vars)
+
 
 Cls = TypeVar("Cls", bound=Type)
 
@@ -66,7 +102,7 @@ class ConversionsMetadata(MetadataMixin):
         except TypeError:
             param, _ = check_converter(self.deserializer, None, field_type)
         else:
-            param = substitute_type_vars(param, dict(type_var_remap(field_type, ret)))
+            param = handle_generic_field_type(field_type, ret, param, True)
         return {param: (self.deserializer, self.deserialization)}
 
     def serialization_conversion(self, field_type: AnyType) -> Serialization:
@@ -76,7 +112,7 @@ class ConversionsMetadata(MetadataMixin):
         except TypeError:
             _, ret = check_converter(self.serializer, field_type, None)
         else:
-            ret = substitute_type_vars(param, dict(type_var_remap(field_type, ret)))
+            ret = handle_generic_field_type(field_type, param, ret, False)
         return ret, (self.serializer, self.serialization)
 
 

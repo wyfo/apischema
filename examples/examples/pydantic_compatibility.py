@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Any, Optional, TypeVar
+from typing import Any, NewType, TypeVar
 
 import pydantic
 from pydantic import BaseModel
@@ -12,10 +12,8 @@ from apischema import (
     schema,
     serialize,
     serializer,
-    settings,
 )
 from apischema.json_schema import deserialization_schema
-from apischema.json_schema.schema import Schema
 from apischema.validation.errors import LocalizedError
 
 Model = TypeVar("Model", bound=pydantic.BaseModel)
@@ -26,6 +24,8 @@ Model = TypeVar("Model", bound=pydantic.BaseModel)
 # (it would not force to assign __init_subclass__ before subclassing
 # but it would add a little overhead and more code)
 def __init_subclass__(cls: type[Model]):
+    Data = schema(extra=cls.schema(), override=True)(NewType("Data", Mapping[str, Any]))
+
     def deserialize_pydantic(data: Mapping[str, Any]) -> Model:
         try:
             return cls(**data)
@@ -36,7 +36,7 @@ def __init_subclass__(cls: type[Model]):
             assert new_error is not None
             raise new_error
 
-    deserializer(deserialize_pydantic, ret=cls)
+    deserializer(deserialize_pydantic, Data, cls)
 
 
 # This line must be executed before any BaseModel subclassing
@@ -48,24 +48,6 @@ def serialize_pydantic(obj: pydantic.BaseModel) -> Mapping[str, Any]:
     # There is actually no mean to retrieve `serialize` parameters,
     # so exclude unset is set to True as it's the default apischema setting
     return obj.dict(exclude_unset=True)
-
-
-prev_default_schema = settings.default_schema()
-
-
-@settings.default_schema
-def default_schema(cls: Any) -> Optional[Schema]:
-    result = prev_default_schema(cls)
-    if result:
-        return result
-    else:
-        try:
-            # issubclass can fail (e.g. with NewType)
-            if not issubclass(cls, pydantic.BaseModel):
-                return None
-        except TypeError:
-            return None
-        return schema(extra=cls.schema(), override=True)
 
 
 class Foo(pydantic.BaseModel):

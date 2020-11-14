@@ -13,6 +13,7 @@ from .constraints import (
     StringConstraints,
     merge_constraints,
 )
+from ..typing import get_origin
 
 T = TypeVar("T")
 
@@ -29,6 +30,8 @@ class Schema(MetadataMixin):
         super().__init__(SCHEMA_METADATA)
 
     def __call__(self, obj: T) -> T:
+        if get_origin(obj) is not None:
+            raise TypeError("Generic alias cannot have schema")
         _schema[obj] = self
         return obj
 
