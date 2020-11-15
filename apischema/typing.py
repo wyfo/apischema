@@ -52,7 +52,7 @@ else:  # pragma: no cover
             if not isinstance(tree, tuple):
                 return tree
             else:
-                origin, *args = tree
+                origin, *args = tree  # type: ignore
                 if origin is Annotated:
                     return Annotated[(_assemble_tree(args[0]), *args[1])]
                 else:
