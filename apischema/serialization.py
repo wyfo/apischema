@@ -95,7 +95,13 @@ def serialize(
             ): serialize(value, conversions=conversions, exclude_unset=exclude_unset)
             for key, value in obj.items()
         }
-    conversion = SerializationVisitor.is_conversion(cls, conversions)
+    target = None
+    if conversions is not None:
+        try:
+            target = conversions[cls]
+        except KeyError:
+            pass
+    conversion = SerializationVisitor._is_conversion(cls, target)
     if conversion is not None:
         _, (converter, sub_conversions) = conversion
         # TODO Maybe add exclude_unset parameter to serializers

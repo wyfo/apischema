@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from dataclasses import Field
+from dataclasses import Field, replace
 from enum import Enum
 from functools import wraps
 from itertools import chain
@@ -30,7 +30,6 @@ from apischema.dataclass_utils import (
     is_dataclass,
     is_required,
 )
-from apischema.dataclasses import replace
 from apischema.json_schema.constraints import (
     ArrayConstraints,
     Constraints,
@@ -361,7 +360,7 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
     def visit_with_schema(self, cls: AnyType, schema: Optional[Schema]) -> JsonSchema:
         schema_save = self.schema
         self.schema = schema
-        if is_hashable(cls):
+        if is_hashable(cls) and not self.is_extra_conversions(cls):
             ref = get_ref(cls)
             if ref in self.refs:
                 if self.ignore_first_ref:
@@ -369,13 +368,19 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
                 else:
                     assert isinstance(ref, str)
                     return self._ref_schema(ref)
+            cls_schema = get_schema(cls)
+            if cls_schema is not None and not cls_schema.override:
+                # Constraints are merged in case of not conversion
+                cls_schema = replace(cls_schema, constraints=None)
+            self._merge_schema(cls_schema)
         try:
             return super().visit(cls)
         finally:
             self.schema = schema_save
 
     def visit_not_conversion(self, cls: AnyType) -> JsonSchema:
-        self._merge_schema(get_schema(cls))
+        if self.schema is None or not self.schema.override:
+            self._merge_schema(get_schema(cls))
         return super().visit_not_conversion(cls)
 
     def visit(self, cls: AnyType) -> JsonSchema:
