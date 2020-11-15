@@ -118,7 +118,7 @@ class RefsExtractor(SchemaVisitor):
     def visit(self, cls: AnyType):
         if (
             not is_hashable(cls)
-            or (self.conversions is not None and cls in self.conversions)
+            or self.is_extra_conversions(cls)
             or not self._incr_ref(get_ref(cls), cls)
         ):
             super().visit(cls)

@@ -9,11 +9,10 @@ __all__ = [
     "serialization",
 ]
 
-from typing import Callable, Optional, Type, TypeVar, overload
+from typing import Any, Callable, Optional, Type, TypeVar, overload
 
 from apischema import aliases, coercion as coercion_
 from apischema.cache import reset_cache
-from apischema.conversions.utils import Conversions
 from apischema.conversions.visitor import (
     Deserialization,
     DeserializationVisitor,
@@ -50,8 +49,8 @@ def coercer(func=None):
         return func
 
 
-DeserializationFunc = Callable[[Type, Optional[Conversions]], Optional[Deserialization]]
-_DeserializationFunc = TypeVar("_DeserializationFunc", bound=DeserializationFunc)
+DeserializationFunc = Callable[[Type, Optional[Any]], Optional[Deserialization]]
+SerializationFunc = Callable[[Type, Optional[Any]], Optional[Serialization]]
 
 
 @overload
@@ -60,21 +59,17 @@ def deserialization() -> DeserializationFunc:
 
 
 @overload
-def deserialization(func: _DeserializationFunc) -> _DeserializationFunc:
+def deserialization(func: DeserializationFunc) -> DeserializationFunc:
     ...
 
 
 def deserialization(func=None):
     if func is None:
-        return DeserializationVisitor.is_conversion
+        return DeserializationVisitor._is_conversion
     else:
-        DeserializationVisitor.is_conversion = staticmethod(func)
+        DeserializationVisitor._is_conversion = staticmethod(func)
         reset_cache()
         return func
-
-
-SerializationFunc = Callable[[Type, Optional[Conversions]], Optional[Serialization]]
-_SerializationFunc = TypeVar("_SerializationFunc", bound=SerializationFunc)
 
 
 @overload
@@ -83,15 +78,15 @@ def serialization() -> SerializationFunc:
 
 
 @overload
-def serialization(func: _SerializationFunc) -> _SerializationFunc:
+def serialization(func: SerializationFunc) -> SerializationFunc:
     ...
 
 
 def serialization(func=None):
     if func is None:
-        return SerializationVisitor.is_conversion
+        return SerializationVisitor._is_conversion
     else:
-        SerializationVisitor.is_conversion = staticmethod(func)
+        SerializationVisitor._is_conversion = staticmethod(func)
         reset_cache()
         return func
 
