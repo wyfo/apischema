@@ -134,7 +134,7 @@ class Visitor(Generic[Return]):
     def typed_dict(self, cls: Type, keys: Mapping[str, AnyType], total: bool) -> Return:
         raise NotImplementedError()
 
-    def _union_result(self, alternatives: Iterable[Return]) -> Return:
+    def _union_result(self, results: Iterable[Return]) -> Return:
         raise NotImplementedError()
 
     def union(self, alternatives: Sequence[AnyType]) -> Return:

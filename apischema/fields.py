@@ -96,8 +96,6 @@ def with_fields_set(cls: Cls) -> Cls:
 
 T = TypeVar("T")
 
-ALL_FIELDS_ATTR = f"{PREFIX}all_fields"
-
 
 def _all_fields(obj: Any) -> AbstractSet[str]:
     _check_dataclass(obj)

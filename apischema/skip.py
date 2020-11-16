@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Iterator, Sequence, TypeVar, Union
+from typing import Any, Iterator, Sequence, TypeVar, Union
 
 from apischema.types import AnyType
 from apischema.visitor import Visitor
@@ -63,6 +63,6 @@ class SkipVisitor(Visitor[Iterator[AnyType]]):
 
 
 def filter_skipped(
-    alternatives: Iterable[AnyType], *, schema_only=False
-) -> Sequence[AnyType]:
-    return list(SkipVisitor(schema_only).union(list(alternatives)))
+    alternatives: Sequence[AnyType], *, schema_only=False
+) -> Iterator[AnyType]:
+    return SkipVisitor(schema_only).union(alternatives)
