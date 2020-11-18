@@ -12,10 +12,11 @@ class Annotations:
     default: Optional[Any] = Nil
     examples: Optional[Sequence[Any]] = None
     format: Optional[str] = None
+    deprecated: bool = False
 
     def as_dict(self) -> Mapping[str, Any]:
         result = {}
-        for k in ("title", "description", "examples", "format"):
+        for k in ("title", "description", "examples", "format", "deprecated"):
             if getattr(self, k) is not None:
                 result[k] = getattr(self, k)
         if self.default is not Nil:
