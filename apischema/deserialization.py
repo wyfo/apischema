@@ -225,8 +225,8 @@ def with_validators(
 class DeserializationMethodVisitor(
     DeserializationVisitor[DeserializationMethodFactory]
 ):
-    def __init__(self, conversions: Optional[Conversions]):
-        super().__init__(conversions)
+    def __init__(self):
+        super().__init__()
         self._rec_sentinel: Dict[Any, RecDeserializerMethodFactory] = {}
 
     def _visit(self, cls: AnyType) -> DeserializationMethodFactory:
@@ -323,8 +323,9 @@ class DeserializationMethodVisitor(
             if conversions is None:
                 field_factory = self.visit(field_type)
             elif conversions.deserializer is None:
-                with self._replace_conversions(conversions.deserialization):
-                    field_factory = self.visit(field_type)
+                field_factory = self.visit_with_conversions(
+                    field_type, conversions.deserialization
+                )
             else:
                 field_factory = self.visit_conversion(
                     field_type, conversions.deserialization_conversion(field_type)
@@ -728,10 +729,10 @@ class DeserializationMethodVisitor(
         self, cls: AnyType, conversion: Deserialization
     ) -> DeserializationMethodFactory:
         assert conversion
-        factories = []
-        for source, (converter, conversions) in conversion.items():
-            with self._replace_conversions(conversions):
-                factories.append((self.visit(source), converter))
+        factories = [
+            (self.visit_with_conversions(source, conversions), converter)
+            for source, (converter, conversions) in conversion.items()
+        ]
 
         @DeserializationMethodFactory.from_type(cls)
         def factory(
@@ -785,7 +786,8 @@ def get_method(
     cls: AnyType, wrapper: Optional[ConversionsWrapper]
 ) -> DeserializationMethod:
     conversions = wrapper.conversions if wrapper is not None else None
-    return DeserializationMethodVisitor(conversions).method(cls)
+    factory = DeserializationMethodVisitor().visit_with_conversions(cls, conversions)
+    return factory.method
 
 
 @overload

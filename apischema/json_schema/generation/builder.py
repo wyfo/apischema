@@ -84,12 +84,11 @@ def with_schema(method: Method) -> Method:
 class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
     def __init__(
         self,
-        conversions: Optional[Conversions],
         ref_factory: RefFactory,
         refs: Collection[str],
         ignore_first_ref: bool,
     ):
-        super().__init__(conversions)
+        super().__init__()
         self.ref_factory = ref_factory
         self.refs = refs
         self.ignore_first_ref = ignore_first_ref
@@ -435,7 +434,7 @@ def _export_refs(
         conversions = None
         if isinstance(cls, tuple):
             cls, conversions = cls
-        builder.RefsExtractor(conversions, refs).visit(cls)
+        builder.RefsExtractor(refs).visit_with_conversions(cls, conversions)
     filtr = (lambda count: True) if all_refs else (lambda count: count > 1)
     return {ref: cls for ref, (cls, count) in refs.items() if filtr(count)}
 
@@ -444,8 +443,7 @@ def _refs_schema(
     builder: Type[SchemaBuilder], refs: Mapping[str, AnyType], ref_factory: RefFactory
 ) -> Mapping[str, JsonSchema]:
     return {
-        ref: builder(None, ref_factory, refs, True).visit(cls)
-        for ref, cls in refs.items()
+        ref: builder(ref_factory, refs, True).visit(cls) for ref, cls in refs.items()
     }
 
 
@@ -464,8 +462,9 @@ def _schema(
         all_refs = True
     version, ref_factory, all_refs = _default_version(version, ref_factory, all_refs)
     refs = _export_refs([(cls, conversions)], builder, all_refs)
-    visitor = builder(conversions, ref_factory, refs, False)
-    json_schema = visitor.visit_with_schema(cls, schema)
+    visitor = builder(ref_factory, refs, False)
+    with visitor._replace_conversions(conversions):
+        json_schema = visitor.visit_with_schema(cls, schema)
     if add_defs:
         defs = _refs_schema(builder, refs, ref_factory)
         if defs:

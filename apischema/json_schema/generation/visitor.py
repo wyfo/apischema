@@ -56,11 +56,12 @@ class DeserializationSchemaVisitor(
     DeserializationVisitor[Return], SchemaVisitor[Deserialization, Return]
 ):
     def visit_conversion(self, cls: AnyType, conversion: Deserialization) -> Return:
-        results = []
-        for source, (_, conversions) in conversion.items():
-            with self._replace_conversions(conversions):
-                results.append(self.visit(source))
-        return self._union_result(results)
+        return self._union_result(
+            [
+                self.visit_with_conversions(source, conversions)
+                for source, (_, conversions) in conversion.items()
+            ]
+        )
 
     @staticmethod
     def _dataclass_fields(
@@ -90,9 +91,8 @@ class SerializationSchemaVisitor(
     SerializationVisitor[Return], SchemaVisitor[Serialization, Return]
 ):
     def visit_conversion(self, cls: AnyType, conversion: Serialization) -> Return:
-        target, (converter, conversions) = conversion
-        with self._replace_conversions(conversions):
-            return self.visit(target)
+        target, (_, conversions) = conversion
+        return self.visit_with_conversions(target, conversions)
 
     @staticmethod
     def _dataclass_fields(
