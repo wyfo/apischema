@@ -192,7 +192,7 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
         merged_schemas = []
         pattern_properties = {}
         additional_properties: Union[bool, JsonSchema] = settings.additional_properties
-        for field in self._dataclass_fields(cls, fields, init_vars):
+        for field in self._dataclass_fields(fields, init_vars):
             metadata = check_metadata(field)
             field_type = types[field.name]
             if MERGED_METADATA in metadata:

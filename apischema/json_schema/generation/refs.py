@@ -72,7 +72,7 @@ class RefsExtractor(SchemaVisitor):
         init_vars: Sequence[Field],
     ):
 
-        for field in self._dataclass_fields(cls, fields, init_vars):
+        for field in self._dataclass_fields(fields, init_vars):
             self._visit_field(field, types[field.name])
 
     def enum(self, cls: Type[Enum]):

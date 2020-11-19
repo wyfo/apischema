@@ -22,7 +22,7 @@ from apischema.visitor import Return
 
 class SchemaVisitor(ConversionsVisitor[Conv, Return]):
     def _dataclass_fields(
-        self, cls: Type, fields: Sequence[Field], init_vars: Sequence[Field]
+        self, fields: Sequence[Field], init_vars: Sequence[Field]
     ) -> Iterable[Field]:
         raise NotImplementedError()
 
@@ -46,9 +46,6 @@ class SchemaVisitor(ConversionsVisitor[Conv, Return]):
         dep_req = self._dependent_required_(cls)
         return {req: sorted(dep_req[req]) for req in sorted(dep_req)}
 
-    def _union_result(self, results: Iterable[Return]) -> Return:
-        raise NotImplementedError()
-
     def union(self, alternatives: Sequence[AnyType]) -> Return:
         return self._union_result(
             map(self.visit, filter_skipped(alternatives, schema_only=True))
@@ -67,7 +64,7 @@ class DeserializationSchemaVisitor(
 
     @staticmethod
     def _dataclass_fields(
-        cls: Type, fields: Sequence[Field], init_vars: Sequence[Field]
+        fields: Sequence[Field], init_vars: Sequence[Field]
     ) -> Iterable[Field]:
         return (*(f for f in fields if f.init), *init_vars)
 
@@ -99,7 +96,7 @@ class SerializationSchemaVisitor(
 
     @staticmethod
     def _dataclass_fields(
-        cls: Type, fields: Sequence[Field], init_vars: Sequence[Field]
+        fields: Sequence[Field], init_vars: Sequence[Field]
     ) -> Iterable[Field]:
         return fields
 
