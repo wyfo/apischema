@@ -168,9 +168,8 @@ def get_schema(cls: AnyType) -> Optional[Schema]:
 
 @merge_opts
 def merge_schema(default: Schema, override: Schema) -> Schema:
-    # override will be the higher level schema, so schema generation
-    # should not go further and merge not happen
-    assert not override.override
+    if override.override:
+        return override
     return Schema(
         merge_annotations(default.annotations, override.annotations),
         merge_constraints(default.constraints, override.constraints),

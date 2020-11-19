@@ -359,8 +359,8 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
 
     def visit_with_schema(self, cls: AnyType, schema: Optional[Schema]) -> JsonSchema:
         schema_save = self.schema
-        self.schema = schema
         if is_hashable(cls) and not self.is_extra_conversions(cls):
+            self.schema = schema
             ref = get_ref(cls)
             if ref in self.refs:
                 if self.ignore_first_ref:
@@ -373,6 +373,8 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
                 # Constraints are merged in case of not conversion
                 cls_schema = replace(cls_schema, constraints=None)
             self._merge_schema(cls_schema)
+        else:
+            self.schema = None
         try:
             return super().visit(cls)
         finally:
