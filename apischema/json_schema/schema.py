@@ -1,6 +1,6 @@
 from contextlib import suppress
 from dataclasses import dataclass, fields
-from typing import Any, Dict, Mapping, Optional, Sequence, TypeVar, overload
+from typing import Any, Dict, Mapping, Optional, Sequence, TypeVar, Union, overload
 
 from apischema.types import AnyType, MetadataMixin, Number
 from apischema.utils import Nil, merge_opts
@@ -54,7 +54,7 @@ def schema(
     description: Optional[str] = None,
     default: Any = Nil,
     examples: Optional[Sequence[Any]] = None,
-    deprecated: bool = False,
+    deprecated: Union[bool, str] = False,
     extra: Mapping[str, Any] = None,
     override: bool = False,
 ) -> Schema:
@@ -68,7 +68,7 @@ def schema(
     description: Optional[str] = None,
     default: Any = Nil,
     examples: Optional[Sequence[Any]] = None,
-    deprecated: bool = False,
+    deprecated: Union[bool, str] = False,
     min: Optional[Number] = None,
     max: Optional[Number] = None,
     exc_min: Optional[Number] = None,
@@ -87,7 +87,7 @@ def schema(
     description: Optional[str] = None,
     default: Any = Nil,
     examples: Optional[Sequence[Any]] = None,
-    deprecated: bool = False,
+    deprecated: Union[bool, str] = False,
     format: Optional[str] = None,
     min_len: Optional[int] = None,
     max_len: Optional[int] = None,
@@ -105,7 +105,7 @@ def schema(
     description: Optional[str] = None,
     default: Any = Nil,
     examples: Optional[Sequence[Any]] = None,
-    deprecated: bool = False,
+    deprecated: Union[bool, str] = False,
     min_items: Optional[int] = None,
     max_items: Optional[int] = None,
     unique: Optional[bool] = None,
