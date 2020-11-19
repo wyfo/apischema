@@ -149,7 +149,8 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
                 if not has_default(field):
                     raise TypeError("Invalid ... without field default")
                 try:
-                    default = serialize(get_default(field))
+                    _, conversions = self._field_conversions(field, field_type)
+                    default = serialize(get_default(field), conversions=conversions)
                 except Exception:
                     pass
                 else:
