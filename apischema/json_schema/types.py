@@ -74,6 +74,7 @@ def json_schema(
     const: Any = Nil,
     default: Any = Nil,
     dependentRequired: Mapping[str, Collection[str]] = {},
+    deprecated: bool = False,
     description: str = None,
     enum: Sequence[Any] = [],
     exclusiveMaximum: Number = None,
