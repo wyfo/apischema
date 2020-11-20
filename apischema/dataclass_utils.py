@@ -11,18 +11,20 @@ from dataclasses import (  # type: ignore
 from functools import lru_cache, partial
 from types import MappingProxyType
 from typing import (
-    AbstractSet,
     Any,
     Callable,
     Collection,
-    Dict,
     Mapping,
     Sequence,
     Tuple,
     Type,
 )
 
-from apischema.dependent_required import DEPENDENT_REQUIRED_ATTR, DependentRequired
+from apischema.dependent_required import (
+    DEPENDENT_REQUIRED_ATTR,
+    DependentRequired,
+    Requirements,
+)
 from apischema.types import AnyType
 from apischema.typing import get_origin, get_type_hints
 from apischema.utils import PREFIX
@@ -84,17 +86,14 @@ def get_default(field: Field) -> Any:
 
 
 def get_alias(field: Field) -> str:
-    from apischema import settings
     from apischema.metadata.keys import ALIAS_METADATA
 
-    return settings.aliaser()(field.metadata.get(ALIAS_METADATA, field.name))
-
-
-Requirements = Mapping[str, AbstractSet[str]]
+    return field.metadata.get(ALIAS_METADATA, field.name)
 
 
 def _merge_requirements(
-    cls: Type, method: Callable[[DependentRequired], Mapping[Field, AbstractSet[Field]]]
+    cls: Type,
+    method: Callable[[DependentRequired], Requirements],
 ) -> Tuple[Requirements, Requirements]:
     assert is_dataclass(cls)
     _, _, init_vars = dataclass_types_and_fields(cls)  # type: ignore
@@ -102,15 +101,13 @@ def _merge_requirements(
     all_dependent_required: Collection["DependentRequired"] = getattr(
         cls, DEPENDENT_REQUIRED_ATTR, ()
     )
-    deserialization_requirements: Dict[str, AbstractSet[str]] = {}
-    serialization_requirements: Dict[str, AbstractSet[str]] = {}
+    deserialization_requirements = {}
+    serialization_requirements = {}
     for dep_req in all_dependent_required:
         for field, required in method(dep_req).items():  # noqa F402
-            deserialization_requirements[field.name] = {
-                get_alias(req) for req in required if req.init
-            }
-            serialization_requirements[field.name] = {
-                get_alias(req) for req in required if req not in init_only
+            deserialization_requirements[field] = {req for req in required if req.init}
+            serialization_requirements[field] = {
+                req for req in required if req not in init_only
             }
     return deserialization_requirements, serialization_requirements
 

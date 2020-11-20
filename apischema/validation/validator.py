@@ -22,6 +22,7 @@ from apischema.utils import PREFIX
 from apischema.validation.dependencies import find_all_dependencies
 from apischema.validation.errors import (
     Error,
+    FieldPath,
     ValidationError,
     merge_errors,
     yield_to_raise,
@@ -78,7 +79,7 @@ class Validator:
                 try:
                     wrapped_field(__obj, **kwargs)
                 except ValidationError as err:
-                    raise ValidationError(children={self.field.name: err})
+                    raise ValidationError(children={FieldPath(field): err})
 
         if self.discard:
             wrapped_discard = validate

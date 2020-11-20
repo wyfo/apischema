@@ -21,6 +21,7 @@ from typing import (  # type: ignore
 )
 
 from apischema import settings
+from apischema.aliases import Aliaser
 from apischema.conversions.utils import Conversions
 from apischema.conversions.visitor import Conv
 from apischema.dataclass_utils import (
@@ -84,6 +85,7 @@ def with_schema(method: Method) -> Method:
 class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
     def __init__(
         self,
+        aliaser: Aliaser,
         ref_factory: RefFactory,
         refs: Collection[str],
         ignore_first_ref: bool,
@@ -92,6 +94,7 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
         self.ref_factory = ref_factory
         self.refs = refs
         self.ignore_first_ref = ignore_first_ref
+        self.aliaser = aliaser
         self.schema: Optional[Schema] = None
 
     def _check_constraints(self, expected: Type[Constraints]):
@@ -206,7 +209,7 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
                 else:
                     pattern_properties[pattern] = properties_schema
             else:
-                alias = get_alias(field)
+                alias = self.aliaser(get_alias(field))
                 properties[alias] = json_schema(
                     readOnly=not field.init,
                     writeOnly=field in init_vars,
@@ -214,13 +217,20 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
                 )
                 if is_required(field):
                     required.append(alias)
+        dep_req = self._dependent_required(cls)
         result = json_schema(
             type=JsonType.OBJECT,
             properties=properties,
             required=required,
             additionalProperties=additional_properties,
             patternProperties=pattern_properties,
-            dependentRequired=self._dependent_required(cls),
+            dependentRequired={
+                alias: sorted(self.aliaser(get_alias(f)) for f in dep_req[req])
+                for alias, req in sorted(
+                    [(self.aliaser(get_alias(req)), req) for req in dep_req],
+                    key=lambda t: t[0],
+                )
+            },
         )
         if merged_schemas:
             result = json_schema(
@@ -282,7 +292,9 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
         self._check_constraints(ObjectConstraints)
         return json_schema(
             type=JsonType.OBJECT,
-            properties={key: self.visit(key) for key, cls in types.items()},
+            properties={
+                self.aliaser(key): self.visit(key) for key, cls in types.items()
+            },
             required=sorted(types.keys() - defaults.keys()),
             additionalProperties=settings.additional_properties,
         )
@@ -440,10 +452,14 @@ def _export_refs(
 
 
 def _refs_schema(
-    builder: Type[SchemaBuilder], refs: Mapping[str, AnyType], ref_factory: RefFactory
+    builder: Type[SchemaBuilder],
+    aliaser: Aliaser,
+    refs: Mapping[str, AnyType],
+    ref_factory: RefFactory,
 ) -> Mapping[str, JsonSchema]:
     return {
-        ref: builder(ref_factory, refs, True).visit(cls) for ref, cls in refs.items()
+        ref: builder(aliaser, ref_factory, refs, True).visit(cls)
+        for ref, cls in refs.items()
     }
 
 
@@ -453,6 +469,7 @@ def _schema(
     schema: Optional[Schema],
     conversions: Optional[Conversions],
     version: Optional[JsonSchemaVersion],
+    aliaser: Optional[Aliaser],
     ref_factory: Optional[RefFactory],
     all_refs: Optional[bool],
     with_schema: bool,
@@ -460,13 +477,15 @@ def _schema(
     add_defs = ref_factory is None
     if ref_factory is not None and all_refs is None:
         all_refs = True
+    if aliaser is None:
+        aliaser = settings.aliaser()
     version, ref_factory, all_refs = _default_version(version, ref_factory, all_refs)
     refs = _export_refs([(cls, conversions)], builder, all_refs)
-    visitor = builder(ref_factory, refs, False)
+    visitor = builder(aliaser, ref_factory, refs, False)
     with visitor._replace_conversions(conversions):
         json_schema = visitor.visit_with_schema(cls, schema)
     if add_defs:
-        defs = _refs_schema(builder, refs, ref_factory)
+        defs = _refs_schema(builder, aliaser, refs, ref_factory)
         if defs:
             json_schema["$defs"] = defs
     result = serialize(json_schema, conversions=version.conversions)
@@ -481,6 +500,7 @@ def deserialization_schema(
     schema: Schema = None,
     conversions: Conversions = None,
     version: JsonSchemaVersion = None,
+    aliaser: Aliaser = None,
     ref_factory: RefFactory = None,
     all_refs: bool = None,
     with_schema: bool = True,
@@ -491,6 +511,7 @@ def deserialization_schema(
         schema,
         conversions,
         version,
+        aliaser,
         ref_factory,
         all_refs,
         with_schema,
@@ -503,6 +524,7 @@ def serialization_schema(
     schema: Schema = None,
     conversions: Conversions = None,
     version: JsonSchemaVersion = None,
+    aliaser: Aliaser = None,
     ref_factory: RefFactory = None,
     all_refs: bool = None,
     with_schema: bool = True,
@@ -513,6 +535,7 @@ def serialization_schema(
         schema,
         conversions,
         version,
+        aliaser,
         ref_factory,
         all_refs,
         with_schema,
@@ -522,10 +545,13 @@ def serialization_schema(
 def _defs_schema(
     types: TypesWithConversions,
     builder: Type[SchemaBuilder],
+    aliaser: Aliaser,
     ref_factory: RefFactory,
     all_refs: bool,
 ) -> Mapping[str, JsonSchema]:
-    return _refs_schema(builder, _export_refs(types, builder, all_refs), ref_factory)
+    return _refs_schema(
+        builder, aliaser, _export_refs(types, builder, all_refs), ref_factory
+    )
 
 
 def _set_missing_properties(
@@ -542,16 +568,19 @@ def definitions_schema(
     *,
     deserialization: TypesWithConversions = (),
     serialization: TypesWithConversions = (),
+    aliaser: Aliaser = None,
     version: JsonSchemaVersion = None,
     ref_factory: Optional[RefFactory] = None,
     all_refs: bool = None,
 ) -> Mapping[str, Mapping[str, Any]]:
+    if aliaser is None:
+        aliaser = settings.aliaser()
     version, ref_factory, all_refs = _default_version(version, ref_factory, all_refs)
     deserialization_schemas = _defs_schema(
-        deserialization, DeserializationSchemaBuilder, ref_factory, all_refs
+        deserialization, DeserializationSchemaBuilder, aliaser, ref_factory, all_refs
     )
     serialization_schemas = _defs_schema(
-        serialization, SerializationSchemaBuilder, ref_factory, all_refs
+        serialization, SerializationSchemaBuilder, aliaser, ref_factory, all_refs
     )
     for duplicate in deserialization_schemas.keys() & serialization_schemas.keys():
         d_schema = deserialization_schemas[duplicate]

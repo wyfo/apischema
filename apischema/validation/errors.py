@@ -1,7 +1,7 @@
 import collections.abc
 import re
 import sys
-from dataclasses import Field, dataclass, field
+from dataclasses import Field, dataclass, field, replace
 from functools import reduce, wraps
 from inspect import isgeneratorfunction
 from typing import (
@@ -22,6 +22,7 @@ from typing import (
     overload,
 )
 
+from apischema.aliases import Aliaser
 from apischema.dataclass_utils import get_alias
 from apischema.typing import get_args, get_origin
 from apischema.utils import merge_opts
@@ -119,6 +120,13 @@ def _rec_build_error(path: Sequence[str], msg: ErrorMsg) -> ValidationError:
         return ValidationError(children={path[0]: _rec_build_error(path[1:], msg)})
 
 
+class FieldPath(str):
+    def __new__(cls, field: Field):
+        obj = super().__new__(cls, field.name)  # type: ignore
+        obj.field = field
+        return obj
+
+
 def _check_error_path(path) -> Sequence[ErrorKey]:
     if isinstance(path, (Field, int, str)):
         path = [path]
@@ -126,7 +134,7 @@ def _check_error_path(path) -> Sequence[ErrorKey]:
         path = list(path)
     for i, elt in enumerate(path):
         if isinstance(elt, Field):
-            path[i] = get_alias(elt)
+            path[i] = FieldPath(elt)
         if not isinstance(path[i], (str, int)):
             raise TypeError(
                 f"Bad error path, expected Field, int or str," f" found {type(i)}"
@@ -151,6 +159,27 @@ def build_validation_error(errors: Iterable[Error]) -> ValidationError:
                 children.get(key), _rec_build_error(remain, msg)
             )
     return ValidationError(messages, children)
+
+
+def apply_aliaser(error: ValidationError, aliaser: Aliaser) -> ValidationError:
+    path_replace: Dict[ErrorKey, str] = {}
+    error_replace = {}
+    for path, child_error in error.children.items():
+        if isinstance(path, FieldPath):
+            path_replace[path] = aliaser(get_alias(path.field))  # type: ignore
+        new_error = apply_aliaser(child_error, aliaser)
+        if new_error is not child_error:
+            error_replace[path] = new_error
+    if path_replace or error_replace:
+        return replace(
+            error,
+            children={
+                path_replace.get(path, path): error_replace.get(path, err)
+                for path, err in error.children.items()
+            },
+        )
+    else:
+        return error
 
 
 if sys.version_info >= (3, 7):  # pragma: no cover
