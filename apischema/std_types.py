@@ -28,7 +28,7 @@ from apischema.json_schema.schema import schema
 
 
 def as_str(cls: Type, format: str = None):
-    str_type = schema(format=format)(NewType(cls.__name__, str))
+    str_type = schema(format=format)(NewType(cls.__name__.capitalize(), str))
     deserializer(cls, str_type, cls)
     serializer(str, cls, str_type)
 
@@ -59,7 +59,7 @@ if sys.version_info < (3, 7):
 
 if sys.version_info >= (3, 7):  # pragma: no cover
     for cls, format in [(date, "date"), (datetime, "date-time"), (time, "time")]:
-        str_type = schema(format=format)(NewType(cls.__name__, str))
+        str_type = schema(format=format)(NewType(cls.__name__.capitalize(), str))
         deserializer(cls.fromisoformat, str_type, cls)  # type: ignore
         serializer(cls.isoformat, cls, str_type)  # type: ignore
 
