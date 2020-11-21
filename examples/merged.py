@@ -1,25 +1,26 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Union
 
-from apischema import alias, deserialize, serialize
+from apischema import Undefined, UndefinedType, alias, deserialize, serialize
 from apischema.fields import with_fields_set
 from apischema.json_schema import deserialization_schema
 from apischema.metadata import merged
 
 
-@with_fields_set
 @dataclass
 class JsonSchema:
-    title: Optional[str] = None
-    description: Optional[str] = None
-    format: Optional[str] = None
+    title: Union[str, UndefinedType] = Undefined
+    description: Union[str, UndefinedType] = Undefined
+    format: Union[str, UndefinedType] = Undefined
     ...
 
 
 @with_fields_set
 @dataclass
 class RootJsonSchema:
-    schema: Optional[str] = field(default=None, metadata=alias("$schema"))
+    schema: Union[str, UndefinedType] = field(
+        default=Undefined, metadata=alias("$schema")
+    )
     defs: list[JsonSchema] = field(default_factory=list, metadata=alias("$defs"))
     # This field schema is merged inside the owning one
     json_schema: JsonSchema = field(default=JsonSchema(), metadata=merged)
@@ -41,9 +42,9 @@ assert deserialization_schema(RootJsonSchema) == {
         "JsonSchema": {
             "type": "object",
             "properties": {
-                "title": {"type": ["string", "null"]},
-                "description": {"type": ["string", "null"]},
-                "format": {"type": ["string", "null"]},
+                "title": {"type": "string"},
+                "description": {"type": "string"},
+                "format": {"type": "string"},
             },
             "additionalProperties": False,
         }
@@ -55,7 +56,7 @@ assert deserialization_schema(RootJsonSchema) == {
         {
             "type": "object",
             "properties": {
-                "$schema": {"type": ["string", "null"]},
+                "$schema": {"type": "string"},
                 "$defs": {"type": "array", "items": {"$ref": "#/$defs/JsonSchema"}},
             },
             "additionalProperties": False,

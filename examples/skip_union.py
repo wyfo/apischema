@@ -3,7 +3,8 @@ from typing import Annotated, Union
 
 from pytest import raises
 
-from apischema import Skip, ValidationError, deserialize, serialize
+from apischema import ValidationError, deserialize, serialize
+from apischema.skip import Skip
 
 
 @dataclass

@@ -16,7 +16,7 @@ from apischema.type_vars import get_parameters, resolve_type_vars
 from apischema.types import AnyType, DICT_TYPE, LIST_TYPE
 from apischema.typing import get_args, get_origin, get_type_hints
 from apischema.utils import is_type_var, type_name
-from apischema.visitor import Visitor
+from apischema.visitor import Unsupported, Visitor
 
 Conversions = Mapping[AnyType, Any]
 Converter = Callable[[Any], Any]
@@ -114,14 +114,11 @@ class ConvertibleVisitor(Visitor[bool]):
     def union(self, alternatives: Sequence[AnyType]) -> bool:
         return False
 
-    def unsupported(self, cls: AnyType) -> bool:
-        return True
-
 
 def is_convertible(cls: AnyType):
     try:
         return ConvertibleVisitor().visit(cls)
-    except NotImplementedError:
+    except (NotImplementedError, Unsupported):
         return True
 
 

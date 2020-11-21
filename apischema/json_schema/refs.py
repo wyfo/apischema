@@ -18,7 +18,7 @@ from apischema.dataclass_utils import is_dataclass
 from apischema.types import AnyType
 from apischema.typing import _TypedDictMeta, get_origin
 from apischema.utils import is_type_var, type_name
-from apischema.visitor import Visitor
+from apischema.visitor import Unsupported, Visitor
 
 Ref = Union[str, "ellipsis", None]  # noqa: F821
 _refs: Dict[AnyType, Optional[Ref]] = {}
@@ -98,14 +98,11 @@ class BuiltinVisitor(Visitor):
         for alt in alternatives:
             self.visit(alt)
 
-    def unsupported(self, cls: Type):
-        raise NotImplementedError()
-
 
 def is_builtin(cls: AnyType) -> bool:
     try:
         BuiltinVisitor().visit(cls)
-    except NotImplementedError:
+    except (NotImplementedError, Unsupported):
         return False
     else:
         return True

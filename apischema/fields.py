@@ -69,7 +69,13 @@ def with_fields_set(cls: Cls) -> Cls:
     def new_init(self, *args, **kwargs):
         prev_fields_set = self.__dict__.get(FIELDS_SET_ATTR, set()).copy()
         self.__dict__[FIELDS_SET_ATTR] = set()
-        old_init(self, *args, **kwargs)
+        try:
+            old_init(self, *args, **kwargs)
+        except TypeError as err:
+            if str(err) == no_dataclass_init_error:
+                raise RuntimeError(dataclass_before_error) from None
+            else:
+                raise
         arg_fields = {*params[: len(args)], *kwargs} - init_fields
         self.__dict__[FIELDS_SET_ATTR] = prev_fields_set | arg_fields | post_init_fields
 
@@ -77,9 +83,7 @@ def with_fields_set(cls: Cls) -> Cls:
         try:
             self.__dict__[FIELDS_SET_ATTR].add(attr)
         except KeyError:
-            raise RuntimeError(
-                f"{with_fields_set.__name__} must be put before dataclass decorator"
-            )
+            raise RuntimeError(dataclass_before_error) from None
         old_setattr(self, attr, value)
 
     for attr, old, new in [
@@ -93,6 +97,14 @@ def with_fields_set(cls: Cls) -> Cls:
         setattr(cls, attr, wraps(old)(new))  # type: ignore
 
     return cls
+
+
+no_dataclass_init_error = (
+    "object.__init__() takes exactly one argument (the instance to initialize)"
+)
+dataclass_before_error = (
+    f"{with_fields_set.__name__} must be put before dataclass decorator"
+)
 
 
 T = TypeVar("T")

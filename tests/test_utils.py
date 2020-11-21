@@ -1,12 +1,4 @@
-from dataclasses import dataclass
-from typing import Any
-
-from apischema.utils import (
-    Nil,
-    as_dict,
-    to_camel_case,
-    to_hashable,
-)
+from apischema.utils import to_camel_case, to_hashable
 
 
 def test_to_hashable():
@@ -18,12 +10,3 @@ def test_to_hashable():
 
 def test_to_camel_case():
     assert to_camel_case("min_length") == "minLength"
-
-
-@dataclass
-class Data:
-    default: Any = Nil
-
-
-def test_as_dict():
-    assert as_dict(Data()) == {"default": Nil}

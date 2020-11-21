@@ -1,7 +1,9 @@
+__all__ = ["NotNull", "Skip"]
 from typing import Any, Iterator, Sequence, TypeVar, Union
 
 from apischema.types import AnyType
-from apischema.visitor import Visitor
+from apischema.utils import UndefinedType
+from apischema.visitor import Unsupported, Visitor
 
 
 class Skipped(Exception):
@@ -44,7 +46,7 @@ class SkipVisitor(Visitor[Iterator[AnyType]]):
     def annotated(self, cls: AnyType, annotations: Sequence[Any]) -> Iterator[AnyType]:
         for annotation in annotations:
             if annotation is Skip or (self.schema_only and annotation is SkipSchema):
-                raise Skipped()
+                raise Skipped
         return super().annotated(cls, annotations)
 
     def union(self, alternatives: Sequence[AnyType]) -> Iterator[AnyType]:
@@ -53,13 +55,15 @@ class SkipVisitor(Visitor[Iterator[AnyType]]):
                 self.visit(alt)
             except Skipped:
                 pass
-            except NotImplementedError:
+            except (NotImplementedError, Unsupported):
                 yield alt
             else:
                 raise NotImplementedError()
 
-    def unsupported(self, cls: AnyType) -> Iterator[AnyType]:
-        raise NotImplementedError()
+    def visit(self, cls: AnyType) -> Iterator[AnyType]:
+        if cls is UndefinedType:
+            raise Skipped
+        return super().visit(cls)
 
 
 def filter_skipped(

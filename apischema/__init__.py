@@ -1,6 +1,6 @@
 __all__ = [
-    "NotNull",
-    "Skip",
+    "Undefined",
+    "UndefinedType",
     "Unsupported",
     "ValidationError",
     "alias",
@@ -20,6 +20,7 @@ __all__ = [
     "serialize",
     "serializer",
     "settings",
+    "skip",
     "validation",
     "validator",
 ]
@@ -34,6 +35,7 @@ from . import (
     metadata,
     serialization,
     settings,
+    skip,
     validation,
 )
 from .aliases import alias
@@ -44,7 +46,7 @@ from .json_schema.refs import schema_ref
 from .json_schema.schema import schema
 from .metadata import properties
 from .serialization import serialize
-from .skip import NotNull, Skip
+from .utils import Undefined, UndefinedType
 from .validation import (
     ValidationError,
     validator,

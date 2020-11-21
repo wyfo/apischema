@@ -6,7 +6,7 @@ from apischema.conversions.converters import deserializer
 from apischema.conversions.utils import Conversions, Converter
 from apischema.fields import with_fields_set
 from apischema.typing import get_type_hints
-from apischema.utils import MakeDataclassField, as_dict, to_camel_case
+from apischema.utils import MakeDataclassField, to_camel_case
 
 
 def to_raw_deserializer(func: Callable) -> Converter:
@@ -15,7 +15,7 @@ def to_raw_deserializer(func: Callable) -> Converter:
         raise TypeError("Return must be annotated")
     sig = signature(func)
     fields: List[MakeDataclassField] = []
-    kwargs = None
+    kwargs_param = None
     for name, param in sig.parameters.items():
         if param.kind == Parameter.POSITIONAL_ONLY:  # pragma: no cover
             raise TypeError("Forbidden positional-only parameter")
@@ -27,7 +27,7 @@ def to_raw_deserializer(func: Callable) -> Converter:
             field_ = field(default_factory=dict, metadata=properties)
             type_ = Mapping[str, types.get(name, Any)]  # type: ignore
             fields.append((name, type_, field_))  # type: ignore
-            kwargs = name
+            kwargs_param = name
             continue
         default = param.default if param.default is not Parameter.empty else MISSING
         try:
@@ -36,9 +36,10 @@ def to_raw_deserializer(func: Callable) -> Converter:
             raise TypeError("All parameters must be annotated")
 
     def converter(obj):
-        kw = as_dict(obj)
-        kw.update(kw.pop(kwargs, ()))
-        return func(**kw)
+        kwargs = {f: getattr(obj, f) for f, _, _ in fields}
+        if kwargs_param in kwargs:
+            kwargs.update(kwargs.pop(kwargs_param))
+        return func(**kwargs)
 
     cls = with_fields_set(make_dataclass(to_camel_case(func.__name__), fields))
     converter.__annotations__ = {"obj": cls, "return": types["return"]}
