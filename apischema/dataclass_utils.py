@@ -5,11 +5,11 @@ from dataclasses import (  # type: ignore
     MISSING,
     _FIELDS,
     _FIELD_CLASSVAR,
-    field,
     is_dataclass,
     make_dataclass,
 )
-from functools import partial
+from functools import lru_cache, partial
+from types import MappingProxyType
 from typing import (
     AbstractSet,
     Any,
@@ -17,15 +17,14 @@ from typing import (
     Collection,
     Dict,
     Mapping,
-    Set,
+    Sequence,
     Tuple,
     Type,
-    cast,
 )
 
 from apischema.dependent_required import DEPENDENT_REQUIRED_ATTR, DependentRequired
 from apischema.types import AnyType
-from apischema.typing import get_type_hints, get_origin
+from apischema.typing import get_origin, get_type_hints
 from apischema.utils import PREFIX
 
 if sys.version_info <= (3, 7):  # pragma: no cover
@@ -35,39 +34,35 @@ if sys.version_info <= (3, 7):  # pragma: no cover
         return is_dataclass_(obj) and getattr(obj, "__origin__", None) is None
 
 
-def get_all_fields(cls: Type) -> Mapping[str, Field]:
-    from apischema.metadata.keys import SKIP_METADATA
-
-    fields: Collection[Field] = getattr(cls, _FIELDS).values()
-    assert is_dataclass(cls)
-    return {
-        field.name: field
-        for field in sorted(fields, key=lambda f: f.name)
-        if field._field_type != _FIELD_CLASSVAR  # type: ignore
-        and SKIP_METADATA not in field.metadata
-    }
-
-
-def resolve_dataclass_types(
+@lru_cache()
+def dataclass_types_and_fields(
     cls: Type,
-) -> Tuple[Mapping[str, AnyType], Collection[str]]:
+) -> Tuple[Mapping[str, AnyType], Sequence[Field], Sequence[Field]]:
     from apischema.metadata.keys import INIT_VAR_METADATA
 
+    assert is_dataclass(cls)
     types = get_type_hints(cls, include_extras=True)
-    init_fields = []
-    for name, field_type in types.items():
+    fields, init_fields = [], []
+    for field in getattr(cls, _FIELDS).values():
+        assert isinstance(field, Field)
+        if field._field_type == _FIELD_CLASSVAR:  # type: ignore
+            continue
+        field_type = types[field.name]
         if isinstance(field_type, InitVar):
-            types[name] = field_type.type  # type: ignore
-            init_fields.append(name)
+            types[field.name] = field_type.type  # type: ignore
+            init_fields.append(field)
         elif field_type is InitVar:
-            metadata = getattr(cls, _FIELDS)[name].metadata
+            metadata = getattr(cls, _FIELDS)[field.name].metadata
             if INIT_VAR_METADATA not in metadata:
                 raise TypeError("Before 3.8, InitVar requires init_var metadata")
-            init_field = (PREFIX, metadata[INIT_VAR_METADATA], field(default=...))
+            init_field = (PREFIX, metadata[INIT_VAR_METADATA], ...)
             tmp_cls = make_dataclass("Tmp", [init_field], bases=(cls,))  # type: ignore
-            types[name] = get_type_hints(tmp_cls, include_extras=True)[PREFIX]
-            init_fields.append(name)
-    return types, init_fields
+            types[field.name] = get_type_hints(tmp_cls, include_extras=True)[PREFIX]
+            init_fields.append(field)
+        else:
+            fields.append(field)
+    # Use immutable return because of cache
+    return MappingProxyType(types), tuple(fields), tuple(init_fields)
 
 
 def has_default(field: Field) -> bool:
@@ -102,8 +97,8 @@ def _merge_requirements(
     cls: Type, method: Callable[[DependentRequired], Mapping[Field, AbstractSet[Field]]]
 ) -> Tuple[Requirements, Requirements]:
     assert is_dataclass(cls)
-    _, init_only = resolve_dataclass_types(cls)
-    init_only = set(init_only)
+    _, _, init_vars = dataclass_types_and_fields(cls)  # type: ignore
+    init_only = {f.name for f in init_vars}
     all_dependent_required: Collection["DependentRequired"] = getattr(
         cls, DEPENDENT_REQUIRED_ATTR, ()
     )
@@ -124,19 +119,10 @@ get_required_by = partial(_merge_requirements, method=DependentRequired.required
 get_requiring = partial(_merge_requirements, method=DependentRequired.requiring)
 
 
-def get_init_merged_alias(cls: Type) -> AbstractSet[str]:
-    from apischema.metadata.keys import MERGED_METADATA
-
-    cls = cast(Type, get_origin(cls)) or cls
-    if not is_dataclass(cls):
+def check_merged_class(merged_cls: AnyType) -> Type:
+    origin = get_origin(merged_cls)
+    if origin is None:
+        origin = merged_cls
+    if not is_dataclass(origin):
         raise TypeError("Merged field must have dataclass type")
-    types = get_type_hints(cls, include_extras=True)
-    result: Set[str] = set()
-    for field in get_all_fields(cls).values():  # noqa F402
-        if not field.init:
-            continue
-        if MERGED_METADATA in field.metadata:
-            result |= get_init_merged_alias(types[field.name])
-        else:
-            result.add(get_alias(field))
-    return result
+    return origin

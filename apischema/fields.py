@@ -3,6 +3,7 @@ from dataclasses import (  # type: ignore
     Field,
     _FIELD,
     _FIELDS,
+    _FIELD_CLASSVAR,
     _FIELD_INITVAR,
     fields as fields_,
     is_dataclass,
@@ -149,7 +150,11 @@ def fields_set(obj: Any) -> AbstractSet[str]:
 class FieldGetter:
     def __init__(self, obj):
         _check_dataclass(obj)
-        self.fields = {f.name: f for f in fields_(obj)}
+        self.fields = {
+            name: f
+            for name, f in getattr(obj, _FIELDS).items()
+            if not f._field_type == _FIELD_CLASSVAR
+        }
 
     def __getattribute__(self, name: str) -> Field:
         try:

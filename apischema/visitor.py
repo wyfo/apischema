@@ -1,6 +1,7 @@
 from dataclasses import Field, is_dataclass
 from enum import Enum
 from functools import lru_cache
+from types import MappingProxyType
 from typing import (
     Any,
     Collection,
@@ -15,7 +16,7 @@ from typing import (
     Union,
 )
 
-from apischema.dataclass_utils import get_all_fields, resolve_dataclass_types
+from apischema.dataclass_utils import dataclass_types_and_fields
 from apischema.type_vars import TypeVarContext, resolve_type_vars, type_var_context
 from apischema.types import (
     AnyType,
@@ -41,22 +42,9 @@ except ImportError:
 
 
 @lru_cache()
-def type_hints_cache(obj):
-    return get_type_hints(obj, include_extras=True)
-
-
-@lru_cache()
-def dataclass_types_and_fields(
-    cls: Type,
-) -> Tuple[Mapping[str, AnyType], Sequence[Field], Sequence[Field]]:
-    assert is_dataclass(cls)
-    types, init_only = resolve_dataclass_types(cls)
-    all_fields = get_all_fields(cls)
-    return (
-        types,
-        tuple(f for f in all_fields.values() if f.name not in init_only),
-        tuple(f for f in all_fields.values() if f.name in init_only),
-    )
+def type_hints_cache(obj) -> Mapping[str, AnyType]:
+    # Use immutable return because of cache
+    return MappingProxyType(get_type_hints(obj, include_extras=True))
 
 
 class Unsupported(TypeError):

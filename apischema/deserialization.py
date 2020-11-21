@@ -28,10 +28,10 @@ from apischema.conversions.metadata import get_field_conversions
 from apischema.conversions.utils import Conversions, ConversionsWrapper
 from apischema.conversions.visitor import Deserialization, DeserializationVisitor
 from apischema.dataclass_utils import (
+    check_merged_class,
+    dataclass_types_and_fields,
     get_alias,
-    get_all_fields,
     get_default,
-    get_init_merged_alias,
     get_required_by,
     has_default,
     is_required,
@@ -222,6 +222,20 @@ def with_validators(
     return decorator
 
 
+def get_init_merged_alias(merged_cls: Type) -> Iterable[str]:
+    from apischema.metadata.keys import MERGED_METADATA
+
+    merged_cls = check_merged_class(merged_cls)
+    types, fields, init_vars = dataclass_types_and_fields(merged_cls)  # type: ignore
+    for field in chain(fields, init_vars):  # noqa: F402
+        if not field.init:
+            continue
+        if MERGED_METADATA in field.metadata:
+            yield from get_init_merged_alias(types[field.name])
+        else:
+            yield get_alias(field)
+
+
 class DeserializationMethodVisitor(
     DeserializationVisitor[DeserializationMethodFactory]
 ):
@@ -306,9 +320,9 @@ class DeserializationMethodVisitor(
         pattern_fields: List[Tuple[Pattern, DeserializationField]] = []
         additional_field: Optional[DeserializationField] = None
         post_init_modified_fields = {
-            f.name
-            for f in get_all_fields(cls).values()
-            if POST_INIT_METADATA in f.metadata
+            field.name
+            for field in chain(fields, init_vars)
+            if POST_INIT_METADATA in field.metadata
         }
         defaults: Dict[str, Callable[[], Any]] = {}
         required_by, _ = get_required_by(cls)
@@ -346,7 +360,7 @@ class DeserializationMethodVisitor(
                 field_factory.method,
             )
             if MERGED_METADATA in metadata:
-                merged_fields.append((get_init_merged_alias(field_type), field2))
+                merged_fields.append((set(get_init_merged_alias(field_type)), field2))
             elif PROPERTIES_METADATA in metadata:
                 pattern = metadata[PROPERTIES_METADATA]
                 if pattern is None:

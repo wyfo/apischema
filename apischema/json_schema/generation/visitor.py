@@ -15,16 +15,26 @@ from apischema.dataclass_utils import (
     Requirements,
     get_requiring,
 )
+from apischema.metadata.keys import SKIP_METADATA
 from apischema.skip import filter_skipped
 from apischema.types import AnyType
 from apischema.visitor import Return
 
 
 class SchemaVisitor(ConversionsVisitor[Conv, Return]):
-    def _dataclass_fields(
+    def _dataclass_fields_(
         self, fields: Sequence[Field], init_vars: Sequence[Field]
     ) -> Iterable[Field]:
         raise NotImplementedError()
+
+    def _dataclass_fields(
+        self, fields: Sequence[Field], init_vars: Sequence[Field]
+    ) -> Sequence[Field]:
+        return [
+            f
+            for f in self._dataclass_fields_(fields, init_vars)
+            if SKIP_METADATA not in f.metadata
+        ]
 
     def _field_conversions(
         self, field: Field, field_type: AnyType
@@ -64,9 +74,9 @@ class DeserializationSchemaVisitor(
         )
 
     @staticmethod
-    def _dataclass_fields(
+    def _dataclass_fields_(
         fields: Sequence[Field], init_vars: Sequence[Field]
-    ) -> Iterable[Field]:
+    ) -> Sequence[Field]:
         return (*(f for f in fields if f.init), *init_vars)
 
     @staticmethod
@@ -95,9 +105,9 @@ class SerializationSchemaVisitor(
         return self.visit_with_conversions(target, conversions)
 
     @staticmethod
-    def _dataclass_fields(
+    def _dataclass_fields_(
         fields: Sequence[Field], init_vars: Sequence[Field]
-    ) -> Iterable[Field]:
+    ) -> Sequence[Field]:
         return fields
 
     @staticmethod
