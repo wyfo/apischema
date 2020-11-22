@@ -3,6 +3,8 @@ from typing import Any, Dict, Mapping, Optional, Sequence, Union
 
 from apischema.utils import Nil, as_dict, merge_opts, merge_opts_mapping
 
+Deprecated = Union[bool, str]
+
 
 @dataclass(frozen=True)
 class Annotations:
@@ -12,7 +14,7 @@ class Annotations:
     default: Optional[Any] = Nil
     examples: Optional[Sequence[Any]] = None
     format: Optional[str] = None
-    deprecated: Union[bool, str] = False
+    deprecated: Deprecated = False
 
     def as_dict(self) -> Mapping[str, Any]:
         result: Dict[str, Any] = {}
