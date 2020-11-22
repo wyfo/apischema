@@ -40,5 +40,5 @@ def merge_annotations(default: Annotations, override: Annotations) -> Annotation
         merged_fields["default"] = override.default
     else:
         merged_fields["default"] = default.default
-    merged_fields["extra"] = merge_opts_mapping(default.extra, override.extra)  # type: ignore # noqa E501
+    merged_fields["extra"] = merge_opts_mapping(default.extra, override.extra)  # type: ignore # noqa: E501
     return Annotations(**merged_fields)

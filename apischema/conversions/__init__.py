@@ -25,4 +25,4 @@ from .raw import raw_deserializer
 from .utils import Conversions
 from .visitor import Deserialization, Serialization
 
-identity = lambda x: x  # noqa E731
+identity = lambda x: x  # noqa: E731

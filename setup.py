@@ -12,7 +12,7 @@ setup(
     license="MIT",
     packages=find_packages(include=["apischema*"]),
     package_data={"apischema": ["py.typed"]},
-    description="JSON (de)serialization + schema generation through python typing, with a spoonful of sugar.",  # noqa E501
+    description="JSON (de)serialization + schema generation through python typing, with a spoonful of sugar.",  # noqa: E501
     long_description=README,
     long_description_content_type="text/markdown",
     python_requires=">=3.6",

@@ -81,10 +81,10 @@ else:  # pragma: no cover
 
 
 if sys.version_info >= (3, 8):  # pragma: no cover
-    from typing import Literal, TypedDict, Protocol  # noqa F401
+    from typing import Literal, TypedDict, Protocol  # noqa: F401
 else:  # pragma: no cover
     try:
-        from typing_extensions import Literal, TypedDict, Protocol  # noqa F401
+        from typing_extensions import Literal, TypedDict, Protocol  # noqa: F401
     except ImportError:
         pass
 

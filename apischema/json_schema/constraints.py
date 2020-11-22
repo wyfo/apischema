@@ -1,5 +1,6 @@
 import operator
 import re
+from dataclasses import dataclass, field, fields
 from math import gcd
 from typing import (
     Any,
@@ -16,8 +17,6 @@ from typing import (
     TypeVar,
     Union,
 )
-
-from dataclasses import dataclass, field, fields
 
 from apischema.types import Number
 from apischema.utils import merge_opts, to_hashable
@@ -73,7 +72,7 @@ class Constraints:
                 else:
                     modif = None
             if modif is None:
-                modif = lambda x: x  # noqa E731
+                modif = lambda x: x  # noqa: E731
             checks.append((attr, comp, modif, error))
 
         def errors(data: Any) -> List[str]:

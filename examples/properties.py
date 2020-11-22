@@ -2,7 +2,6 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Annotated
 
-
 from apischema import deserialize, properties, schema, schema_ref
 from apischema.json_schema import deserialization_schema
 
@@ -15,7 +14,7 @@ class Config:
         default_factory=dict, metadata=properties(pattern=r"^server_")
     )
     client_options: Mapping[
-        Annotated[str, schema(pattern=r"^client_")], bool  # noqa F722 E501
+        Annotated[str, schema(pattern=r"^client_")], bool  # noqa: F722
     ] = field(default_factory=dict, metadata=properties(...))
     options: Mapping[str, bool] = field(default_factory=dict, metadata=properties)
 

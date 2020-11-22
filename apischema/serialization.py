@@ -58,9 +58,9 @@ def serialization_fields(
                     return _serialize(converter(obj), conversions=sub_conversions)
 
         elif field_type in PRIMITIVE_TYPES_SET:
-            method = lambda obj, _: obj  # noqa E731
+            method = lambda obj, _: obj  # noqa: E731
         else:
-            method = lambda obj, _serialize: _serialize(obj)  # noqa E731
+            method = lambda obj, _serialize: _serialize(obj)  # noqa: E731
         field2 = SerializationField(field.name, method)
         if is_aggregate_field(field):
             aggregate_fields.append(field2)

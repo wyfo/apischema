@@ -57,7 +57,7 @@ from .visitor import Unsupported
 def default_conversions():
     """Handle standard library + internal types"""
     from typing import Sequence
-    from . import std_types  # noqa F401
+    from . import std_types  # noqa: F401
     from .validation.errors import LocalizedError
 
     deserializer(ValidationError.deserialize, Sequence[LocalizedError], ValidationError)

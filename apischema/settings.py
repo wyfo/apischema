@@ -114,7 +114,7 @@ def aliaser(func=None, *, camel_case: bool = None):
     if camel_case is True:
         func = to_camel_case
     elif camel_case is False:
-        func = lambda s: s  # noqa E731
+        func = lambda s: s  # noqa: E731
     if func is None:
         return aliases._global_aliaser
     else:

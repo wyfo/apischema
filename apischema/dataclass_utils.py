@@ -68,7 +68,7 @@ def dataclass_types_and_fields(
 
 
 def has_default(field: Field) -> bool:
-    return field.default is not MISSING or field.default_factory is not MISSING  # type: ignore # noqa E501
+    return field.default is not MISSING or field.default_factory is not MISSING  # type: ignore # noqa: E501
 
 
 def is_required(field: Field) -> bool:
@@ -104,7 +104,7 @@ def _merge_requirements(
     deserialization_requirements = {}
     serialization_requirements = {}
     for dep_req in all_dependent_required:
-        for field, required in method(dep_req).items():  # noqa F402
+        for field, required in method(dep_req).items():  # noqa: F402
             deserialization_requirements[field] = {req for req in required if req.init}
             serialization_requirements[field] = {
                 req for req in required if req not in init_only

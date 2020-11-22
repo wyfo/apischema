@@ -375,7 +375,7 @@ class DeserializationMethodVisitor(
             req.name: {self.aliaser(get_alias(dep)) for dep in deps}
             for req, deps in get_required_by(cls)[0].items()
         }
-        for field in chain(fields, init_vars):  # noqa F402
+        for field in chain(fields, init_vars):  # noqa: F402
             metadata = check_metadata(field)
             if SKIP_METADATA in metadata or not field.init:
                 continue
@@ -669,7 +669,7 @@ class DeserializationMethodVisitor(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
             if constraints is None:
-                method = lambda ctx, data: ctx.coercer(cls, data)  # noqa E731
+                method = lambda ctx, data: ctx.coercer(cls, data)  # noqa: E731
             else:
 
                 def method(ctx: DeserializationContext, data: Any) -> Any:

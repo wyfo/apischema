@@ -52,7 +52,7 @@ class RefsExtractor(SchemaVisitor):
                 ref = annotation.ref
                 if not isinstance(ref, str):
                     raise ValueError("Annotated schema_ref can only be str")
-                annotated = Annotated[(cls, *filter(is_hashable, annotations))]  # type: ignore # noqa E501
+                annotated = Annotated[(cls, *filter(is_hashable, annotations))]  # type: ignore # noqa: E501
                 if self._incr_ref(ref, annotated):
                     return
         return self.visit(cls)

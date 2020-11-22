@@ -27,7 +27,7 @@ schema_ref("Bs")(List[B])
 @schema_ref("DD")
 @dataclass
 class D:
-    bs: Annotated[List[B], schema_ref("Bs2")]  # noqa F821
+    bs: Annotated[List[B], schema_ref("Bs2")]  # noqa: F821
 
 
 @dataclass

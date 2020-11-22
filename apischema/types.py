@@ -72,7 +72,7 @@ if (3, 7) <= sys.version_info < (3, 9):  # pragma: no cover
 
     def subscriptable_origin(cls: AnyType) -> AnyType:
         if (
-            type(cls) == type(List[int])  # noqa E721
+            type(cls) == type(List[int])  # noqa: E721
             and cls.__module__ == "typing"
             and hasattr(cls, "_name")
         ):

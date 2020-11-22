@@ -37,7 +37,7 @@ class PropertiesMetadata(dict, Metadata):
         super().__init__({PROPERTIES_METADATA: None})
 
     def __call__(
-        self, pattern: Union[str, Pattern, "ellipsis"]  # noqa F821
+        self, pattern: Union[str, Pattern, "ellipsis"]  # noqa: F821
     ) -> Metadata:
         if pattern is not ...:
             pattern = re.compile(pattern)
