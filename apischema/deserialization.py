@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from dataclasses import Field, dataclass, field, replace
 from enum import Enum
 from functools import wraps
@@ -21,6 +22,7 @@ from typing import (
 )
 
 from apischema import settings
+from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.coercion import Coercion, get_coercer
 from apischema.conversions import identity
@@ -52,6 +54,7 @@ from apischema.metadata.keys import (
     SKIP_METADATA,
     VALIDATORS_METADATA,
     check_metadata,
+    is_aggregate_field,
 )
 from apischema.skip import filter_skipped
 from apischema.types import (
@@ -64,7 +67,13 @@ from apischema.types import (
     OrderedDict,
 )
 from apischema.utils import map_values
-from apischema.validation.errors import ErrorKey, ValidationError, merge_errors
+from apischema.validation.errors import (
+    ErrorKey,
+    FieldPath,
+    ValidationError,
+    apply_aliaser,
+    merge_errors,
+)
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validator import (
     Validator,
@@ -177,13 +186,32 @@ class RecDeserializerMethodFactory:
             return self._method
 
 
-@dataclass(frozen=True)
-class DeserializationField:
-    name: str
-    required: bool
-    default: bool
-    default_fallback: bool
+@dataclass(frozen=True)  # type: ignore
+class DeserializationField(ABC):
+    base_field: Field
     method: DeserializationMethod
+    name: str = field(init=False)
+    required: bool = field(init=False)
+    default: bool = field(init=False)
+    default_fallback: bool = field(init=False)
+
+    def __post_init__(self):
+        super().__setattr__("name", self.base_field.name)
+        super().__setattr__("required", is_required(self.base_field))
+        super().__setattr__("default", has_default(self.base_field))
+        super().__setattr__(
+            "default_fallback",
+            DEFAULT_FALLBACK_METADATA in self.base_field.metadata,
+        )
+
+    @abstractmethod
+    def error_handler(
+        self,
+        error: ValidationError,
+        errors: List[str],
+        field_errors: Dict[ErrorKey, ValidationError],
+    ):
+        ...
 
     def deserialize(
         self,
@@ -192,18 +220,35 @@ class DeserializationField:
         values: Dict[str, Any],
         errors: List[str],
         field_errors: Dict[ErrorKey, ValidationError],
-        alias: str = None,
     ):
         try:
             values[self.name] = self.method(ctx, data)  # type: ignore
         except ValidationError as err:
             if self.default and (self.default_fallback or ctx.default_fallback):
                 pass
-            elif alias is not None:
-                field_errors[alias] = err
             else:
-                errors.extend(err.messages)
-                field_errors.update(err.children)
+                self.error_handler(err, errors, field_errors)
+
+
+class NormalField(DeserializationField):
+    def error_handler(
+        self,
+        error: ValidationError,
+        errors: List[str],
+        field_errors: Dict[ErrorKey, ValidationError],
+    ):
+        field_errors[FieldPath(self.base_field)] = error
+
+
+class AggregateField(DeserializationField):
+    def error_handler(
+        self,
+        error: ValidationError,
+        errors: List[str],
+        field_errors: Dict[ErrorKey, ValidationError],
+    ):
+        errors.extend(error.messages)
+        field_errors.update(error.children)
 
 
 def with_validators(
@@ -239,9 +284,10 @@ def get_init_merged_alias(merged_cls: Type) -> Iterable[str]:
 class DeserializationMethodVisitor(
     DeserializationVisitor[DeserializationMethodFactory]
 ):
-    def __init__(self):
+    def __init__(self, aliaser: Aliaser):
         super().__init__()
         self._rec_sentinel: Dict[Any, RecDeserializerMethodFactory] = {}
+        self.aliaser = aliaser
 
     def _visit(self, cls: AnyType) -> DeserializationMethodFactory:
         key = self._resolve_type_vars(cls), id(self.conversions)
@@ -319,13 +365,16 @@ class DeserializationMethodVisitor(
         merged_fields: List[Tuple[AbstractSet[str], DeserializationField]] = []
         pattern_fields: List[Tuple[Pattern, DeserializationField]] = []
         additional_field: Optional[DeserializationField] = None
-        post_init_modified_fields = {
+        post_init_modified = {
             field.name
             for field in chain(fields, init_vars)
             if POST_INIT_METADATA in field.metadata
         }
         defaults: Dict[str, Callable[[], Any]] = {}
-        required_by, _ = get_required_by(cls)
+        required_by = {
+            req.name: {self.aliaser(get_alias(dep)) for dep in deps}
+            for req, deps in get_required_by(cls)[0].items()
+        }
         for field in chain(fields, init_vars):  # noqa F402
             metadata = check_metadata(field)
             if SKIP_METADATA in metadata or not field.init:
@@ -352,15 +401,12 @@ class DeserializationMethodVisitor(
                 field_factory = field_factory.merge(
                     validators=metadata[VALIDATORS_METADATA].validators
                 )
-            field2 = DeserializationField(
-                field.name,
-                is_required(field),
-                has_default(field),
-                DEFAULT_FALLBACK_METADATA in metadata,
-                field_factory.method,
-            )
+            field_class = AggregateField if is_aggregate_field(field) else NormalField
+            field2 = field_class(field, field_factory.method)
             if MERGED_METADATA in metadata:
-                merged_fields.append((set(get_init_merged_alias(field_type)), field2))
+                merged_fields.append(
+                    (set(map(self.aliaser, get_init_merged_alias(field_type))), field2)
+                )
             elif PROPERTIES_METADATA in metadata:
                 pattern = metadata[PROPERTIES_METADATA]
                 if pattern is None:
@@ -370,7 +416,7 @@ class DeserializationMethodVisitor(
                 else:
                     pattern_fields.append((pattern, field2))
             else:
-                normal_fields.append((get_alias(field), field2))
+                normal_fields.append((self.aliaser(get_alias(field)), field2))
 
         @DeserializationMethodFactory.from_type(cls)
         def factory(
@@ -387,7 +433,7 @@ class DeserializationMethodVisitor(
                     if alias in data:
                         aliases.append(alias)
                         field.deserialize(
-                            ctx, data[alias], values, errors, field_errors, alias
+                            ctx, data[alias], values, errors, field_errors
                         )
                     else:
                         if field.name in required_by:
@@ -444,7 +490,7 @@ class DeserializationMethodVisitor(
                     ]
                     if field_errors or errors:
                         error = ValidationError(errors, field_errors)
-                        invalid_fields = field_errors.keys() | post_init_modified_fields
+                        invalid_fields = field_errors.keys() | post_init_modified
                         validators2 = [
                             v
                             for v in validators2
@@ -454,15 +500,19 @@ class DeserializationMethodVisitor(
                             validate(ValidatorMock(cls, values), validators2, **init)
                         except ValidationError as err:
                             error = merge_errors(error, err)
-                        raise error
+                        raise apply_aliaser(error, self.aliaser)
+                elif field_errors or errors:
+                    raise apply_aliaser(
+                        ValidationError(errors, field_errors), self.aliaser
+                    )
                 else:
                     validators2, init = ..., ...  # type: ignore # only for linter
-                    if field_errors or errors:
-                        raise ValidationError(errors, field_errors)
                 try:
                     res = cls(**values)
-                except (ValidationError, AssertionError):
+                except AssertionError:
                     raise
+                except ValidationError as err:
+                    raise apply_aliaser(err, self.aliaser)
                 except TypeError as err:
                     if str(err).startswith("__init__() got"):
                         raise Unsupported(cls)
@@ -470,7 +520,10 @@ class DeserializationMethodVisitor(
                         raise ValidationError([str(err)])
                 except Exception as err:
                     raise ValidationError([str(err)])
-                return validate(res, validators2, **init) if validators else res
+                try:
+                    return validate(res, validators2, **init) if validators else res
+                except ValidationError as err:
+                    raise apply_aliaser(err, self.aliaser)
 
             return method
 
@@ -570,7 +623,9 @@ class DeserializationMethodVisitor(
         types: Mapping[str, AnyType],
         defaults: Mapping[str, Any],
     ) -> DeserializationMethodFactory:
-        items_deserializers = [(key, self.method(tp)) for key, tp in types.items()]
+        items_deserializers = [
+            (key, self.aliaser(key), self.method(tp)) for key, tp in types.items()
+        ]
 
         @DeserializationMethodFactory.from_type(cls)
         def factory(
@@ -581,15 +636,15 @@ class DeserializationMethodVisitor(
                 data = ctx.coercer(dict, data)
                 items: Dict[str, Any] = {}
                 item_errors: Dict[ErrorKey, ValidationError] = {}
-                for key, deserialize_item in items_deserializers:
+                for key, alias, deserialize_item in items_deserializers:
                     if key in data:
                         try:
-                            items[key] = deserialize_item(ctx, data[key])
+                            items[key] = deserialize_item(ctx, data[alias])
                         except ValidationError as err:
                             if key not in defaults or not ctx.default_fallback:
-                                item_errors[key] = err
+                                item_errors[alias] = err
                     elif key not in defaults:
-                        item_errors[key] = ValidationError(["missing property"])
+                        item_errors[alias] = ValidationError(["missing property"])
 
                 if not ctx.additional_properties:
                     for key in sorted(data.keys() - defaults.keys() - items.keys()):
@@ -797,10 +852,14 @@ class DeserializationMethodVisitor(
 
 @cache
 def get_method(
-    cls: AnyType, wrapper: Optional[ConversionsWrapper]
+    cls: AnyType,
+    wrapper: Optional[ConversionsWrapper],
+    aliaser: Aliaser,
 ) -> DeserializationMethod:
     conversions = wrapper.conversions if wrapper is not None else None
-    factory = DeserializationMethodVisitor().visit_with_conversions(cls, conversions)
+    factory = DeserializationMethodVisitor(aliaser).visit_with_conversions(
+        cls, conversions
+    )
     return factory.method
 
 
@@ -810,6 +869,7 @@ def deserialize(
     data: Any,
     *,
     conversions: Conversions = None,
+    aliaser: Aliaser = None,
     additional_properties: bool = None,
     coercion: Coercion = None,
     default_fallback: bool = None,
@@ -823,6 +883,7 @@ def deserialize(
     data: Any,
     *,
     conversions: Conversions = None,
+    aliaser: Aliaser = None,
     additional_properties: bool = None,
     coercion: Coercion = None,
     default_fallback: bool = None,
@@ -835,6 +896,7 @@ def deserialize(
     data: Any,
     *,
     conversions: Conversions = None,
+    aliaser: Aliaser = None,
     additional_properties: bool = None,
     coercion: Coercion = None,
     default_fallback: bool = None,
@@ -845,6 +907,8 @@ def deserialize(
         coercion = settings.coercion
     if default_fallback is None:
         default_fallback = settings.default_fallback
+    if aliaser is None:
+        aliaser = settings.aliaser()
     ctx = DeserializationContext(additional_properties, coercion, default_fallback)
     wrapper = ConversionsWrapper(conversions) if conversions is not None else None
-    return get_method(cls, wrapper)(ctx, data)
+    return get_method(cls, wrapper, aliaser)(ctx, data)

@@ -1,5 +1,5 @@
 from dataclasses import Field
-from typing import Collection, Iterable, Mapping, Optional, Sequence, Tuple, Type
+from typing import Iterable, Optional, Sequence, Tuple, Type
 
 from apischema.conversions.metadata import get_field_conversions
 from apischema.conversions.utils import Conversions
@@ -49,12 +49,8 @@ class SchemaVisitor(ConversionsVisitor[Conv, Return]):
         with self._replace_conversions(conversions):
             return self._visit_field_(field, field_type)
 
-    def _dependent_required_(self, cls: Type) -> Requirements:
+    def _dependent_required(self, cls: Type) -> Requirements:
         raise NotImplementedError()
-
-    def _dependent_required(self, cls: Type) -> Mapping[str, Collection[str]]:
-        dep_req = self._dependent_required_(cls)
-        return {req: sorted(dep_req[req]) for req in sorted(dep_req)}
 
     def union(self, alternatives: Sequence[AnyType]) -> Return:
         return self._union_result(
@@ -92,8 +88,7 @@ class DeserializationSchemaVisitor(
             type_ = next(iter(conversions.deserialization_conversion(field_type)))
             return type_, conversions.deserialization
 
-    @staticmethod
-    def _dependent_required_(cls: Type) -> Requirements:
+    def _dependent_required(self, cls: Type) -> Requirements:
         return get_requiring(cls)[0]
 
 
@@ -124,5 +119,5 @@ class SerializationSchemaVisitor(
             return type_, conversions.serialization
 
     @staticmethod
-    def _dependent_required_(cls: Type) -> Requirements:
+    def _dependent_required(cls: Type) -> Requirements:
         return get_requiring(cls)[1]

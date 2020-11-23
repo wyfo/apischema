@@ -12,6 +12,7 @@ __all__ = [
 from typing import Any, Callable, Optional, Type, TypeVar, overload
 
 from apischema import aliases, coercion as coercion_
+from apischema.aliases import Aliaser
 from apischema.cache import reset_cache
 from apischema.conversions.visitor import (
     Deserialization,
@@ -91,7 +92,6 @@ def serialization(func=None):
         return func
 
 
-Aliaser = Callable[[str], str]
 AliaserFunc = TypeVar("AliaserFunc", bound=Aliaser)
 
 
@@ -119,7 +119,6 @@ def aliaser(func=None, *, camel_case: bool = None):
         return aliases._global_aliaser
     else:
         aliases._global_aliaser = func
-        reset_cache()
     return func
 
 

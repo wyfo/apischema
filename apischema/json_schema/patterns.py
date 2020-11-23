@@ -7,7 +7,7 @@ def infer_pattern(cls: AnyType) -> Pattern:
     from apischema.json_schema.generation.builder import DeserializationSchemaBuilder
 
     try:
-        builder = DeserializationSchemaBuilder(lambda s: s, {}, False)
+        builder = DeserializationSchemaBuilder(lambda s: s, lambda s: s, {}, False)
         prop_schema = builder.visit(cls)
     except RecursionError:
         pass
