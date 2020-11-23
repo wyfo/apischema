@@ -290,7 +290,7 @@ class DeserializationMethodVisitor(
         self.aliaser = aliaser
 
     def _visit(self, cls: AnyType) -> DeserializationMethodFactory:
-        key = self._resolve_type_vars(cls), id(self.conversions)
+        key = self._resolve_type_vars(cls), id(self._conversions)
         if key in self._rec_sentinel:
             return cast(DeserializationMethodFactory, self._rec_sentinel[key])
         else:
