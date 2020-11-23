@@ -15,16 +15,26 @@ from apischema.dataclass_utils import (
     Requirements,
     get_requiring,
 )
+from apischema.metadata.keys import SKIP_METADATA
 from apischema.skip import filter_skipped
 from apischema.types import AnyType
 from apischema.visitor import Return
 
 
 class SchemaVisitor(ConversionsVisitor[Conv, Return]):
-    def _dataclass_fields(
-        self, cls: Type, fields: Sequence[Field], init_vars: Sequence[Field]
+    def _dataclass_fields_(
+        self, fields: Sequence[Field], init_vars: Sequence[Field]
     ) -> Iterable[Field]:
         raise NotImplementedError()
+
+    def _dataclass_fields(
+        self, fields: Sequence[Field], init_vars: Sequence[Field]
+    ) -> Sequence[Field]:
+        return [
+            f
+            for f in self._dataclass_fields_(fields, init_vars)
+            if SKIP_METADATA not in f.metadata
+        ]
 
     def _field_conversions(
         self, field: Field, field_type: AnyType
@@ -46,9 +56,6 @@ class SchemaVisitor(ConversionsVisitor[Conv, Return]):
         dep_req = self._dependent_required_(cls)
         return {req: sorted(dep_req[req]) for req in sorted(dep_req)}
 
-    def _union_result(self, results: Iterable[Return]) -> Return:
-        raise NotImplementedError()
-
     def union(self, alternatives: Sequence[AnyType]) -> Return:
         return self._union_result(
             map(self.visit, filter_skipped(alternatives, schema_only=True))
@@ -59,16 +66,17 @@ class DeserializationSchemaVisitor(
     DeserializationVisitor[Return], SchemaVisitor[Deserialization, Return]
 ):
     def visit_conversion(self, cls: AnyType, conversion: Deserialization) -> Return:
-        results = []
-        for source, (_, conversions) in conversion.items():
-            with self._replace_conversions(conversions):
-                results.append(self.visit(source))
-        return self._union_result(results)
+        return self._union_result(
+            [
+                self.visit_with_conversions(source, conversions)
+                for source, (_, conversions) in conversion.items()
+            ]
+        )
 
     @staticmethod
-    def _dataclass_fields(
-        cls: Type, fields: Sequence[Field], init_vars: Sequence[Field]
-    ) -> Iterable[Field]:
+    def _dataclass_fields_(
+        fields: Sequence[Field], init_vars: Sequence[Field]
+    ) -> Sequence[Field]:
         return (*(f for f in fields if f.init), *init_vars)
 
     @staticmethod
@@ -93,14 +101,13 @@ class SerializationSchemaVisitor(
     SerializationVisitor[Return], SchemaVisitor[Serialization, Return]
 ):
     def visit_conversion(self, cls: AnyType, conversion: Serialization) -> Return:
-        target, (converter, conversions) = conversion
-        with self._replace_conversions(conversions):
-            return self.visit(target)
+        target, (_, conversions) = conversion
+        return self.visit_with_conversions(target, conversions)
 
     @staticmethod
-    def _dataclass_fields(
-        cls: Type, fields: Sequence[Field], init_vars: Sequence[Field]
-    ) -> Iterable[Field]:
+    def _dataclass_fields_(
+        fields: Sequence[Field], init_vars: Sequence[Field]
+    ) -> Sequence[Field]:
         return fields
 
     @staticmethod

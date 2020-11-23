@@ -56,7 +56,7 @@ from apischema.metadata.keys import (
 )
 from apischema.serialization import serialize
 from apischema.types import AnyType
-from apischema.utils import is_hashable
+from apischema.utils import is_hashable, map_values
 
 constraint_by_type = {
     int: NumberConstraints,
@@ -84,12 +84,11 @@ def with_schema(method: Method) -> Method:
 class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
     def __init__(
         self,
-        conversions: Optional[Conversions],
         ref_factory: RefFactory,
         refs: Collection[str],
         ignore_first_ref: bool,
     ):
-        super().__init__(conversions)
+        super().__init__()
         self.ref_factory = ref_factory
         self.refs = refs
         self.ignore_first_ref = ignore_first_ref
@@ -192,7 +191,7 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
         merged_schemas = []
         pattern_properties = {}
         additional_properties: Union[bool, JsonSchema] = settings.additional_properties
-        for field in self._dataclass_fields(cls, fields, init_vars):
+        for field in self._dataclass_fields(fields, init_vars):
             metadata = check_metadata(field)
             field_type = types[field.name]
             if MERGED_METADATA in metadata:
@@ -324,7 +323,7 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
         self._check_constraints(ObjectConstraints)
         return json_schema(
             type=JsonType.OBJECT,
-            properties={key: self.visit(cls) for key, cls in keys.items()},
+            properties=map_values(self.visit, keys),
             required=list(keys) if total else [],
         )
 
@@ -359,8 +358,8 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
 
     def visit_with_schema(self, cls: AnyType, schema: Optional[Schema]) -> JsonSchema:
         schema_save = self.schema
-        self.schema = schema
         if is_hashable(cls) and not self.is_extra_conversions(cls):
+            self.schema = schema
             ref = get_ref(cls)
             if ref in self.refs:
                 if self.ignore_first_ref:
@@ -373,6 +372,8 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
                 # Constraints are merged in case of not conversion
                 cls_schema = replace(cls_schema, constraints=None)
             self._merge_schema(cls_schema)
+        else:
+            self.schema = None
         try:
             return super().visit(cls)
         finally:
@@ -433,7 +434,7 @@ def _export_refs(
         conversions = None
         if isinstance(cls, tuple):
             cls, conversions = cls
-        builder.RefsExtractor(conversions, refs).visit(cls)
+        builder.RefsExtractor(refs).visit_with_conversions(cls, conversions)
     filtr = (lambda count: True) if all_refs else (lambda count: count > 1)
     return {ref: cls for ref, (cls, count) in refs.items() if filtr(count)}
 
@@ -442,8 +443,7 @@ def _refs_schema(
     builder: Type[SchemaBuilder], refs: Mapping[str, AnyType], ref_factory: RefFactory
 ) -> Mapping[str, JsonSchema]:
     return {
-        ref: builder(None, ref_factory, refs, True).visit(cls)
-        for ref, cls in refs.items()
+        ref: builder(ref_factory, refs, True).visit(cls) for ref, cls in refs.items()
     }
 
 
@@ -462,8 +462,9 @@ def _schema(
         all_refs = True
     version, ref_factory, all_refs = _default_version(version, ref_factory, all_refs)
     refs = _export_refs([(cls, conversions)], builder, all_refs)
-    visitor = builder(conversions, ref_factory, refs, False)
-    json_schema = visitor.visit_with_schema(cls, schema)
+    visitor = builder(ref_factory, refs, False)
+    with visitor._replace_conversions(conversions):
+        json_schema = visitor.visit_with_schema(cls, schema)
     if add_defs:
         defs = _refs_schema(builder, refs, ref_factory)
         if defs:

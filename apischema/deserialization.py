@@ -28,10 +28,10 @@ from apischema.conversions.metadata import get_field_conversions
 from apischema.conversions.utils import Conversions, ConversionsWrapper
 from apischema.conversions.visitor import Deserialization, DeserializationVisitor
 from apischema.dataclass_utils import (
+    check_merged_class,
+    dataclass_types_and_fields,
     get_alias,
-    get_all_fields,
     get_default,
-    get_init_merged_alias,
     get_required_by,
     has_default,
     is_required,
@@ -63,6 +63,7 @@ from apischema.types import (
     NoneType,
     OrderedDict,
 )
+from apischema.utils import map_values
 from apischema.validation.errors import ErrorKey, ValidationError, merge_errors
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validator import (
@@ -221,11 +222,25 @@ def with_validators(
     return decorator
 
 
+def get_init_merged_alias(merged_cls: Type) -> Iterable[str]:
+    from apischema.metadata.keys import MERGED_METADATA
+
+    merged_cls = check_merged_class(merged_cls)
+    types, fields, init_vars = dataclass_types_and_fields(merged_cls)  # type: ignore
+    for field in chain(fields, init_vars):  # noqa: F402
+        if not field.init:
+            continue
+        if MERGED_METADATA in field.metadata:
+            yield from get_init_merged_alias(types[field.name])
+        else:
+            yield get_alias(field)
+
+
 class DeserializationMethodVisitor(
     DeserializationVisitor[DeserializationMethodFactory]
 ):
-    def __init__(self, conversions: Optional[Conversions]):
-        super().__init__(conversions)
+    def __init__(self):
+        super().__init__()
         self._rec_sentinel: Dict[Any, RecDeserializerMethodFactory] = {}
 
     def _visit(self, cls: AnyType) -> DeserializationMethodFactory:
@@ -305,9 +320,9 @@ class DeserializationMethodVisitor(
         pattern_fields: List[Tuple[Pattern, DeserializationField]] = []
         additional_field: Optional[DeserializationField] = None
         post_init_modified_fields = {
-            f.name
-            for f in get_all_fields(cls).values()
-            if POST_INIT_METADATA in f.metadata
+            field.name
+            for field in chain(fields, init_vars)
+            if POST_INIT_METADATA in field.metadata
         }
         defaults: Dict[str, Callable[[], Any]] = {}
         required_by, _ = get_required_by(cls)
@@ -322,8 +337,9 @@ class DeserializationMethodVisitor(
             if conversions is None:
                 field_factory = self.visit(field_type)
             elif conversions.deserializer is None:
-                with self._replace_conversions(conversions.deserialization):
-                    field_factory = self.visit(field_type)
+                field_factory = self.visit_with_conversions(
+                    field_type, conversions.deserialization
+                )
             else:
                 field_factory = self.visit_conversion(
                     field_type, conversions.deserialization_conversion(field_type)
@@ -344,7 +360,7 @@ class DeserializationMethodVisitor(
                 field_factory.method,
             )
             if MERGED_METADATA in metadata:
-                merged_fields.append((get_init_merged_alias(field_type), field2))
+                merged_fields.append((set(get_init_merged_alias(field_type)), field2))
             elif PROPERTIES_METADATA in metadata:
                 pattern = metadata[PROPERTIES_METADATA]
                 if pattern is None:
@@ -657,7 +673,7 @@ class DeserializationMethodVisitor(
     def typed_dict(
         self, cls: Type, keys: Mapping[str, AnyType], total: bool
     ) -> DeserializationMethodFactory:
-        items_deserializers = {key: self.method(type_) for key, type_ in keys.items()}
+        items_deserializers = map_values(self.method, keys)
 
         @DeserializationMethodFactory.from_type(cls)
         def factory(
@@ -727,10 +743,10 @@ class DeserializationMethodVisitor(
         self, cls: AnyType, conversion: Deserialization
     ) -> DeserializationMethodFactory:
         assert conversion
-        factories = []
-        for source, (converter, conversions) in conversion.items():
-            with self._replace_conversions(conversions):
-                factories.append((self.visit(source), converter))
+        factories = [
+            (self.visit_with_conversions(source, conversions), converter)
+            for source, (converter, conversions) in conversion.items()
+        ]
 
         @DeserializationMethodFactory.from_type(cls)
         def factory(
@@ -784,7 +800,8 @@ def get_method(
     cls: AnyType, wrapper: Optional[ConversionsWrapper]
 ) -> DeserializationMethod:
     conversions = wrapper.conversions if wrapper is not None else None
-    return DeserializationMethodVisitor(conversions).method(cls)
+    factory = DeserializationMethodVisitor().visit_with_conversions(cls, conversions)
+    return factory.method
 
 
 @overload

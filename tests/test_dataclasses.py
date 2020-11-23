@@ -5,9 +5,9 @@ from dataclasses import (  # type: ignore
     replace as std_replace,
 )
 
-from apischema.dataclass_utils import resolve_dataclass_types
+from apischema.dataclass_utils import dataclass_types_and_fields
 from apischema.dataclasses import replace
-from apischema.fields import fields_set, with_fields_set
+from apischema.fields import fields, fields_set, with_fields_set
 from apischema.metadata.misc import init_var
 
 
@@ -17,7 +17,11 @@ class WithInitVar:
 
 
 def test_resolve_init_var():
-    assert resolve_dataclass_types(WithInitVar) == ({"a": int}, ["a"])
+    assert dataclass_types_and_fields(WithInitVar) == (
+        {"a": int},
+        (),
+        (fields(WithInitVar).a,),
+    )
 
 
 @with_fields_set

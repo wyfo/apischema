@@ -11,7 +11,6 @@ from typing import (  # type: ignore
     Type,
 )
 
-from apischema.conversions.utils import Conversions
 from apischema.json_schema.generation.visitor import SchemaVisitor
 from apischema.json_schema.refs import get_ref, schema_ref
 from apischema.types import AnyType
@@ -30,8 +29,8 @@ class Recursive(Exception):
 
 
 class RefsExtractor(SchemaVisitor):
-    def __init__(self, conversions: Optional[Conversions], refs: Refs):
-        super().__init__(conversions)
+    def __init__(self, refs: Refs):
+        super().__init__()
         self.refs = refs
 
     def _incr_ref(self, ref: Optional[str], cls: AnyType) -> bool:
@@ -72,7 +71,7 @@ class RefsExtractor(SchemaVisitor):
         init_vars: Sequence[Field],
     ):
 
-        for field in self._dataclass_fields(cls, fields, init_vars):
+        for field in self._dataclass_fields(fields, init_vars):
             self._visit_field(field, types[field.name])
 
     def enum(self, cls: Type[Enum]):

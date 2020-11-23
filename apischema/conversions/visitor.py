@@ -23,9 +23,9 @@ Serialization = Tuple[Type, ConverterWithConversions]
 
 
 class ConversionsVisitor(Generic[Conv, Return], Visitor[Return]):
-    def __init__(self, conversions: Optional[Conversions]):
+    def __init__(self):
         super().__init__()
-        self.conversions = conversions
+        self.conversions = None
 
     def _is_conversion(self, cls: Type, arg: Optional[Any]) -> Optional[Conv]:
         raise NotImplementedError()
@@ -71,6 +71,12 @@ class ConversionsVisitor(Generic[Conv, Return], Visitor[Return]):
                 return self.visit_conversion(cls, conversion)
             else:
                 return self.visit_not_conversion(cls)
+
+    def visit_with_conversions(
+        self, cls: AnyType, conversions: Optional[Conversions]
+    ) -> Return:
+        with self._replace_conversions(conversions):
+            return self.visit(cls)
 
 
 def handle_generic_conversion(base: AnyType, other: AnyType) -> AnyType:

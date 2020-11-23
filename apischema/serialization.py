@@ -9,11 +9,11 @@ from apischema.cache import cache
 from apischema.conversions.metadata import get_field_conversions
 from apischema.conversions.utils import Conversions
 from apischema.conversions.visitor import SerializationVisitor
-from apischema.dataclass_utils import get_alias
+from apischema.dataclass_utils import dataclass_types_and_fields, get_alias
 from apischema.fields import FIELDS_SET_ATTR, fields_set
-from apischema.metadata.keys import check_metadata, is_aggregate_field
+from apischema.metadata.keys import SKIP_METADATA, check_metadata, is_aggregate_field
 from apischema.types import COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES
-from apischema.visitor import Unsupported, dataclass_types_and_fields
+from apischema.visitor import Unsupported
 
 PRIMITIVE_TYPES_SET = set(PRIMITIVE_TYPES)
 COLLECTION_TYPE_SET = set(COLLECTION_TYPES)
@@ -46,6 +46,8 @@ def serialization_fields(
     normal_fields = []
     aggregate_fields = []
     for field in fields:
+        if SKIP_METADATA in field.metadata:
+            continue
         check_metadata(field)
         field_type = types[field.name]
         method: Callable

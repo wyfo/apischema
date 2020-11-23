@@ -33,7 +33,9 @@ def _default_ref(cls: AnyType) -> Ref:
         return ...
     else:
         with suppress(TypeError):
-            if issubclass(cls, tuple) and hasattr(cls, "_field"):
+            if (issubclass(cls, tuple) and hasattr(cls, "_field")) or issubclass(
+                cls, Enum
+            ):
                 return ...
         return None
 

@@ -1,10 +1,10 @@
 from contextlib import suppress
 from dataclasses import dataclass, fields
-from typing import Any, Dict, Mapping, Optional, Sequence, TypeVar, Union, overload
+from typing import Any, Dict, Mapping, Optional, Sequence, TypeVar, overload
 
 from apischema.types import AnyType, MetadataMixin, Number
 from apischema.utils import Nil, merge_opts
-from .annotations import Annotations, merge_annotations
+from .annotations import Annotations, Deprecated, merge_annotations
 from .constraints import (
     ArrayConstraints,
     Constraints,
@@ -54,7 +54,7 @@ def schema(
     description: Optional[str] = None,
     default: Any = Nil,
     examples: Optional[Sequence[Any]] = None,
-    deprecated: Union[bool, str] = False,
+    deprecated: Deprecated = False,
     extra: Mapping[str, Any] = None,
     override: bool = False,
 ) -> Schema:
@@ -68,7 +68,7 @@ def schema(
     description: Optional[str] = None,
     default: Any = Nil,
     examples: Optional[Sequence[Any]] = None,
-    deprecated: Union[bool, str] = False,
+    deprecated: Deprecated = False,
     min: Optional[Number] = None,
     max: Optional[Number] = None,
     exc_min: Optional[Number] = None,
@@ -87,7 +87,7 @@ def schema(
     description: Optional[str] = None,
     default: Any = Nil,
     examples: Optional[Sequence[Any]] = None,
-    deprecated: Union[bool, str] = False,
+    deprecated: Deprecated = False,
     format: Optional[str] = None,
     min_len: Optional[int] = None,
     max_len: Optional[int] = None,
@@ -105,10 +105,26 @@ def schema(
     description: Optional[str] = None,
     default: Any = Nil,
     examples: Optional[Sequence[Any]] = None,
-    deprecated: Union[bool, str] = False,
+    deprecated: Deprecated = False,
     min_items: Optional[int] = None,
     max_items: Optional[int] = None,
     unique: Optional[bool] = None,
+    extra: Mapping[str, Any] = None,
+    override: bool = False,
+) -> Schema:
+    ...
+
+
+@overload
+def schema(
+    *,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    default: Any = Nil,
+    examples: Optional[Sequence[Any]] = None,
+    deprecated: Deprecated = False,
+    min_props: Optional[int] = None,
+    max_props: Optional[int] = None,
     extra: Mapping[str, Any] = None,
     override: bool = False,
 ) -> Schema:
@@ -152,9 +168,8 @@ def get_schema(cls: AnyType) -> Optional[Schema]:
 
 @merge_opts
 def merge_schema(default: Schema, override: Schema) -> Schema:
-    # override will be the higher level schema, so schema generation
-    # should not go further and merge not happen
-    assert not override.override
+    if override.override:
+        return override
     return Schema(
         merge_annotations(default.annotations, override.annotations),
         merge_constraints(default.constraints, override.constraints),

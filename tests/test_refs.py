@@ -37,8 +37,8 @@ class Recursive:
 
 def test_find_refs():
     refs = {}
-    DeserializationSchemaBuilder.RefsExtractor(None, refs).visit(D)
-    DeserializationSchemaBuilder.RefsExtractor(None, refs).visit(Recursive)
+    DeserializationSchemaBuilder.RefsExtractor(refs).visit(D)
+    DeserializationSchemaBuilder.RefsExtractor(refs).visit(Recursive)
     assert refs == {
         "B": (B, 1),
         "DD": (D, 1),
