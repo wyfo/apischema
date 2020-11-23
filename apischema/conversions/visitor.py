@@ -65,8 +65,8 @@ class ConversionsVisitor(Generic[Conv, Return], Visitor[Return]):
     def _visit(self, cls: Type) -> Return:
         if not isinstance(cls, type):
             return self.visit_not_conversion(cls)
+        conversion = self.is_conversion(cls)
         with self._replace_conversions(None):
-            conversion = self.is_conversion(cls)
             if conversion is not None:
                 return self.visit_conversion(cls, conversion)
             else:
