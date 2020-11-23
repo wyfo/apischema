@@ -63,6 +63,7 @@ from apischema.types import (
     NoneType,
     OrderedDict,
 )
+from apischema.utils import map_values
 from apischema.validation.errors import ErrorKey, ValidationError, merge_errors
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validator import (
@@ -657,7 +658,7 @@ class DeserializationMethodVisitor(
     def typed_dict(
         self, cls: Type, keys: Mapping[str, AnyType], total: bool
     ) -> DeserializationMethodFactory:
-        items_deserializers = {key: self.method(type_) for key, type_ in keys.items()}
+        items_deserializers = map_values(self.method, keys)
 
         @DeserializationMethodFactory.from_type(cls)
         def factory(

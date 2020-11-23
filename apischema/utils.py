@@ -85,3 +85,7 @@ def merge_opts_mapping(m1: Mapping[K, V], m2: Mapping[K, V]) -> Mapping[K, V]:
 
 def is_type_var(cls: AnyType) -> bool:
     return isinstance(cls, TypeVar)  # type: ignore
+
+
+def map_values(mapper: Callable[[V], T], mapping: Mapping[K, V]) -> Mapping[K, T]:
+    return {k: mapper(v) for k, v in mapping.items()}

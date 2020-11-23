@@ -56,7 +56,7 @@ from apischema.metadata.keys import (
 )
 from apischema.serialization import serialize
 from apischema.types import AnyType
-from apischema.utils import is_hashable
+from apischema.utils import is_hashable, map_values
 
 constraint_by_type = {
     int: NumberConstraints,
@@ -324,7 +324,7 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
         self._check_constraints(ObjectConstraints)
         return json_schema(
             type=JsonType.OBJECT,
-            properties={key: self.visit(cls) for key, cls in keys.items()},
+            properties=map_values(self.visit, keys),
             required=list(keys) if total else [],
         )
 
