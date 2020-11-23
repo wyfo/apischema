@@ -60,12 +60,11 @@ from apischema.skip import filter_skipped
 from apischema.types import (
     AnyType,
     COLLECTION_TYPES,
-    DICT_TYPE,
-    LIST_TYPE,
     MAPPING_TYPES,
     NoneType,
     OrderedDict,
 )
+from apischema.typing import get_origin
 from apischema.utils import map_values
 from apischema.validation.errors import (
     ErrorKey,
@@ -82,6 +81,9 @@ from apischema.validation.validator import (
     validate,
 )
 from apischema.visitor import Unsupported
+
+DICT_TYPE = get_origin(Dict[Any, Any])
+LIST_TYPE = get_origin(List[Any])
 
 T = TypeVar("T")
 
