@@ -1,4 +1,4 @@
-from dataclasses import fields, is_dataclass
+from enum import Enum, auto
 from typing import (
     Any,
     Callable,
@@ -15,7 +15,23 @@ from typing import (
 from apischema.types import AnyType
 
 PREFIX = "_apischema_"
-Nil = object()
+
+
+# Singleton type, see https://www.python.org/dev/peps/pep-0484/#id30
+class UndefinedType(Enum):
+    def __repr__(self):
+        return "Undefined"
+
+    def __str__(self):
+        return "Undefined"
+
+    def __bool__(self):
+        return False
+
+    Undefined = auto()
+
+
+Undefined = UndefinedType.Undefined
 
 
 def is_hashable(obj) -> bool:
@@ -38,12 +54,6 @@ def to_hashable(data: Union[None, int, float, str, bool, list, dict]) -> Hashabl
 def to_camel_case(s: str):
     pascal_case = "".join(map(str.capitalize, s.split("_")))
     return pascal_case[0].lower() + pascal_case[1:]
-
-
-def as_dict(obj) -> Dict[str, Any]:
-    """like dataclasses.asdict but without deepcopy"""
-    assert is_dataclass(obj)
-    return {f.name: getattr(obj, f.name) for f in fields(obj)}
 
 
 _type_hints: Dict[str, Mapping[str, Type]] = {}

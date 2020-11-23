@@ -2,14 +2,10 @@ from dataclasses import dataclass, field
 
 from pytest import raises
 
-from apischema import (
-    NotNull,
-    ValidationError,
-    deserialize,
-    serialize,
-)
+from apischema import ValidationError, deserialize, serialize
 from apischema.dependent_required import DependentRequired
 from apischema.json_schema import deserialization_schema
+from apischema.skip import NotNull
 
 
 @dataclass

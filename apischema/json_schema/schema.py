@@ -3,7 +3,7 @@ from dataclasses import dataclass, fields
 from typing import Any, Dict, Mapping, Optional, Sequence, TypeVar, overload
 
 from apischema.types import AnyType, MetadataMixin, Number
-from apischema.utils import Nil, merge_opts
+from apischema.utils import Undefined, merge_opts
 from .annotations import Annotations, Deprecated, merge_annotations
 from .constraints import (
     ArrayConstraints,
@@ -52,7 +52,7 @@ def schema(
     *,
     title: Optional[str] = None,
     description: Optional[str] = None,
-    default: Any = Nil,
+    default: Any = Undefined,
     examples: Optional[Sequence[Any]] = None,
     deprecated: Deprecated = False,
     extra: Mapping[str, Any] = None,
@@ -66,7 +66,7 @@ def schema(
     *,
     title: Optional[str] = None,
     description: Optional[str] = None,
-    default: Any = Nil,
+    default: Any = Undefined,
     examples: Optional[Sequence[Any]] = None,
     deprecated: Deprecated = False,
     min: Optional[Number] = None,
@@ -85,7 +85,7 @@ def schema(
     *,
     title: Optional[str] = None,
     description: Optional[str] = None,
-    default: Any = Nil,
+    default: Any = Undefined,
     examples: Optional[Sequence[Any]] = None,
     deprecated: Deprecated = False,
     format: Optional[str] = None,
@@ -103,7 +103,7 @@ def schema(
     *,
     title: Optional[str] = None,
     description: Optional[str] = None,
-    default: Any = Nil,
+    default: Any = Undefined,
     examples: Optional[Sequence[Any]] = None,
     deprecated: Deprecated = False,
     min_items: Optional[int] = None,
@@ -120,7 +120,7 @@ def schema(
     *,
     title: Optional[str] = None,
     description: Optional[str] = None,
-    default: Any = Nil,
+    default: Any = Undefined,
     examples: Optional[Sequence[Any]] = None,
     deprecated: Deprecated = False,
     min_props: Optional[int] = None,

@@ -2,8 +2,9 @@ from typing import Annotated, Any, Generic, TypeVar, Union
 
 from pytest import raises
 
-from apischema import Skip, deserialize, deserializer, serialize, serializer
+from apischema import deserialize, deserializer, serialize, serializer
 from apischema.json_schema import deserialization_schema, serialization_schema
+from apischema.skip import Skip
 
 
 class RecoverableRaw(Exception):

@@ -1,43 +1,40 @@
 from dataclasses import dataclass
-from typing import Annotated, Any, Generic, TypeVar, Union
+from typing import Generic, TypeVar, Union
 
 from pytest import raises
 
-from apischema import NotNull, Skip, ValidationError, deserialize, schema, serialize
-from apischema.fields import with_fields_set
+from apischema import (
+    Undefined,
+    UndefinedType,
+    ValidationError,
+    deserialize,
+    schema,
+    serialize,
+)
 from apischema.json_schema import deserialization_schema
-
-
-class NoResult:
-    pass
-
-
-NO_RESULT = NoResult()
-NO_DATA = object()
 
 T = TypeVar("T")
 
 
-@with_fields_set
 @dataclass
 class Error(Exception, Generic[T]):
     code: int
     description: str
-    data: Any = NO_DATA
+    data: Union[T, UndefinedType] = Undefined
 
 
 @schema(min_props=1, max_props=1)
-@with_fields_set
 @dataclass
 class Result(Generic[T]):
-    result: Union[T, Annotated[NoResult, Skip]] = NO_RESULT
-    error: NotNull[Error] = None
+    result: Union[T, UndefinedType] = Undefined
+    error: Union[Error, UndefinedType] = Undefined
 
     def get(self) -> T:
-        if self.error is not None:
+        if self.error is not Undefined:
             raise self.error
-        assert not isinstance(self.result, NoResult)
-        return self.result
+        else:
+            assert self.result is not Undefined
+            return self.result
 
 
 assert deserialization_schema(Result[list[int]]) == {

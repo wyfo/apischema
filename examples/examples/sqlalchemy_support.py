@@ -1,11 +1,10 @@
-from dataclasses import field, make_dataclass
+from dataclasses import fields, make_dataclass
 from inspect import getmembers
 
 from sqlalchemy import Column, Integer
 from sqlalchemy.ext.declarative import as_declarative
 
-from apischema import deserialize, deserializer, serialize, serializer
-from apischema.fields import fields_set, with_fields_set
+from apischema import Undefined, deserialize, deserializer, serialize, serializer
 
 
 # Very basic SQLAlchemy support
@@ -15,15 +14,14 @@ class Base:
         columns = getmembers(cls, lambda m: isinstance(m, Column))
         if not columns:
             return
-        fields = [
-            (col.name or f, col.type.python_type, field(default=None))
-            for f, col in columns
-        ]
-        dataclass = make_dataclass(cls.__name__, fields)
-        with_fields_set(dataclass)
+        dataclass = make_dataclass(
+            cls.__name__,
+            [(col.name or f, col.type.python_type, Undefined) for f, col in columns],
+        )
+        field_names = [f.name for f in fields(dataclass)]
 
         def from_data(data):
-            return cls(**{f: getattr(data, f) for f in fields_set(data)})
+            return cls(**{name: getattr(data, name) for name in field_names})
 
         def to_data(obj):
             return dataclass(**{f: getattr(obj, f) for f, _ in columns})

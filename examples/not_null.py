@@ -2,13 +2,14 @@ from dataclasses import dataclass
 
 from pytest import raises
 
-from apischema import NotNull, ValidationError, deserialize, serialize
+from apischema import ValidationError, deserialize, serialize
+from apischema.skip import NotNull
 
 
 @dataclass
 class Foo:
     # NotNull is exactly like Optional for type checkers,
-    # it's only considered differently by Apischema
+    # it's only interpreted differently by Apischema
     bar: NotNull[int] = None
 
 

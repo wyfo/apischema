@@ -145,15 +145,33 @@ Here with PEP 563 (requires 3.7+)
    
 !!! warning "Warning (minor)"
     Currently, PEP 585 can have surprising behavior when used outside the box, see [bpo-41370](https://bugs.python.org/issue41370)
+    
 
+## `null` vs `undefined`
 
+Contrary to Javascript, Python doesn't have an `undefined` equivalent (if we consider `None` to be `null` equivalent). But it can be useful to distinguish (especially when thinkinn about HTTP `PATCH` method) between a `null` field and an `undefined`/absent field.
+
+That's why *Apischema* provides an `Undefined` constant (a single instance of `UndefinedType` class) which can be used as a default value everywhere where this distinction is needed. In fact, default values are used when field are absent, thus a default `Undefined` will *mark* the field as absent. 
+
+Dataclass/`NamedTuple` fields are ignored by serialization when `Undefined`. 
+
+```python
+{!undefined.py!}
+```
+
+!!! note
+    `UndefinedType` must only be used inside an `Union`, as it has no sense as a standalone type. By the way, no suitable name was found to shorten `Union[T, UndefinedType]` but propositions are welcomed.
+    
+!!! note
+    `Undefined` is a falsy constant, i.e. `bool(Undefined) is False`.
+    
 ## Annotated - PEP 593
 
 [PEP 593](https://www.python.org/dev/peps/pep-0593/) is fully supported; annotations stranger to *Apischema* are simlply ignored.
 
 ### Skip `Union` member
 
-Sometimes, one of the `Union` members has not to be taken in account during validation; it can just be here to match the type of the default value of the field. This member can be marked as to be skipped with [PEP 593](https://www.python.org/dev/peps/pep-0593/) `Annotated`
+Sometimes, one of the `Union` members has not to be taken in account during validation; it can just be here to match the type of the default value of the field. This member can be marked as to be skipped with [PEP 593](https://www.python.org/dev/peps/pep-0593/) `Annotated` and `apischema.skip.Skip`
 
 ```python
 {!skip_union.py!}
@@ -161,19 +179,21 @@ Sometimes, one of the `Union` members has not to be taken in account during vali
 
 !!! note
     `Skip(schema_only=True)` can also be used to skip the member only for [JSON schema generation](json_schema.md)
-
+    
 ### Optional vs. NotNull
 
 `Optional` type is not always appropriate, because it allows deserialized value to be `null`, but sometimes, you just want `None` as a default value for unset fields, not an authorized one.
 
-To solve this issue, *Apischema* defines a `NotNull` type. 
+That's why *Apischema* defines a `NotNull` type; in fact, `NotNull = Union[T, Annotated[None, Skip]]`. 
 
 ```python
 {!not_null.py!}
 ```
 
 !!! note
-    In fact, `NotNull = Union[T, Annotated[None, Skip]]`. 
+    You can also use [`Undefined`](#null-vs-undefined), but it can be more convenient to directly manipulate an `Optional` field, especially in the rest of the code unrelated to (de)serialization.
+
+    [Fields set feature](de_serialization.md#fields-set) can be used to avoid unwanted serialization of a `None` default value of a `NotNull` field. 
     
     
 ## Composed dataclasses merging

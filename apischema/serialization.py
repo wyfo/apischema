@@ -14,6 +14,7 @@ from apischema.dataclass_utils import dataclass_types_and_fields, get_alias
 from apischema.fields import FIELDS_SET_ATTR, fields_set
 from apischema.metadata.keys import SKIP_METADATA, check_metadata, is_aggregate_field
 from apischema.types import COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES
+from apischema.utils import Undefined
 from apischema.visitor import Unsupported
 
 PRIMITIVE_TYPES_SET = set(PRIMITIVE_TYPES)
@@ -123,7 +124,8 @@ def serialize(
                 result.update(field.method(attr, _serialize))  # type: ignore
             for alias, field in fields:
                 attr = getattr(obj, field.name)
-                result[alias] = field.method(attr, _serialize)  # type: ignore
+                if attr is not Undefined:
+                    result[alias] = field.method(attr, _serialize)  # type: ignore
             return result
         if issubclass(cls, Enum):
             return _serialize(obj.value)
@@ -134,7 +136,12 @@ def serialize(
         if isinstance(obj, Collection):
             return [_serialize(elt) for elt in obj]
         if issubclass(cls, tuple) and hasattr(cls, "_fields"):
-            return {aliaser(f): _serialize(getattr(obj, f)) for f in obj._fields}
+            result = {}
+            for field_name in obj._fields:
+                attr = getattr(obj, field_name)
+                if attr is not Undefined:
+                    result[aliaser(field_name)] = attr
+            return result
         raise Unsupported(cls)
 
     return _serialize(obj, conversions=conversions)

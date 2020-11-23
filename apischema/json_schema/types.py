@@ -16,7 +16,7 @@ from typing import (
 )
 
 from apischema.types import NoneType, Number
-from apischema.utils import Nil
+from apischema.utils import Undefined
 
 
 class JsonType(str, Enum):
@@ -71,8 +71,8 @@ def json_schema(
     additionalProperties: Union[bool, JsonSchema] = JsonSchema(),
     allOf: Sequence[JsonSchema] = [],
     anyOf: Sequence[JsonSchema] = [],
-    const: Any = Nil,
-    default: Any = Nil,
+    const: Any = Undefined,
+    default: Any = Undefined,
     dependentRequired: Mapping[str, Collection[str]] = {},
     deprecated: bool = False,
     description: str = None,
