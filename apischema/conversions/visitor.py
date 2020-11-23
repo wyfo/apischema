@@ -25,16 +25,16 @@ Serialization = Tuple[Type, ConverterWithConversions]
 class ConversionsVisitor(Generic[Conv, Return], Visitor[Return]):
     def __init__(self):
         super().__init__()
-        self.conversions = None
+        self._conversions = None
 
     def _is_conversion(self, cls: Type, arg: Optional[Any]) -> Optional[Conv]:
         raise NotImplementedError()
 
     def is_conversion(self, cls: Type) -> Optional[Conv]:
         arg = None
-        if self.conversions is not None:
+        if self._conversions is not None:
             try:
-                arg = self.conversions[cls]
+                arg = self._conversions[cls]
             except KeyError:
                 pass
         return self._is_conversion(cls, arg)
@@ -42,8 +42,8 @@ class ConversionsVisitor(Generic[Conv, Return], Visitor[Return]):
     def is_extra_conversions(self, cls: AnyType) -> bool:
         return (
             isinstance(cls, type)
-            and self.conversions is not None
-            and cls in self.conversions
+            and self._conversions is not None
+            and cls in self._conversions
             and self.is_conversion(cls) is not None
         )
 
@@ -55,12 +55,12 @@ class ConversionsVisitor(Generic[Conv, Return], Visitor[Return]):
 
     @contextmanager
     def _replace_conversions(self, conversions: Optional[Conversions]):
-        conversions_save = self.conversions
-        self.conversions = conversions
+        conversions_save = self._conversions
+        self._conversions = conversions
         try:
             yield
         finally:
-            self.conversions = conversions_save
+            self._conversions = conversions_save
 
     def _visit(self, cls: Type) -> Return:
         if not isinstance(cls, type):

@@ -57,16 +57,6 @@ MAPPING_TYPES = {
     MappingProxyType: MappingProxyType,
 }
 
-if sys.version_info >= (3, 7):  # pragma: no cover
-    LIST_TYPE = list
-    TUPLE_TYPE = tuple
-    DICT_TYPE = dict
-
-else:  # pragma: no cover
-    LIST_TYPE = List
-    TUPLE_TYPE = Tuple
-    DICT_TYPE = Dict
-
 
 if (3, 7) <= sys.version_info < (3, 9):  # pragma: no cover
 

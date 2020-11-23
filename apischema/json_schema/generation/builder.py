@@ -72,12 +72,12 @@ Method = TypeVar("Method", bound=Callable[..., JsonSchema])
 def with_schema(method: Method) -> Method:
     @wraps(method)
     def wrapper(self: "SchemaBuilder", *args, **kwargs):
-        if self.schema is None:
+        if self._schema is None:
             return method(self, *args, **kwargs)
-        elif self.schema.override:
-            return JsonSchema(**self.schema.as_dict())
+        elif self._schema.override:
+            return JsonSchema(**self._schema.as_dict())
         else:
-            return JsonSchema(method(self, *args, **kwargs), **self.schema.as_dict())
+            return JsonSchema(method(self, *args, **kwargs), **self._schema.as_dict())
 
     return cast(Method, wrapper)
 
@@ -95,18 +95,18 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
         self.refs = refs
         self.ignore_first_ref = ignore_first_ref
         self.aliaser = aliaser
-        self.schema: Optional[Schema] = None
+        self._schema: Optional[Schema] = None
 
     def _check_constraints(self, expected: Type[Constraints]):
-        if self.schema is not None and self.schema.constraints is not None:
-            if not isinstance(self.schema.constraints, expected):
+        if self._schema is not None and self._schema.constraints is not None:
+            if not isinstance(self._schema.constraints, expected):
                 raise TypeError(
                     f"Bad constraints: expected {expected.__name__}"
-                    f" found {type(self.schema.constraints).__name__}"
+                    f" found {type(self._schema.constraints).__name__}"
                 )
 
     def _merge_schema(self, schema: Optional[Schema]):
-        self.schema = merge_schema(schema, self.schema)
+        self._schema = merge_schema(schema, self._schema)
 
     @with_schema
     def _ref_schema(self, ref: str) -> JsonSchema:
@@ -127,7 +127,7 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
                     raise ValueError("Annotated schema_ref can only be str")
             if isinstance(annotation, Schema):
                 self._merge_schema(annotation)
-        return self.visit_with_schema(cls, self.schema)
+        return self.visit_with_schema(cls, self._schema)
 
     @with_schema
     def any(self) -> JsonSchema:
@@ -301,7 +301,7 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
         )
 
     def new_type(self, cls: Type, super_type: AnyType) -> JsonSchema:
-        return self.visit_with_schema(super_type, self.schema)
+        return self.visit_with_schema(super_type, self._schema)
 
     @with_schema
     def primitive(self, cls: Type) -> JsonSchema:
@@ -315,11 +315,11 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
     @with_schema
     def tuple(self, types: Sequence[AnyType]) -> JsonSchema:
         self._check_constraints(ArrayConstraints)
-        if self.schema is not None and self.schema.constraints is not None:
-            assert isinstance(self.schema.constraints, ArrayConstraints)
+        if self._schema is not None and self._schema.constraints is not None:
+            assert isinstance(self._schema.constraints, ArrayConstraints)
             if (
-                self.schema.constraints.max_items is not None
-                or self.schema.constraints.min_items is not None
+                self._schema.constraints.max_items is not None
+                or self._schema.constraints.min_items is not None
             ):
                 raise TypeError("Tuple cannot have min_items/max_items constraints")
         return json_schema(
@@ -370,9 +370,9 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
             return json_schema(anyOf=results)
 
     def visit_with_schema(self, cls: AnyType, schema: Optional[Schema]) -> JsonSchema:
-        schema_save = self.schema
+        schema_save = self._schema
         if is_hashable(cls) and not self.is_extra_conversions(cls):
-            self.schema = schema
+            self._schema = schema
             ref = get_ref(cls)
             if ref in self.refs:
                 if self.ignore_first_ref:
@@ -386,14 +386,14 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
                 cls_schema = replace(cls_schema, constraints=None)
             self._merge_schema(cls_schema)
         else:
-            self.schema = None
+            self._schema = None
         try:
             return super().visit(cls)
         finally:
-            self.schema = schema_save
+            self._schema = schema_save
 
     def visit_not_conversion(self, cls: AnyType) -> JsonSchema:
-        if self.schema is None or not self.schema.override:
+        if self._schema is None or not self._schema.override:
             self._merge_schema(get_schema(cls))
         return super().visit_not_conversion(cls)
 

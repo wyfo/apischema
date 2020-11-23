@@ -13,7 +13,7 @@ from typing import (
 )
 
 from apischema.type_vars import get_parameters, resolve_type_vars
-from apischema.types import AnyType, DICT_TYPE, LIST_TYPE
+from apischema.types import AnyType
 from apischema.typing import get_args, get_origin, get_type_hints
 from apischema.utils import is_type_var, type_name
 from apischema.visitor import Unsupported, Visitor
@@ -82,9 +82,6 @@ def handle_generic_conversions(
 
 
 class ConvertibleVisitor(Visitor[bool]):
-    collection_types = (LIST_TYPE,)
-    mapping_types = (DICT_TYPE,)
-
     def annotated(self, cls: AnyType, annotations: Sequence[Any]) -> bool:
         return False
 

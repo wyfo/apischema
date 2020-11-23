@@ -24,7 +24,6 @@ from apischema.types import (
     MAPPING_TYPES,
     OrderedDict,
     PRIMITIVE_TYPES,
-    TUPLE_TYPE,
 )
 from apischema.typing import (
     _LiteralMeta,
@@ -39,6 +38,8 @@ try:
     from apischema.typing import Annotated, Literal
 except ImportError:
     Annotated, Literal = ..., ...  # type: ignore
+
+TUPLE_TYPE = get_origin(Tuple[Any])
 
 
 @lru_cache()
