@@ -2,5 +2,7 @@ dataclasses==0.7;python_version<'3.7'
 pydantic
 pytest
 pytest-cov
+pytest-asyncio
 sqlalchemy
 typing_extensions
+graphql-core
