@@ -1,10 +1,12 @@
-from dataclasses import fields, make_dataclass
+from dataclasses import make_dataclass
 from inspect import getmembers
 
 from sqlalchemy import Column, Integer
 from sqlalchemy.ext.declarative import as_declarative
 
-from apischema import Undefined, deserialize, deserializer, serialize, serializer
+from apischema import Undefined, deserialize, serialize
+from apischema.conversions.dataclass_model import dataclass_model
+from apischema.json_schema import serialization_schema
 
 
 # Very basic SQLAlchemy support
@@ -14,20 +16,12 @@ class Base:
         columns = getmembers(cls, lambda m: isinstance(m, Column))
         if not columns:
             return
-        dataclass = make_dataclass(
-            cls.__name__,
-            [(col.name or f, col.type.python_type, Undefined) for f, col in columns],
-        )
-        field_names = [f.name for f in fields(dataclass)]
 
-        def from_data(data):
-            return cls(**{name: getattr(data, name) for name in field_names})
-
-        def to_data(obj):
-            return dataclass(**{f: getattr(obj, f) for f, _ in columns})
-
-        deserializer(from_data, dataclass, cls)
-        serializer(to_data, cls, dataclass)
+        fields = [
+            (column.name or field_name, column.type.python_type, Undefined)
+            for field_name, column in columns
+        ]
+        dataclass_model(cls)(make_dataclass(cls.__name__, fields))
 
 
 class A(Base):
@@ -39,3 +33,9 @@ a = deserialize(A, {"key": 0})
 assert isinstance(a, A)
 assert a.key == 0
 assert serialize(a) == {"key": 0}
+assert serialization_schema(A) == {
+    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "type": "object",
+    "properties": {"key": {"type": "integer"}},
+    "additionalProperties": False,
+}

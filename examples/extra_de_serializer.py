@@ -32,7 +32,7 @@ class Foo:
     def sum(self) -> int:
         return self.bar + self.baz
 
-    # You can use NewType to disambiguate conversion to int
+    # You can use NewType to disambiguate conversions to int
     # Actually, it could work using something like Diff = Annotated[int, "diff"]
     @extra_serializer
     def diff(self) -> Diff:

@@ -141,11 +141,27 @@ By the way, it's also possible to use *extra* conversions and select them the fo
 {!generic_extra_conversions.py!}
 ```
 
-## That's not all
 
-Also not (yet) presented in this section : *raw deserializers*, *dataclass serializers* and *global default (de)serialization*.
+## Dataclass model - automatic conversion from/to dataclass
 
-## FAQ
+Conversions are a powerful tool, which allows to support every type you need. If it is particularly well suited for scalar types (`datetime.datetime`, `bson.ObjectId`, etc.), it may seem a little bit complex for object types. In fact, the conversion would often be a simple mapping of fields between the type and a dataclass.
 
-#### Why conversions parameter is a mapping and not just a tuple? Are there any cases where it can be several conversions at the same time?
-Tuples (and unions in case of deserialization)
+That's why *Apischema* provides a shortcut for this case: `apischema.dataclass_model`; it allows to specify a dataclass which will be used as a typed model for a given class : each field of the dataclass will be mapped on the attributes of the class instances.
+
+Dataclass can also be declared dynamically with `dataclasses.make_dataclasses`. That's especially useful when it comes to add support for libraries like ORM. The following example show how to add a [basic support for 
+*SQLAlchemy*](examples/sqlalchemy.md):
+
+```python
+{!examples/sqlalchemy_support.py!}
+```
+
+There are two differences with regular conversions :
+
+- The dataclass model computation can be deferred until it's needed. This is because some libraries do some resolutions after class definition (for example SQLAchemy resolves dynamic string references in relationships). So you can replace the following line in the example
+
+```python
+# dataclass_model(cls)(make_dataclass(cls.__name__, fields))
+dataclass_model(cls)(lambda: make_dataclass(cls.__name__, fields))
+```
+
+- [Serialized methods/properties](de_serialization.md#serialized-methodsproperties) of the class are automatically added to the dataclass model (but you can also declare serialized methods in the dataclass model).

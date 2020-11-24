@@ -8,6 +8,7 @@ from apischema.conversions.converters import (
     _extra_serializers,
     _serializers,
 )
+from apischema.conversions.dataclass_model import DataclassModelWrapper, get_model
 from apischema.conversions.utils import (
     Conversions,
     ConverterWithConversions,
@@ -64,6 +65,8 @@ class ConversionsVisitor(Generic[Conv, Return], Visitor[Return]):
 
     def _visit(self, cls: Type) -> Return:
         if not isinstance(cls, type):
+            if isinstance(cls, DataclassModelWrapper):
+                cls = get_model(cls.cls, cls.model)
             return self.visit_not_conversion(cls)
         conversion = self.is_conversion(cls)
         with self._replace_conversions(None):

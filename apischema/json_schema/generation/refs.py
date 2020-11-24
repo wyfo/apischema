@@ -70,7 +70,6 @@ class RefsExtractor(SchemaVisitor):
         fields: Sequence[Field],
         init_vars: Sequence[Field],
     ):
-
         for field in self._dataclass_fields(fields, init_vars):
             self._visit_field(field, types[field.name])
 

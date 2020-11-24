@@ -5,6 +5,7 @@ __all__ = [
     "deserializer",
     "extra_deserializer",
     "extra_serializer",
+    "identity",
     "inherited_deserializer",
     "raw_deserializer",
     "reset_deserializers",
@@ -22,7 +23,5 @@ from .converters import (
     serializer,
 )
 from .raw import raw_deserializer
-from .utils import Conversions
+from .utils import Conversions, identity
 from .visitor import Deserialization, Serialization
-
-identity = lambda x: x  # noqa: E731

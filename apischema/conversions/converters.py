@@ -166,7 +166,7 @@ def _serializer(
     check_convertible(param)
     if param == ret:
         if conversions:
-            raise ValueError("Self-conversion cannot have conversions parameter")
+            raise ValueError("Self-conversions cannot have conversions parameter")
         if not extra:
             _serializers.pop(param, ...)
     else:
