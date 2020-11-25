@@ -1,5 +1,5 @@
 from dataclasses import Field
-from typing import Iterable, Optional, Sequence, Tuple, Type
+from typing import Iterable, Mapping, Optional, Sequence, Tuple, Type
 
 from apischema.conversions.metadata import get_field_conversions
 from apischema.conversions.utils import Conversions
@@ -16,6 +16,7 @@ from apischema.dataclass_utils import (
     get_requiring,
 )
 from apischema.metadata.keys import SKIP_METADATA
+from apischema.resolvers import Resolver, get_resolvers
 from apischema.skip import filter_skipped
 from apischema.types import AnyType
 from apischema.visitor import Return
@@ -50,6 +51,9 @@ class SchemaVisitor(ConversionsVisitor[Conv, Return]):
             return self._visit_field_(field, field_type)
 
     def _dependent_required(self, cls: Type) -> Requirements:
+        raise NotImplementedError()
+
+    def _resolvers(self, cls: Type) -> Mapping[str, Resolver]:
         raise NotImplementedError()
 
     def union(self, alternatives: Sequence[AnyType]) -> Return:
@@ -91,6 +95,9 @@ class DeserializationSchemaVisitor(
     def _dependent_required(self, cls: Type) -> Requirements:
         return get_requiring(cls)[0]
 
+    def _resolvers(self, cls: Type) -> Mapping[str, Resolver]:
+        return {}
+
 
 class SerializationSchemaVisitor(
     SerializationVisitor[Return], SchemaVisitor[Serialization, Return]
@@ -121,3 +128,6 @@ class SerializationSchemaVisitor(
     @staticmethod
     def _dependent_required(cls: Type) -> Requirements:
         return get_requiring(cls)[1]
+
+    def _resolvers(self, cls: Type) -> Mapping[str, Resolver]:
+        return get_resolvers(cls)

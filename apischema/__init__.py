@@ -18,6 +18,7 @@ __all__ = [
     "schema_ref",
     "serialization",
     "serialize",
+    "serialized",
     "serializer",
     "settings",
     "skip",
@@ -45,7 +46,7 @@ from .deserialization import deserialize
 from .json_schema.refs import schema_ref
 from .json_schema.schema import schema
 from .metadata import properties
-from .serialization import serialize
+from .serialization import serialize, serialized
 from .utils import Undefined, UndefinedType
 from .validation import (
     ValidationError,

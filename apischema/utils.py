@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from functools import wraps
 from typing import (
     Any,
     Callable,
@@ -10,6 +11,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    cast,
 )
 
 from apischema.types import AnyType
@@ -99,3 +101,10 @@ def is_type_var(cls: AnyType) -> bool:
 
 def map_values(mapper: Callable[[V], T], mapping: Mapping[K, V]) -> Mapping[K, T]:
     return {k: mapper(v) for k, v in mapping.items()}
+
+
+Func = TypeVar("Func", bound=Callable)
+
+
+def typed_wraps(wrapped: Func) -> Callable[[Callable], Func]:
+    return cast(Func, wraps(wrapped))
