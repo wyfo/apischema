@@ -1,7 +1,8 @@
-__all__ = ["serialize"]
+__all__ = ["add_serialized", "serialize", "serialized"]
 
 from dataclasses import dataclass, is_dataclass
 from enum import Enum
+from inspect import Parameter
 from typing import Any, Callable, Collection, Mapping, Optional, Sequence, Tuple, Type
 
 from apischema import settings
@@ -13,28 +14,40 @@ from apischema.conversions.visitor import SerializationVisitor
 from apischema.dataclass_utils import dataclass_types_and_fields, get_alias
 from apischema.fields import FIELDS_SET_ATTR, fields_set
 from apischema.metadata.keys import SKIP_METADATA, check_metadata, is_aggregate_field
+from apischema.resolvers import (
+    Resolver,
+    ResolverDescriptor,
+    add_resolver,
+    get_resolvers,
+    resolver,
+)
 from apischema.types import COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES
-from apischema.utils import Undefined
+from apischema.utils import Undefined, typed_wraps
 from apischema.visitor import Unsupported
 
 PRIMITIVE_TYPES_SET = set(PRIMITIVE_TYPES)
 COLLECTION_TYPE_SET = set(COLLECTION_TYPES)
 MAPPING_TYPE_SET = set(MAPPING_TYPES)
 
+SerializationMethod = Callable[[Any, Callable], Any]
+
 
 @dataclass
 class SerializationField:
     name: str
-    method: Callable[[Any, Callable], Any]
+    method: SerializationMethod
 
 
 @cache
 def serialization_fields(
     cls: Type, aliaser: Aliaser
-) -> Tuple[Sequence[Tuple[str, SerializationField]], Sequence[SerializationField]]:
+) -> Tuple[
+    Sequence[Tuple[str, SerializationField]],
+    Sequence[SerializationField],
+    Sequence[Tuple[str, SerializationMethod]],
+]:
     types, fields, _ = dataclass_types_and_fields(cls)  # type: ignore
-    normal_fields = []
-    aggregate_fields = []
+    normal_fields, aggregate_fields, serialized_fields = [], [], []
     for field in fields:
         if SKIP_METADATA in field.metadata:
             continue
@@ -44,18 +57,23 @@ def serialization_fields(
         conversions = get_field_conversions(field, field_type)
         if conversions is not None:
             if conversions.serializer is None:
-                sub_conversions = conversions.serialization
 
-                def method(obj: Any, _serialize: Callable) -> Any:
-                    return _serialize(obj, conversions=sub_conversions)
+                def method(
+                    obj: Any,
+                    _serialize: Callable,
+                    conversions=conversions.serialization,  # type: ignore
+                ) -> Any:
+                    return _serialize(obj, conversions=conversions)
 
             else:
                 _, (converter, sub_conversions) = conversions.serialization_conversion(
                     field_type
                 )
 
-                def method(obj: Any, _serialize: Callable) -> Any:
-                    return _serialize(converter(obj), conversions=sub_conversions)
+                def method(
+                    obj: Any, _serialize: Callable, conversions=sub_conversions
+                ) -> Any:
+                    return _serialize(converter(obj), conversions=conversions)
 
         elif field_type in PRIMITIVE_TYPES_SET:
             method = lambda obj, _: obj  # noqa: E731
@@ -66,7 +84,20 @@ def serialization_fields(
             aggregate_fields.append(field2)
         else:
             normal_fields.append((aliaser(get_alias(field)), field2))
-    return normal_fields, aggregate_fields
+    # TODO handle dataclass model feature
+    for name, resolver in get_serialized_resolvers(cls).items():  # noqa: F402
+
+        def method(
+            obj: Any,
+            _serialize: Callable,
+            func=resolver.func,
+            conversions=resolver.conversions,
+        ) -> Any:
+            return _serialize(func(obj), conversions=conversions)
+
+        serialized_fields.append((aliaser(name), method))
+
+    return normal_fields, aggregate_fields, serialized_fields
 
 
 def serialize(
@@ -110,7 +141,9 @@ def serialize(
             # TODO Maybe add exclude_unset parameter to serializers
             return _serialize(converter(obj), conversions=sub_conversions)
         if is_dataclass(cls):
-            fields, aggregate_fields = serialization_fields(cls, aliaser)
+            fields, aggregate_fields, serialized_fields = serialization_fields(
+                cls, aliaser
+            )
             if exclude_unset and hasattr(obj, FIELDS_SET_ATTR):
                 fields_set_ = fields_set(obj)
                 fields = [(a, f) for (a, f) in fields if f.name in fields_set_]
@@ -126,6 +159,10 @@ def serialize(
                 attr = getattr(obj, field.name)
                 if attr is not Undefined:
                     result[alias] = field.method(attr, _serialize)  # type: ignore
+            for alias, method in serialized_fields:
+                res = method(obj, _serialize)
+                if res is not Undefined:
+                    result[alias] = res
             return result
         if issubclass(cls, Enum):
             return _serialize(obj.value)
@@ -145,3 +182,52 @@ def serialize(
         raise Unsupported(cls)
 
     return _serialize(obj, conversions=conversions)
+
+
+def has_parameter_without_default(resolver: Resolver) -> bool:
+    return any(arg.default is Parameter.empty for arg in resolver.arguments)
+
+
+def check_serialized(cls: Type, name: str):
+    if has_parameter_without_default(get_resolvers(cls)[name]):
+        raise TypeError("serialized method cannot have parameter without default")
+
+
+class SerializedDescriptor:
+    def __init__(self, resolver_desc: ResolverDescriptor):
+        self.resolver_desc = resolver_desc
+
+    def __set_name__(self, owner, name):
+        self.resolver_desc.__set_name__(owner, name)
+        check_serialized(owner, self.resolver_desc.name or name)
+
+
+def _serialized(*args, **kwargs):
+    result = resolver(*args, **kwargs)
+    if isinstance(result, ResolverDescriptor):
+        return SerializedDescriptor(result)
+    else:
+        return lambda method: SerializedDescriptor(result(method))
+
+
+serialized = typed_wraps(resolver)(_serialized)
+
+
+def _add_serialized(cls, name=None, **kwargs):
+    def decorator(func):
+        result = add_resolver(cls, name=name, **kwargs)(func)
+        check_serialized(cls, name or func.__name__)
+        return result
+
+    return decorator
+
+
+add_serialized = typed_wraps(add_resolver)(_add_serialized)
+
+
+def get_serialized_resolvers(cls: Type) -> Mapping[str, Resolver]:
+    return {
+        name: res
+        for name, res in get_resolvers(cls).items()
+        if not has_parameter_without_default(res)
+    }

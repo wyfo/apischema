@@ -55,7 +55,8 @@ from apischema.metadata.keys import (
     SCHEMA_METADATA,
     check_metadata,
 )
-from apischema.serialization import serialize
+from apischema.resolvers import Resolver
+from apischema.serialization import get_serialized_resolvers, serialize
 from apischema.types import AnyType
 from apischema.utils import is_hashable, map_values
 
@@ -218,6 +219,12 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
                 )
                 if is_required(field):
                     required.append(alias)
+        for name, resolver in self._resolvers(cls).items():
+            with self._replace_conversions(resolver.conversions):
+                properties[self.aliaser(name)] = json_schema(
+                    readOnly=True,
+                    **self.visit_with_schema(resolver.return_type, resolver.schema),
+                )
         dep_req = self._dependent_required(cls)
         result = json_schema(
             type=JsonType.OBJECT,
@@ -420,6 +427,9 @@ class DeserializationSchemaBuilder(DeserializationSchemaVisitor, SchemaBuilder):
 class SerializationSchemaBuilder(SerializationSchemaVisitor, SchemaBuilder):
     class RefsExtractor(SerializationSchemaVisitor, RefsExtractor):  # type: ignore
         pass
+
+    def _resolvers(self, cls: Type) -> Mapping[str, Resolver]:
+        return get_serialized_resolvers(cls)
 
 
 TypesWithConversions = Collection[Union[AnyType, Tuple[AnyType, Conversions]]]

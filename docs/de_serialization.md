@@ -137,6 +137,21 @@ There is no validation, objects provided are trusted — they are supposed to be
 {!serialization.py!}
 ```
 
+    
+### Serialized methods/properties
+
+*Apischema* can execute methods/properties during serialization and add the computed values with the other fields values; just put `apischema.serialized` decorator on top of methods/properties you want to be serialized.
+
+```python
+{!serialized.py!}
+```
+
+
+!!! note
+    The serialized methods must not have parameters without default, as *Apischema* need to execute them without arguments
+
+
+
 ### Exclude unset fields
 
 When a class has a lot of optional fields, it can be convenient to not include all of them, to avoid a bunch of useless fields in your serialized data.
@@ -154,7 +169,6 @@ Sometimes, some fields must be serialized, even with their default value; this b
 ```python
 {!default_as_set.py!}
 ```
-
 
 !!! note
     This metadata has effect only in combination with `with_fields_set` decorator.
