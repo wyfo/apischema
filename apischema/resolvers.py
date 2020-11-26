@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import ChainMap, defaultdict
 from dataclasses import dataclass
 from functools import wraps
 from inspect import Parameter, signature
@@ -73,7 +73,12 @@ _resolvers: Dict[Type, Dict[str, Resolver]] = defaultdict(dict)
 
 
 def get_resolvers(cls: Type) -> Mapping[str, Resolver]:
-    return {**_resolvers[cls], **_resolvers[get_model_origin(cls)]}
+    all_resolvers = (
+        _resolvers[sub_cls]
+        for cls2 in (cls, get_model_origin(cls))
+        for sub_cls in reversed(cls2.__mro__)
+    )
+    return ChainMap(*all_resolvers)
 
 
 class ResolverDescriptor:
