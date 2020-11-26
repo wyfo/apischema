@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import Field, dataclass, field, replace
+from dataclasses import Field, dataclass, field, is_dataclass, replace
 from enum import Enum
 from functools import wraps
 from itertools import chain
@@ -25,9 +25,8 @@ from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.coercion import Coercion, get_coercer
-from apischema.conversions import identity
 from apischema.conversions.metadata import get_field_conversions
-from apischema.conversions.utils import Conversions, ConversionsWrapper
+from apischema.conversions.utils import Conversions, ConversionsWrapper, identity
 from apischema.conversions.visitor import Deserialization, DeserializationVisitor
 from apischema.dataclass_utils import (
     check_merged_class,
@@ -363,6 +362,7 @@ class DeserializationMethodVisitor(
         fields: Sequence[Field],
         init_vars: Sequence[Field],
     ) -> DeserializationMethodFactory:
+        assert is_dataclass(cls)
         normal_fields: List[Tuple[str, DeserializationField]] = []
         merged_fields: List[Tuple[AbstractSet[str], DeserializationField]] = []
         pattern_fields: List[Tuple[Pattern, DeserializationField]] = []

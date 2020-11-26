@@ -8,6 +8,7 @@ from typing import Any, Callable, Collection, Mapping, Optional, Sequence, Tuple
 from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.cache import cache
+from apischema.conversions.dataclass_model import DataclassModelWrapper, get_model
 from apischema.conversions.metadata import get_field_conversions
 from apischema.conversions.utils import Conversions
 from apischema.conversions.visitor import SerializationVisitor
@@ -137,9 +138,12 @@ def serialize(
                 pass
         conversion = is_conversion(cls, target)
         if conversion is not None:
-            _, (converter, sub_conversions) = conversion
-            # TODO Maybe add exclude_unset parameter to serializers
-            return _serialize(converter(obj), conversions=sub_conversions)
+            target, (converter, sub_conversions) = conversion
+            if isinstance(target, DataclassModelWrapper):
+                cls = get_model(target.cls, target.model)
+            else:
+                # TODO Maybe add exclude_unset parameter to serializers
+                return _serialize(converter(obj), conversions=sub_conversions)
         if is_dataclass(cls):
             fields, aggregate_fields, serialized_fields = serialization_fields(
                 cls, aliaser

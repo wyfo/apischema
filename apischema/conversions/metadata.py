@@ -55,7 +55,7 @@ Cls = TypeVar("Cls", bound=Type)
 
 
 @dataclass
-class ConversionsMetadata(MetadataMixin):
+class FieldConversions(MetadataMixin):
     deserialization: Optional[Conversions] = None
     serialization: Optional[Conversions] = None
     deserializer: Optional[Converter] = None
@@ -78,7 +78,7 @@ class ConversionsMetadata(MetadataMixin):
             if field.metadata.get(MERGED_METADATA):
                 continue
             if CONVERSIONS_METADATA in field.metadata:
-                conversions: ConversionsMetadata = field.metadata[CONVERSIONS_METADATA]
+                conversions: FieldConversions = field.metadata[CONVERSIONS_METADATA]
                 if any((self.deserialization, conversions.deserialization)):
                     conversions.deserialization = ChainMap(
                         conversions.deserialization or {}, self.deserialization or {}
@@ -88,7 +88,7 @@ class ConversionsMetadata(MetadataMixin):
                         conversions.serialization or {}, self.serialization or {}
                     )
             else:
-                conversions = ConversionsMetadata(
+                conversions = FieldConversions(
                     deserialization=self.deserialization,
                     serialization=self.serialization,
                 )
@@ -117,8 +117,8 @@ class ConversionsMetadata(MetadataMixin):
 
 
 @dataclass
-class ConversionsMetadataFactory(MetadataMixin):
-    factory: Callable[[AnyType], ConversionsMetadata]
+class FieldConversionsModel(MetadataMixin):
+    model: AnyType
 
     def __post_init__(self):
         from apischema.metadata.keys import CONVERSIONS_METADATA
@@ -139,7 +139,7 @@ def conversions(
     deserializer: Converter = None,
     serializer: Converter = None,
     raw_deserializer: Callable = None,
-) -> ConversionsMetadata:
+) -> FieldConversions:
     ...
 
 
@@ -153,26 +153,27 @@ def conversions(
     raw_deserializer: Callable = None,
 ) -> Metadata:
     if model is not None:
-        return ConversionsMetadataFactory(
-            lambda cls: ConversionsMetadata({cls: model}, {cls: model})
-        )
+        return FieldConversionsModel(model)
     else:
         if raw_deserializer is not None:
             deserializer = to_raw_deserializer(raw_deserializer)
-        return ConversionsMetadata(
+        return FieldConversions(
             deserialization, serialization, deserializer, serializer
         )
 
 
 def get_field_conversions(
     field: Field, field_type: AnyType
-) -> Optional[ConversionsMetadata]:
+) -> Optional[FieldConversions]:
     from apischema.metadata.keys import CONVERSIONS_METADATA
 
     if CONVERSIONS_METADATA not in field.metadata:
         return None
     else:
         conversions = field.metadata[CONVERSIONS_METADATA]
-        if isinstance(conversions, ConversionsMetadataFactory):
-            conversions = conversions.factory(field_type)  # type: ignore
-        return conversions
+        if isinstance(conversions, FieldConversionsModel):
+            return FieldConversions(
+                {field_type: conversions.model}, {field_type: conversions.model}
+            )
+        else:
+            return conversions

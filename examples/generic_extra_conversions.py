@@ -18,7 +18,7 @@ def to_bar(foo: Foo[T]) -> T:
 
 
 assert serialize(Foo(0)) == {"bar": 0}
-# {Foo: ([T], T)} means a conversion Foo[T] -> T
+# {Foo: ([T], T)} means a conversions Foo[T] -> T
 assert serialize(Foo(0), conversions={Foo: ([T], T)}) == 0
 # Conversion is not tied to a specific TypeVar
 U = TypeVar("U")

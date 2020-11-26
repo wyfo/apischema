@@ -17,6 +17,7 @@ from typing import (
 )
 
 from apischema.conversions import Conversions
+from apischema.conversions.dataclass_model import get_model_origin
 from apischema.json_schema.schema import Schema
 from apischema.types import AnyType
 from apischema.typing import get_origin, get_type_hints
@@ -72,7 +73,7 @@ _resolvers: Dict[Type, Dict[str, Resolver]] = defaultdict(dict)
 
 
 def get_resolvers(cls: Type) -> Mapping[str, Resolver]:
-    return _resolvers[cls]
+    return {**_resolvers[cls], **_resolvers[get_model_origin(cls)]}
 
 
 class ResolverDescriptor:

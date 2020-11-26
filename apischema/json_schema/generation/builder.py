@@ -389,7 +389,7 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
                     return self._ref_schema(ref)
             cls_schema = get_schema(cls)
             if cls_schema is not None and not cls_schema.override:
-                # Constraints are merged in case of not conversion
+                # Constraints are merged in case of not conversions
                 cls_schema = replace(cls_schema, constraints=None)
             self._merge_schema(cls_schema)
         else:

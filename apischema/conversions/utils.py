@@ -132,3 +132,6 @@ class ConversionsWrapper:
 
     def __hash__(self):
         return id(self.conversions)
+
+
+identity = lambda x: x  # noqa: E731
