@@ -15,6 +15,7 @@ from typing import (
 )
 
 from apischema.types import AnyType
+from apischema.typing import get_origin
 
 PREFIX = "_apischema_"
 
@@ -108,3 +109,8 @@ Func = TypeVar("Func", bound=Callable)
 
 def typed_wraps(wrapped: Func) -> Callable[[Callable], Func]:
     return cast(Func, wraps(wrapped))
+
+
+def get_origin_or_class(cls: AnyType) -> Type:
+    origin = get_origin(cls)
+    return origin if origin is not None else cls

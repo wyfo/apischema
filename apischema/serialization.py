@@ -3,7 +3,16 @@ __all__ = ["add_serialized", "serialize", "serialized"]
 from dataclasses import dataclass, is_dataclass
 from enum import Enum
 from inspect import Parameter
-from typing import Any, Callable, Collection, Mapping, Optional, Sequence, Tuple, Type
+from typing import (
+    Any,
+    Callable,
+    Collection,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+)
 
 from apischema import settings
 from apischema.aliases import Aliaser
@@ -188,13 +197,17 @@ def serialize(
     return _serialize(obj, conversions=conversions)
 
 
-def has_parameter_without_default(resolver: Resolver) -> bool:
-    return any(arg.default is Parameter.empty for arg in resolver.arguments)
+def can_be_serialized(resolver: Resolver) -> bool:
+    return (
+        all(arg.default is not Parameter.empty for arg in resolver.parameters)
+        and not resolver.is_async
+    )
 
 
 def check_serialized(cls: Type, name: str):
-    if has_parameter_without_default(get_resolvers(cls)[name]):
-        raise TypeError("serialized method cannot have parameter without default")
+    resolver = get_resolvers(cls)[name]
+    if can_be_serialized(resolver):
+        raise TypeError(f"{resolver.func} cannot be serialized")
 
 
 class SerializedDescriptor:
@@ -231,7 +244,5 @@ add_serialized = typed_wraps(add_resolver)(_add_serialized)
 
 def get_serialized_resolvers(cls: Type) -> Mapping[str, Resolver]:
     return {
-        name: res
-        for name, res in get_resolvers(cls).items()
-        if not has_parameter_without_default(res)
+        name: res for name, res in get_resolvers(cls).items() if can_be_serialized(res)
     }

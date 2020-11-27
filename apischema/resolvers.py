@@ -1,14 +1,16 @@
 from collections import ChainMap, defaultdict
 from dataclasses import dataclass
 from functools import wraps
-from inspect import Parameter, signature
+from inspect import Parameter, iscoroutinefunction, signature
 from typing import (
     Any,
+    Awaitable,
     Callable,
     Collection,
     Dict,
     Mapping,
     Optional,
+    Sequence,
     Tuple,
     Type,
     TypeVar,
@@ -20,13 +22,14 @@ from apischema.conversions import Conversions
 from apischema.conversions.dataclass_model import get_model_origin
 from apischema.json_schema.schema import Schema
 from apischema.types import AnyType
-from apischema.typing import get_origin, get_type_hints
+from apischema.typing import get_type_hints
+from apischema.utils import get_origin_or_class
 
 Description = Union[str, "ellipsis", None]  # noqa: F821
 
 
 @dataclass
-class ResolverArgument:
+class ResolverParameter:
     name: str
     type: AnyType
     default: Any
@@ -35,15 +38,21 @@ class ResolverArgument:
 @dataclass(frozen=True)
 class Resolver:
     func: Callable
-    conversions: Optional[Conversions]
     return_type: AnyType
-    arguments: Collection[ResolverArgument]
-    schema: Optional[Schema]
+    parameters: Collection[ResolverParameter]
+    conversions: Optional[Conversions] = None
+    schema: Optional[Schema] = None
+
+    @property
+    def is_async(self) -> bool:
+        return iscoroutinefunction(self.func) or issubclass(
+            get_origin_or_class(self.return_type), Awaitable
+        )
 
 
 def resolver_types(
     resolver: Callable, cls: Type
-) -> Tuple[bool, AnyType, Collection[ResolverArgument]]:
+) -> Tuple[bool, AnyType, Sequence[ResolverParameter]]:
     types = get_type_hints(resolver, include_extras=True)
     if "return" not in types:
         raise TypeError("Resolver must be typed")
@@ -59,11 +68,10 @@ def resolver_types(
             if param.name not in types:
                 raise TypeError("Resolver must be typed")
             arguments.append(
-                ResolverArgument(param.name, types[param.name], param.default)
+                ResolverParameter(param.name, types[param.name], param.default)
             )
     if not instance_method and arguments:
-        first_arg_type = arguments[0].type
-        if (get_origin(first_arg_type) or first_arg_type) == cls:
+        if (get_origin_or_class(arguments[0].type)) == cls:
             instance_method = True
             arguments = arguments[1:]
     return instance_method, types["return"], arguments
@@ -101,19 +109,25 @@ class ResolverDescriptor:
             def method(self):
                 return getattr(self, name)
 
+        elif iscoroutinefunction(self.func):
+
+            @wraps(self.func.__get__(None, owner))
+            async def method(self, *args, **kwargs):
+                return await getattr(self, name)(*args, **kwargs)
+
         else:
 
             @wraps(self.func.__get__(None, owner))
             def method(self, *args, **kwargs):
                 return getattr(self, name)(*args, **kwargs)
 
-        _, return_type, arguments = resolver_types(method, owner)
+        _, return_type, parameters = resolver_types(method, owner)
 
         _resolvers[owner][self.name or name] = Resolver(
             method,
-            self.conversions,
             return_type,
-            arguments,
+            parameters,
+            self.conversions,
             self.schema,
         )
         setattr(owner, name, self.func)
@@ -164,13 +178,13 @@ def add_resolver(
     schema: Schema = None,
 ) -> Callable[[Func], Func]:
     def decorator(func: Func) -> Func:
-        instance_method, return_type, arguments = resolver_types(func, cls)
+        instance_method, return_type, parameters = resolver_types(func, cls)
         if instance_method:
             method: Callable = func
         else:
             method = lambda __, *args, **kwargs: func(*args, **kwargs)  # noqa: E731
         _resolvers[cls][name or func.__name__] = Resolver(
-            method, conversions, return_type, arguments, schema
+            method, return_type, parameters, conversions, schema
         )
         return func
 
