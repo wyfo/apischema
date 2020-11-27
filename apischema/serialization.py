@@ -2,7 +2,7 @@ __all__ = ["add_serialized", "serialize", "serialized"]
 
 from dataclasses import dataclass, is_dataclass
 from enum import Enum
-from inspect import Parameter
+from inspect import Parameter, iscoroutinefunction
 from typing import (
     Any,
     Callable,
@@ -100,7 +100,7 @@ def serialization_fields(
         def method(
             obj: Any,
             _serialize: Callable,
-            func=resolver.func,
+            func=resolver.wrapper,
             conversions=resolver.conversions,
         ) -> Any:
             return _serialize(func(obj), conversions=conversions)
@@ -197,17 +197,24 @@ def serialize(
     return _serialize(obj, conversions=conversions)
 
 
+def has_parameter_without_default(resolver) -> bool:
+    return any(arg.default is Parameter.empty for arg in resolver.parameters)
+
+
 def can_be_serialized(resolver: Resolver) -> bool:
-    return (
-        all(arg.default is not Parameter.empty for arg in resolver.parameters)
-        and not resolver.is_async
-    )
+    return not has_parameter_without_default(resolver) and not resolver.is_async
 
 
 def check_serialized(cls: Type, name: str):
     resolver = get_resolvers(cls)[name]
-    if can_be_serialized(resolver):
-        raise TypeError(f"{resolver.func} cannot be serialized")
+    if has_parameter_without_default(resolver):
+        raise TypeError(f"{resolver.func} cannot have parameter without default")
+    try:
+        if resolver.is_async:
+            raise TypeError(f"async {resolver.func} cannot be serialized")
+    except Exception:  # get_type_hints can fail
+        if iscoroutinefunction(resolver.func):
+            raise TypeError(f"coroutine {resolver.func} cannot be serialized")
 
 
 class SerializedDescriptor:
