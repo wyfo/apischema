@@ -359,8 +359,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#composed-dataclasses-merging" class="md-nav__link">
-    Composed dataclasses merging
+  <a href="#composition-over-inheritance-composed-dataclasses-merging" class="md-nav__link">
+    Composition over inheritance - composed dataclasses merging
   </a>
   
 </li>
@@ -803,8 +803,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#composed-dataclasses-merging" class="md-nav__link">
-    Composed dataclasses merging
+  <a href="#composition-over-inheritance-composed-dataclasses-merging" class="md-nav__link">
+    Composition over inheritance - composed dataclasses merging
   </a>
   
 </li>
@@ -1194,7 +1194,7 @@ Here with string annotations:</p>
 </code></pre></div>
 
 
-<h2 id="composed-dataclasses-merging">Composed dataclasses merging<a class="headerlink" href="#composed-dataclasses-merging" title="Permanent link">&para;</a></h2>
+<h2 id="composition-over-inheritance-composed-dataclasses-merging">Composition over inheritance - composed dataclasses merging<a class="headerlink" href="#composition-over-inheritance-composed-dataclasses-merging" title="Permanent link">&para;</a></h2>
 <p>Dataclass fields which are themselves dataclass can be "merged" into the owning one by using <code>merged</code> metadata. Then, when the class will be (de)serialized, "merged" fields will be (de)serialized at the same level than the owning class.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
