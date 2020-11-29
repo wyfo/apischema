@@ -258,21 +258,87 @@
       
       
 
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      GraphQL
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="GraphQL" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        GraphQL
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../graphql/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../graphql/data_model_and_resolvers/" title="Data model and resolvers" class="md-nav__link">
+      Data model and resolvers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../graphql/schema/" title="Schema" class="md-nav__link">
+      Schema
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
   
 
 
   <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8" checked>
     
-    <label class="md-nav__link" for="nav-7">
+    <label class="md-nav__link" for="nav-8">
       Examples
       <span class="md-nav__icon md-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
       </span>
     </label>
     <nav class="md-nav" aria-label="Examples" data-md-level="1">
-      <label class="md-nav__title" for="nav-7">
+      <label class="md-nav__title" for="nav-8">
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
         </span>
@@ -320,8 +386,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
-      Pydantic compatibility
+    <a href="../pydantic_compatibility/" title="*Pydantic* compatibility" class="md-nav__link">
+      *Pydantic* compatibility
     </a>
   </li>
 
@@ -334,6 +400,18 @@
   <li class="md-nav__item">
     <a href="../attrs_compatibility/" title="Attrs compatibility" class="md-nav__link">
       Attrs compatibility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../subclasses_union/" title="Class as union of its subclasses" class="md-nav__link">
+      Class as union of its subclasses
     </a>
   </li>
 
@@ -415,14 +493,15 @@
                 
                 
                 <h1 id="sqlalchemy-quick-support">SQLAlchemy quick support<a class="headerlink" href="#sqlalchemy-quick-support" title="Permanent link">&para;</a></h1>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">field</span><span class="p">,</span> <span class="n">make_dataclass</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">make_dataclass</span>
 <span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">getmembers</span>
 
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">as_declarative</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
-<span class="kn">from</span> <span class="nn">apischema.fields</span> <span class="kn">import</span> <span class="n">fields_set</span><span class="p">,</span> <span class="n">with_fields_set</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions.dataclass_model</span> <span class="kn">import</span> <span class="n">dataclass_model</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">serialization_schema</span>
 
 
 <span class="c1"># Very basic SQLAlchemy support</span>
@@ -432,21 +511,12 @@
         <span class="n">columns</span> <span class="o">=</span> <span class="n">getmembers</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">Column</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">columns</span><span class="p">:</span>
             <span class="k">return</span>
+
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="n">f</span><span class="p">,</span> <span class="n">col</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">python_type</span><span class="p">,</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span>
+            <span class="p">(</span><span class="n">column</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">column</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">python_type</span><span class="p">,</span> <span class="n">Undefined</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span>
         <span class="p">]</span>
-        <span class="n">dataclass</span> <span class="o">=</span> <span class="n">make_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
-        <span class="n">with_fields_set</span><span class="p">(</span><span class="n">dataclass</span><span class="p">)</span>
-
-        <span class="k">def</span> <span class="nf">from_data</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields_set</span><span class="p">(</span><span class="n">data</span><span class="p">)})</span>
-
-        <span class="k">def</span> <span class="nf">to_data</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">dataclass</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">})</span>
-
-        <span class="n">deserializer</span><span class="p">(</span><span class="n">from_data</span><span class="p">,</span> <span class="n">dataclass</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span>
-        <span class="n">serializer</span><span class="p">(</span><span class="n">to_data</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">dataclass</span><span class="p">)</span>
+        <span class="n">dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">)(</span><span class="n">make_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">fields</span><span class="p">))</span>
 
 
 <span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
@@ -458,6 +528,12 @@
 <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">a</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="mi">0</span>
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
+    <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">}</span>
 </code></pre></div>
                 
               
@@ -492,13 +568,13 @@
           </a>
         
         
-          <a href="../pydantic_compatibility/" title="Pydantic compatibility" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../pydantic_compatibility/" title="*Pydantic* compatibility" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Pydantic compatibility
+                *Pydantic* compatibility
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

@@ -318,6 +318,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#null-vs-undefined" class="md-nav__link">
+    null vs undefined
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#annotated-pep-593" class="md-nav__link">
     Annotated - PEP 593
   </a>
@@ -341,6 +348,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#skip-dataclass-field" class="md-nav__link">
+    Skip dataclass field
+  </a>
   
 </li>
       
@@ -457,13 +471,79 @@
       <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
     
     <label class="md-nav__link" for="nav-7">
+      GraphQL
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="GraphQL" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        GraphQL
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../graphql/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../graphql/data_model_and_resolvers/" title="Data model and resolvers" class="md-nav__link">
+      Data model and resolvers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../graphql/schema/" title="Schema" class="md-nav__link">
+      Schema
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
       Examples
       <span class="md-nav__icon md-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
       </span>
     </label>
     <nav class="md-nav" aria-label="Examples" data-md-level="1">
-      <label class="md-nav__title" for="nav-7">
+      <label class="md-nav__title" for="nav-8">
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
         </span>
@@ -502,8 +582,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
-      Pydantic compatibility
+    <a href="../examples/pydantic_compatibility/" title="*Pydantic* compatibility" class="md-nav__link">
+      *Pydantic* compatibility
     </a>
   </li>
 
@@ -516,6 +596,18 @@
   <li class="md-nav__item">
     <a href="../examples/attrs_compatibility/" title="Attrs compatibility" class="md-nav__link">
       Attrs compatibility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/subclasses_union/" title="Class as union of its subclasses" class="md-nav__link">
+      Class as union of its subclasses
     </a>
   </li>
 
@@ -670,6 +762,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#null-vs-undefined" class="md-nav__link">
+    null vs undefined
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#annotated-pep-593" class="md-nav__link">
     Annotated - PEP 593
   </a>
@@ -693,6 +792,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#skip-dataclass-field" class="md-nav__link">
+    Skip dataclass field
+  </a>
   
 </li>
       
@@ -965,16 +1071,55 @@ Here with string annotations:</p>
 <p class="admonition-title">Warning (minor)</p>
 <p>Currently, PEP 585 can have surprising behavior when used outside the box, see <a href="https://bugs.python.org/issue41370">bpo-41370</a></p>
 </div>
+<h2 id="null-vs-undefined"><code>null</code> vs <code>undefined</code><a class="headerlink" href="#null-vs-undefined" title="Permanent link">&para;</a></h2>
+<p>Contrary to Javascript, Python doesn't have an <code>undefined</code> equivalent (if we consider <code>None</code> to be <code>null</code> equivalent). But it can be useful to distinguish (especially when thinkinn about HTTP <code>PATCH</code> method) between a <code>null</code> field and an <code>undefined</code>/absent field.</p>
+<p>That's why <em>Apischema</em> provides an <code>Undefined</code> constant (a single instance of <code>UndefinedType</code> class) which can be used as a default value everywhere where this distinction is needed. In fact, default values are used when field are absent, thus a default <code>Undefined</code> will <em>mark</em> the field as absent. </p>
+<p>Dataclass/<code>NamedTuple</code> fields are ignored by serialization when <code>Undefined</code>. </p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">]</span> <span class="o">=</span> <span class="n">Undefined</span>
+    <span class="n">baz</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">Undefined</span>
+
+
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="n">Undefined</span><span class="p">,</span> <span class="n">Undefined</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="n">Undefined</span><span class="p">,</span> <span class="mi">42</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">}</span>
+<span class="c1"># Foo.bar and Foo.baz are not required</span>
+<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]}},</span>
+    <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>UndefinedType</code> must only be used inside an <code>Union</code>, as it has no sense as a standalone type. By the way, no suitable name was found to shorten <code>Union[T, UndefinedType]</code> but propositions are welcomed.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>Undefined</code> is a falsy constant, i.e. <code>bool(Undefined) is False</code>.</p>
+</div>
 <h2 id="annotated-pep-593">Annotated - PEP 593<a class="headerlink" href="#annotated-pep-593" title="Permanent link">&para;</a></h2>
 <p><a href="https://www.python.org/dev/peps/pep-0593/">PEP 593</a> is fully supported; annotations stranger to <em>Apischema</em> are simlply ignored.</p>
 <h3 id="skip-union-member">Skip <code>Union</code> member<a class="headerlink" href="#skip-union-member" title="Permanent link">&para;</a></h3>
-<p>Sometimes, one of the <code>Union</code> members has not to be taken in account during validation; it can just be here to match the type of the default value of the field. This member can be marked as to be skipped with <a href="https://www.python.org/dev/peps/pep-0593/">PEP 593</a> <code>Annotated</code></p>
+<p>Sometimes, one of the <code>Union</code> members has not to be taken in account during validation; it can just be here to match the type of the default value of the field. This member can be marked as to be skipped with <a href="https://www.python.org/dev/peps/pep-0593/">PEP 593</a> <code>Annotated</code> and <code>apischema.skip.Skip</code></p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Skip</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.skip</span> <span class="kn">import</span> <span class="n">Skip</span>
 
 
 <span class="nd">@dataclass</span>
@@ -996,18 +1141,19 @@ Here with string annotations:</p>
 </div>
 <h3 id="optional-vs-notnull">Optional vs. NotNull<a class="headerlink" href="#optional-vs-notnull" title="Permanent link">&para;</a></h3>
 <p><code>Optional</code> type is not always appropriate, because it allows deserialized value to be <code>null</code>, but sometimes, you just want <code>None</code> as a default value for unset fields, not an authorized one.</p>
-<p>To solve this issue, <em>Apischema</em> defines a <code>NotNull</code> type. </p>
+<p>That's why <em>Apischema</em> defines a <code>NotNull</code> type; in fact, <code>NotNull = Union[T, Annotated[None, Skip]]</code>. </p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">NotNull</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.skip</span> <span class="kn">import</span> <span class="n">NotNull</span>
 
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
     <span class="c1"># NotNull is exactly like Optional for type checkers,</span>
-    <span class="c1"># it&#39;s only considered differently by Apischema</span>
+    <span class="c1"># it&#39;s only interpreted differently by Apischema</span>
     <span class="n">bar</span><span class="p">:</span> <span class="n">NotNull</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
 
@@ -1021,33 +1167,60 @@ Here with string annotations:</p>
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>In fact, <code>NotNull = Union[T, Annotated[None, Skip]]</code>. </p>
+<p>You can also use <a href="#null-vs-undefined"><code>Undefined</code></a>, but it can be more convenient to directly manipulate an <code>Optional</code> field, especially in the rest of the code unrelated to (de)serialization.</p>
+<p><a href="../de_serialization/#fields-set">Fields set feature</a> can be used to avoid unwanted serialization of a <code>None</code> default value of a <code>NotNull</code> field. </p>
 </div>
-<h2 id="composed-dataclasses-merging">Composed dataclasses merging<a class="headerlink" href="#composed-dataclasses-merging" title="Permanent link">&para;</a></h2>
-<p>Dataclass fields which are themselves dataclass can be "merged" into the owning one by using <code>merged</code> metadata.</p>
+<h2 id="skip-dataclass-field">Skip dataclass field<a class="headerlink" href="#skip-dataclass-field" title="Permanent link">&para;</a></h2>
+<p>Dataclass fields can be excluded from <em>Apischema</em> processing by using <code>apischema.metadata.skip</code> in the field metadata</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">alias</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">skip</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">baz</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;baz&quot;</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">skip</span><span class="p">)</span>
+
+
+<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
+    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">}</span>   
+</code></pre></div>
+
+
+<h2 id="composed-dataclasses-merging">Composed dataclasses merging<a class="headerlink" href="#composed-dataclasses-merging" title="Permanent link">&para;</a></h2>
+<p>Dataclass fields which are themselves dataclass can be "merged" into the owning one by using <code>merged</code> metadata. Then, when the class will be (de)serialized, "merged" fields will be (de)serialized at the same level than the owning class.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">,</span> <span class="n">alias</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">apischema.fields</span> <span class="kn">import</span> <span class="n">with_fields_set</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 <span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">merged</span>
 
 
-<span class="nd">@with_fields_set</span>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">JsonSchema</span><span class="p">:</span>
-    <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="nb">format</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">title</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">]</span> <span class="o">=</span> <span class="n">Undefined</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">]</span> <span class="o">=</span> <span class="n">Undefined</span>
+    <span class="nb">format</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">]</span> <span class="o">=</span> <span class="n">Undefined</span>
     <span class="o">...</span>
 
 
 <span class="nd">@with_fields_set</span>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">RootJsonSchema</span><span class="p">:</span>
-    <span class="n">schema</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;$schema&quot;</span><span class="p">))</span>
+    <span class="n">schema</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">Undefined</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;$schema&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">defs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">JsonSchema</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;$defs&quot;</span><span class="p">))</span>
+    <span class="c1"># This field schema is merged inside the owning one</span>
     <span class="n">json_schema</span><span class="p">:</span> <span class="n">JsonSchema</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">JsonSchema</span><span class="p">(),</span> <span class="n">metadata</span><span class="o">=</span><span class="n">merged</span><span class="p">)</span>
 
 
@@ -1067,23 +1240,26 @@ Here with string annotations:</p>
         <span class="s2">&quot;JsonSchema&quot;</span><span class="p">:</span> <span class="p">{</span>
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
             <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]},</span>
-                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]},</span>
-                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]},</span>
+                <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
+                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
+                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
             <span class="p">},</span>
             <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="p">},</span>
     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+    <span class="c1"># It results in allOf + unevaluatedProperties=False</span>
     <span class="s2">&quot;allOf&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="c1"># RootJsonSchema (without JsonSchema)</span>
         <span class="p">{</span>
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
             <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]},</span>
+                <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
                 <span class="s2">&quot;$defs&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span> <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/JsonSchema&quot;</span><span class="p">}},</span>
             <span class="p">},</span>
             <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">},</span>
+        <span class="c1"># JonsSchema</span>
         <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/JsonSchema&quot;</span><span class="p">},</span>
     <span class="p">],</span>
     <span class="s2">&quot;unevaluatedProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
@@ -1093,8 +1269,9 @@ Here with string annotations:</p>
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This feature use JSON schema draft 2019-09 <a href="https://json-schema.org/draft/2019-09/json-schema-core.html#unevaluatedProperties"><code>unevaluatedProperties</code> keyword</a>.</p>
+<p>This feature use JSON schema draft 2019-09 <a href="https://json-schema.org/draft/2019-09/json-schema-core.html#unevaluatedProperties"><code>unevaluatedProperties</code> keyword</a>. However, this keyword is removed when JSON schema is converted in a version that doesn't support it, like OpenAPI 3.0.</p>
 </div>
+<p>This feature is very convenient for building model by composing smaller components. If some kind of reuse could also be achieved with inheritance, it can be less practical when it comes to use it in code, because there is no easy way to build an inherited class when you have an instance of the super class ; you have to copy all the fields by hand. On the other hand, using composition (of merged fields), it's easy to instantiate the class when the smaller component is just a field of it.</p>
 <h2 id="custom-types-orm">Custom types / ORM<a class="headerlink" href="#custom-types-orm" title="Permanent link">&para;</a></h2>
 <p>See <a href="../conversions/">conversion</a> in order to support every possible types in a few lines of code.</p>
 <h2 id="unsupported-types">Unsupported types<a class="headerlink" href="#unsupported-types" title="Permanent link">&para;</a></h2>

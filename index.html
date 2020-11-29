@@ -251,6 +251,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#graphql" class="md-nav__link">
+    GraphQL
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#faq" class="md-nav__link">
     FAQ
   </a>
@@ -361,13 +368,79 @@
       <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
     
     <label class="md-nav__link" for="nav-7">
+      GraphQL
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="GraphQL" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        </span>
+        GraphQL
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="graphql/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="graphql/data_model_and_resolvers/" title="Data model and resolvers" class="md-nav__link">
+      Data model and resolvers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="graphql/schema/" title="Schema" class="md-nav__link">
+      Schema
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
       Examples
       <span class="md-nav__icon md-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.42z"/></svg>
       </span>
     </label>
     <nav class="md-nav" aria-label="Examples" data-md-level="1">
-      <label class="md-nav__title" for="nav-7">
+      <label class="md-nav__title" for="nav-8">
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
         </span>
@@ -406,8 +479,8 @@
 
 
   <li class="md-nav__item">
-    <a href="examples/pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
-      Pydantic compatibility
+    <a href="examples/pydantic_compatibility/" title="*Pydantic* compatibility" class="md-nav__link">
+      *Pydantic* compatibility
     </a>
   </li>
 
@@ -420,6 +493,18 @@
   <li class="md-nav__item">
     <a href="examples/attrs_compatibility/" title="Attrs compatibility" class="md-nav__link">
       Attrs compatibility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="examples/subclasses_union/" title="Class as union of its subclasses" class="md-nav__link">
+      Class as union of its subclasses
     </a>
   </li>
 
@@ -519,6 +604,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#graphql" class="md-nav__link">
+    GraphQL
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#faq" class="md-nav__link">
     FAQ
   </a>
@@ -575,7 +667,7 @@
                 <h1 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h1>
 <h2 id="apischema">Apischema<a class="headerlink" href="#apischema" title="Permanent link">&para;</a></h2>
 <p>Makes your life easier when it comes to python API.</p>
-<p>JSON (de)serialization + schema generation through python typing, with a spoonful of sugar.</p>
+<p>JSON (de)serialization + <em>GraphQL</em> and JSON schema generation through python typing, with a spoonful of sugar.</p>
 <h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
 <div class="codehilite"><pre><span></span><code>pip install apischema
 </code></pre></div>
@@ -588,7 +680,8 @@
 <ul>
 <li>stay as close as possible to the standard library (dataclasses, typing, etc.) to be as accessible as possible — as a consequence do not need plugins for editor/linter/etc.;</li>
 <li>be additive and tunable, be able to work with user own types (ORM, etc.) as well as foreign libraries ones; do not need a PR for handling new types like <code>bson.ObjectId</code>, avoid subclassing;</li>
-<li>avoid dynamic things like using string for attribute name.</li>
+<li>avoid dynamic things like using string for attribute name;</li>
+<li>support <em>GraphQL</em>.</li>
 </ul>
 <p>No known alternative achieves that.</p>
 <div class="admonition note">
@@ -596,12 +689,14 @@
 <p>Actually, <em>Apischema</em> is even adaptable enough to enable support of competitor libraries in a few dozens of line of code (see <a href="conversions/">conversions section</a>)  </p>
 </div>
 <h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Collection</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">uuid4</span>
 
+<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">graphql_schema</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 
 
@@ -639,6 +734,27 @@
     <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">],</span>
     <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">}</span>
+
+
+<span class="c1"># Define GraphQL operations</span>
+<span class="k">def</span> <span class="nf">resources</span><span class="p">(</span><span class="n">tags</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Collection</span><span class="p">[</span><span class="n">Resource</span><span class="p">]:</span>
+    <span class="o">...</span>
+
+
+<span class="c1"># Generate GraphQL schema</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">resources</span><span class="p">],</span> <span class="n">id_types</span><span class="o">=</span><span class="p">{</span><span class="n">UUID</span><span class="p">})</span>
+<span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">type Query {</span>
+<span class="s2">  resources(tags: [String!]): [Resource!]</span>
+<span class="s2">}</span>
+
+<span class="s2">type Resource {</span>
+<span class="s2">  id: ID!</span>
+<span class="s2">  name: String!</span>
+<span class="s2">  tags: [String!]!</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 
 
@@ -647,6 +763,8 @@
 <p class="admonition-title">Note</p>
 <p>This example and further ones are using pytest stuff because they are in fact run as tests in the library CI</p>
 </div>
+<h2 id="graphql"><em>GraphQL</em><a class="headerlink" href="#graphql" title="Permanent link">&para;</a></h2>
+<p><em>GraphQL</em> integration is detailed <a href="graphql/overview/">further in the documentation</a>.</p>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
 <h4 id="i-already-have-my-data-model-with-my-sqlalchemyorm-tables-will-i-have-to-duplicate-my-code-making-one-dataclass-by-table">I already have my data model with my <em>SQLAlchemy</em>/ORM tables, will I have to duplicate my code, making one dataclass by table?<a class="headerlink" href="#i-already-have-my-data-model-with-my-sqlalchemyorm-tables-will-i-have-to-duplicate-my-code-making-one-dataclass-by-table" title="Permanent link">&para;</a></h4>
 <p>Why would you have to duplicate them? <em>Apischema</em> can "work with user own types as well as foreign libraries ones". Some teasing of <a href="conversions/">conversion</a> feature: you can add default serialization for all your tables, or register different serializer that you can select according to your API endpoint, or both.</p>

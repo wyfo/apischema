@@ -15,7 +15,7 @@
     
     
       
-        <title>OpenRPC - Apischema</title>
+        <title>Data model and resolvers - Apischema</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#openrpc" class="md-skip">
+        <a href="#data-model-and-resolvers" class="md-skip">
           Skip to content
         </a>
       
@@ -88,7 +88,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              OpenRPC
+              Data model and resolvers
             
           </span>
         </div>
@@ -258,10 +258,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7" checked>
     
     <label class="md-nav__link" for="nav-7">
       GraphQL
@@ -285,7 +287,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../graphql/overview/" title="Overview" class="md-nav__link">
+    <a href="../overview/" title="Overview" class="md-nav__link">
       Overview
     </a>
   </li>
@@ -295,11 +297,100 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="../../graphql/data_model_and_resolvers/" title="Data model and resolvers" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Data model and resolvers
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="Data model and resolvers" class="md-nav__link md-nav__link--active">
       Data model and resolvers
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#restrictions" class="md-nav__link">
+    Restrictions
+  </a>
+  
+    <nav class="md-nav" aria-label="Restrictions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#union" class="md-nav__link">
+    Union
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#typeddict" class="md-nav__link">
+    TypedDict
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interfaces" class="md-nav__link">
+    Interfaces
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resolvers" class="md-nav__link">
+    Resolvers
+  </a>
+  
+    <nav class="md-nav" aria-label="Resolvers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#undefined-parameter-default" class="md-nav__link">
+    Undefined parameter default
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -309,7 +400,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../graphql/schema/" title="Schema" class="md-nav__link">
+    <a href="../schema/" title="Schema" class="md-nav__link">
       Schema
     </a>
   </li>
@@ -324,12 +415,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
     
     <label class="md-nav__link" for="nav-8">
       Examples
@@ -351,20 +440,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-      
-    
-    
-    <a href="./" title="OpenRPC" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="../../examples/open_rpc/" title="OpenRPC" class="md-nav__link">
       OpenRPC
     </a>
-    
   </li>
 
         
@@ -374,7 +454,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+    <a href="../../examples/sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
       SQLAlchemy support
     </a>
   </li>
@@ -386,7 +466,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../pydantic_compatibility/" title="*Pydantic* compatibility" class="md-nav__link">
+    <a href="../../examples/pydantic_compatibility/" title="*Pydantic* compatibility" class="md-nav__link">
       *Pydantic* compatibility
     </a>
   </li>
@@ -398,7 +478,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../attrs_compatibility/" title="Attrs compatibility" class="md-nav__link">
+    <a href="../../examples/attrs_compatibility/" title="Attrs compatibility" class="md-nav__link">
       Attrs compatibility
     </a>
   </li>
@@ -410,7 +490,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../subclasses_union/" title="Class as union of its subclasses" class="md-nav__link">
+    <a href="../../examples/subclasses_union/" title="Class as union of its subclasses" class="md-nav__link">
       Class as union of its subclasses
     </a>
   </li>
@@ -422,7 +502,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../recoverable_fields/" title="Recoverable fields" class="md-nav__link">
+    <a href="../../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
       Recoverable fields
     </a>
   </li>
@@ -474,6 +554,70 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#restrictions" class="md-nav__link">
+    Restrictions
+  </a>
+  
+    <nav class="md-nav" aria-label="Restrictions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#union" class="md-nav__link">
+    Union
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#typeddict" class="md-nav__link">
+    TypedDict
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interfaces" class="md-nav__link">
+    Interfaces
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resolvers" class="md-nav__link">
+    Resolvers
+  </a>
+  
+    <nav class="md-nav" aria-label="Resolvers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#undefined-parameter-default" class="md-nav__link">
+    Undefined parameter default
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -484,7 +628,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/open_rpc.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/wyfo/apischema/edit/master/docs/graphql/data_model_and_resolvers.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
@@ -492,79 +636,86 @@
                   
                 
                 
-                <h1 id="openrpc"><a href="https://open-rpc.org/">OpenRPC</a><a class="headerlink" href="#openrpc" title="Permanent link">&para;</a></h1>
+                <h1 id="data-model-and-resolvers">Data model and resolvers<a class="headerlink" href="#data-model-and-resolvers" title="Permanent link">&para;</a></h1>
+<p>Almost everything of the <a href="../../data_model/">Data model section</a> remains valid in <em>GraphQL</em> integration.</p>
+<h2 id="restrictions">Restrictions<a class="headerlink" href="#restrictions" title="Permanent link">&para;</a></h2>
+<h3 id="union"><code>Union</code><a class="headerlink" href="#union" title="Permanent link">&para;</a></h3>
+<p>Unions are only supported between object types, which means <code>dataclass</code> and <code>NamedTuple</code> (and some <a href="../../conversions/">conversions</a>/<a href="../../conversions/#dataclass-model---automatic-conversion-fromto-dataclass">dataclass model</a>).</p>
+<p>More precisely, it's only supported in output schema, not in resolvers arguments.</p>
+<p>There are 2 exceptions which can be always be used in <code>Union</code>:</p>
+<ul>
+<li><code>None</code>/<code>Optional</code>: Types are non-null (marked with an exclamation mark <code>!</code> in <em>GraphQL</em> schema) by default; <code>Optional</code> types however results in normal <em>GraphQL</em> types (without <code>!</code>).</li>
+<li><code>apischema.UndefinedType</code>: it is simply ignored. It is useful in resolvers, see <a href="#undefined_param_default">following section</a></li>
+</ul>
+<h3 id="typeddict"><code>TypedDict</code><a class="headerlink" href="#typeddict" title="Permanent link">&para;</a></h3>
+<p><code>TypedDict</code> is not supported. In fact, typed dicts are not real classes, so their type can not be checked at runtime, but this is required to disambiguate unions/interfaces.</p>
+<h2 id="interfaces">Interfaces<a class="headerlink" href="#interfaces" title="Permanent link">&para;</a></h2>
+<p>Interfaces are simply classes marked with <code>apischema.graphql.interface</code> decorator. An object type implements an interface when its class inherits of interface-marked class, or when it has <a href="../../data_model/#composed-dataclasses-merging">merged fields</a> of interface-marked dataclass.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">Undefined</span><span class="p">,</span>
-    <span class="n">UndefinedType</span><span class="p">,</span>
-    <span class="n">ValidationError</span><span class="p">,</span>
-    <span class="n">deserialize</span><span class="p">,</span>
-    <span class="n">schema</span><span class="p">,</span>
-    <span class="n">serialize</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">interface</span>
 
-<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+
+<span class="nd">@interface</span>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
 
 
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Error</span><span class="p">(</span><span class="ne">Exception</span><span class="p">,</span> <span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
-    <span class="n">code</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">]</span> <span class="o">=</span> <span class="n">Undefined</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">Bar</span><span class="p">):</span>
+    <span class="n">baz</span><span class="p">:</span> <span class="nb">str</span>
 
 
-<span class="nd">@schema</span><span class="p">(</span><span class="n">min_props</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_props</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Result</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
-    <span class="n">result</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">]</span> <span class="o">=</span> <span class="n">Undefined</span>
-    <span class="n">error</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Error</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">]</span> <span class="o">=</span> <span class="n">Undefined</span>
-
-    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Undefined</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Undefined</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
+    <span class="o">...</span>
 
 
-<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Result</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">==</span> <span class="p">{</span>
-    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="s2">&quot;maxProperties&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">&quot;minProperties&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span> <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
-        <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
-                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
-                <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{},</span>
-            <span class="p">},</span>
-            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-        <span class="p">},</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-<span class="p">}</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
+<span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">type Query {</span>
+<span class="s2">  foo: Foo</span>
+<span class="s2">}</span>
 
-<span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
-<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
-    <span class="n">deserialize</span><span class="p">(</span><span class="n">Result</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Result</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="n">Result</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<span class="s2">type Foo implements Bar {</span>
+<span class="s2">  bar: Int!</span>
+<span class="s2">  baz: String!</span>
+<span class="s2">}</span>
 
-<span class="n">error</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Result</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">}})</span>
-<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">Error</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-    <span class="n">error</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">Error</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;...&quot;</span><span class="p">)</span>
+<span class="s2">interface Bar {</span>
+<span class="s2">  bar: Int!</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+</code></pre></div>
+
+
+<h2 id="resolvers">Resolvers<a class="headerlink" href="#resolvers" title="Permanent link">&para;</a></h2>
+<p>All <code>dataclass</code>/<code>NamedTuple</code> fields (excepted <a href="../../data_model/#skip-dataclass-field">skipped</a>) are resolved with their <a href="../../json_schema/#field-alias">alias</a> in the <em>GraphQL</em> schema.</p>
+<p>Custom resolvers can also be added by marking methods with <code>apischema.graphql.resolver</code> decorator. Methods can be synchronous or asynchronous (defined with <code>async def</code> or returning an <code>Awaitable</code>).</p>
+<p>Resolvers parameters are included in the schema with their type and their default value (except <code>apischema.Undefined</code>).</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="err">!</span><span class="n">resolver</span><span class="o">.</span><span class="n">py</span><span class="p">}</span>
+</code></pre></div>
+
+
+<h3 id="undefined-parameter-default">Undefined parameter default<a class="headerlink" href="#undefined-parameter-default" title="Permanent link">&para;</a></h3>
+<p>In <em>GraphQL</em>, non required parameters are forced to be nullable. However, <em>Apischema</em> allows to distinguish a <code>null</code> input from an input absent, by putting <code>apischema.Undefined</code> as parameter default of an <code>Optional</code> field. Thus, field will not be required, and a <code>null</code> value will result in a <code>None</code> argument whereas absent parameter will result in an <code>apischema.Undefined</code> argument.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">graphql_sync</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">,</span> <span class="n">graphql_schema</span>
+
+
+<span class="k">def</span> <span class="nf">arg_is_absent</span><span class="p">(</span><span class="n">arg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Undefined</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">arg</span> <span class="ow">is</span> <span class="n">Undefined</span>
+
+
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">arg_is_absent</span><span class="p">])</span>
+<span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{argIsAbsent}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;argIsAbsent&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;{argIsAbsent(arg: null)}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;argIsAbsent&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
 </code></pre></div>
                 
               
@@ -584,7 +735,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../../graphql/schema/" title="Schema" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../overview/" title="Overview" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -593,19 +744,19 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Schema
+                Overview
               </div>
             </div>
           </a>
         
         
-          <a href="../sqlalchemy/" title="SQLAlchemy support" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../schema/" title="Schema" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                SQLAlchemy support
+                Schema
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
