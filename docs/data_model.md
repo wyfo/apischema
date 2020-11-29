@@ -204,7 +204,7 @@ Dataclass fields can be excluded from *Apischema* processing by using `apischema
 ```
     
     
-## Composed dataclasses merging
+## Composition over inheritance - composed dataclasses merging
 
 Dataclass fields which are themselves dataclass can be "merged" into the owning one by using `merged` metadata. Then, when the class will be (de)serialized, "merged" fields will be (de)serialized at the same level than the owning class.
 
