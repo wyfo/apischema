@@ -10,19 +10,19 @@ theme:
     accent: indigo
 
 nav:
-- Overview: index.md
+- index.md
 - data_model.md
-- "(De)serialization": de_serialization.md
-- JSON schema: json_schema.md
+- de_serialization.md
+- json_schema.md
 - validation.md
-- Conversions – (de)serialization customization: conversions.md
+- conversions.md
 - GraphQL:
   - Overview: graphql/overview.md
   - graphql/data_model_and_resolvers.md
   - graphql/schema.md
 - Examples:
   - OpenRPC: examples/open_rpc.md
-  - SQLAlchemy support: examples/sqlalchemy.md
+  - examples/sqlalchemy.md
   - examples/pydantic_compatibility.md
   - examples/attrs_compatibility.md
   - examples/subclasses_union.md
