@@ -10,10 +10,14 @@ __all__ = [
     "deserialize",
     "deserializer",
     "fields",
+    "graphql_schema",
+    "interface",
     "json_schema",
     "metadata",
     "properties",
     "reset_cache",
+    "resolver",
+    "resolvers",
     "schema",
     "schema_ref",
     "serialization",
@@ -30,10 +34,10 @@ __all__ = [
 from . import (
     conversions,
     dataclasses,
-    deserialization,
     fields,
     json_schema,
     metadata,
+    resolvers,
     serialization,
     settings,
     skip,
@@ -46,8 +50,11 @@ from .deserialization import deserialize
 from .json_schema.refs import schema_ref
 from .json_schema.schema import schema
 from .metadata import properties
+from .resolvers import resolver
 from .serialization import serialize, serialized
 from .utils import Undefined, UndefinedType
+from .graphql.interfaces import interface
+from .graphql.builder import graphql_schema
 from .validation import (
     ValidationError,
     validator,

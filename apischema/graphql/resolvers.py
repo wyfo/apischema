@@ -1,213 +1,123 @@
-from collections import ChainMap, defaultdict
-from contextlib import suppress
-from dataclasses import dataclass
-from inspect import Parameter, signature
-from itertools import takewhile
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Collection,
-    Dict,
-    Mapping,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    overload,
-)
+from dataclasses import is_dataclass
+from enum import Enum
+from typing import Any, Awaitable, Callable, Collection, Dict, Mapping, Optional
 
-from graphql import GraphQLResolveInfo
+import graphql
 
+from apischema.aliases import Aliaser
+from apischema.conversions import Conversions
+from apischema.conversions.dataclass_model import DataclassModelWrapper
+from apischema.conversions.visitor import SerializationVisitor
 from apischema.deserialization import deserialize
-from apischema.json_schema.annotations import Deprecated
-from apischema.serialization import serialize
-from apischema.types import AnyType
-from apischema.typing import get_args, get_origin, get_type_hints
-from apischema.validation.errors import ValidationError
-
-ResolverAttribute = str
-ResolverName = str
-
-Description = Union[str, "ellipsis", None]  # noqa: F821
-
-
-@dataclass(frozen=True)
-class ResolverArgument:
-    name: str
-    type: AnyType
-    default: Any
-
-
-@dataclass(frozen=True)
-class ResolverSchema:
-    description: Description
-    deprecated: Deprecated
-
-
-@dataclass(frozen=True)
-class Resolver:
-    func: Callable
-    schema: ResolverSchema
-
-    @property
-    def deprecated(self) -> Deprecated:
-        return self.schema.deprecated
-
-    @property
-    def description(self) -> Optional[str]:
-        if self.schema.description is not None:
-            if self.schema.description is not ...:
-                assert isinstance(self.schema.description, str)
-                return self.schema.description
-            elif self.func.__doc__:
-                lines = self.func.__doc__.strip().split("\n")
-                return "\n".join(takewhile(lambda l: l.strip(), lines))
-        return None
-
-
-_resolvers: Dict[
-    Type, Dict[ResolverName, Tuple[ResolverAttribute, ResolverSchema]]
-] = defaultdict(dict)
-_additional_resolvers: Dict[
-    Type, Dict[str, Tuple[Callable, ResolverSchema]]
-] = defaultdict(dict)
-
-
-def get_resolvers(cls: Type) -> Mapping[ResolverName, Resolver]:
-    return {
-        name: Resolver(func, schema)
-        for name, (func, schema) in ChainMap(
-            _additional_resolvers[cls],
-            {
-                name: (getattr(cls, attr), schema)
-                for name, (attr, schema) in _resolvers[cls].items()
-            },
-        ).items()
-    }
-
-
-awaitable_origin = get_origin(Awaitable[Any])
-
-
-class MissingFirstParam(Exception):
-    pass
-
-
-def resolver_types_and_wrapper(
-    resolver: Callable, force_self_param: bool = False
-) -> Tuple[AnyType, Collection[ResolverArgument], Callable]:
-    types = get_type_hints(resolver, include_extras=True)
-    if "return" not in types:
-        raise TypeError("Resolver must be typed")
-    ret = types["return"]
-    if get_origin(ret) == awaitable_origin:
-        ret = get_args(ret)[0]
-    arguments, self_param, info_param = [], False, None
-    params = list(signature(resolver).parameters.values())
-    if force_self_param and not params:
-        raise MissingFirstParam
-    if params and params[0].name == "self":
-        params = params[1:]
-        self_param = True
-    for param in params:
-        if param.kind is Parameter.POSITIONAL_ONLY:
-            raise TypeError("Resolver can not have positional only parameters")
-        if param.kind in {Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY}:
-            if param.name not in types:
-                raise TypeError("Resolver must be typed")
-            if types[param.name] in {GraphQLResolveInfo, Optional[GraphQLResolveInfo]}:
-                info_param = param.name
-            else:
-                arguments.append(
-                    ResolverArgument(param.name, types[param.name], param.default)
-                )
-    resolve: Callable
-    if self_param and not arguments and info_param is None:
-
-        def resolve(self, _):
-            return resolver(self)
-
-    else:
-
-        def resolve(self, info, **kwargs):
-            assert kwargs.keys() <= {arg.name for arg in arguments}
-            errors: Dict[str, ValidationError] = {}
-            kwargs2 = {}
-            for arg in arguments:
-                if arg.name in kwargs:
-                    try:
-                        kwargs2[arg.name] = deserialize(arg.type, kwargs[arg.name])
-                    except ValidationError as err:
-                        errors[arg.name] = err
-                elif arg.default is Parameter.empty:
-                    errors[arg.name] = ValidationError(["missing argument"])
-            if errors:
-                raise TypeError(serialize(ValidationError(children=errors)))
-            if info_param:
-                kwargs2[info_param] = info
-            args = (self,) if self_param else ()
-            return resolver(*args, **kwargs2)
-
-    return ret, arguments, resolve
-
-
-class ResolverDescriptor:
-    def __init__(self, attribute: Any, name: Optional[str], schema: ResolverSchema):
-        self.attribute = attribute
-        self.name = name
-        self.schema = schema
-
-    def __set_name__(self, owner, name):
-        _resolvers[owner][self.name or name] = name, self.schema
-        with suppress(Exception):
-            setattr(owner, name, self.attribute)
-
-    def __call__(self, *args, **kwargs):
-        raise TypeError("__set_name__ has not been called")
-
-
-MethodOrProperty = TypeVar(
-    "MethodOrProperty", bound=Union[Callable, staticmethod, classmethod, property]
+from apischema.resolvers import Resolver
+from apischema.serialization import (
+    COLLECTION_TYPE_SET,
+    MAPPING_TYPE_SET,
+    PRIMITIVE_TYPES_SET,
+    serialize,
 )
+from apischema.types import PRIMITIVE_TYPES
+from apischema.validation.errors import ValidationError
+from apischema.visitor import Unsupported
 
 
-@overload
-def resolver(__method_or_property: MethodOrProperty) -> MethodOrProperty:
-    ...
-
-
-@overload
-def resolver(
-    __name: str, description: Description = ..., deprecated: Deprecated = False
-) -> Callable[[MethodOrProperty], MethodOrProperty]:
-    ...
-
-
-def resolver(
-    __arg=None, description: Description = ..., deprecated: Deprecated = False
-):
-    schema = ResolverSchema(description, deprecated)
-    if callable(__arg):
-        return ResolverDescriptor(__arg, None, schema)
-    else:
-        return lambda method: ResolverDescriptor(method, __arg, schema)
-
-
-Func = TypeVar("Func", bound=Callable)
-
-
-def add_resolver(
-    cls: Type,
-    name: str = None,
-    description: Description = ...,
-    deprecated: Deprecated = False,
-) -> Callable[[Func], Func]:
-    def decorator(func: Func) -> Func:
-        _additional_resolvers[cls][name or func.__name__] = func, ResolverSchema(
-            description, deprecated
+def partial_serialize(
+    obj: Any,
+    *,
+    conversions: Conversions = None,
+    aliaser: Aliaser = None,
+) -> Any:
+    assert aliaser is not None
+    cls = obj.__class__
+    if cls in PRIMITIVE_TYPES_SET:
+        return obj
+    if cls in COLLECTION_TYPE_SET:
+        return [
+            partial_serialize(elt, conversions=conversions, aliaser=aliaser)
+            for elt in obj
+        ]
+    if cls in MAPPING_TYPE_SET:
+        return serialize(
+            obj, conversions=conversions, aliaser=aliaser, exclude_unset=False
         )
-        return func
+    target = None
+    if conversions is not None:
+        try:
+            target = conversions[cls]
+        except KeyError:
+            pass
+    conversion = SerializationVisitor._is_conversion(cls, target)
+    if conversion is not None:
+        _, (converter, sub_conversions) = conversion
+        if isinstance(target, DataclassModelWrapper):
+            return obj
+        return partial_serialize(
+            converter(obj), conversions=sub_conversions, aliaser=aliaser
+        )
+    if is_dataclass(cls):
+        return obj
+    if issubclass(cls, Enum):
+        return serialize(obj.value, aliaser=aliaser, exclude_unset=False)
+    if isinstance(obj, PRIMITIVE_TYPES):
+        return obj
+    if isinstance(obj, Mapping):
+        return serialize(obj, aliaser=aliaser, exclude_unset=False)
+    if isinstance(obj, Collection):
+        return [partial_serialize(elt, aliaser=aliaser) for elt in obj]
+    if issubclass(cls, tuple) and hasattr(cls, "_fields"):
+        return obj
+    raise Unsupported(cls)
 
-    return decorator
+
+INFO_TYPES = {graphql.GraphQLResolveInfo, Optional[graphql.GraphQLResolveInfo]}
+
+
+def resolver_resolve(
+    resolver: Resolver, aliaser: Aliaser, error_as_null: bool, serialized: bool = True
+) -> Callable:
+    parameters = resolver.parameters
+    types = resolver.types
+    info_param = next((p.name for p in parameters if types[p.name] in INFO_TYPES), None)
+    arg_types = [(p.name, types[p.name]) for p in parameters if p.name != info_param]
+    func = resolver.wrapper
+    serialize_result: Callable[[Any], Any]
+    if not serialized:
+
+        def serialize_result(result):
+            return result
+
+    elif resolver.is_async:
+
+        async def serialize_result(result: Awaitable):
+            return partial_serialize(
+                await result, conversions=resolver.conversions, aliaser=aliaser
+            )
+
+    else:
+
+        def serialize_result(result):
+            return partial_serialize(
+                result, conversions=resolver.conversions, aliaser=aliaser
+            )
+
+    def resolve(self, info, **kwargs):
+        errors: Dict[str, ValidationError] = {}
+        for arg_name, arg_type in arg_types:
+            if arg_name in kwargs:
+                try:
+                    kwargs[arg_name] = deserialize(arg_type, kwargs[arg_name])
+                except ValidationError as err:
+                    errors[aliaser(arg_name)] = err
+        if errors:
+            raise TypeError(serialize(ValidationError(children=errors)))
+        if info_param:
+            kwargs[info_param] = info
+        try:
+            return serialize_result(func(self, **kwargs))
+        except Exception:
+            if error_as_null:
+                return None
+            else:
+                raise
+
+    return resolve

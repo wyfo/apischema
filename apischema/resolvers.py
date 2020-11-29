@@ -1,3 +1,4 @@
+__all__ = ["add_resolver", "resolver"]
 from collections import ChainMap, defaultdict
 from dataclasses import dataclass
 from inspect import Parameter, iscoroutinefunction, signature

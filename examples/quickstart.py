@@ -1,9 +1,11 @@
+from collections.abc import Collection
 from dataclasses import dataclass, field
 from uuid import UUID, uuid4
 
+from graphql import print_schema
 from pytest import raises
 
-from apischema import ValidationError, deserialize, serialize
+from apischema import ValidationError, deserialize, serialize, graphql_schema
 from apischema.json_schema import deserialization_schema
 
 
@@ -41,3 +43,24 @@ assert deserialization_schema(Resource) == {
     "required": ["id", "name"],
     "additionalProperties": False,
 }
+
+
+# Define GraphQL operations
+def resources(tags: Collection[str] = None) -> Collection[Resource]:
+    ...
+
+
+# Generate GraphQL schema
+schema = graphql_schema(query=[resources], id_types={UUID})
+schema_str = """\
+type Query {
+  resources(tags: [String!]): [Resource!]
+}
+
+type Resource {
+  id: ID!
+  name: String!
+  tags: [String!]!
+}
+"""
+assert print_schema(schema) == schema_str

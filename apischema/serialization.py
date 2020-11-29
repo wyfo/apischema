@@ -177,6 +177,8 @@ def serialize(
                 if res is not Undefined:
                     result[alias] = res
             return result
+        if obj is Undefined:
+            raise Unsupported(cls)
         if issubclass(cls, Enum):
             return _serialize(obj.value)
         if isinstance(obj, PRIMITIVE_TYPES):

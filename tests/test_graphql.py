@@ -16,7 +16,7 @@ from graphql import (
     print_schema,
     subscribe,
 )
-from pytest import mark
+from pytest import mark, raises
 
 from apischema import schema_ref
 from apischema.graphql.builder import graphql_schema
@@ -47,7 +47,7 @@ def plop() -> E:
 
 
 def test():
-    schema = graphql_schema([plop])
+    schema = graphql_schema(query=[plop])
     print(print_schema(schema))
     print(graphql_sync(schema, "{plop}"))
 
@@ -57,7 +57,7 @@ class Event:
     name: str
 
 
-async def events() -> AsyncIterable[Event]:
+async def events(**kwargs) -> AsyncIterable[Event]:
     for event in ("bonjour", "au revoir"):
         yield Event(event)
 
@@ -69,11 +69,37 @@ async def anext(iterable):
 
 @mark.asyncio
 async def test2():
-    schema = graphql_schema([plop], subscription=[events])
-    print(print_schema(schema))
+    schema = graphql_schema(query=[plop], subscription=[events])
     subscription = await subscribe(schema, parse("subscription {events{name}}"))
-    async for event in subscription:
-        print(event)
+    assert (await anext(subscription)).data == {"events": {"name": "bonjour"}}
+    assert (await anext(subscription)).data == {"events": {"name": "au revoir"}}
+    with raises(StopAsyncIteration):
+        await anext(subscription)
+
+
+def handle_event(event: Event, trunc: int = None) -> Event:
+    if trunc is None:
+        return event
+    else:
+        return Event(event.name[:trunc])
+
+
+@mark.asyncio
+async def test3():
+    schema = graphql_schema(query=[plop], subscription=[(events, handle_event)])
+    print(print_schema(schema))
+    subscription = await subscribe(schema, parse("subscription {handleEvent{name}}"))
+    assert (await anext(subscription)).data == {"handleEvent": {"name": "bonjour"}}
+    assert (await anext(subscription)).data == {"handleEvent": {"name": "au revoir"}}
+    with raises(StopAsyncIteration):
+        await anext(subscription)
+    subscription = await subscribe(
+        schema, parse("subscription {handleEvent(trunc: 2){name}}")
+    )
+    assert (await anext(subscription)).data == {"handleEvent": {"name": "bo"}}
+    assert (await anext(subscription)).data == {"handleEvent": {"name": "au"}}
+    with raises(StopAsyncIteration):
+        await anext(subscription)
 
 
 @mark.asyncio

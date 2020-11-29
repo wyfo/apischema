@@ -18,8 +18,8 @@ nav:
 - Conversions – (de)serialization customization: conversions.md
 - GraphQL:
   - Overview: graphql/overview.md
-  - GraphQL data model: graphql/data_model.md
-  - graphql/build_schema.md
+  - graphql/data_model_and_resolvers.md
+  - graphql/schema.md
 - Examples:
   - OpenRPC: examples/open_rpc.md
   - SQLAlchemy support: examples/sqlalchemy.md

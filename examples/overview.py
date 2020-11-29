@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 from graphql import graphql_sync, print_schema
 
-from apischema.graphql import graphql_schema, resolver
+from apischema import graphql_schema, resolver
 
 
 @dataclass
@@ -35,7 +35,7 @@ def users() -> Collection[User]:
     return USERS
 
 
-def posts() -> Optional[Collection[Post]]:
+def posts() -> Collection[Post]:
     return POSTS
 
 
@@ -47,12 +47,10 @@ def user(username: str) -> Optional[User]:
         return None
 
 
-schema = graphql_schema([users, user, posts], is_id=lambda cls: cls is UUID)
-assert (
-    print_schema(schema)
-    == """\
+schema = graphql_schema(query=[users, user, posts], id_types={UUID})
+schema_str = """\
 type Query {
-  users: [User!]!
+  users: [User!]
   user(username: String!): User
   posts: [Post!]
 }
@@ -61,7 +59,7 @@ type User {
   id: ID!
   username: String!
   birthday: Date
-  posts: [Post!]!
+  posts: [Post!]
 }
 
 scalar Date
@@ -75,7 +73,7 @@ type Post {
 
 scalar Datetime
 """
-)
+assert print_schema(schema) == schema_str
 
 query = """
 {
