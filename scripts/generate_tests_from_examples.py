@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import sys
-from itertools import chain
 from pathlib import Path
 from shutil import rmtree
 from typing import Iterator, Tuple
@@ -21,6 +20,9 @@ def iter_paths() -> Iterator[Tuple[Path, Path]]:
         test_dir = GENERATED_PATH / relative_path.parent
         test_dir.mkdir(parents=True, exist_ok=True)
         yield example_path, test_dir / f"test_{relative_path.name}"
+
+
+INDENTATION = 4 * " "
 
 
 def generate():
@@ -44,9 +46,15 @@ def generate():
                 for line in example:
                     if line.startswith("assert ") or line.startswith("with raises("):
                         test.write(f"def {test_path.stem}():\n")
-                        test.writelines(f"    {l}" for l in chain([line], example))
+                        test.write(INDENTATION + line)
                         break
                     test.write(line)
+                cur_indent = INDENTATION
+                for line in example:
+                    test.write(cur_indent + line)
+                    if '"""' in line:
+                        cur_indent = "" if cur_indent else INDENTATION
+
     for path in GENERATED_PATH.glob("**"):
         if path.is_dir():
             open(path / "__init__.py", "w").close()
