@@ -1,4 +1,4 @@
-# Recoverable fields
+# Class as union of its subclasses 
 
 *Inspired by [https://github.com/samuelcolvin/pydantic/issues/2036](https://github.com/samuelcolvin/pydantic/issues/2036)*
 
