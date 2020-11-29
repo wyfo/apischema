@@ -4,7 +4,7 @@
 
 Makes your life easier when it comes to python API.
 
-JSON (de)serialization + schema generation through python typing, with a spoonful of sugar.
+JSON (de)serialization + *GraphQL* and JSON schema generation through python typing, with a spoonful of sugar.
 
 ## Install
 ```shell
@@ -20,7 +20,8 @@ This library fulfill the following goals:
 
 - stay as close as possible to the standard library (dataclasses, typing, etc.) to be as accessible as possible — as a consequence do not need plugins for editor/linter/etc.;
 - be additive and tunable, be able to work with user own types (ORM, etc.) as well as foreign libraries ones; do not need a PR for handling new types like `bson.ObjectId`, avoid subclassing;
-- avoid dynamic things like using string for attribute name.
+- avoid dynamic things like using string for attribute name;
+- support *GraphQL*.
 
 No known alternative achieves that.
 
@@ -36,6 +37,10 @@ No known alternative achieves that.
 
 !!! note
     This example and further ones are using pytest stuff because they are in fact run as tests in the library CI
+    
+## *GraphQL*
+
+*GraphQL* integration is detailed [further in the documentation](graphql/overview.md).
 
 ## FAQ
 

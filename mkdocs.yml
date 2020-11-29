@@ -16,6 +16,10 @@ nav:
 - JSON schema: json_schema.md
 - validation.md
 - Conversions – (de)serialization customization: conversions.md
+- GraphQL:
+  - Overview: graphql/overview.md
+  - graphql/data_model_and_resolvers.md
+  - graphql/schema.md
 - Examples:
   - OpenRPC: examples/open_rpc.md
   - SQLAlchemy support: examples/sqlalchemy.md

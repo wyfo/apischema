@@ -1,11 +1,5 @@
 """Kind of typing_extensions for this package"""
-__all__ = [
-    "_LiteralMeta",
-    "_TypedDictMeta",
-    "get_type_hints",
-    "get_origin",
-    "get_args",
-]
+__all__ = ["_LiteralMeta", "_TypedDictMeta", "get_args", "get_origin", "get_type_hints"]
 
 import sys
 from types import ModuleType

@@ -2,8 +2,17 @@ __all__ = ["add_serialized", "serialize", "serialized"]
 
 from dataclasses import dataclass, is_dataclass
 from enum import Enum
-from inspect import Parameter
-from typing import Any, Callable, Collection, Mapping, Optional, Sequence, Tuple, Type
+from inspect import Parameter, iscoroutinefunction
+from typing import (
+    Any,
+    Callable,
+    Collection,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+)
 
 from apischema import settings
 from apischema.aliases import Aliaser
@@ -91,7 +100,7 @@ def serialization_fields(
         def method(
             obj: Any,
             _serialize: Callable,
-            func=resolver.func,
+            func=resolver.wrapper,
             conversions=resolver.conversions,
         ) -> Any:
             return _serialize(func(obj), conversions=conversions)
@@ -168,6 +177,8 @@ def serialize(
                 if res is not Undefined:
                     result[alias] = res
             return result
+        if obj is Undefined:
+            raise Unsupported(cls)
         if issubclass(cls, Enum):
             return _serialize(obj.value)
         if isinstance(obj, PRIMITIVE_TYPES):
@@ -188,13 +199,24 @@ def serialize(
     return _serialize(obj, conversions=conversions)
 
 
-def has_parameter_without_default(resolver: Resolver) -> bool:
-    return any(arg.default is Parameter.empty for arg in resolver.arguments)
+def has_parameter_without_default(resolver) -> bool:
+    return any(arg.default is Parameter.empty for arg in resolver.parameters)
+
+
+def can_be_serialized(resolver: Resolver) -> bool:
+    return not has_parameter_without_default(resolver) and not resolver.is_async
 
 
 def check_serialized(cls: Type, name: str):
-    if has_parameter_without_default(get_resolvers(cls)[name]):
-        raise TypeError("serialized method cannot have parameter without default")
+    resolver = get_resolvers(cls)[name]
+    if has_parameter_without_default(resolver):
+        raise TypeError(f"{resolver.func} cannot have parameter without default")
+    try:
+        if resolver.is_async:
+            raise TypeError(f"async {resolver.func} cannot be serialized")
+    except Exception:  # get_type_hints can fail
+        if iscoroutinefunction(resolver.func):
+            raise TypeError(f"coroutine {resolver.func} cannot be serialized")
 
 
 class SerializedDescriptor:
@@ -231,7 +253,5 @@ add_serialized = typed_wraps(add_resolver)(_add_serialized)
 
 def get_serialized_resolvers(cls: Type) -> Mapping[str, Resolver]:
     return {
-        name: res
-        for name, res in get_resolvers(cls).items()
-        if not has_parameter_without_default(res)
+        name: res for name, res in get_resolvers(cls).items() if can_be_serialized(res)
     }

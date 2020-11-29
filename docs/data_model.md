@@ -195,6 +195,14 @@ That's why *Apischema* defines a `NotNull` type; in fact, `NotNull = Union[T, An
 
     [Fields set feature](de_serialization.md#fields-set) can be used to avoid unwanted serialization of a `None` default value of a `NotNull` field. 
     
+## Skip dataclass field
+
+Dataclass fields can be excluded from *Apischema* processing by using `apischema.metadata.skip` in the field metadata
+
+```python
+{!skip_field.py!}   
+```
+    
     
 ## Composed dataclasses merging
 

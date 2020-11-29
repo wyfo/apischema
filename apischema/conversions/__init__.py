@@ -1,6 +1,6 @@
 __all__ = [
-    "Deserialization",
     "Conversions",
+    "Deserialization",
     "Serialization",
     "deserializer",
     "extra_deserializer",

@@ -1,15 +1,15 @@
+__all__ = ["add_resolver", "resolver"]
 from collections import ChainMap, defaultdict
 from dataclasses import dataclass
-from functools import wraps
-from inspect import Parameter, signature
+from inspect import Parameter, iscoroutinefunction, signature
 from typing import (
     Any,
+    Awaitable,
     Callable,
-    Collection,
     Dict,
     Mapping,
     Optional,
-    Tuple,
+    Sequence,
     Type,
     TypeVar,
     Union,
@@ -20,53 +20,62 @@ from apischema.conversions import Conversions
 from apischema.conversions.dataclass_model import get_model_origin
 from apischema.json_schema.schema import Schema
 from apischema.types import AnyType
-from apischema.typing import get_origin, get_type_hints
+from apischema.typing import get_args, get_origin, get_type_hints
+from apischema.utils import cached_property, get_origin_or_class
 
 Description = Union[str, "ellipsis", None]  # noqa: F821
 
-
-@dataclass
-class ResolverArgument:
-    name: str
-    type: AnyType
-    default: Any
+awaitable_origin = get_origin(Awaitable[Any])
 
 
 @dataclass(frozen=True)
 class Resolver:
     func: Callable
-    conversions: Optional[Conversions]
-    return_type: AnyType
-    arguments: Collection[ResolverArgument]
-    schema: Optional[Schema]
+    wrapper: Callable
+    parameters: Sequence[Parameter]
+    conversions: Optional[Conversions] = None
+    schema: Optional[Schema] = None
+
+    @cached_property
+    def types(self) -> Mapping[str, AnyType]:
+        return get_type_hints(self.func, include_extras=True)
+
+    @property
+    def return_type(self) -> AnyType:
+        ret = self.types["return"]
+        return get_args(ret)[0] if get_origin(ret) == awaitable_origin else ret
+
+    @property
+    def is_async(self) -> bool:
+        if iscoroutinefunction(self.func):
+            return True
+        try:
+            return issubclass(get_origin_or_class(self.types["return"]), Awaitable)
+        except Exception:  # py36 has weird AttributeError with issubclass
+            return False
 
 
-def resolver_types(
-    resolver: Callable, cls: Type
-) -> Tuple[bool, AnyType, Collection[ResolverArgument]]:
-    types = get_type_hints(resolver, include_extras=True)
-    if "return" not in types:
+class MissingFirstParameter(Exception):
+    pass
+
+
+def resolver_parameters(resolver: Callable, *, skip_first: bool) -> Sequence[Parameter]:
+    if "return" not in resolver.__annotations__:
         raise TypeError("Resolver must be typed")
-    arguments, instance_method = [], False
+    parameters = []
     params = list(signature(resolver).parameters.values())
-    if params and params[0].name == "self":
-        instance_method = True
+    if skip_first:
+        if not params:
+            raise MissingFirstParameter
         params = params[1:]
     for param in params:
         if param.kind is Parameter.POSITIONAL_ONLY:
             raise TypeError("Resolver can not have positional only parameters")
         if param.kind in {Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY}:
-            if param.name not in types:
+            if param.annotation is Parameter.empty:
                 raise TypeError("Resolver must be typed")
-            arguments.append(
-                ResolverArgument(param.name, types[param.name], param.default)
-            )
-    if not instance_method and arguments:
-        first_arg_type = arguments[0].type
-        if (get_origin(first_arg_type) or first_arg_type) == cls:
-            instance_method = True
-            arguments = arguments[1:]
-    return instance_method, types["return"], arguments
+            parameters.append(param)
+    return parameters
 
 
 _resolvers: Dict[Type, Dict[str, Resolver]] = defaultdict(dict)
@@ -95,25 +104,28 @@ class ResolverDescriptor:
         self.schema = schema
 
     def __set_name__(self, owner, name):
+        wrapper: Callable
         if isinstance(self.func, property):
+            method = self.func.fget
 
-            @wraps(self.func.fget)
-            def method(self):
+            def wrapper(self):
                 return getattr(self, name)
 
         else:
+            method = self.func.__get__(None, owner)
 
-            @wraps(self.func.__get__(None, owner))
-            def method(self, *args, **kwargs):
+            def wrapper(self, *args, **kwargs):
                 return getattr(self, name)(*args, **kwargs)
 
-        _, return_type, arguments = resolver_types(method, owner)
+        parameters = resolver_parameters(
+            method, skip_first=not isinstance(self.func, staticmethod)
+        )
 
         _resolvers[owner][self.name or name] = Resolver(
             method,
+            wrapper,
+            parameters,
             self.conversions,
-            return_type,
-            arguments,
             self.schema,
         )
         setattr(owner, name, self.func)
@@ -164,13 +176,15 @@ def add_resolver(
     schema: Schema = None,
 ) -> Callable[[Func], Func]:
     def decorator(func: Func) -> Func:
-        instance_method, return_type, arguments = resolver_types(func, cls)
-        if instance_method:
-            method: Callable = func
+        parameters = resolver_parameters(func, skip_first=False)
+        types = get_type_hints(func)
+        if get_origin_or_class(types[parameters[0].name]) == cls:
+            parameters = parameters[1:]
+            wrapper: Callable = func
         else:
-            method = lambda __, *args, **kwargs: func(*args, **kwargs)  # noqa: E731
+            wrapper = lambda __, *args, **kwargs: func(*args, **kwargs)  # noqa: E731
         _resolvers[cls][name or func.__name__] = Resolver(
-            method, conversions, return_type, arguments, schema
+            func, wrapper, parameters, conversions, schema
         )
         return func
 

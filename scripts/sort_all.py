@@ -4,7 +4,7 @@ from pathlib import Path
 from subprocess import run
 
 
-PACKAGE_DIR = Path(__file__).parent / "apischema"
+PACKAGE_DIR = Path(__file__).parent.parent / "apischema"
 
 for root, dirs, files in os.walk(PACKAGE_DIR):
     for filename in files:
