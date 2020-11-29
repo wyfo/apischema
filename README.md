@@ -100,8 +100,4 @@ assert print_schema(schema) == schema_str
 ```
 *Apischema* works out of the box with your data model.
 
-## *GraphQL*
-
-*GraphQL* integration is detailed [further in the documentation](graphql/overview.md).
-
 [*Let's start the Apischema tour.*](https://wyfo.github.io/apischema/)
