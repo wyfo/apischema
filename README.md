@@ -2,7 +2,7 @@
 
 Makes your life easier when it comes to python API.
 
-JSON (de)serialization + *GraphQL* and schema generation through python typing, with a spoonful of sugar.
+JSON (de)serialization + *GraphQL* and JSON schema generation through python typing, with a spoonful of sugar.
 
 ## Documentation
 
