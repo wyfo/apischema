@@ -15,7 +15,7 @@ from typing import (
 )
 
 from apischema.types import AnyType
-from apischema.typing import get_origin
+from apischema.typing import _GenericAlias, get_origin
 
 PREFIX = "_apischema_"
 
@@ -63,10 +63,12 @@ _type_hints: Dict[str, Mapping[str, Type]] = {}
 
 
 def type_name(cls: AnyType) -> str:
-    for attr in ("__name__", "name", "_name"):
-        if hasattr(cls, attr):
-            return getattr(cls, attr)
-    return str(cls)
+    if hasattr(cls, "__name__"):
+        return cls.__name__
+    elif isinstance(cls, _GenericAlias):
+        return cls._name
+    else:
+        raise NotImplementedError()
 
 
 MakeDataclassField = Union[Tuple[str, AnyType], Tuple[str, AnyType, Any]]
@@ -121,7 +123,6 @@ try:
 except ImportError:
     # From 3.9 functools
     from threading import RLock
-    from apischema.typing import _GenericAlias
 
     _NOT_FOUND = object()
 
