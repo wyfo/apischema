@@ -22,7 +22,7 @@ This library fulfill the following goals:
 - be additive and tunable, be able to work with user own types (ORM, etc.) as well as foreign libraries ones; do not need a PR for handling new types like `bson.ObjectId`, avoid subclassing;
 - avoid dynamic things like using string for attribute name;
 - support *GraphQL*;
-- blazing fast performance.
+- (*Bonus*) be the fastest.
 
 No known alternative achieves all of this.
 
