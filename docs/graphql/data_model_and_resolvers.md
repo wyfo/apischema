@@ -35,7 +35,7 @@ Custom resolvers can also be added by marking methods with `apischema.graphql.re
 Resolvers parameters are included in the schema with their type and their default value (except `apischema.Undefined`).
 
 ```python
-{!resolver.py}
+{!resolver.py!}
 ```
 
 ### Undefined parameter default
