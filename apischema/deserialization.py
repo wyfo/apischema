@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from dataclasses import Field, dataclass, field, is_dataclass, replace
 from enum import Enum
 from functools import wraps
@@ -7,6 +6,7 @@ from typing import (
     AbstractSet,
     Any,
     Callable,
+    Collection,
     Dict,
     Iterable,
     List,
@@ -67,7 +67,6 @@ from apischema.typing import get_origin
 from apischema.utils import map_values
 from apischema.validation.errors import (
     ErrorKey,
-    FieldPath,
     ValidationError,
     apply_aliaser,
     merge_errors,
@@ -83,6 +82,9 @@ from apischema.visitor import Unsupported
 
 DICT_TYPE = get_origin(Dict[Any, Any])
 LIST_TYPE = get_origin(List[Any])
+
+MISSING_PROPERTY = ValidationError(["missing property"])
+UNEXPECTED_PROPERTY = ValidationError(["unexpected property"])
 
 T = TypeVar("T")
 
@@ -187,35 +189,28 @@ class RecDeserializerMethodFactory:
             return self._method
 
 
-@dataclass(frozen=True)  # type: ignore
-class DeserializationField(ABC):
-    base_field: Field
-    method: DeserializationMethod
-    name: str = field(init=False)
-    required: bool = field(init=False)
-    default: bool = field(init=False)
-    default_fallback: bool = field(init=False)
+FieldDeserializer = Callable[
+    [
+        DeserializationContext,
+        Any,
+        Dict[str, Any],
+        List[str],
+        Dict[ErrorKey, ValidationError],
+    ],
+    None,
+]
 
-    def __post_init__(self):
-        super().__setattr__("name", self.base_field.name)
-        super().__setattr__("required", is_required(self.base_field))
-        super().__setattr__("default", has_default(self.base_field))
-        super().__setattr__(
-            "default_fallback",
-            DEFAULT_FALLBACK_METADATA in self.base_field.metadata,
-        )
 
-    @abstractmethod
-    def error_handler(
-        self,
-        error: ValidationError,
-        errors: List[str],
-        field_errors: Dict[ErrorKey, ValidationError],
-    ):
-        ...
+def field_deserializer(
+    field: Field, method: DeserializationMethod, aliaser: Aliaser
+) -> FieldDeserializer:
+    name = field.name
+    alias = aliaser(get_alias(field))
+    aggregate = is_aggregate_field(field)
+    default = has_default(field)
+    default_fallback = DEFAULT_FALLBACK_METADATA in field.metadata
 
-    def deserialize(
-        self,
+    def deserializer(
         ctx: DeserializationContext,
         data: Any,
         values: Dict[str, Any],
@@ -223,33 +218,58 @@ class DeserializationField(ABC):
         field_errors: Dict[ErrorKey, ValidationError],
     ):
         try:
-            values[self.name] = self.method(ctx, data)  # type: ignore
+            values[name] = method(ctx, data)  # type: ignore
         except ValidationError as err:
-            if self.default and (self.default_fallback or ctx.default_fallback):
+            if default and (default_fallback or ctx.default_fallback):
                 pass
+            elif aggregate:
+                errors.extend(err.messages)
+                field_errors.update(err.children)
             else:
-                self.error_handler(err, errors, field_errors)
+                field_errors[alias] = err
+
+    return deserializer
 
 
-class NormalField(DeserializationField):
-    def error_handler(
-        self,
-        error: ValidationError,
-        errors: List[str],
-        field_errors: Dict[ErrorKey, ValidationError],
-    ):
-        field_errors[FieldPath(self.base_field)] = error
+RequiredFieldChecker = Callable[
+    [Mapping[str, Any], Dict[ErrorKey, ValidationError]], None
+]
 
 
-class AggregateField(DeserializationField):
-    def error_handler(
-        self,
-        error: ValidationError,
-        errors: List[str],
-        field_errors: Dict[ErrorKey, ValidationError],
-    ):
-        errors.extend(error.messages)
-        field_errors.update(error.children)
+def required_field_checker(
+    field: Field, requiring: Optional[Collection[Field]], aliaser: Aliaser
+) -> RequiredFieldChecker:
+    alias = aliaser(get_alias(field))
+    required = is_required(field)
+    if requiring is not None:
+        requiring_alias = {aliaser(get_alias(req)) for req in requiring}
+
+        def checker(
+            data: Mapping[str, Any], field_errors: Dict[ErrorKey, ValidationError]
+        ):
+            required_by = requiring_alias & data.keys()
+            if required_by:
+                field_errors[alias] = ValidationError(
+                    [f"missing property (required by {sorted(required_by)})"]
+                )
+            elif required:
+                field_errors[alias] = MISSING_PROPERTY
+
+    elif required:
+
+        def checker(
+            data: Mapping[str, Any], field_errors: Dict[ErrorKey, ValidationError]
+        ):
+            field_errors[alias] = MISSING_PROPERTY
+
+    else:
+
+        def checker(
+            data: Mapping[str, Any], field_errors: Dict[ErrorKey, ValidationError]
+        ):
+            pass
+
+    return checker
 
 
 def with_validators(
@@ -363,20 +383,17 @@ class DeserializationMethodVisitor(
         init_vars: Sequence[Field],
     ) -> DeserializationMethodFactory:
         assert is_dataclass(cls)
-        normal_fields: List[Tuple[str, DeserializationField]] = []
-        merged_fields: List[Tuple[AbstractSet[str], DeserializationField]] = []
-        pattern_fields: List[Tuple[Pattern, DeserializationField]] = []
-        additional_field: Optional[DeserializationField] = None
+        normal_fields: List[Tuple[str, FieldDeserializer, RequiredFieldChecker]] = []
+        merged_fields: List[Tuple[AbstractSet[str], FieldDeserializer]] = []
+        pattern_fields: List[Tuple[Pattern, FieldDeserializer]] = []
+        additional_field: Optional[FieldDeserializer] = None
         post_init_modified = {
             field.name
             for field in chain(fields, init_vars)
             if POST_INIT_METADATA in field.metadata
         }
         defaults: Dict[str, Callable[[], Any]] = {}
-        required_by = {
-            req.name: {self.aliaser(get_alias(dep)) for dep in deps}
-            for req, deps in get_required_by(cls)[0].items()
-        }
+        required_by, _ = get_required_by(cls)
         for field in chain(fields, init_vars):  # noqa: F402
             metadata = check_metadata(field)
             if SKIP_METADATA in metadata or not field.init:
@@ -403,22 +420,29 @@ class DeserializationMethodVisitor(
                 field_factory = field_factory.merge(
                     validators=metadata[VALIDATORS_METADATA].validators
                 )
-            field_class = AggregateField if is_aggregate_field(field) else NormalField
-            field2 = field_class(field, field_factory.method)
+            deserializer = field_deserializer(field, field_factory.method, self.aliaser)
             if MERGED_METADATA in metadata:
                 merged_fields.append(
-                    (set(map(self.aliaser, get_init_merged_alias(field_type))), field2)
+                    (
+                        set(map(self.aliaser, get_init_merged_alias(field_type))),
+                        deserializer,
+                    )
                 )
             elif PROPERTIES_METADATA in metadata:
                 pattern = metadata[PROPERTIES_METADATA]
                 if pattern is None:
-                    additional_field = field2
+                    additional_field = deserializer
                 elif pattern is ...:
-                    pattern_fields.append((infer_pattern(field_type), field2))
+                    pattern_fields.append((infer_pattern(field_type), deserializer))
                 else:
-                    pattern_fields.append((pattern, field2))
+                    pattern_fields.append((pattern, deserializer))
             else:
-                normal_fields.append((self.aliaser(get_alias(field)), field2))
+                checker = required_field_checker(
+                    field, required_by.get(field), self.aliaser
+                )
+                normal_fields.append(
+                    (self.aliaser(get_alias(field)), deserializer, checker)
+                )
 
         @DeserializationMethodFactory.from_type(cls)
         def factory(
@@ -431,50 +455,39 @@ class DeserializationMethodVisitor(
                 errors = [] if constraints is None else constraints.errors(data)
                 field_errors: Dict[ErrorKey, ValidationError] = OrderedDict()
 
-                for alias, field in normal_fields:
+                for alias, deserialize_field, required_checker in normal_fields:
                     if alias in data:
                         aliases.append(alias)
-                        field.deserialize(
+                        deserialize_field(
                             ctx, data[alias], values, errors, field_errors
                         )
                     else:
-                        if field.name in required_by:
-                            requiring = required_by[field.name] & data.keys()
-                            if requiring:
-                                req = sorted(requiring)
-                                msg = f"missing property (required by {req})"
-                                field_errors[alias] = ValidationError([msg])
-                        if field.required and alias not in field_errors:
-                            field_errors[alias] = ValidationError(["missing property"])
-                for merged_alias, field in merged_fields:
+                        required_checker(data, field_errors)
+                for merged_alias, deserialize_field in merged_fields:
                     merged = {
                         alias: data[alias] for alias in merged_alias if alias in data
                     }
                     aliases.extend(merged)
-                    field.deserialize(ctx, merged, values, errors, field_errors)
+                    deserialize_field(ctx, merged, values, errors, field_errors)
                 if len(data) != len(aliases):
                     remain = data.keys() - set(aliases)
-                    for pattern, field in pattern_fields:
+                    for pattern, deserialize_field in pattern_fields:
                         matched = {
                             key: data[key] for key in remain if pattern.match(key)
                         }
                         remain -= matched.keys()
-                        field.deserialize(ctx, matched, values, errors, field_errors)
+                        deserialize_field(ctx, matched, values, errors, field_errors)
                     if additional_field is not None:
                         additional = {key: data[key] for key in remain}
-                        additional_field.deserialize(
-                            ctx, additional, values, errors, field_errors
-                        )
+                        additional_field(ctx, additional, values, errors, field_errors)
                     elif remain and not ctx.additional_properties:
                         for key in remain:
-                            field_errors[key] = ValidationError(["unexpected property"])
+                            field_errors[key] = UNEXPECTED_PROPERTY
                 else:
-                    for _, field in pattern_fields:
-                        field.deserialize(ctx, {}, values, errors, field_errors)
+                    for _, deserialize_field in pattern_fields:
+                        deserialize_field(ctx, {}, values, errors, field_errors)
                     if additional_field is not None:
-                        additional_field.deserialize(
-                            ctx, {}, values, errors, field_errors
-                        )
+                        additional_field(ctx, {}, values, errors, field_errors)
                 validators2: Sequence[Validator]
                 if validators:
                     init: Dict[str, Any] = {}
@@ -501,12 +514,12 @@ class DeserializationMethodVisitor(
                         try:
                             validate(ValidatorMock(cls, values), validators2, **init)
                         except ValidationError as err:
-                            error = merge_errors(error, err)
-                        raise apply_aliaser(error, self.aliaser)
+                            error = merge_errors(
+                                error, apply_aliaser(err, self.aliaser)
+                            )
+                        raise error
                 elif field_errors or errors:
-                    raise apply_aliaser(
-                        ValidationError(errors, field_errors), self.aliaser
-                    )
+                    raise ValidationError(errors, field_errors)
                 else:
                     validators2, init = ..., ...  # type: ignore # only for linter
                 try:
@@ -646,11 +659,11 @@ class DeserializationMethodVisitor(
                             if key not in defaults or not ctx.default_fallback:
                                 item_errors[alias] = err
                     elif key not in defaults:
-                        item_errors[alias] = ValidationError(["missing property"])
+                        item_errors[alias] = MISSING_PROPERTY
 
                 if not ctx.additional_properties:
                     for key in sorted(data.keys() - defaults.keys() - items.keys()):
-                        item_errors[key] = ValidationError(["unexpected property"])
+                        item_errors[key] = UNEXPECTED_PROPERTY
                 errors = () if constraints is None else constraints.errors(data)
                 if item_errors or errors:
                     raise ValidationError(errors, item_errors)
@@ -754,7 +767,7 @@ class DeserializationMethodVisitor(
                 if total and key_count != len(keys):
                     for key in keys:
                         if key not in data:
-                            item_errors[key] = ValidationError(["missing property"])
+                            item_errors[key] = MISSING_PROPERTY
                 errors = () if constraints is None else constraints.errors(data)
                 if item_errors or errors:
                     raise ValidationError(errors, item_errors)
