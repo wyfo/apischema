@@ -2,6 +2,7 @@ from collections import defaultdict
 from contextlib import suppress
 from functools import wraps
 from inspect import signature
+from types import new_class
 from typing import (
     Callable,
     Dict,
@@ -184,7 +185,7 @@ Cls = TypeVar("Cls", bound=Type)
 
 
 def self_deserializer(cls: Cls) -> Cls:
-    _deserializer(lambda x: x, type(cls.__name__, (cls,), {}), cls, None, extra=False)
+    _deserializer(lambda x: x, new_class(cls.__name__, (cls,)), cls, None, extra=False)
     return cls
 
 
