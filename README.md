@@ -22,10 +22,11 @@ This library fulfill the following goals:
 
 - stay as close as possible to the standard library (dataclasses, typing, etc.) to be as accessible as possible — as a consequence do not need plugins for editor/linter/etc.;
 - be additive and tunable, be able to work with user own types as well as foreign libraries ones; do not need a PR for handling new types like `bson.ObjectId`;
-- avoid dynamic things like using string for attribute name.
-- support *GraphQL*.
+- avoid dynamic things like using string for attribute name;
+- support *GraphQL*;
+- blazing fast performance.
 
-No known alternative achieves that.
+No known alternative achieves all of this.
 
 (Actually, *Apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code)
 

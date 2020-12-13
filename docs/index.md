@@ -21,12 +21,13 @@ This library fulfill the following goals:
 - stay as close as possible to the standard library (dataclasses, typing, etc.) to be as accessible as possible — as a consequence do not need plugins for editor/linter/etc.;
 - be additive and tunable, be able to work with user own types (ORM, etc.) as well as foreign libraries ones; do not need a PR for handling new types like `bson.ObjectId`, avoid subclassing;
 - avoid dynamic things like using string for attribute name;
-- support *GraphQL*.
+- support *GraphQL*;
+- blazing fast performance.
 
-No known alternative achieves that.
+No known alternative achieves all of this.
 
 !!! note
-    Actually, *Apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code (see [conversions section](conversions.md))  
+    Actually, *Apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code (see [conversions section](conversions.md) and [pydantic support example](examples/pydantic_compatibility.md))  
 
 ## Example
 
@@ -41,6 +42,10 @@ No known alternative achieves that.
 ## *GraphQL*
 
 *GraphQL* integration is detailed [further in the documentation](graphql/overview.md).
+
+## Performance
+
+*Apischema* is the fastest JSON deserialization and validation library according to [benchmarks](benchmark.md).
 
 ## FAQ
 
