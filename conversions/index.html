@@ -1179,15 +1179,25 @@ For deserialization, if there is <a href="#multiple-deserializers">several possi
 <p>That's why <em>Apischema</em> provides a shortcut for this case: <code>apischema.dataclass_model</code>; it allows to specify a dataclass which will be used as a typed model for a given class : each field of the dataclass will be mapped on the attributes of the class instances.</p>
 <p>Dataclass can also be declared dynamically with <code>dataclasses.make_dataclasses</code>. That's especially useful when it comes to add support for libraries like ORM. The following example show how to add a <a href="../examples/sqlalchemy/">basic support for 
 <em>SQLAlchemy</em></a>:</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">make_dataclass</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">MISSING</span><span class="p">,</span> <span class="n">make_dataclass</span>
 <span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">getmembers</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Collection</span>
 
+<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">as_declarative</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">apischema.conversions.dataclass_model</span> <span class="kn">import</span> <span class="n">dataclass_model</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">serialization_schema</span>
+
+
+<span class="k">def</span> <span class="nf">has_default</span><span class="p">(</span><span class="n">column</span><span class="p">:</span> <span class="n">Column</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">column</span><span class="o">.</span><span class="n">nullable</span>
+        <span class="ow">or</span> <span class="n">column</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">or</span> <span class="n">column</span><span class="o">.</span><span class="n">server_default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">)</span>
 
 
 <span class="c1"># Very basic SQLAlchemy support</span>
@@ -1199,27 +1209,49 @@ For deserialization, if there is <a href="#multiple-deserializers">several possi
             <span class="k">return</span>
 
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="n">column</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">column</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">python_type</span><span class="p">,</span> <span class="n">Undefined</span><span class="p">)</span>
+            <span class="p">(</span>
+                <span class="n">column</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="n">field_name</span><span class="p">,</span>
+                <span class="n">column</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">python_type</span><span class="p">,</span>
+                <span class="n">Undefined</span> <span class="k">if</span> <span class="n">has_default</span><span class="p">(</span><span class="n">column</span><span class="p">)</span> <span class="k">else</span> <span class="n">MISSING</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="k">for</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span>
         <span class="p">]</span>
         <span class="n">dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">)(</span><span class="n">make_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">fields</span><span class="p">))</span>
 
 
-<span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;a&quot;</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;foo&quot;</span>
+    <span class="n">bar</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
-<span class="n">a</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
-<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">a</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="mi">0</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
-<span class="k">assert</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+<span class="n">foo</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">foo</span><span class="o">.</span><span class="n">bar</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
+    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span>
     <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">foos</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Collection</span><span class="p">[</span><span class="n">Foo</span><span class="p">]:</span>
+    <span class="o">...</span>
+
+
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foos</span><span class="p">])</span>
+<span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">type Query {</span>
+<span class="s2">  foos: [Foo!]</span>
+<span class="s2">}</span>
+
+<span class="s2">type Foo {</span>
+<span class="s2">  bar: Int!</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 
 
