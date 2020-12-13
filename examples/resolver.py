@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from graphql import print_schema
 
-from apischema import graphql_schema, resolver
+from apischema.graphql import graphql_schema, resolver
 
 
 @dataclass

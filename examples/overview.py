@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 from graphql import graphql_sync, print_schema
 
-from apischema import graphql_schema, resolver
+from apischema.graphql import graphql_schema, resolver
 
 
 @dataclass

@@ -5,7 +5,8 @@ from uuid import UUID, uuid4
 from graphql import print_schema
 from pytest import raises
 
-from apischema import ValidationError, deserialize, serialize, graphql_schema
+from apischema import ValidationError, deserialize, serialize
+from apischema.graphql import graphql_schema
 from apischema.json_schema import deserialization_schema
 
 
