@@ -1,4 +1,5 @@
 from dataclasses import dataclass, is_dataclass
+from types import new_class
 from typing import Callable, Type, Union
 
 from apischema.cache import cache
@@ -39,7 +40,12 @@ def get_model(cls: Type, model: Model) -> Type:
     def __new__(_, *args, **kwargs):
         return cls(*args, **kwargs)
 
-    return type(model.__name__, (base,), {"__new__": __new__, MODEL_ORIGIN_ATTR: cls})
+    return new_class(
+        model.__name__,
+        (base,),
+        {},
+        lambda ns: ns.update({"__new__": __new__, MODEL_ORIGIN_ATTR: cls}),
+    )
 
 
 def dataclass_model(
