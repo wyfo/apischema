@@ -258,6 +258,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    Performance
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#faq" class="md-nav__link">
     FAQ
   </a>
@@ -611,6 +618,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    Performance
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#faq" class="md-nav__link">
     FAQ
   </a>
@@ -681,12 +695,13 @@
 <li>stay as close as possible to the standard library (dataclasses, typing, etc.) to be as accessible as possible — as a consequence do not need plugins for editor/linter/etc.;</li>
 <li>be additive and tunable, be able to work with user own types (ORM, etc.) as well as foreign libraries ones; do not need a PR for handling new types like <code>bson.ObjectId</code>, avoid subclassing;</li>
 <li>avoid dynamic things like using string for attribute name;</li>
-<li>support <em>GraphQL</em>.</li>
+<li>support <em>GraphQL</em>;</li>
+<li>blazing fast performance.</li>
 </ul>
-<p>No known alternative achieves that.</p>
+<p>No known alternative achieves all of this.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Actually, <em>Apischema</em> is even adaptable enough to enable support of competitor libraries in a few dozens of line of code (see <a href="conversions/">conversions section</a>)  </p>
+<p>Actually, <em>Apischema</em> is even adaptable enough to enable support of competitor libraries in a few dozens of line of code (see <a href="conversions/">conversions section</a> and <a href="examples/pydantic_compatibility/">pydantic support example</a>)  </p>
 </div>
 <h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Collection</span>
@@ -696,7 +711,8 @@
 <span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">graphql_schema</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 
 
@@ -765,6 +781,8 @@
 </div>
 <h2 id="graphql"><em>GraphQL</em><a class="headerlink" href="#graphql" title="Permanent link">&para;</a></h2>
 <p><em>GraphQL</em> integration is detailed <a href="graphql/overview/">further in the documentation</a>.</p>
+<h2 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">&para;</a></h2>
+<p><em>Apischema</em> is the fastest JSON deserialization and validation library according to <a href="benchmark/">benchmarks</a>.</p>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
 <h4 id="i-already-have-my-data-model-with-my-sqlalchemyorm-tables-will-i-have-to-duplicate-my-code-making-one-dataclass-by-table">I already have my data model with my <em>SQLAlchemy</em>/ORM tables, will I have to duplicate my code, making one dataclass by table?<a class="headerlink" href="#i-already-have-my-data-model-with-my-sqlalchemyorm-tables-will-i-have-to-duplicate-my-code-making-one-dataclass-by-table" title="Permanent link">&para;</a></h4>
 <p>Why would you have to duplicate them? <em>Apischema</em> can "work with user own types as well as foreign libraries ones". Some teasing of <a href="conversions/">conversion</a> feature: you can add default serialization for all your tables, or register different serializer that you can select according to your API endpoint, or both.</p>
