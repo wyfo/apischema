@@ -2,7 +2,6 @@ from collections.abc import Mapping
 from typing import Any, NewType
 
 import pydantic
-from pydantic import BaseModel
 from pytest import raises
 
 from apischema import (
@@ -17,10 +16,11 @@ from apischema.json_schema import deserialization_schema
 from apischema.validation.errors import LocalizedError
 
 
-def add_deserializer(cls: type[BaseModel]):
-    Data = schema(extra=cls.schema(), override=True)(NewType("Data", Mapping[str, Any]))
+def add_deserializer(cls: type[pydantic.BaseModel]):
+    Data = NewType("Data", Mapping[str, Any])
+    schema(extra=cls.schema(), override=True)(Data)
 
-    def deserialize_pydantic(data: Mapping[str, Any]) -> BaseModel:
+    def deserialize_pydantic(data: Mapping[str, Any]) -> pydantic.BaseModel:
         try:
             return cls(**data)
         except pydantic.ValidationError as error:
@@ -31,9 +31,9 @@ def add_deserializer(cls: type[BaseModel]):
     deserializer(deserialize_pydantic, Data, cls)
 
 
-for cls in BaseModel.__subclasses__():
+for cls in pydantic.BaseModel.__subclasses__():
     add_deserializer(cls)
-BaseModel.__init_subclass__ = classmethod(add_deserializer)  # type: ignore
+pydantic.BaseModel.__init_subclass__ = classmethod(add_deserializer)  # type: ignore
 
 
 @serializer
