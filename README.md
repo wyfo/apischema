@@ -102,3 +102,7 @@ assert print_schema(schema) == schema_str
 *Apischema* works out of the box with your data model.
 
 [*Let's start the Apischema tour.*](https://wyfo.github.io/apischema/)
+
+## Changelog
+
+See [releases](https://github.com/wyfo/apischema/releases)
