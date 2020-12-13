@@ -26,7 +26,7 @@ _refs: Dict[AnyType, Optional[Ref]] = {}
 
 def _default_ref(cls: AnyType) -> Ref:
     if not hasattr(cls, "__parameters__") and (
-        is_dataclass(cls)
+        (isinstance(cls, type) and is_dataclass(cls))
         or (hasattr(cls, "__supertype__") and is_builtin(cls))
         or isinstance(cls, _TypedDictMeta)
     ):

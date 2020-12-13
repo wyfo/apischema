@@ -66,8 +66,9 @@ class ConversionsVisitor(Generic[Conv, Return], Visitor[Return]):
     def _visit(self, cls: Type) -> Return:
         if not isinstance(cls, type):
             if isinstance(cls, DataclassModelWrapper):
-                cls = get_model(cls.cls, cls.model)
-            return self.visit_not_conversion(cls)
+                return self.visit(get_model(cls.cls, cls.model))
+            else:
+                return self.visit_not_conversion(cls)
         conversion = self.is_conversion(cls)
         with self._replace_conversions(None):
             if conversion is not None:
