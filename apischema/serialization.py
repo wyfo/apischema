@@ -1,6 +1,6 @@
 __all__ = ["add_serialized", "serialize", "serialized"]
 
-from dataclasses import dataclass, is_dataclass
+from dataclasses import is_dataclass
 from enum import Enum
 from inspect import Parameter, iscoroutinefunction
 from typing import (
@@ -42,18 +42,12 @@ MAPPING_TYPE_SET = set(MAPPING_TYPES)
 SerializationMethod = Callable[[Any, Callable], Any]
 
 
-@dataclass
-class SerializationField:
-    name: str
-    method: SerializationMethod
-
-
 @cache
 def serialization_fields(
     cls: Type, aliaser: Aliaser
 ) -> Tuple[
-    Sequence[Tuple[str, SerializationField]],
-    Sequence[SerializationField],
+    Sequence[Tuple[str, str, SerializationMethod]],
+    Sequence[Tuple[str, SerializationMethod]],
     Sequence[Tuple[str, SerializationMethod]],
 ]:
     types, fields, _ = dataclass_types_and_fields(cls)  # type: ignore
@@ -89,11 +83,10 @@ def serialization_fields(
             method = lambda obj, _: obj  # noqa: E731
         else:
             method = lambda obj, _serialize: _serialize(obj)  # noqa: E731
-        field2 = SerializationField(field.name, method)
         if is_aggregate_field(field):
-            aggregate_fields.append(field2)
+            aggregate_fields.append((field.name, method))
         else:
-            normal_fields.append((aliaser(get_alias(field)), field2))
+            normal_fields.append((field.name, aliaser(get_alias(field)), method))
     # TODO handle dataclass model feature
     for name, resolver in get_serialized_resolvers(cls).items():  # noqa: F402
 
@@ -159,19 +152,25 @@ def serialize(
             )
             if exclude_unset and hasattr(obj, FIELDS_SET_ATTR):
                 fields_set_ = fields_set(obj)
-                fields = [(a, f) for (a, f) in fields if f.name in fields_set_]
+                fields = [
+                    (name, alias, method)
+                    for (name, alias, method) in fields
+                    if name in fields_set_
+                ]
                 aggregate_fields = [
-                    f for f in aggregate_fields if f.name in fields_set_
+                    (name, method)
+                    for (name, method) in aggregate_fields
+                    if name in fields_set_
                 ]
             result = {}
             # properties before normal fields to avoid overloading a field with property
-            for field in aggregate_fields:
-                attr = getattr(obj, field.name)
-                result.update(field.method(attr, _serialize))  # type: ignore
-            for alias, field in fields:
-                attr = getattr(obj, field.name)
+            for name, method in aggregate_fields:
+                attr = getattr(obj, name)
+                result.update(method(attr, _serialize))  # type: ignore
+            for name, alias, method in fields:
+                attr = getattr(obj, name)
                 if attr is not Undefined:
-                    result[alias] = field.method(attr, _serialize)  # type: ignore
+                    result[alias] = method(attr, _serialize)  # type: ignore
             for alias, method in serialized_fields:
                 res = method(obj, _serialize)
                 if res is not Undefined:
