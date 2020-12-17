@@ -24,7 +24,10 @@ This library fulfill the following goals:
 - support *GraphQL*;
 - (*Bonus*) be the fastest.
 
-No known alternative achieves all of this.
+No known alternative achieves all of this. 
+
+!!! note
+    If you wonder about difference with *pydantic* library, see the [dedicated section](pydantic_difference.md).
 
 !!! note
     Actually, *Apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code (see [conversions section](conversions.md) and [pydantic support example](examples/pydantic_compatibility.md))  
@@ -48,6 +51,10 @@ No known alternative achieves all of this.
 *Apischema* is the fastest JSON deserialization and validation library according to [benchmarks](benchmark.md).
 
 ## FAQ
+
+#### What is the difference between *Apischema* and *pydantic*?
+
+See the [dedicated section](pydantic_difference.md) to answer this question. 
 
 #### I already have my data model with my *SQLAlchemy*/ORM tables, will I have to duplicate my code, making one dataclass by table?
 Why would you have to duplicate them? *Apischema* can "work with user own types as well as foreign libraries ones". Some teasing of [conversion](conversions.md) feature: you can add default serialization for all your tables, or register different serializer that you can select according to your API endpoint, or both.

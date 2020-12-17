@@ -26,7 +26,7 @@ Dataclass validation can be completed by custom validators. These are simple dec
 !!! note
     Validators are alawys executed in order of declaration.
 
-### Computed dependencies
+### Automatic dependencies management
 
 It makes no sense to execute a validator using a field that is ill-formed. Hopefully, *Apischema* is able to compute validator dependencies — the fields used in validator; validator is executed only if the all its dependencies are ok.
 
@@ -63,7 +63,7 @@ In the example, validator yield a tuple of an "error path" and the error message
 
 ### Discard
 
-If one of your validators fails because a field is corrupted, maybe you don't want following validators to be executed. `validator` decorator provides a `discard` parameter to discard fields of the remaining validation. All the remaining validators having discarded fields in [dependencies](#computed-dependencies) will not be executed.
+If one of your validators fails because a field is corrupted, maybe you don't want following validators to be executed. `validator` decorator provides a `discard` parameter to discard fields of the remaining validation. All the remaining validators having discarded fields in [dependencies](#automatic-dependencies-management) will not be executed.
 
 ```python
 {!discard.py!}
