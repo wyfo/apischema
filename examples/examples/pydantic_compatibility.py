@@ -15,6 +15,8 @@ from apischema import (
 from apischema.json_schema import deserialization_schema
 from apischema.validation.errors import LocalizedError
 
+#################### Pydantic support code starts here
+
 
 def add_deserializer(cls: type[pydantic.BaseModel]):
     Data = NewType("Data", Mapping[str, Any])
@@ -41,6 +43,9 @@ def serialize_pydantic(obj: pydantic.BaseModel) -> Mapping[str, Any]:
     # There is currently no mean to retrieve `serialize` parameters,
     # so exclude unset is set to True as it's the default apischema setting
     return obj.dict(exclude_unset=True)
+
+
+#################### Pydantic support code ends here
 
 
 class Foo(pydantic.BaseModel):
