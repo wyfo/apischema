@@ -7,7 +7,7 @@ from sqlalchemy import Column, Integer
 from sqlalchemy.ext.declarative import as_declarative
 
 from apischema import Undefined, deserialize, serialize
-from apischema.conversions.dataclass_model import dataclass_model
+from apischema.conversions import dataclass_model
 from apischema.graphql import graphql_schema
 from apischema.json_schema import serialization_schema
 

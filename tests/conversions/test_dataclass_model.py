@@ -2,7 +2,7 @@ from dataclasses import dataclass, field, make_dataclass
 from typing import Type
 
 from apischema import alias, deserialize, serialize
-from apischema.conversions.dataclass_model import dataclass_model
+from apischema.conversions.dataclass_models import dataclass_model
 from apischema.json_schema import deserialization_schema
 
 

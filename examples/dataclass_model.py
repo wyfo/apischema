@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from apischema.conversions.dataclass_model import dataclass_model
+from apischema.conversions import dataclass_model
 from apischema.json_schema import deserialization_schema
 
 

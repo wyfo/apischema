@@ -17,7 +17,7 @@ from typing import (
 from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.cache import cache
-from apischema.conversions.dataclass_model import DataclassModelWrapper, get_model
+from apischema.conversions.dataclass_models import DataclassModelWrapper, get_model
 from apischema.conversions.metadata import get_field_conversions
 from apischema.conversions.utils import Conversions
 from apischema.conversions.visitor import SerializationVisitor

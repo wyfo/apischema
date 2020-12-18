@@ -6,7 +6,7 @@ import graphql
 
 from apischema.aliases import Aliaser
 from apischema.conversions import Conversions
-from apischema.conversions.dataclass_model import DataclassModelWrapper
+from apischema.conversions.dataclass_models import DataclassModelWrapper
 from apischema.conversions.visitor import SerializationVisitor
 from apischema.deserialization import deserialize
 from apischema.resolvers import Resolver
