@@ -23,14 +23,23 @@ from typing import (  # type: ignore
 from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.conversions.utils import Conversions
-from apischema.conversions.visitor import Conv
+from apischema.conversions.visitor import (
+    Conv,
+    ConversionsVisitor,
+    DeserializationVisitor,
+    SerializationVisitor,
+)
 from apischema.dataclass_utils import (
     get_alias,
     get_default,
+    get_field_conversion,
+    get_fields,
+    get_requirements,
     has_default,
     is_dataclass,
     is_required,
 )
+from apischema.dependent_required import DependentRequired
 from apischema.json_schema.constraints import (
     ArrayConstraints,
     Constraints,
@@ -39,11 +48,6 @@ from apischema.json_schema.constraints import (
     StringConstraints,
 )
 from apischema.json_schema.generation.refs import Refs, RefsExtractor
-from apischema.json_schema.generation.visitor import (
-    DeserializationSchemaVisitor,
-    SchemaVisitor,
-    SerializationSchemaVisitor,
-)
 from apischema.json_schema.patterns import infer_pattern
 from apischema.json_schema.refs import get_ref, schema_ref
 from apischema.json_schema.schema import Schema, get_schema, merge_schema
@@ -55,10 +59,10 @@ from apischema.metadata.keys import (
     SCHEMA_METADATA,
     check_metadata,
 )
-from apischema.resolvers import Resolver
 from apischema.serialization import get_serialized_resolvers, serialize
-from apischema.types import AnyType
-from apischema.utils import is_hashable, map_values
+from apischema.skip import filter_skipped
+from apischema.types import AnyType, OrderedDict
+from apischema.utils import Operation, is_hashable, map_values
 
 constraint_by_type = {
     int: NumberConstraints,
@@ -83,7 +87,7 @@ def with_schema(method: Method) -> Method:
     return cast(Method, wrapper)
 
 
-class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
+class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
     def __init__(
         self,
         aliaser: Aliaser,
@@ -143,27 +147,29 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
             uniqueItems=issubclass(cls, AbstractSet),
         )
 
-    def _visit_field_(self, field: Field, field_type: AnyType):
+    def visit_field(self, field: Field, field_type: AnyType):
+        field_type, conversions, _ = get_field_conversion(
+            field, field_type, self.operation
+        )
+        schema: Optional[Schema] = None
         if SCHEMA_METADATA in field.metadata:
-            schema: Schema = field.metadata[SCHEMA_METADATA]
+            schema = cast(Schema, field.metadata[SCHEMA_METADATA])
             if schema.annotations is not None and schema.annotations is ...:
                 if not has_default(field):
                     raise TypeError("Invalid ... without field default")
                 try:
-                    _, conversions = self._field_conversions(field, field_type)
                     default = serialize(get_default(field), conversions=conversions)
                 except Exception:
                     pass
                 else:
                     annotations = replace(schema.annotations, default=default)
                     schema = replace(schema, annotations=annotations)
+        with self._replace_conversions(conversions):
             return self.visit_with_schema(field_type, schema)
-        else:
-            return self.visit(field_type)
 
     def _properties_schema(self, field: Field, field_type: AnyType) -> JsonSchema:
         with self._without_ref():
-            props_schema = self._visit_field(field, field_type)
+            props_schema = self.visit_field(field, field_type)
         if not props_schema.get("type") == JsonType.OBJECT:
             raise TypeError("properties field must have an 'object' type")
         if "patternProperties" in props_schema:
@@ -196,11 +202,11 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
         merged_schemas = []
         pattern_properties = {}
         additional_properties: Union[bool, JsonSchema] = settings.additional_properties
-        for field in self._dataclass_fields(fields, init_vars):
+        for field in get_fields(fields, init_vars, self.operation):
             metadata = check_metadata(field)
             field_type = types[field.name]
             if MERGED_METADATA in metadata:
-                merged_schemas.append(self._visit_field(field, field_type))
+                merged_schemas.append(self.visit_field(field, field_type))
             elif PROPERTIES_METADATA in metadata:
                 pattern = metadata[PROPERTIES_METADATA]
                 properties_schema = self._properties_schema(field, field_type)
@@ -215,30 +221,34 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
                 properties[alias] = json_schema(
                     readOnly=not field.init,
                     writeOnly=field in init_vars,
-                    **self._visit_field(field, field_type),
+                    **self.visit_field(field, field_type),
                 )
                 if is_required(field):
                     required.append(alias)
-        for name, resolver in self._resolvers(cls).items():
-            with self._replace_conversions(resolver.conversions):
-                properties[self.aliaser(name)] = json_schema(
-                    readOnly=True,
-                    **self.visit_with_schema(resolver.return_type, resolver.schema),
-                )
-        dep_req = self._dependent_required(cls)
+        if self.operation == Operation.SERIALIZATION:
+            for name, resolver in get_serialized_resolvers(cls).items():
+                with self._replace_conversions(resolver.conversions):
+                    properties[self.aliaser(name)] = json_schema(
+                        readOnly=True,
+                        **self.visit_with_schema(resolver.return_type, resolver.schema),
+                    )
+        dependent_required = {
+            self.aliaser(get_alias(field)): sorted(
+                self.aliaser(get_alias(req)) for req in required_by
+            )
+            for field, required_by in get_requirements(
+                cls, DependentRequired.requiring, self.operation
+            ).items()
+        }
         result = json_schema(
             type=JsonType.OBJECT,
             properties=properties,
             required=required,
             additionalProperties=additional_properties,
             patternProperties=pattern_properties,
-            dependentRequired={
-                alias: sorted(self.aliaser(get_alias(f)) for f in dep_req[req])
-                for alias, req in sorted(
-                    [(self.aliaser(get_alias(req)), req) for req in dep_req],
-                    key=lambda t: t[0],
-                )
-            },
+            dependentRequired=OrderedDict(
+                (f, dependent_required[f]) for f in sorted(dependent_required)
+            ),
         )
         if merged_schemas:
             result = json_schema(
@@ -376,6 +386,11 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
         else:
             return json_schema(anyOf=results)
 
+    def union(self, alternatives: Sequence[AnyType]) -> JsonSchema:
+        return self._union_result(
+            map(self.visit, filter_skipped(alternatives, schema_only=True))
+        )
+
     def visit_with_schema(self, cls: AnyType, schema: Optional[Schema]) -> JsonSchema:
         schema_save = self._schema
         if is_hashable(cls) and not self.is_extra_conversions(cls):
@@ -419,17 +434,14 @@ class SchemaBuilder(SchemaVisitor[Conv, JsonSchema]):
     RefsExtractor: Type["RefsExtractor"]
 
 
-class DeserializationSchemaBuilder(DeserializationSchemaVisitor, SchemaBuilder):
-    class RefsExtractor(DeserializationSchemaVisitor, RefsExtractor):  # type: ignore
+class DeserializationSchemaBuilder(DeserializationVisitor, SchemaBuilder):
+    class RefsExtractor(DeserializationVisitor, RefsExtractor):  # type: ignore
         pass
 
 
-class SerializationSchemaBuilder(SerializationSchemaVisitor, SchemaBuilder):
-    class RefsExtractor(SerializationSchemaVisitor, RefsExtractor):  # type: ignore
+class SerializationSchemaBuilder(SerializationVisitor, SchemaBuilder):
+    class RefsExtractor(SerializationVisitor, RefsExtractor):  # type: ignore
         pass
-
-    def _resolvers(self, cls: Type) -> Mapping[str, Resolver]:
-        return get_serialized_resolvers(cls)
 
 
 TypesWithConversions = Collection[Union[AnyType, Tuple[AnyType, Conversions]]]
@@ -449,7 +461,7 @@ def _default_version(
     return version, ref_factory, all_refs
 
 
-def _export_refs(
+def _extract_refs(
     types: TypesWithConversions, builder: Type[SchemaBuilder], all_refs: bool
 ) -> Mapping[str, AnyType]:
     refs: Refs = {}
@@ -491,7 +503,7 @@ def _schema(
     if aliaser is None:
         aliaser = settings.aliaser()
     version, ref_factory, all_refs = _default_version(version, ref_factory, all_refs)
-    refs = _export_refs([(cls, conversions)], builder, all_refs)
+    refs = _extract_refs([(cls, conversions)], builder, all_refs)
     visitor = builder(aliaser, ref_factory, refs, False)
     with visitor._replace_conversions(conversions):
         json_schema = visitor.visit_with_schema(cls, schema)
@@ -561,7 +573,7 @@ def _defs_schema(
     all_refs: bool,
 ) -> Mapping[str, JsonSchema]:
     return _refs_schema(
-        builder, aliaser, _export_refs(types, builder, all_refs), ref_factory
+        builder, aliaser, _extract_refs(types, builder, all_refs), ref_factory
     )
 
 

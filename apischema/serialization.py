@@ -18,10 +18,13 @@ from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.conversions.dataclass_models import DataclassModelWrapper, get_model
-from apischema.conversions.metadata import get_field_conversions
 from apischema.conversions.utils import Conversions
 from apischema.conversions.visitor import SerializationVisitor
-from apischema.dataclass_utils import dataclass_types_and_fields, get_alias
+from apischema.dataclass_utils import (
+    dataclass_types_and_fields,
+    get_alias,
+    get_field_conversion,
+)
 from apischema.fields import FIELDS_SET_ATTR, fields_set
 from apischema.metadata.keys import SKIP_METADATA, check_metadata, is_aggregate_field
 from apischema.resolvers import (
@@ -29,10 +32,10 @@ from apischema.resolvers import (
     ResolverDescriptor,
     add_resolver,
     get_resolvers,
-    resolver,
+    resolver as make_resolver,
 )
 from apischema.types import COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES
-from apischema.utils import Undefined, typed_wraps
+from apischema.utils import Operation, Undefined, typed_wraps
 from apischema.visitor import Unsupported
 
 PRIMITIVE_TYPES_SET = set(PRIMITIVE_TYPES)
@@ -57,38 +60,44 @@ def serialization_fields(
             continue
         check_metadata(field)
         field_type = types[field.name]
+        conversion_type, conversions, converter = get_field_conversion(
+            field, field_type, Operation.SERIALIZATION
+        )
         method: Callable
-        conversions = get_field_conversions(field, field_type)
-        if conversions is not None:
-            if conversions.serializer is None:
+        if converter is not None:
 
-                def method(
-                    obj: Any,
-                    _serialize: Callable,
-                    conversions=conversions.serialization,  # type: ignore
-                ) -> Any:
-                    return _serialize(obj, conversions=conversions)
+            def method(
+                obj: Any,
+                _serialize: Callable,
+                conversions=conversions,
+                converter=converter,
+            ) -> Any:
+                return _serialize(converter(obj), conversions=conversions)
 
-            else:
-                _, (converter, sub_conversions) = conversions.serialization_conversion(
-                    field_type
-                )
+        elif conversions is not None:
 
-                def method(
-                    obj: Any, _serialize: Callable, conversions=sub_conversions
-                ) -> Any:
-                    return _serialize(converter(obj), conversions=conversions)
+            def method(
+                obj: Any,
+                _serialize: Callable,
+                conversions=conversions,
+            ) -> Any:
+                return _serialize(obj, conversions=conversions)
 
         elif field_type in PRIMITIVE_TYPES_SET:
-            method = lambda obj, _: obj  # noqa: E731
+
+            def method(obj: Any, _):
+                return obj
+
         else:
-            method = lambda obj, _serialize: _serialize(obj)  # noqa: E731
+
+            def method(obj: Any, _serialize: Callable):
+                return _serialize(obj)
+
         if is_aggregate_field(field):
             aggregate_fields.append((field.name, method))
         else:
             normal_fields.append((field.name, aliaser(get_alias(field)), method))
-    # TODO handle dataclass model feature
-    for name, resolver in get_serialized_resolvers(cls).items():  # noqa: F402
+    for name, resolver in get_serialized_resolvers(cls).items():
 
         def method(
             obj: Any,
@@ -228,14 +237,14 @@ class SerializedDescriptor:
 
 
 def _serialized(*args, **kwargs):
-    result = resolver(*args, **kwargs)
+    result = make_resolver(*args, **kwargs)
     if isinstance(result, ResolverDescriptor):
         return SerializedDescriptor(result)
     else:
         return lambda method: SerializedDescriptor(result(method))
 
 
-serialized = typed_wraps(resolver)(_serialized)
+serialized = typed_wraps(make_resolver)(_serialized)
 
 
 def _add_serialized(cls, name=None, **kwargs):

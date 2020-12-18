@@ -25,7 +25,6 @@ from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.coercion import Coercion, get_coercer
-from apischema.conversions.metadata import get_field_conversions
 from apischema.conversions.utils import Conversions, ConversionsWrapper, identity
 from apischema.conversions.visitor import Deserialization, DeserializationVisitor
 from apischema.dataclass_utils import (
@@ -33,10 +32,12 @@ from apischema.dataclass_utils import (
     dataclass_types_and_fields,
     get_alias,
     get_default,
-    get_required_by,
+    get_field_conversion,
+    get_requirements,
     has_default,
     is_required,
 )
+from apischema.dependent_required import DependentRequired
 from apischema.json_schema.constraints import (
     ArrayConstraints,
     Constraints,
@@ -64,7 +65,7 @@ from apischema.types import (
     OrderedDict,
 )
 from apischema.typing import get_origin
-from apischema.utils import map_values
+from apischema.utils import Operation, map_values
 from apischema.validation.errors import (
     ErrorKey,
     ValidationError,
@@ -393,7 +394,9 @@ class DeserializationMethodVisitor(
             if POST_INIT_METADATA in field.metadata
         }
         defaults: Dict[str, Callable[[], Any]] = {}
-        required_by, _ = get_required_by(cls)
+        required_by = get_requirements(
+            cls, DependentRequired.required_by, Operation.DESERIALIZATION
+        )
         for field in chain(fields, init_vars):  # noqa: F402
             metadata = check_metadata(field)
             if SKIP_METADATA in metadata or not field.init:
@@ -401,17 +404,17 @@ class DeserializationMethodVisitor(
             field_type = types[field.name]
             if has_default(field):
                 defaults[field.name] = lambda: get_default(field)
-            conversions = get_field_conversions(field, field_type)
-            if conversions is None:
-                field_factory = self.visit(field_type)
-            elif conversions.deserializer is None:
+            conversion_type, conversions, converter = get_field_conversion(
+                field, field_type, Operation.DESERIALIZATION
+            )
+            if converter is not None:
                 field_factory = self.visit_with_conversions(
-                    field_type, conversions.deserialization
+                    field_type, {conversion_type: (converter, conversions)}
                 )
+            elif conversions is not None:
+                field_factory = self.visit_with_conversions(field_type, conversions)
             else:
-                field_factory = self.visit_conversion(
-                    field_type, conversions.deserialization_conversion(field_type)
-                )
+                field_factory = self.visit(field_type)
             if SCHEMA_METADATA in metadata:
                 field_factory = field_factory.merge(
                     constraints=metadata[SCHEMA_METADATA].constraints

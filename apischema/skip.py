@@ -1,9 +1,9 @@
 __all__ = ["NotNull", "Skip"]
-from typing import Any, Iterator, Sequence, TypeVar, Union
+from typing import Iterator, Sequence, TypeVar, Union
 
 from apischema.types import AnyType
+from apischema.typing import get_args, get_origin
 from apischema.utils import UndefinedType
-from apischema.visitor import Unsupported, Visitor
 
 
 class Skipped(Exception):
@@ -38,35 +38,17 @@ else:
     NotNull = _NotNull()  # type: ignore
 
 
-class SkipVisitor(Visitor[Iterator[AnyType]]):
-    def __init__(self, schema_only: bool):
-        super().__init__()
-        self.schema_only = schema_only
-
-    def annotated(self, cls: AnyType, annotations: Sequence[Any]) -> Iterator[AnyType]:
-        for annotation in annotations:
-            if annotation is Skip or (self.schema_only and annotation is SkipSchema):
-                raise Skipped
-        return super().annotated(cls, annotations)
-
-    def union(self, alternatives: Sequence[AnyType]) -> Iterator[AnyType]:
-        for alt in alternatives:
-            try:
-                self.visit(alt)
-            except Skipped:
-                pass
-            except (NotImplementedError, Unsupported):
-                yield alt
-            else:
-                raise NotImplementedError()
-
-    def visit(self, cls: AnyType) -> Iterator[AnyType]:
-        if cls is UndefinedType:
-            raise Skipped
-        return super().visit(cls)
+def is_skipped(cls: AnyType, *, schema_only) -> bool:
+    return cls is UndefinedType or (
+        get_origin(cls) is Annotated
+        and (
+            Skip in get_args(cls)[1:]
+            or (schema_only and SkipSchema in get_args(cls)[1:])
+        )
+    )
 
 
 def filter_skipped(
     alternatives: Sequence[AnyType], *, schema_only=False
 ) -> Iterator[AnyType]:
-    return SkipVisitor(schema_only).union(alternatives)
+    return (alt for alt in alternatives if not is_skipped(alt, schema_only=schema_only))
