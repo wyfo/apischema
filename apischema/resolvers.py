@@ -16,7 +16,7 @@ from typing import (
 )
 
 from apischema.conversions import Conversions
-from apischema.conversions.dataclass_model import get_model_origin
+from apischema.conversions.dataclass_models import get_model_origin
 from apischema.json_schema.schema import Schema
 from apischema.types import AnyType
 from apischema.typing import get_args, get_origin, get_type_hints

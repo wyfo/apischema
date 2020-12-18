@@ -8,7 +8,7 @@ from apischema.conversions.converters import (
     _extra_serializers,
     _serializers,
 )
-from apischema.conversions.dataclass_model import DataclassModelWrapper, get_model
+from apischema.conversions.dataclass_models import DataclassModelWrapper, get_model
 from apischema.conversions.utils import (
     Conversions,
     ConverterWithConversions,
