@@ -538,8 +538,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#apischema-supports-generic-without-needing-another-class-and-in-python-36" class="md-nav__link">
-    Apischema supports Generic without needing another class and in Python 3.6
+  <a href="#apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff" class="md-nav__link">
+    Apischema supports Generic in Python 3.6 and without requiring additional stuff
   </a>
   
 </li>
@@ -687,8 +687,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#apischema-supports-generic-without-needing-another-class-and-in-python-36" class="md-nav__link">
-    Apischema supports Generic without needing another class and in Python 3.6
+  <a href="#apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff" class="md-nav__link">
+    Apischema supports Generic in Python 3.6 and without requiring additional stuff
   </a>
   
 </li>
@@ -750,46 +750,47 @@
                 
                 <h1 id="difference-with-pydantic">Difference with pydantic<a class="headerlink" href="#difference-with-pydantic" title="Permanent link">&para;</a></h1>
 <p>The question is often asked, so it is answered in a dedicated section. Here are some the key differences between <em>Apischema</em> and <em>pydantic</em></p>
-<h4 id="apischema-is-faster"><em>Apischema</em> is faster<a class="headerlink" href="#apischema-is-faster" title="Permanent link">&para;</a></h4>
+<h3 id="apischema-is-faster"><em>Apischema</em> is faster<a class="headerlink" href="#apischema-is-faster" title="Permanent link">&para;</a></h3>
 <p><em>pydantic</em> uses Cython to improve its performance (with some side effects in its code); <em>Apischema</em> doesn't need it and is still 1.5x faster — more than 2x when <em>pydantic</em> is not compiled with Cython.</p>
-<h4 id="apischema-can-generate-graphql-schema-from-your-resolvers"><em>Apischema</em> can generate <em>GraphQL</em> schema from your resolvers<a class="headerlink" href="#apischema-can-generate-graphql-schema-from-your-resolvers" title="Permanent link">&para;</a></h4>
+<h3 id="apischema-can-generate-graphql-schema-from-your-resolvers"><em>Apischema</em> can generate <em>GraphQL</em> schema from your resolvers<a class="headerlink" href="#apischema-can-generate-graphql-schema-from-your-resolvers" title="Permanent link">&para;</a></h3>
 <p>And the same types can be used in JSON oriented API and GraphQL API.</p>
-<h4 id="apischema-uses-standard-dataclasses-and-types"><em>Apischema</em> uses standard dataclasses and types<a class="headerlink" href="#apischema-uses-standard-dataclasses-and-types" title="Permanent link">&para;</a></h4>
+<h3 id="apischema-uses-standard-dataclasses-and-types"><em>Apischema</em> uses standard dataclasses and types<a class="headerlink" href="#apischema-uses-standard-dataclasses-and-types" title="Permanent link">&para;</a></h3>
 <p><em>pydantic</em> uses its own <code>BaseModel</code> class, or it's own pseudo-<code>dataclass</code>, so you are forced to tie all your code the library, and you cannot reuse code written in a more standard way.</p>
 <p>By the way, Pydantic use expressions in typing annotations (<code>conint</code>, etc.), while it's not recommended and treated as an error by tools like <em>Mypy</em></p>
-<h4 id="apischema-doesnt-require-external-plugins-for-editors-linters-etc"><em>Apischema</em> doesn't require external plugins for editors, linters, etc.<a class="headerlink" href="#apischema-doesnt-require-external-plugins-for-editors-linters-etc" title="Permanent link">&para;</a></h4>
+<h3 id="apischema-doesnt-require-external-plugins-for-editors-linters-etc"><em>Apischema</em> doesn't require external plugins for editors, linters, etc.<a class="headerlink" href="#apischema-doesnt-require-external-plugins-for-editors-linters-etc" title="Permanent link">&para;</a></h3>
 <p><em>pydantic</em> requires a plugin to allow <em>Mypy</em> to type checked <code>BaseModel</code> and others <em>pydantic</em> singularities (and to not raise errors on it); plugin are also needed for editors.</p>
 <p><em>Apischema</em> for its part doesn't have borderline stuff like <code>conint</code> annotations and because it uses standard dataclasses, it doesn't need anything else that dataclass support, which is standard on editors and type checkers.</p>
-<h4 id="apischema-truly-works-out-of-the-box-with-forward-type-references-especially-for-recursive-model"><em>Apischema</em> truly works out-of-the-box with forward type references (especially for recursive model)<a class="headerlink" href="#apischema-truly-works-out-of-the-box-with-forward-type-references-especially-for-recursive-model" title="Permanent link">&para;</a></h4>
+<h3 id="apischema-truly-works-out-of-the-box-with-forward-type-references-especially-for-recursive-model"><em>Apischema</em> truly works out-of-the-box with forward type references (especially for recursive model)<a class="headerlink" href="#apischema-truly-works-out-of-the-box-with-forward-type-references-especially-for-recursive-model" title="Permanent link">&para;</a></h3>
 <p><em>pydantic</em> requires calling <code>update_forward_refs</code> method on recursive types, while <em>Apischema</em> "just works".</p>
-<h4 id="apischema-doesnt-mix-up-deserialization-with-your-code"><em>Apischema</em> doesn't mix up (de)serialization with your code<a class="headerlink" href="#apischema-doesnt-mix-up-deserialization-with-your-code" title="Permanent link">&para;</a></h4>
+<h3 id="apischema-doesnt-mix-up-deserialization-with-your-code"><em>Apischema</em> doesn't mix up (de)serialization with your code<a class="headerlink" href="#apischema-doesnt-mix-up-deserialization-with-your-code" title="Permanent link">&para;</a></h3>
 <p><em>pydantic</em> mix up model constructor with deserializer. That ruins the concept of type checking if you want to instantiate a model from your code.</p>
 <p><em>Apischema</em> use dedicated functions for its features, meaning your dataclasses are instanciated normally with type checking. In your code, you manipulate objects; (de)serialization is for input/output.</p>
 <p><em>Apischema</em> also doesn't mix up validation of external data with your statically checked code; there is no runtime validation in constructors.</p>
-<h4 id="apischema-conversions-features-allows-to-support-any-type-defined-in-your-code-or-in-extern-libraries"><em>Apischema</em> <a href="../conversions/">conversions</a> features allows to support any type defined in your code or in extern libraries<a class="headerlink" href="#apischema-conversions-features-allows-to-support-any-type-defined-in-your-code-or-in-extern-libraries" title="Permanent link">&para;</a></h4>
+<h3 id="apischema-conversions-features-allows-to-support-any-type-defined-in-your-code-or-in-extern-libraries"><em>Apischema</em> <a href="../conversions/">conversions</a> features allows to support any type defined in your code or in extern libraries<a class="headerlink" href="#apischema-conversions-features-allows-to-support-any-type-defined-in-your-code-or-in-extern-libraries" title="Permanent link">&para;</a></h3>
 <p><em>pydantic</em> is limited to its <code>BaseModel</code> and some types it has overloaded in its code. You cannot deserialize directly an <em>SQLAlchemy</em> model or a <code>bson.ObjectID</code>. You are forced to use pseudo types to overload what you want (see <a href="https://github.com/tiangolo/fastapi/issues/68">issue on <code>bson.ObjectId</code></a>).</p>
 <p><em>Apischema</em> has no limit, and it only requires a few lines of code to support what you want, from <code>bson.ObjectId</code> to <em>SQLAlchemy</em> models.</p>
-<h4 id="apischema-has-a-functional-approach-pydantic-has-an-object-one-with-its-limitations"><em>Apischema</em> has a functional approach, <em>pydantic</em> has an object one, with its limitations<a class="headerlink" href="#apischema-has-a-functional-approach-pydantic-has-an-object-one-with-its-limitations" title="Permanent link">&para;</a></h4>
+<h3 id="apischema-has-a-functional-approach-pydantic-has-an-object-one-with-its-limitations"><em>Apischema</em> has a functional approach, <em>pydantic</em> has an object one, with its limitations<a class="headerlink" href="#apischema-has-a-functional-approach-pydantic-has-an-object-one-with-its-limitations" title="Permanent link">&para;</a></h3>
 <p>Every functionality of <em>pydantic</em> is a method of <code>BaseModel</code>. You have to have a <code>BaseModel</code> instance to do something, even if you manipulate only an integer. So you have to use complex stuff like <em>root type</em>, and to have <code>BaseModel</code> namespace mixing up with your class namespace. </p>
 <p>Also, because Python has limited object features (no extensions like in Swift or Kotlin), you cannot use easily types you don't defined yourself.</p>
 <p><em>Apischema</em> is functional, it doesn't use method but simple functions, which works for every types. You can also register conversions for any types similarly you would implement a type class in a functional language (or adding an extension in Swift or Kotlin).</p>
 <p>This approach has far fewer limitations. It also allows to add feature in to <em>Apischema</em> (in the library directly or in a plugin) more easily, without breaking the paradigm; in fact, third-party plugin cannot add methods to <code>BaseModel</code> (without breaking static checking), and if <em>pydantic</em> adds a method, you have to make sure it will not mangle your model namespace.</p>
-<h4 id="apischema-allows-you-to-use-composition-over-inheritance"><em>Apischema</em> allows you to use composition over inheritance<a class="headerlink" href="#apischema-allows-you-to-use-composition-over-inheritance" title="Permanent link">&para;</a></h4>
+<h3 id="apischema-allows-you-to-use-composition-over-inheritance"><em>Apischema</em> allows you to use composition over inheritance<a class="headerlink" href="#apischema-allows-you-to-use-composition-over-inheritance" title="Permanent link">&para;</a></h3>
 <p><a href="../data_model/#composition-over-inheritance---composed-dataclasses-merging">Merged fields</a> is a distinctive <em>Apischema</em> feature that is very handy to build complexe model from smaller fragments; you don't have to merge yourself the fields of your fragments in a complex class with a lot of fields, <em>Apischema</em> deal with it for you, and your code is kept simple.</p>
-<h4 id="apischema-supports-generic-without-needing-another-class-and-in-python-36"><em>Apischema</em> supports <code>Generic</code> without needing another class and in Python 3.6<a class="headerlink" href="#apischema-supports-generic-without-needing-another-class-and-in-python-36" title="Permanent link">&para;</a></h4>
+<h3 id="apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff"><em>Apischema</em> supports <code>Generic</code> in Python 3.6 and without requiring additional stuff<a class="headerlink" href="#apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff" title="Permanent link">&para;</a></h3>
 <p><em>pydantic</em> <code>BaseModel</code> cannot be used with generic model, you have to use <code>GenericModel</code>, and it's not supported in Python 3.6.</p>
 <p>With <em>Apischema</em>, you just write your generic classes normally. </p>
-<h4 id="apischema-doesnt-coerce-by-default"><em>Apischema</em> doesn't coerce by default<a class="headerlink" href="#apischema-doesnt-coerce-by-default" title="Permanent link">&para;</a></h4>
-<p>Your API respects its schema. But it can also coerce, for example to parse configuration file, and coercion can be adjusted (for example coercing list from comma-separated string). </p>
-<h4 id="apischema-has-a-better-integration-of-json-schemaopenapi"><em>Apischema</em> has a better integration of JSON schema/<em>OpenAPI</em><a class="headerlink" href="#apischema-has-a-better-integration-of-json-schemaopenapi" title="Permanent link">&para;</a></h4>
+<h3 id="apischema-doesnt-coerce-by-default"><em>Apischema</em> doesn't coerce by default<a class="headerlink" href="#apischema-doesnt-coerce-by-default" title="Permanent link">&para;</a></h3>
+<p>Your API respects its schema. </p>
+<p>But it can also coerce, for example to parse configuration file, and coercion can be adjusted (for example coercing list from comma-separated string). </p>
+<h3 id="apischema-has-a-better-integration-of-json-schemaopenapi"><em>Apischema</em> has a better integration of JSON schema/<em>OpenAPI</em><a class="headerlink" href="#apischema-has-a-better-integration-of-json-schemaopenapi" title="Permanent link">&para;</a></h3>
 <p>With <em>pydantic</em>, if you want to have a <code>nullable</code> field in the generated schema, you have to put <code>nullable</code> into schema extra keywords.</p>
 <p><em>Apischema</em> is binded to the last JSON schema version but offers conversion to other version like <em>OpenAPI</em> 3.0 and <code>nullable</code> is added for <code>Optional</code> types.</p>
 <p><em>Apischema</em> also support more advanced features like <code>dependentRequired</code> or <code>unevaluatedProperties</code>. Reference handling is also more <a href="../json_schema/#complexrecursive-types---json-schema-definitionsopenapi-components">flexible</a></p>
-<h4 id="apischema-can-add-json-schema-to-newtype"><em>Apischema</em> can add JSON schema to <code>NewType</code><a class="headerlink" href="#apischema-can-add-json-schema-to-newtype" title="Permanent link">&para;</a></h4>
+<h3 id="apischema-can-add-json-schema-to-newtype"><em>Apischema</em> can add JSON schema to <code>NewType</code><a class="headerlink" href="#apischema-can-add-json-schema-to-newtype" title="Permanent link">&para;</a></h3>
 <p>And that's very convenient; you can use <code>NewType</code> everywhere, to gain a better type checking, a better self-documented code.</p>
-<h4 id="apischema-validators-are-regular-method-with-automatic-dependencies-management"><em>Apischema</em> validators are regular method with automatic dependencies management<a class="headerlink" href="#apischema-validators-are-regular-method-with-automatic-dependencies-management" title="Permanent link">&para;</a></h4>
+<h3 id="apischema-validators-are-regular-method-with-automatic-dependencies-management"><em>Apischema</em> validators are regular method with <a href="../validation/#automatic-dependencies-management">automatic dependencies management</a><a class="headerlink" href="#apischema-validators-are-regular-method-with-automatic-dependencies-management" title="Permanent link">&para;</a></h3>
 <p>Using regular methods allows to benefit of type checking of fields, where <em>pydantic</em> validators use dynamic stuffs and are not type-checked or have to add redundant type annotations.</p>
-<p><em>Apischema</em> validators also have <a href="../validation/#automatic-dependencies-management">automatic dependencies management</a>. And <em>Apischema</em> directly supports JSON schema <a href="../json_schema/#property-dependencies">property dependencies</a>.</p>
+<p><em>Apischema</em> validators also have automatic dependencies management. And <em>Apischema</em> directly supports JSON schema <a href="../json_schema/#property-dependencies">property dependencies</a>.</p>
 <p>Comparison is simple with an example:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
@@ -825,8 +826,8 @@
 </code></pre></div>
 
 
-<h4 id="apischema-supports-pydantic"><em>Apischema</em> supports <em>pydantic</em><a class="headerlink" href="#apischema-supports-pydantic" title="Permanent link">&para;</a></h4>
-<p>It's not a feature, is just the result of <a href="examples#pydantic-compatibility">20 lines of code</a>.</p>
+<h3 id="apischema-supports-pydantic"><em>Apischema</em> supports <em>pydantic</em><a class="headerlink" href="#apischema-supports-pydantic" title="Permanent link">&para;</a></h3>
+<p>It's not a feature, is just the result of <a href="../examples/pydantic_compatibility/">20 lines of code</a>.</p>
                 
               
               
