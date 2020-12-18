@@ -11,8 +11,10 @@ from typing import (  # type: ignore
     Type,
 )
 
-from apischema.json_schema.generation.visitor import SchemaVisitor
+from apischema.conversions.visitor import ConversionsVisitor
+from apischema.dataclass_utils import get_field_conversion, get_fields
 from apischema.json_schema.refs import get_ref, schema_ref
+from apischema.skip import filter_skipped
 from apischema.types import AnyType
 from apischema.utils import is_hashable
 
@@ -28,7 +30,7 @@ class Recursive(Exception):
     pass
 
 
-class RefsExtractor(SchemaVisitor):
+class RefsExtractor(ConversionsVisitor):
     def __init__(self, refs: Refs):
         super().__init__()
         self.refs = refs
@@ -70,8 +72,12 @@ class RefsExtractor(SchemaVisitor):
         fields: Sequence[Field],
         init_vars: Sequence[Field],
     ):
-        for field in self._dataclass_fields(fields, init_vars):
-            self._visit_field(field, types[field.name])
+        for field in get_fields(fields, init_vars, self.operation):
+            field_type, conversions, _ = get_field_conversion(
+                field, types[field.name], self.operation
+            )
+            with self._replace_conversions(conversions):
+                self.visit(field_type)
 
     def enum(self, cls: Type[Enum]):
         pass
@@ -112,6 +118,11 @@ class RefsExtractor(SchemaVisitor):
     def _union_result(self, results: Iterable):
         for _ in results:
             pass
+
+    def union(self, alternatives: Sequence[AnyType]):
+        return self._union_result(
+            map(self.visit, filter_skipped(alternatives, schema_only=True))
+        )
 
     def visit(self, cls: AnyType):
         if (

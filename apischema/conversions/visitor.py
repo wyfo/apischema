@@ -16,6 +16,7 @@ from apischema.conversions.utils import (
 )
 from apischema.type_vars import resolve_type_vars
 from apischema.types import AnyType
+from apischema.utils import Operation
 from apischema.visitor import Return, Visitor
 
 Conv = TypeVar("Conv")
@@ -27,6 +28,8 @@ class ConversionsVisitor(Generic[Conv, Return], Visitor[Return]):
     def __init__(self):
         super().__init__()
         self._conversions = None
+
+    operation: Operation
 
     def _is_conversion(self, cls: Type, arg: Optional[Any]) -> Optional[Conv]:
         raise NotImplementedError()
@@ -92,6 +95,16 @@ def handle_generic_conversion(base: AnyType, other: AnyType) -> AnyType:
 
 
 class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
+    operation = Operation.DESERIALIZATION
+
+    def visit_conversion(self, cls: AnyType, conversion: Deserialization) -> Return:
+        return self._union_result(
+            [
+                self.visit_with_conversions(source, conversions)
+                for source, (_, conversions) in conversion.items()
+            ]
+        )
+
     @staticmethod
     def _is_conversion(cls: Type, source: Optional[Any]) -> Optional[Deserialization]:
         if source is cls:
@@ -110,6 +123,12 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
 
 
 class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
+    operation = Operation.SERIALIZATION
+
+    def visit_conversion(self, cls: AnyType, conversion: Serialization) -> Return:
+        target, (_, conversions) = conversion
+        return self.visit_with_conversions(target, conversions)
+
     @staticmethod
     def _is_conversion(cls: Type, target: Optional[Any]) -> Optional[Serialization]:
         if target is cls:

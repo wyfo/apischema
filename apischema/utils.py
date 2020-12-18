@@ -118,6 +118,11 @@ def get_origin_or_class(cls: AnyType) -> Type:
     return origin if origin is not None else cls
 
 
+class Operation(Enum):
+    DESERIALIZATION = auto()
+    SERIALIZATION = auto()
+
+
 try:
     from functools import cached_property
 except ImportError:

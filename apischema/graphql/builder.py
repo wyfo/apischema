@@ -28,20 +28,22 @@ import graphql
 from apischema import serialize
 from apischema.aliases import Aliaser
 from apischema.conversions import Conversions, Deserialization, Serialization
-from apischema.conversions.visitor import Conv
+from apischema.conversions.visitor import (
+    Conv,
+    ConversionsVisitor,
+    DeserializationVisitor,
+    SerializationVisitor,
+)
 from apischema.dataclass_utils import (
     check_merged_class,
     get_alias,
     get_default,
+    get_field_conversion,
+    get_fields,
     is_required,
 )
 from apischema.graphql.interfaces import get_interfaces, is_interface
 from apischema.graphql.resolvers import INFO_TYPES, resolver_resolve
-from apischema.json_schema.generation.visitor import (
-    DeserializationSchemaVisitor,
-    SchemaVisitor,
-    SerializationSchemaVisitor,
-)
 from apischema.json_schema.refs import get_ref, schema_ref
 from apischema.json_schema.schema import Schema, get_schema, merge_schema
 from apischema.metadata.keys import (
@@ -159,7 +161,7 @@ GenericRefFactory = Callable[[AnyType], str]
 UnionRefFactory = Callable[[Sequence[str]], str]
 
 
-class SchemaBuilder(SchemaVisitor[Conv, Thunk[graphql.GraphQLType]]):
+class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     def __init__(
         self,
         aliaser: Optional[Aliaser],
@@ -216,7 +218,9 @@ class SchemaBuilder(SchemaVisitor[Conv, Thunk[graphql.GraphQLType]]):
         return lambda: graphql.GraphQLList(exec_thunk(value_thunk))
 
     def _object_field(self, field: Field, field_type: AnyType) -> ObjectField:
-        field_type, conversions = self._field_conversions(field, field_type)
+        field_type, conversions, _ = get_field_conversion(
+            field, field_type, self.operation
+        )
         default: Any = graphql.Undefined
         if not is_required(field):
             with suppress(Exception):
@@ -241,7 +245,7 @@ class SchemaBuilder(SchemaVisitor[Conv, Thunk[graphql.GraphQLType]]):
         types = dict(types)
         object_fields: List[ObjectField] = []
         merged_fields: Dict[str, AnyType] = {}
-        for field in self._dataclass_fields(fields, init_vars):
+        for field in get_fields(fields, init_vars, self.operation):
             check_metadata(field)
             metadata = field.metadata
             if MERGED_METADATA in metadata:
@@ -325,11 +329,9 @@ class SchemaBuilder(SchemaVisitor[Conv, Thunk[graphql.GraphQLType]]):
     def union(self, alternatives: Sequence[AnyType]) -> Thunk[graphql.GraphQLType]:
         alternatives = list(filter_skipped(alternatives, schema_only=True))
         results = []
-        filtered_alt = []
         for alt in alternatives:
             try:
                 results.append(self.visit(alt))
-                filtered_alt.append(alt)
             except Nullable:
                 self._non_null = False
         if not results:
@@ -375,13 +377,6 @@ class SchemaBuilder(SchemaVisitor[Conv, Thunk[graphql.GraphQLType]]):
             raise
         else:
             return cache
-        # if key not in self._cache:
-        #     thunk = super().visit_not_conversion(cls)
-        #     if isinstance(thunk, graphql.GraphQLType):
-        #         self._cache[key] = thunk
-        #     else:
-        #         self._cache[key] = lru_cache(maxsize=1)(thunk)
-        # return self._cache[key]
 
     def visit(self, cls: AnyType) -> Thunk[graphql.GraphQLType]:
         return self.visit_with_schema(cls, None, None)
@@ -421,7 +416,7 @@ def merge_fields(
 
 
 class InputSchemaBuilder(
-    DeserializationSchemaVisitor[Thunk[graphql.GraphQLType]],
+    DeserializationVisitor[Thunk[graphql.GraphQLType]],
     SchemaBuilder[Deserialization],
 ):
     def _field(self, field: ObjectField) -> Tuple[str, Lazy[graphql.GraphQLInputField]]:
@@ -457,7 +452,7 @@ class InputSchemaBuilder(
 
 
 class OutputSchemaBuilder(
-    SerializationSchemaVisitor[Thunk[graphql.GraphQLType]], SchemaBuilder[Serialization]
+    SerializationVisitor[Thunk[graphql.GraphQLType]], SchemaBuilder[Serialization]
 ):
     def __init__(
         self,
