@@ -273,6 +273,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#what-is-the-difference-between-apischema-and-pydantic" class="md-nav__link">
+    What is the difference between Apischema and pydantic?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#i-already-have-my-data-model-with-my-sqlalchemyorm-tables-will-i-have-to-duplicate-my-code-making-one-dataclass-by-table" class="md-nav__link">
     I already have my data model with my SQLAlchemy/ORM tables, will I have to duplicate my code, making one dataclass by table?
   </a>
@@ -551,6 +558,18 @@
 
 
   <li class="md-nav__item">
+    <a href="pydantic_difference/" title="Difference with pydantic" class="md-nav__link">
+      Difference with pydantic
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
     <a href="https://github.com/wyfo/apischema/releases" title="Releases" class="md-nav__link">
       Releases
     </a>
@@ -633,6 +652,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#what-is-the-difference-between-apischema-and-pydantic" class="md-nav__link">
+    What is the difference between Apischema and pydantic?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#i-already-have-my-data-model-with-my-sqlalchemyorm-tables-will-i-have-to-duplicate-my-code-making-one-dataclass-by-table" class="md-nav__link">
     I already have my data model with my SQLAlchemy/ORM tables, will I have to duplicate my code, making one dataclass by table?
   </a>
@@ -698,7 +724,11 @@
 <li>support <em>GraphQL</em>;</li>
 <li>(<em>Bonus</em>) be the fastest.</li>
 </ul>
-<p>No known alternative achieves all of this.</p>
+<p>No known alternative achieves all of this. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you wonder about difference with <em>pydantic</em> library, see the <a href="pydantic_difference/">dedicated section</a>.</p>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Actually, <em>Apischema</em> is even adaptable enough to enable support of competitor libraries in a few dozens of line of code (see <a href="conversions/">conversions section</a> and <a href="examples/pydantic_compatibility/">pydantic support example</a>)  </p>
@@ -784,6 +814,8 @@
 <h2 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">&para;</a></h2>
 <p><em>Apischema</em> is the fastest JSON deserialization and validation library according to <a href="benchmark/">benchmarks</a>.</p>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
+<h4 id="what-is-the-difference-between-apischema-and-pydantic">What is the difference between <em>Apischema</em> and <em>pydantic</em>?<a class="headerlink" href="#what-is-the-difference-between-apischema-and-pydantic" title="Permanent link">&para;</a></h4>
+<p>See the <a href="pydantic_difference/">dedicated section</a> to answer this question. </p>
 <h4 id="i-already-have-my-data-model-with-my-sqlalchemyorm-tables-will-i-have-to-duplicate-my-code-making-one-dataclass-by-table">I already have my data model with my <em>SQLAlchemy</em>/ORM tables, will I have to duplicate my code, making one dataclass by table?<a class="headerlink" href="#i-already-have-my-data-model-with-my-sqlalchemyorm-tables-will-i-have-to-duplicate-my-code-making-one-dataclass-by-table" title="Permanent link">&para;</a></h4>
 <p>Why would you have to duplicate them? <em>Apischema</em> can "work with user own types as well as foreign libraries ones". Some teasing of <a href="conversions/">conversion</a> feature: you can add default serialization for all your tables, or register different serializer that you can select according to your API endpoint, or both.</p>
 <h4 id="so-sqlalchemy-is-supported-does-it-support-others-library">So <em>SQLAlchemy</em> is supported? Does it support others library?<a class="headerlink" href="#so-sqlalchemy-is-supported-does-it-support-others-library" title="Permanent link">&para;</a></h4>

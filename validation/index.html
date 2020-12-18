@@ -286,8 +286,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#computed-dependencies" class="md-nav__link">
-    Computed dependencies
+  <a href="#automatic-dependencies-management" class="md-nav__link">
+    Automatic dependencies management
   </a>
   
 </li>
@@ -618,6 +618,18 @@
 
 
   <li class="md-nav__item">
+    <a href="../pydantic_difference/" title="Difference with pydantic" class="md-nav__link">
+      Difference with pydantic
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
     <a href="https://github.com/wyfo/apischema/releases" title="Releases" class="md-nav__link">
       Releases
     </a>
@@ -665,8 +677,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#computed-dependencies" class="md-nav__link">
-    Computed dependencies
+  <a href="#automatic-dependencies-management" class="md-nav__link">
+    Automatic dependencies management
   </a>
   
 </li>
@@ -891,7 +903,7 @@
 <p class="admonition-title">Note</p>
 <p>Validators are alawys executed in order of declaration.</p>
 </div>
-<h3 id="computed-dependencies">Computed dependencies<a class="headerlink" href="#computed-dependencies" title="Permanent link">&para;</a></h3>
+<h3 id="automatic-dependencies-management">Automatic dependencies management<a class="headerlink" href="#automatic-dependencies-management" title="Permanent link">&para;</a></h3>
 <p>It makes no sense to execute a validator using a field that is ill-formed. Hopefully, <em>Apischema</em> is able to compute validator dependencies — the fields used in validator; validator is executed only if the all its dependencies are ok.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
@@ -975,7 +987,7 @@
 <p>For dataclass field error path, it's advised to use <code>get_fields</code> instead of raw string, because it will take in account potential aliasing and it will be easier to rename field with IDE refactoring.</p>
 </div>
 <h3 id="discard">Discard<a class="headerlink" href="#discard" title="Permanent link">&para;</a></h3>
-<p>If one of your validators fails because a field is corrupted, maybe you don't want following validators to be executed. <code>validator</code> decorator provides a <code>discard</code> parameter to discard fields of the remaining validation. All the remaining validators having discarded fields in <a href="#computed-dependencies">dependencies</a> will not be executed.</p>
+<p>If one of your validators fails because a field is corrupted, maybe you don't want following validators to be executed. <code>validator</code> decorator provides a <code>discard</code> parameter to discard fields of the remaining validation. All the remaining validators having discarded fields in <a href="#automatic-dependencies-management">dependencies</a> will not be executed.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
