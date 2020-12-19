@@ -193,8 +193,6 @@ def serialize(
             return obj
         if isinstance(obj, Mapping):
             return {_serialize(key): _serialize(value) for key, value in obj.items()}
-        if isinstance(obj, Collection):
-            return [_serialize(elt) for elt in obj]
         if issubclass(cls, tuple) and hasattr(cls, "_fields"):
             result = {}
             for field_name in obj._fields:
@@ -202,6 +200,8 @@ def serialize(
                 if attr is not Undefined:
                     result[aliaser(field_name)] = attr
             return result
+        if isinstance(obj, Collection):
+            return [_serialize(elt) for elt in obj]
         raise Unsupported(cls)
 
     return _serialize(obj, conversions=conversions)
