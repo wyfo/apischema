@@ -281,8 +281,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#per-operation-and-default-aliaser" class="md-nav__link">
-    Per operation and default aliaser
+  <a href="#dynamic-aliasing-and-default-aliaser" class="md-nav__link">
+    Dynamic aliasing and default aliaser
   </a>
   
 </li>
@@ -745,8 +745,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#per-operation-and-default-aliaser" class="md-nav__link">
-    Per operation and default aliaser
+  <a href="#dynamic-aliasing-and-default-aliaser" class="md-nav__link">
+    Dynamic aliasing and default aliaser
   </a>
   
 </li>
@@ -1024,7 +1024,7 @@
 
 
 <p>Class-level aliasing can be used to define a <em>camelCase</em> API.</p>
-<h3 id="per-operation-and-default-aliaser">Per operation and default aliaser<a class="headerlink" href="#per-operation-and-default-aliaser" title="Permanent link">&para;</a></h3>
+<h3 id="dynamic-aliasing-and-default-aliaser">Dynamic aliasing and default aliaser<a class="headerlink" href="#dynamic-aliasing-and-default-aliaser" title="Permanent link">&para;</a></h3>
 <p><em>Apischema</em> operations <code>deserialize</code>/<code>serialize</code>/<code>deserialization_schema</code>/<code>serialization_schema</code> provide an <code>aliaser</code> parameter which will be applied on every fields being processed in this operation.</p>
 <p>Similar to <a href="../de_serialization/#strictness-configuration"><code>strictness configuration</code></a>, this parameter has a default value controlled by <code>apischema.settings.aliaser</code>.</p>
 <p>It can be used for example to make all an application use <em>camelCase</em>. Actually, there is a shortcut for that:</p>
@@ -1041,7 +1041,7 @@
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Operation aliaser ignores <code>override=False</code></p>
+<p>Dynamic aliaser ignores <code>override=False</code></p>
 </div>
 <h2 id="schema-annotations">Schema annotations<a class="headerlink" href="#schema-annotations" title="Permanent link">&para;</a></h2>
 <p>Type annotations are not enough to express a complete schema, but <em>Apischema</em> has a function for that; <code>schema</code> can be used both as type decorator or field metadata.</p>

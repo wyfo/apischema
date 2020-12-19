@@ -533,6 +533,7 @@
 
 <span class="c1">#################### Pydantic support code starts here</span>
 
+
 <span class="k">def</span> <span class="nf">add_deserializer</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">]):</span>
     <span class="n">Data</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Data&quot;</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
     <span class="n">schema</span><span class="p">(</span><span class="n">extra</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="n">schema</span><span class="p">(),</span> <span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">)(</span><span class="n">Data</span><span class="p">)</span>
@@ -559,7 +560,9 @@
     <span class="c1"># so exclude unset is set to True as it&#39;s the default apischema setting</span>
     <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="n">exclude_unset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+
 <span class="c1">#################### Pydantic support code ends here</span>
+
 
 <span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
     <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>

@@ -728,15 +728,12 @@
 <p>When used as a decorator, the <code>Source</code>/<code>Target</code> types are directly extracted from conversion function signature. They can also be passed as argument when the function has no type annotations (builtins like <code>datetime.isoformat</code> or foreign library functions).</p>
 <p>Methods can be used for <code>serializer</code>, as well as <code>classmethod</code>/<code>staticmethod</code> for both (especially <code>deserializer</code>) </p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span><span class="p">,</span> <span class="n">serialization_schema</span>
 
-<span class="n">HexaRGB</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;HexaRGB&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
-<span class="n">schema</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^#[0-9a-fA-F]</span><span class="si">{6}</span><span class="s2">$&quot;</span><span class="p">)(</span><span class="n">HexaRGB</span><span class="p">)</span>
 
-
+<span class="nd">@schema</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^#[0-9a-fA-F]</span><span class="si">{6}</span><span class="s2">$&quot;</span><span class="p">)</span>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">RGB</span><span class="p">:</span>
     <span class="n">red</span><span class="p">:</span> <span class="nb">int</span>
@@ -744,12 +741,12 @@
     <span class="n">blue</span><span class="p">:</span> <span class="nb">int</span>
 
     <span class="nd">@serializer</span>
-    <span class="k">def</span> <span class="nf">hexa</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HexaRGB</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">HexaRGB</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;#</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">red</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">green</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">blue</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">hexa</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;#</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">red</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">green</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">blue</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span>
 
 
 <span class="nd">@deserializer</span>
-<span class="k">def</span> <span class="nf">from_hexa</span><span class="p">(</span><span class="n">hexa</span><span class="p">:</span> <span class="n">HexaRGB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;RGB&quot;</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">from_hexa</span><span class="p">(</span><span class="n">hexa</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RGB</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">RGB</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="mi">16</span><span class="p">))</span>
 
 
@@ -767,6 +764,10 @@
 </code></pre></div>
 
 
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>(De)serializer methods cannot be used with <code>typing.NamedTuple</code>; in fact, <em>Apischema</em> uses <code>__set_name__</code> magic method but it is not called on <code>NamedTuple</code> subclass fields. </p>
+</div>
 <h3 id="multiple-deserializers">Multiple deserializers<a class="headerlink" href="#multiple-deserializers" title="Permanent link">&para;</a></h3>
 <p>Sometimes, you want to have several possibilities to deserialize a type. If it's possible to register a deserializer with an <code>Union</code> param, it's not very practical. That's why <em>Apischema</em> make it possible to register several deserializers for the same type. They will be handled with an <code>Union</code> source type (ordered by deserializers registration), with the right serializer selected according to the matching alternative.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
@@ -1114,27 +1115,13 @@ For deserialization, if there is <a href="#multiple-deserializers">several possi
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wrapped</span><span class="p">:</span> <span class="n">T</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">wrapped</span> <span class="o">=</span> <span class="n">wrapped</span>
 
-    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">):</span>
-        <span class="c1"># Methods of generic classes are not handled before 3.7</span>
-        <span class="nd">@serializer</span>
-        <span class="k">def</span> <span class="nf">unwrap</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapped</span>
-
-    <span class="k">else</span><span class="p">:</span>
-
-        <span class="k">def</span> <span class="nf">unwrap</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapped</span>
+    <span class="c1"># serializer methods of generic class are not handled in Python 3.6</span>
+    <span class="k">def</span> <span class="nf">unwrap</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapped</span>
 
 
-<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">):</span>
-    <span class="n">serializer</span><span class="p">(</span><span class="n">Wrapper</span><span class="o">.</span><span class="n">unwrap</span><span class="p">,</span> <span class="n">Wrapper</span><span class="p">[</span><span class="n">T</span><span class="p">])</span>
-
-<span class="n">U</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;U&quot;</span><span class="p">)</span>
-<span class="n">deserializer</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Wrapper</span><span class="p">[</span><span class="n">U</span><span class="p">])</span>
-<span class="c1"># Roughly equivalent to:</span>
-<span class="c1"># @deserializer</span>
-<span class="c1"># def wrap(obj: U) -&gt; Wrapper[U]:</span>
-<span class="c1">#     return Wrapper(obj)</span>
+<span class="n">serializer</span><span class="p">(</span><span class="n">Wrapper</span><span class="o">.</span><span class="n">unwrap</span><span class="p">,</span> <span class="n">Wrapper</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">T</span><span class="p">)</span>
+<span class="n">deserializer</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">Wrapper</span><span class="p">[</span><span class="n">T</span><span class="p">])</span>
 
 
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">wrapped</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
@@ -1151,7 +1138,7 @@ For deserialization, if there is <a href="#multiple-deserializers">several possi
 
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>As shown in example, methods of <code>Generic</code> classes are not handled before 3.7</p>
+<p>(De)serializer methods of <code>Generic</code> classes are not handled before 3.7</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
