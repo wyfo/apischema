@@ -34,11 +34,64 @@ By the way, Pydantic use expressions in typing annotations (`conint`, etc.), whi
 
 *Apischema* also doesn't mix up validation of external data with your statically checked code; there is no runtime validation in constructors.
 
-### *Apischema* [conversions](conversions.md) features allows to support any type defined in your code or in extern libraries
+### *Apischema* [conversions](conversions.md) feature allows to support any type defined in your code, but also in external libraries
 
-*pydantic* is limited to its `BaseModel` and some types it has overloaded in its code. You cannot deserialize directly an *SQLAlchemy* model or a `bson.ObjectID`. You are forced to use pseudo types to overload what you want (see [issue on `bson.ObjectId`](https://github.com/tiangolo/fastapi/issues/68)).
+*pydantic* is limited to the type you define in your own code (and to those it defines in its code); you cannot deserialize directly a `bson.ObjectID`. You are forced to use pseudo types to overload what you want and by using inheritance (see [issue on `bson.ObjectId`](https://github.com/tiangolo/fastapi/issues/68)).
 
-*Apischema* has no limit, and it only requires a few lines of code to support what you want, from `bson.ObjectId` to *SQLAlchemy* models.
+!!! note
+    In fact, you could dynamically add a method `__get_validators__` to `bson.ObjectID`, but that's not intuitive, and it doesn't work with builtin types like `collection.deque` and other types written in C.  
+
+*Apischema* has no limit, and it only requires a few lines of code to support what you want, from `bson.ObjectId` to *SQLAlchemy* models by way of builtin and generic like `collection.deque`, and even [*pydantic*](#apischema-supports-pydantic). 
+
+Here is a comparison of a custom type support:
+
+```python
+import re
+from typing import NamedTuple
+
+import apischema
+
+# Serialization has to be handled in each class which has an RGB field
+# or at each call of of json method
+class RGB(NamedTuple):
+    red: int
+    green: int
+    blue: int
+    
+    @classmethod
+    def __modify_schema__(cls, field_schema) -> None:
+        field_schema.update({"type": "string", "pattern": rgb_regex})
+        field_schema.pop("items", ...)
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, value: str) -> 'RGB':
+        if re.fullmatch(r"#[0-9A-Fa-f]{6}, value) is None:
+            raise ValueError("Invalid RGB")
+        return RGB(red=int(value[1:3], 16), green=int(value[3:5], 16), blue=int(value[5:7], 16))
+    
+    
+# Simplified with apischema
+
+@apischema.schema(pattern=r"#[0-9A-Fa-f]{6})
+class RGB(NamedTuple):
+    red: int
+    green: int
+    blue: int
+
+    
+@apischema.serializer
+def to_hexa(rgb: RGB) -> str:
+    return f"#{rgb.red:02x}{rgb.green:02x}{rgb.blue:02x}"
+
+
+@apischema.deserializer
+def from_hexa(hexa: str) -> RGB:
+    return RGB(int(hexa[1:3], 16), int(hexa[3:5], 16), int(hexa[5:7], 16))
+```
 
 ### *Apischema* has a functional approach, *pydantic* has an object one, with its limitations
 
