@@ -11,7 +11,8 @@ __all__ = [
 
 from typing import Any, Callable, Optional, Type, TypeVar, overload
 
-from apischema import aliases, coercion as coercion_
+from apischema import aliases
+from apischema.deserialization import coercion as coercion_
 from apischema.aliases import Aliaser
 from apischema.cache import reset_cache
 from apischema.conversions.visitor import (

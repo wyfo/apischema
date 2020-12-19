@@ -102,10 +102,6 @@ def is_type_var(cls: AnyType) -> bool:
     return isinstance(cls, TypeVar)  # type: ignore
 
 
-def map_values(mapper: Callable[[V], T], mapping: Mapping[K, V]) -> Mapping[K, T]:
-    return {k: mapper(v) for k, v in mapping.items()}
-
-
 Func = TypeVar("Func", bound=Callable)
 
 
