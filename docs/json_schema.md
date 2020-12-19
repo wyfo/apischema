@@ -26,7 +26,7 @@ Field aliasing can also be done at class level by specifying an aliasing functio
 
 Class-level aliasing can be used to define a *camelCase* API.
 
-### Per operation and default aliaser
+### Dynamic aliasing and default aliaser
 
 *Apischema* operations `deserialize`/`serialize`/`deserialization_schema`/`serialization_schema` provide an `aliaser` parameter which will be applied on every fields being processed in this operation.
 
@@ -46,7 +46,7 @@ settings.aliaser(camel_case=True)
     `NamedTuple` fields are also alias, but not TypedDict ones; in fact, TypedDict is not a true class so it cannot be identified to apply aliaser during serialization. 
 
 !!! note
-    Operation aliaser ignores `override=False`
+    Dynamic aliaser ignores `override=False`
     
 
 ## Schema annotations

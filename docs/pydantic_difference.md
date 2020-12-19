@@ -6,13 +6,17 @@ The question is often asked, so it is answered in a dedicated section. Here are 
 
 *pydantic* uses Cython to improve its performance (with some side effects in its code); *Apischema* doesn't need it and is still 1.5x faster — more than 2x when *pydantic* is not compiled with Cython.
 
+Better performance, and but also with more functionalities: [dynamic aliasing](json_schema.md#dynamic-aliasing-and-default-aliaser), [conversions](conversions.md), [merged fields](data_model.md#composition-over-inheritance---composed-dataclasses-merging), etc.
+
 ### *Apischema* can generate *GraphQL* schema from your resolvers
 
-And the same types can be used in JSON oriented API and GraphQL API.
+Not a simple printable schema but a complete `graphql.GraphQLSchema` that you can use to execute your queries/mutations/subscriptions through your resolvers/subscribers, powered by *Apischema* (de)serialization and conversions.
+
+And the same types (and even the resolvers) can be used both in JSON oriented API and GraphQL API.
 
 ### *Apischema* uses standard dataclasses and types
 
-*pydantic* uses its own `BaseModel` class, or it's own pseudo-`dataclass`, so you are forced to tie all your code the library, and you cannot reuse code written in a more standard way.
+*pydantic* uses its own `BaseModel` class, or it's own pseudo-`dataclass`, so you are forced to tie all your code the library, and you cannot easily reuse code written in a more standard way or in external libraries.
 
 By the way, Pydantic use expressions in typing annotations (`conint`, etc.), while it's not recommended and treated as an error by tools like *Mypy*
 
@@ -60,7 +64,7 @@ class RGB(NamedTuple):
     
     @classmethod
     def __modify_schema__(cls, field_schema) -> None:
-        field_schema.update({"type": "string", "pattern": rgb_regex})
+        field_schema.update({"type": "string", "pattern": r"#[0-9A-Fa-f]{6}"})
         field_schema.pop("items", ...)
 
     @classmethod
@@ -68,15 +72,15 @@ class RGB(NamedTuple):
         yield cls.validate
 
     @classmethod
-    def validate(cls, value: str) -> 'RGB':
-        if re.fullmatch(r"#[0-9A-Fa-f]{6}, value) is None:
+    def validate(cls, value) -> 'RGB':
+        if not isinstance(value, str) or re.fullmatch(r"#[0-9A-Fa-f]{6}", value) is None:
             raise ValueError("Invalid RGB")
         return RGB(red=int(value[1:3], 16), green=int(value[3:5], 16), blue=int(value[5:7], 16))
     
     
 # Simplified with apischema
 
-@apischema.schema(pattern=r"#[0-9A-Fa-f]{6})
+@apischema.schema(pattern=r"#[0-9A-Fa-f]{6}")
 class RGB(NamedTuple):
     red: int
     green: int
@@ -103,6 +107,12 @@ Also, because Python has limited object features (no extensions like in Swift or
 
 This approach has far fewer limitations. It also allows to add feature in to *Apischema* (in the library directly or in a plugin) more easily, without breaking the paradigm; in fact, third-party plugin cannot add methods to `BaseModel` (without breaking static checking), and if *pydantic* adds a method, you have to make sure it will not mangle your model namespace.
 
+### *Apischema* can use both *camelCase* and *snake_case* with the same types
+
+While *pydantic* field aliases are fixed at model creation, *Apischema* [let you choose](json_schema.md#dynamic-aliasing-and-default-aliaser) which aliasing you want at (de)serialization time. 
+
+It can be convenient if you need to juggle with cases for the same models between frontend and other backend services for example.
+
 ### *Apischema* allows you to use composition over inheritance
 
 [Merged fields](data_model.md#composition-over-inheritance---composed-dataclasses-merging) is a distinctive *Apischema* feature that is very handy to build complexe model from smaller fragments; you don't have to merge yourself the fields of your fragments in a complex class with a lot of fields, *Apischema* deal with it for you, and your code is kept simple.
@@ -117,7 +127,7 @@ With *Apischema*, you just write your generic classes normally.
 
 Your API respects its schema. 
 
-But it can also coerce, for example to parse configuration file, and coercion can be adjusted (for example coercing list from comma-separated string). 
+It can also coerce, for example to parse configuration file, and coercion can be adjusted (for example coercing list from comma-separated string). 
 
 ### *Apischema* has a better integration of JSON schema/*OpenAPI*
 
@@ -131,7 +141,7 @@ With *pydantic*, if you want to have a `nullable` field in the generated schema,
 
 And that's very convenient; you can use `NewType` everywhere, to gain a better type checking, a better self-documented code.
 
-### *Apischema* validators are regular method with [automatic dependencies management](validation.md#automatic-dependencies-management)
+### *Apischema* validators are regular methods with [automatic dependencies management](validation.md#automatic-dependencies-management)
 
 Using regular methods allows to benefit of type checking of fields, where *pydantic* validators use dynamic stuffs and are not type-checked or have to add redundant type annotations.
 
@@ -152,7 +162,8 @@ class UserModel(pydantic.BaseModel):
 
     @pydantic.root_validator
     def check_passwords_match(cls, values):
-        # What is the type of of values? of values['password1']
+        # What is the type of of values? of values['password1']?
+        # If you rename password1 field, validator will hardly be updated
         # You also have to test yourself that values are provided
         pw1, pw2 = values.get('password1'), values.get('password2')
         if pw1 is not None and pw2 is not None and pw1 != pw2:

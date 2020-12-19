@@ -28,7 +28,7 @@ This library fulfill the following goals:
 
 No known alternative achieves all of this.
 
-(Actually, *Apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code)
+If you wonder what the difference is with *pydantic* library, see the [dedicated section of the documentation](https://wyfo.github.io/apischema/pydantic_difference/), you will see there is a lot of difference.
 
 ## Example
 
