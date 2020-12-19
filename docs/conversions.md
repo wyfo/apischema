@@ -28,6 +28,9 @@ Methods can be used for `serializer`, as well as `classmethod`/`staticmethod` fo
 {!conversions.py!}
 ```
 
+!!! warning
+    (De)serializer methods cannot be used with `typing.NamedTuple`; in fact, *Apischema* uses `__set_name__` magic method but it is not called on `NamedTuple` subclass fields. 
+
 ### Multiple deserializers
 
 Sometimes, you want to have several possibilities to deserialize a type. If it's possible to register a deserializer with an `Union` param, it's not very practical. That's why *Apischema* make it possible to register several deserializers for the same type. They will be handled with an `Union` source type (ordered by deserializers registration), with the right serializer selected according to the matching alternative.
@@ -130,7 +133,7 @@ Generic converters are handled naturally
 ```
 
 !!! warning
-    As shown in example, methods of `Generic` classes are not handled before 3.7
+    (De)serializer methods of `Generic` classes are not handled before 3.7
     
 !!! note
     *Apischema* doesn't support specialization of `Generic` conversion like `Foo[bool] -> int`.

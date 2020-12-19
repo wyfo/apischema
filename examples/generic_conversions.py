@@ -13,27 +13,13 @@ class Wrapper(Generic[T]):
     def __init__(self, wrapped: T):
         self.wrapped = wrapped
 
-    if sys.version_info >= (3, 7):
-        # Methods of generic classes are not handled before 3.7
-        @serializer
-        def unwrap(self) -> T:
-            return self.wrapped
-
-    else:
-
-        def unwrap(self) -> T:
-            return self.wrapped
+    # serializer methods of generic class are not handled in Python 3.6
+    def unwrap(self) -> T:
+        return self.wrapped
 
 
-if sys.version_info <= (3, 7):
-    serializer(Wrapper.unwrap, Wrapper[T])
-
-U = TypeVar("U")
-deserializer(Wrapper, U, Wrapper[U])
-# Roughly equivalent to:
-# @deserializer
-# def wrap(obj: U) -> Wrapper[U]:
-#     return Wrapper(obj)
+serializer(Wrapper.unwrap, Wrapper[T], T)
+deserializer(Wrapper, T, Wrapper[T])
 
 
 assert deserialize(Wrapper[list[int]], [0, 1]).wrapped == [0, 1]
