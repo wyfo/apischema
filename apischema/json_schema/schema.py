@@ -1,6 +1,16 @@
 from contextlib import suppress
 from dataclasses import dataclass, fields
-from typing import Any, Dict, Mapping, Optional, Sequence, TypeVar, overload
+from typing import (
+    Any,
+    Dict,
+    Mapping,
+    Optional,
+    Pattern,
+    Sequence,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from apischema.types import AnyType, MetadataMixin, Number
 from apischema.utils import Undefined, merge_opts
@@ -91,7 +101,7 @@ def schema(
     format: Optional[str] = None,
     min_len: Optional[int] = None,
     max_len: Optional[int] = None,
-    pattern: Optional[str] = None,
+    pattern: Optional[Union[str, Pattern]] = None,
     extra: Mapping[str, Any] = None,
     override: bool = False,
 ) -> Schema:

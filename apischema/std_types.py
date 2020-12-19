@@ -20,18 +20,11 @@ from pathlib import (
     PureWindowsPath,
     WindowsPath,
 )
-from typing import Deque, List, NewType, Type, TypeVar
+from typing import Deque, List, NewType, TypeVar
 from uuid import UUID
 
-from apischema.conversions.converters import deserializer, serializer
+from apischema.conversions.converters import as_str, deserializer, serializer
 from apischema.json_schema.schema import schema
-
-
-def as_str(cls: Type, format: str = None):
-    str_type = schema(format=format)(NewType(cls.__name__.capitalize(), str))
-    deserializer(cls, str_type, cls)
-    serializer(str, cls, str_type)
-
 
 T = TypeVar("T")
 
@@ -71,9 +64,9 @@ serializer(float, Decimal, float)
 # ================= ipaddress ===================
 
 for cls in (IPv4Address, IPv4Interface, IPv4Network):
-    as_str(cls, "ipv4")
+    as_str(cls, format="ipv4")
 for cls in (IPv6Address, IPv6Interface, IPv6Network):
-    as_str(cls, "ipv6")
+    as_str(cls, format="ipv6")
 
 # ==================== path =====================
 
@@ -88,4 +81,4 @@ serializer(lambda p: p.pattern, Pattern, str)
 
 # ==================== uuid =====================
 
-as_str(UUID, "uuid")
+as_str(UUID, format="uuid")
