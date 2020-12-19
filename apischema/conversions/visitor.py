@@ -118,8 +118,8 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
                     warnings.warn(f"Deserializer {source} -> {cls} doesn't exists")
                 else:
                     result[source2] = _extra_deserializers[cls][source2]
-            return result
-        return _deserializers.get(cls)
+            return result or None
+        return _deserializers.get(cls) or None
 
 
 class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
