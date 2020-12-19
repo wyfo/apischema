@@ -2,6 +2,7 @@ __all__ = [
     "Conversions",
     "Deserialization",
     "Serialization",
+    "as_str",
     "dataclass_model",
     "deserializer",
     "extra_deserializer",
@@ -15,6 +16,7 @@ __all__ = [
 ]
 
 from .converters import (
+    as_str,
     deserializer,
     extra_deserializer,
     extra_serializer,

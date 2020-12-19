@@ -4,9 +4,15 @@ from functools import wraps
 from inspect import signature
 from types import new_class
 from typing import (
+    Any,
     Callable,
     Dict,
+    Mapping,
+    NewType,
     Optional,
+    Pattern,
+    Sequence,
+    TYPE_CHECKING,
     Tuple,
     Type,
     TypeVar,
@@ -23,6 +29,10 @@ from apischema.conversions.utils import (
     handle_generic_conversions,
 )
 from apischema.types import AnyType, OrderedDict
+from apischema.utils import Undefined, to_camel_case
+
+if TYPE_CHECKING:
+    from apischema.json_schema.annotations import Deprecated
 
 _deserializers: Dict[AnyType, Dict[AnyType, ConverterWithConversions]] = defaultdict(
     OrderedDict
@@ -239,3 +249,33 @@ def inherited_deserializer(
     if not isinstance(func, classmethod):
         raise TypeError("inherited_deserializer must be called on classmethod")
     return InheritedDeserializer(func, conversions, extra)
+
+
+def as_str(
+    cls: Cls,
+    *,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    default: Any = Undefined,
+    examples: Optional[Sequence[Any]] = None,
+    deprecated: "Deprecated" = False,
+    format: Optional[str] = None,
+    min_len: Optional[int] = None,
+    max_len: Optional[int] = None,
+    pattern: Optional[Union[str, Pattern]] = None,
+    extra: Mapping[str, Any] = None,
+    override: bool = False,
+) -> Cls:
+    ...
+
+
+@wraps(as_str)
+def _as_str(cls: Type, **kwargs):
+    from apischema import schema
+
+    str_type = schema(**kwargs)(NewType(to_camel_case(cls.__name__), str))
+    deserializer(cls, str_type, cls)
+    serializer(str, cls, str_type)
+
+
+globals()[as_str.__name__] = _as_str
