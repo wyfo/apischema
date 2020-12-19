@@ -62,6 +62,7 @@ from apischema.metadata.keys import (
 from apischema.serialization import get_serialized_resolvers, serialize
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, OrderedDict
+from apischema.typing import get_origin
 from apischema.utils import Operation, is_hashable, map_values
 
 constraint_by_type = {
@@ -263,6 +264,14 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
             raise TypeError("Empty enum")
         return self.literal(list(cls))
 
+    def generic(self, cls: AnyType) -> JsonSchema:
+        origin = get_origin(cls)
+        if is_hashable(origin) and self.is_extra_conversions(origin):
+            self._schema = None
+        else:
+            self._merge_schema(get_schema(origin))
+        return super().generic(cls)
+
     @with_schema
     def literal(self, values: Sequence[Any]) -> JsonSchema:
         if not values:
@@ -357,7 +366,6 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
             required=list(keys) if total else [],
         )
 
-    @with_schema
     def _union_result(self, results: Iterable[JsonSchema]) -> JsonSchema:
         results = list(results)
         if len(results) == 1:
@@ -386,6 +394,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
         else:
             return json_schema(anyOf=results)
 
+    @with_schema
     def union(self, alternatives: Sequence[AnyType]) -> JsonSchema:
         return self._union_result(
             map(self.visit, filter_skipped(alternatives, schema_only=True))
@@ -393,7 +402,11 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
 
     def visit_with_schema(self, cls: AnyType, schema: Optional[Schema]) -> JsonSchema:
         schema_save = self._schema
-        if is_hashable(cls) and not self.is_extra_conversions(cls):
+        if not is_hashable(cls):
+            self._schema = schema
+        elif self.is_extra_conversions(cls):
+            self._schema = None
+        else:
             self._schema = schema
             ref = get_ref(cls)
             if ref in self.refs:
@@ -402,22 +415,11 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
                 else:
                     assert isinstance(ref, str)
                     return self._ref_schema(ref)
-            cls_schema = get_schema(cls)
-            if cls_schema is not None and not cls_schema.override:
-                # Constraints are merged in case of not conversions
-                cls_schema = replace(cls_schema, constraints=None)
-            self._merge_schema(cls_schema)
-        else:
-            self._schema = None
+            self._merge_schema(get_schema(cls))
         try:
             return super().visit(cls)
         finally:
             self._schema = schema_save
-
-    def visit_not_conversion(self, cls: AnyType) -> JsonSchema:
-        if self._schema is None or not self._schema.override:
-            self._merge_schema(get_schema(cls))
-        return super().visit_not_conversion(cls)
 
     def visit(self, cls: AnyType) -> JsonSchema:
         return self.visit_with_schema(cls, None)
@@ -438,10 +440,14 @@ class DeserializationSchemaBuilder(DeserializationVisitor, SchemaBuilder):
     class RefsExtractor(DeserializationVisitor, RefsExtractor):  # type: ignore
         pass
 
+    visit_conversion = with_schema(DeserializationVisitor.visit_conversion)
+
 
 class SerializationSchemaBuilder(SerializationVisitor, SchemaBuilder):
     class RefsExtractor(SerializationVisitor, RefsExtractor):  # type: ignore
         pass
+
+    visit_conversion = with_schema(SerializationVisitor.visit_conversion)
 
 
 TypesWithConversions = Collection[Union[AnyType, Tuple[AnyType, Conversions]]]

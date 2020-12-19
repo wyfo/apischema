@@ -1,13 +1,10 @@
 from dataclasses import dataclass
-from typing import NewType
 
 from apischema import deserialize, deserializer, schema, serialize, serializer
 from apischema.json_schema import deserialization_schema, serialization_schema
 
-HexaRGB = NewType("HexaRGB", str)
-schema(pattern=r"^#[0-9a-fA-F]{6}$")(HexaRGB)
 
-
+@schema(pattern=r"^#[0-9a-fA-F]{6}$")
 @dataclass
 class RGB:
     red: int
@@ -15,12 +12,12 @@ class RGB:
     blue: int
 
     @serializer
-    def hexa(self) -> HexaRGB:
-        return HexaRGB(f"#{self.red:02x}{self.green:02x}{self.blue:02x}")
+    def hexa(self) -> str:
+        return f"#{self.red:02x}{self.green:02x}{self.blue:02x}"
 
 
 @deserializer
-def from_hexa(hexa: HexaRGB) -> "RGB":
+def from_hexa(hexa: str) -> RGB:
     return RGB(int(hexa[1:3], 16), int(hexa[3:5], 16), int(hexa[5:7], 16))
 
 
