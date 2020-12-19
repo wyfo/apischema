@@ -978,13 +978,13 @@
 <ul>
 <li>a string</li>
 <li>an integer (for list indices)</li>
-<li>a dataclass field (obtained with <code>get_fields</code>)</li>
+<li>a dataclass field (obtained with <code>apischema.fields.fields</code>)</li>
 <li>a tuple of this 3 components.</li>
 </ul>
 <p><code>yield</code> can also be used with only an error message.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For dataclass field error path, it's advised to use <code>get_fields</code> instead of raw string, because it will take in account potential aliasing and it will be easier to rename field with IDE refactoring.</p>
+<p>For dataclass field error path, it's advised to use <code>apischema.fields.fields</code> instead of raw string, because it will take in account potential aliasing and it will be easier to rename field with IDE refactoring.</p>
 </div>
 <h3 id="discard">Discard<a class="headerlink" href="#discard" title="Permanent link">&para;</a></h3>
 <p>If one of your validators fails because a field is corrupted, maybe you don't want following validators to be executed. <code>validator</code> decorator provides a <code>discard</code> parameter to discard fields of the remaining validation. All the remaining validators having discarded fields in <a href="#automatic-dependencies-management">dependencies</a> will not be executed.</p>
