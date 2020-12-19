@@ -53,13 +53,13 @@ In the example, validator yield a tuple of an "error path" and the error message
 
 - a string
 - an integer (for list indices)
-- a dataclass field (obtained with `get_fields`)
+- a dataclass field (obtained with `apischema.fields.fields`)
 - a tuple of this 3 components.
 
 `yield` can also be used with only an error message.
 
 !!! note
-    For dataclass field error path, it's advised to use `get_fields` instead of raw string, because it will take in account potential aliasing and it will be easier to rename field with IDE refactoring.
+    For dataclass field error path, it's advised to use `apischema.fields.fields` instead of raw string, because it will take in account potential aliasing and it will be easier to rename field with IDE refactoring.
 
 ### Discard
 

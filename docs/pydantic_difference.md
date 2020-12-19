@@ -8,7 +8,7 @@ The question is often asked, so it is answered in a dedicated section. Here are 
 
 Better performance, and but also with more functionalities: [dynamic aliasing](json_schema.md#dynamic-aliasing-and-default-aliaser), [conversions](conversions.md), [merged fields](data_model.md#composition-over-inheritance---composed-dataclasses-merging), etc.
 
-### *Apischema* can generate *GraphQL* schema from your resolvers
+### *Apischema* can generate [*GraphQL* schema](graphql/overview.md) from your resolvers
 
 Not just a simple printable schema but a complete `graphql.GraphQLSchema` which can be used to execute your queries/mutations/subscriptions through your resolvers/subscribers, powered by *Apischema* (de)serialization and conversions features.
 
