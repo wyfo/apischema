@@ -24,7 +24,7 @@ Deserialization = Mapping[Type, ConverterWithConversions]
 Serialization = Tuple[Type, ConverterWithConversions]
 
 
-class ConversionsVisitor(Generic[Conv, Return], Visitor[Return]):
+class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
     def __init__(self):
         super().__init__()
         self._conversions = None

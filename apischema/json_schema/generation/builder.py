@@ -63,7 +63,7 @@ from apischema.serialization import get_serialized_resolvers, serialize
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, OrderedDict
 from apischema.typing import get_origin
-from apischema.utils import Operation, is_hashable, map_values
+from apischema.utils import Operation, is_hashable
 
 constraint_by_type = {
     int: NumberConstraints,
@@ -99,8 +99,8 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
         super().__init__()
         self.ref_factory = ref_factory
         self.refs = refs
-        self.ignore_first_ref = ignore_first_ref
         self.aliaser = aliaser
+        self._ignore_first_ref = ignore_first_ref
         self._schema: Optional[Schema] = None
 
     def _check_constraints(self, expected: Type[Constraints]):
@@ -123,8 +123,8 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
             if isinstance(annotation, schema_ref):
                 annotation.check_type(cls)
                 if annotation.ref in self.refs:
-                    if self.ignore_first_ref:
-                        self.ignore_first_ref = False
+                    if self._ignore_first_ref:
+                        self._ignore_first_ref = False
                     else:
                         assert isinstance(annotation.ref, str)
                         return self._ref_schema(annotation.ref)
@@ -188,6 +188,21 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
                 pass
         return JsonSchema()
 
+    def _check_merged_schema(self, cls: Type, field: Field, field_type: AnyType):
+        ignore_first_ref = self._ignore_first_ref
+        self._ignore_first_ref = True
+        try:
+            if self.visit_field(field, field_type).get("type") not in {
+                JsonType.OBJECT,
+                "object",
+            }:
+                raise TypeError(
+                    f"Merged field {cls.__name__}.{field.name}"
+                    f" must have an object type"
+                )
+        finally:
+            self._ignore_first_ref = ignore_first_ref
+
     @with_schema
     def dataclass(
         self,
@@ -207,6 +222,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
             metadata = check_metadata(field)
             field_type = types[field.name]
             if MERGED_METADATA in metadata:
+                self._check_merged_schema(cls, field, field_type)
                 merged_schemas.append(self.visit_field(field, field_type))
             elif PROPERTIES_METADATA in metadata:
                 pattern = metadata[PROPERTIES_METADATA]
@@ -362,7 +378,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
         self._check_constraints(ObjectConstraints)
         return json_schema(
             type=JsonType.OBJECT,
-            properties=map_values(self.visit, keys),
+            properties={key: self.visit(tp) for key, tp in keys.items()},
             required=list(keys) if total else [],
         )
 
@@ -410,8 +426,8 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
             self._schema = schema
             ref = get_ref(cls)
             if ref in self.refs:
-                if self.ignore_first_ref:
-                    self.ignore_first_ref = False
+                if self._ignore_first_ref:
+                    self._ignore_first_ref = False
                 else:
                     assert isinstance(ref, str)
                     return self._ref_schema(ref)

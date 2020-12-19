@@ -35,7 +35,6 @@ from apischema.conversions.visitor import (
     SerializationVisitor,
 )
 from apischema.dataclass_utils import (
-    check_merged_class,
     get_alias,
     get_default,
     get_field_conversion,
@@ -61,7 +60,7 @@ from apischema.resolvers import (
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, NoneType
 from apischema.typing import get_args, get_origin
-from apischema.utils import Undefined, is_hashable, map_values, to_camel_case, type_name
+from apischema.utils import Undefined, is_hashable, to_camel_case, type_name
 
 JsonScalar = graphql.GraphQLScalarType(
     "JSON",
@@ -244,18 +243,21 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     ) -> Thunk[graphql.GraphQLType]:
         types = dict(types)
         object_fields: List[ObjectField] = []
-        merged_fields: Dict[str, AnyType] = {}
+        merged_types: Dict[str, Thunk[graphql.GraphQLType]] = {}
         for field in get_fields(fields, init_vars, self.operation):
             check_metadata(field)
             metadata = field.metadata
             if MERGED_METADATA in metadata:
-                check_merged_class(types[field.name])
-                merged_fields[field.name] = types[field.name]
+                field_type, conversions, _ = get_field_conversion(
+                    field, types[field.name], self.operation
+                )
+                with self._replace_conversions(conversions):
+                    merged_types[field.name] = self.visit(field_type)
             elif PROPERTIES_METADATA in metadata:
                 continue
             else:
                 object_fields.append(self._object_field(field, types[field.name]))
-        return self.object(cls, object_fields, merged_fields)
+        return self.object(cls, object_fields, merged_types)
 
     def enum(self, cls: Type[Enum]) -> Thunk[graphql.GraphQLType]:
         return self.literal([elt.value for elt in cls])
@@ -305,7 +307,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         self,
         cls: Type,
         fields: Collection[ObjectField],
-        merged_fields: Mapping[str, Thunk[graphql.GraphQLType]] = None,
+        merged_types: Mapping[str, Thunk[graphql.GraphQLType]] = None,
     ) -> Thunk[graphql.GraphQLType]:
         raise NotImplementedError()
 
@@ -403,6 +405,17 @@ def merge_fields(
     all_merged_fields: Dict[str, FieldType] = {}
     for merged_name, merged_thunk in merged_types.items():
         merged_type = exec_thunk(merged_thunk, non_null=False)
+        if not isinstance(
+            merged_type,
+            (
+                graphql.GraphQLObjectType,
+                graphql.GraphQLInterfaceType,
+                graphql.GraphQLInputObjectType,
+            ),
+        ):
+            raise TypeError(
+                f"Merged field {cls.__name__}.{merged_name} must have an object type"
+            )
         merged_fields: Mapping[str, FieldType] = merged_type.fields
         if merged_fields.keys() & all_merged_fields.keys() & fields.keys():
             raise TypeError(f"Conflict in merged fields of {cls}")
@@ -432,14 +445,15 @@ class InputSchemaBuilder(
         self,
         cls: Type,
         fields: Collection[ObjectField],
-        merged_fields: Mapping[str, AnyType] = None,
+        merged_types: Mapping[str, Thunk[graphql.GraphQLType]] = None,
     ) -> Thunk[graphql.GraphQLType]:
         name, description = self._ref_and_desc
         name = name if name.endswith("Input") else name + "Input"
         visited_fields = dict(map(self._field, fields))
-        visited_merged = map_values(self.visit, merged_fields or {})
         return lambda: graphql.GraphQLInputObjectType(
-            name, lambda: merge_fields(cls, visited_fields, visited_merged), description
+            name,
+            lambda: merge_fields(cls, visited_fields, merged_types or {}),
+            description,
         )
 
     def _union_result(
@@ -512,7 +526,7 @@ class OutputSchemaBuilder(
         self,
         cls: Type,
         fields: Collection[ObjectField],
-        merged_fields: Mapping[str, AnyType] = None,
+        merged_types: Mapping[str, Thunk[graphql.GraphQLType]] = None,
     ) -> Thunk[graphql.GraphQLType]:
         fields_and_resolvers = list(fields)
         try:
@@ -534,13 +548,12 @@ class OutputSchemaBuilder(
             )
             fields_and_resolvers.append(resolver_field)
         visited_fields = dict(map(self._field, fields_and_resolvers))
-        visited_merged = map_values(self.visit, merged_fields or {})
 
         def field_thunk() -> graphql.GraphQLFieldMap:
             return merge_fields(
                 cls,
                 visited_fields,
-                visited_merged,
+                merged_types or {},
                 deref_merged_field,
             )
 
@@ -550,7 +563,7 @@ class OutputSchemaBuilder(
 
             def interface_thunk() -> Collection[graphql.GraphQLInterfaceType]:
                 result = {exec_thunk(i, non_null=False) for i in interfaces}
-                for merged_thunk in visited_merged.values():
+                for merged_thunk in (merged_types or {}).values():
                     merged = cast(
                         Union[graphql.GraphQLObjectType, graphql.GraphQLInterfaceType],
                         exec_thunk(merged_thunk, non_null=False),

@@ -24,20 +24,20 @@ from typing import (
 from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.cache import cache
-from apischema.coercion import Coercion, get_coercer
 from apischema.conversions.utils import Conversions, ConversionsWrapper, identity
 from apischema.conversions.visitor import Deserialization, DeserializationVisitor
 from apischema.dataclass_utils import (
-    check_merged_class,
-    dataclass_types_and_fields,
     get_alias,
     get_default,
     get_field_conversion,
+    get_fields,
     get_requirements,
     has_default,
     is_required,
 )
 from apischema.dependent_required import DependentRequired
+from apischema.deserialization.coercion import Coercion, get_coercer
+from apischema.deserialization.merged import get_init_merged_alias
 from apischema.json_schema.constraints import (
     ArrayConstraints,
     Constraints,
@@ -65,7 +65,7 @@ from apischema.types import (
     OrderedDict,
 )
 from apischema.typing import get_origin
-from apischema.utils import Operation, map_values
+from apischema.utils import Operation
 from apischema.validation.errors import (
     ErrorKey,
     ValidationError,
@@ -289,20 +289,6 @@ def with_validators(
     return decorator
 
 
-def get_init_merged_alias(merged_cls: Type) -> Iterable[str]:
-    from apischema.metadata.keys import MERGED_METADATA
-
-    merged_cls = check_merged_class(merged_cls)
-    types, fields, init_vars = dataclass_types_and_fields(merged_cls)  # type: ignore
-    for field in chain(fields, init_vars):  # noqa: F402
-        if not field.init:
-            continue
-        if MERGED_METADATA in field.metadata:
-            yield from get_init_merged_alias(types[field.name])
-        else:
-            yield get_alias(field)
-
-
 class DeserializationMethodVisitor(
     DeserializationVisitor[DeserializationMethodFactory]
 ):
@@ -397,7 +383,9 @@ class DeserializationMethodVisitor(
         required_by = get_requirements(
             cls, DependentRequired.required_by, Operation.DESERIALIZATION
         )
-        for field in chain(fields, init_vars):  # noqa: F402
+        for field in get_fields(  # noqa: F402
+            fields, init_vars, Operation.DESERIALIZATION
+        ):
             metadata = check_metadata(field)
             if SKIP_METADATA in metadata or not field.init:
                 continue
@@ -425,11 +413,9 @@ class DeserializationMethodVisitor(
                 )
             deserializer = field_deserializer(field, field_factory.method, self.aliaser)
             if MERGED_METADATA in metadata:
+                merged_alias = get_init_merged_alias(cls, field, field_type)
                 merged_fields.append(
-                    (
-                        set(map(self.aliaser, get_init_merged_alias(field_type))),
-                        deserializer,
-                    )
+                    (set(map(self.aliaser, merged_alias)), deserializer)
                 )
             elif PROPERTIES_METADATA in metadata:
                 pattern = metadata[PROPERTIES_METADATA]
@@ -746,7 +732,7 @@ class DeserializationMethodVisitor(
     def typed_dict(
         self, cls: Type, keys: Mapping[str, AnyType], total: bool
     ) -> DeserializationMethodFactory:
-        items_deserializers = map_values(self.method, keys)
+        items_deserializers = {key: self.method(tp) for key, tp in keys.items()}
 
         @DeserializationMethodFactory.from_type(cls)
         def factory(
