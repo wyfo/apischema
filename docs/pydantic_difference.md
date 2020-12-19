@@ -10,9 +10,9 @@ Better performance, and but also with more functionalities: [dynamic aliasing](j
 
 ### *Apischema* can generate *GraphQL* schema from your resolvers
 
-Not a simple printable schema but a complete `graphql.GraphQLSchema` that you can use to execute your queries/mutations/subscriptions through your resolvers/subscribers, powered by *Apischema* (de)serialization and conversions.
+Not just a simple printable schema but a complete `graphql.GraphQLSchema` which can be used to execute your queries/mutations/subscriptions through your resolvers/subscribers, powered by *Apischema* (de)serialization and conversions features.
 
-And the same types (and even the resolvers) can be used both in JSON oriented API and GraphQL API.
+Types and resolvers can be used both in traditional JSON-oriented API and GraphQL API
 
 ### *Apischema* uses standard dataclasses and types
 
@@ -187,4 +187,3 @@ class LoginForm:
 ### *Apischema* supports *pydantic*
 
 It's not a feature, is just the result of [20 lines of code](examples/pydantic_compatibility.md).
-
