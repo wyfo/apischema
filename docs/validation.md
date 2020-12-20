@@ -26,7 +26,7 @@ Dataclass validation can be completed by custom validators. These are simple dec
 !!! note
     Validators are alawys executed in order of declaration.
 
-### Automatic dependencies management
+### Automatic dependency management
 
 It makes no sense to execute a validator using a field that is ill-formed. Hopefully, *Apischema* is able to compute validator dependencies — the fields used in validator; validator is executed only if the all its dependencies are ok.
 

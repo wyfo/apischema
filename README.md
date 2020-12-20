@@ -18,17 +18,17 @@ It requires only Python 3.6+ (and dataclasses [official backport](https://pypi.o
 
 ## Why another library?
 
-This library fulfill the following goals:
+(If you wonder what the difference is with *pydantic* library, see the [dedicated section of the documentation](https://wyfo.github.io/apischema/pydantic_difference/), you will find a lot of difference.)
 
-- stay as close as possible to the standard library (dataclasses, typing, etc.) to be as accessible as possible — as a consequence do not need plugins for editor/linter/etc.;
-- be additive and tunable, be able to work with user own types as well as foreign libraries ones; do not need a PR for handling new types like `bson.ObjectId`;
+This library fulfills the following goals:
+
+- stay as close as possible to the standard library (dataclasses, typing, etc.) — as a consequence do not need plugins for editors/linters/etc.;
+- be additive and tunable, be able to work with user own types as well as foreign libraries ones; do not need a PR for handling new types like `bson.ObjectId` or `collection.deque`;
 - avoid dynamic things like using string for attribute name;
 - support *GraphQL*;
 - (*Bonus*) be the fastest.
 
 No known alternative achieves all of this.
-
-If you wonder what the difference is with *pydantic* library, see the [dedicated section of the documentation](https://wyfo.github.io/apischema/pydantic_difference/), you will see there is a lot of difference.
 
 ## Example
 
