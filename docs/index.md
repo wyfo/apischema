@@ -43,10 +43,6 @@ No known alternative achieves all of this.
 
 *GraphQL* integration is detailed [further in the documentation](graphql/overview.md).
 
-## Performance
-
-*Apischema* is the fastest JSON deserialization and validation library according to [benchmarks](benchmark.md).
-
 ## FAQ
 
 #### What is the difference between *Apischema* and *pydantic*?
