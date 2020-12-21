@@ -287,15 +287,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#so-sqlalchemy-is-supported-does-it-support-others-library" class="md-nav__link">
-    So SQLAlchemy is supported? Does it support others library?
+  <a href="#so-sqlalchemy-is-supported-does-it-support-other-libraries" class="md-nav__link">
+    So SQLAlchemy is supported? Does it support other libraries?
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-no-a-string-can-i-do-that" class="md-nav__link">
-    I need more accurate validation than "ensure this is an integer and no a string ", can I do that?
+  <a href="#i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-not-a-string-can-i-do-that" class="md-nav__link">
+    I need more accurate validation than "ensure this is an integer and not a string ", can I do that?
   </a>
   
 </li>
@@ -666,15 +666,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#so-sqlalchemy-is-supported-does-it-support-others-library" class="md-nav__link">
-    So SQLAlchemy is supported? Does it support others library?
+  <a href="#so-sqlalchemy-is-supported-does-it-support-other-libraries" class="md-nav__link">
+    So SQLAlchemy is supported? Does it support other libraries?
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-no-a-string-can-i-do-that" class="md-nav__link">
-    I need more accurate validation than "ensure this is an integer and no a string ", can I do that?
+  <a href="#i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-not-a-string-can-i-do-that" class="md-nav__link">
+    I need more accurate validation than "ensure this is an integer and not a string ", can I do that?
   </a>
   
 </li>
@@ -716,19 +716,15 @@
 <p>It requires only Python 3.6+ (and dataclasses <a href="https://pypi.org/project/dataclasses/">official backport</a> for version 3.6 only)</p>
 <p><em>PyPy3</em> is fully supported.</p>
 <h2 id="why-another-library">Why another library?<a class="headerlink" href="#why-another-library" title="Permanent link">&para;</a></h2>
-<p>This library fulfill the following goals:</p>
+<p>This library fulfills the following goals:</p>
 <ul>
-<li>stay as close as possible to the standard library (dataclasses, typing, etc.) to be as accessible as possible — as a consequence do not need plugins for editor/linter/etc.;</li>
-<li>be additive and tunable, be able to work with user own types (ORM, etc.) as well as foreign libraries ones; do not need a PR for handling new types like <code>bson.ObjectId</code>, avoid subclassing;</li>
+<li>stay as close as possible to the standard library (dataclasses, typing, etc.) — as a consequence do not need plugins for editors/linters/etc.;</li>
+<li>be additive and tunable, be able to work with user own types (ORM, etc.) as well as foreign libraries ones; do not need a PR for handling new types like <code>bson.ObjectId</code> or <code>collection.deque</code>;</li>
 <li>avoid dynamic things like using string for attribute name;</li>
 <li>support <em>GraphQL</em>;</li>
 <li>(<em>Bonus</em>) be the fastest.</li>
 </ul>
 <p>No known alternative achieves all of this. </p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If you wonder what the difference is with <em>pydantic</em> library, see the <a href="pydantic_difference/">dedicated section</a>.</p>
-</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Actually, <em>Apischema</em> is even adaptable enough to enable support of competitor libraries in a few dozens of line of code (<a href="examples/pydantic_compatibility/">pydantic support example</a> using <a href="conversions/">conversions feature</a>)  </p>
@@ -815,12 +811,12 @@
 <p><em>Apischema</em> is the fastest JSON deserialization and validation library according to <a href="benchmark/">benchmarks</a>.</p>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
 <h4 id="what-is-the-difference-between-apischema-and-pydantic">What is the difference between <em>Apischema</em> and <em>pydantic</em>?<a class="headerlink" href="#what-is-the-difference-between-apischema-and-pydantic" title="Permanent link">&para;</a></h4>
-<p>See the <a href="pydantic_difference/">dedicated section</a> to answer this question. </p>
+<p>See the <a href="pydantic_difference/">dedicated section</a>, there is a lot of difference. </p>
 <h4 id="i-already-have-my-data-model-with-my-sqlalchemyorm-tables-will-i-have-to-duplicate-my-code-making-one-dataclass-by-table">I already have my data model with my <em>SQLAlchemy</em>/ORM tables, will I have to duplicate my code, making one dataclass by table?<a class="headerlink" href="#i-already-have-my-data-model-with-my-sqlalchemyorm-tables-will-i-have-to-duplicate-my-code-making-one-dataclass-by-table" title="Permanent link">&para;</a></h4>
 <p>Why would you have to duplicate them? <em>Apischema</em> can "work with user own types as well as foreign libraries ones". Some teasing of <a href="conversions/">conversion</a> feature: you can add default serialization for all your tables, or register different serializer that you can select according to your API endpoint, or both.</p>
-<h4 id="so-sqlalchemy-is-supported-does-it-support-others-library">So <em>SQLAlchemy</em> is supported? Does it support others library?<a class="headerlink" href="#so-sqlalchemy-is-supported-does-it-support-others-library" title="Permanent link">&para;</a></h4>
+<h4 id="so-sqlalchemy-is-supported-does-it-support-other-libraries">So <em>SQLAlchemy</em> is supported? Does it support other libraries?<a class="headerlink" href="#so-sqlalchemy-is-supported-does-it-support-other-libraries" title="Permanent link">&para;</a></h4>
 <p>No, in fact, no library are supported, even <em>SQLAlchemy</em>; it was a choice made to be as small and generic as possible, and to support only the standard library (with types like <code>datetime</code>, <code>UUID</code>). However, the library is flexible enough to code yourself the support you need with, I hope, the minimal effort. It's of course not excluded to add support in additional small plugin libraries. Feedbacks are welcome about the best way to do things.</p>
-<h4 id="i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-no-a-string-can-i-do-that">I need more accurate validation than "ensure this is an integer and no a string ", can I do that?<a class="headerlink" href="#i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-no-a-string-can-i-do-that" title="Permanent link">&para;</a></h4>
+<h4 id="i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-not-a-string-can-i-do-that">I need more accurate validation than "ensure this is an integer and not a string ", can I do that?<a class="headerlink" href="#i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-not-a-string-can-i-do-that" title="Permanent link">&para;</a></h4>
 <p>See the <a href="validation/">validation</a> section. You can use standard JSON schema validation (<code>maxItems</code>, <code>pattern</code>, etc.) that will be embedded in your schema or add custom Python validators for each class/fields/<code>NewType</code> you want.</p>
 <p><em>Let's start the Apischema tour.</em></p>
                 

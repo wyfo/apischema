@@ -503,6 +503,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#apischema-doesnt-mix-up-deserialization-with-your-code" class="md-nav__link">
+    Apischema doesn't mix up (de)serialization with your code
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#apischema-truly-works-out-of-the-box-with-forward-type-references-especially-for-recursive-model" class="md-nav__link">
     Apischema truly works out-of-the-box with forward type references (especially for recursive model)
   </a>
@@ -510,8 +517,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#apischema-doesnt-mix-up-deserialization-with-your-code" class="md-nav__link">
-    Apischema doesn't mix up (de)serialization with your code
+  <a href="#apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff" class="md-nav__link">
+    Apischema supports Generic in Python 3.6 and without requiring additional stuff
   </a>
   
 </li>
@@ -524,20 +531,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#apischema-has-a-functional-approach-pydantic-has-an-object-one-with-its-limitations" class="md-nav__link">
-    Apischema has a functional approach, pydantic has an object one, with its limitations
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#apischema-can-use-both-camelcase-and-snake_case-with-the-same-types" class="md-nav__link">
-    Apischema can use both camelCase and snake_case with the same types
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#apischema-allows-you-to-use-composition-over-inheritance" class="md-nav__link">
     Apischema allows you to use composition over inheritance
   </a>
@@ -545,8 +538,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff" class="md-nav__link">
-    Apischema supports Generic in Python 3.6 and without requiring additional stuff
+  <a href="#apischema-has-a-functional-approach-pydantic-has-an-object-one" class="md-nav__link">
+    Apischema has a functional approach, pydantic has an object one
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-can-use-both-camelcase-and-snake_case-with-the-same-types" class="md-nav__link">
+    Apischema can use both camelCase and snake_case with the same types
   </a>
   
 </li>
@@ -659,6 +659,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#apischema-doesnt-mix-up-deserialization-with-your-code" class="md-nav__link">
+    Apischema doesn't mix up (de)serialization with your code
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#apischema-truly-works-out-of-the-box-with-forward-type-references-especially-for-recursive-model" class="md-nav__link">
     Apischema truly works out-of-the-box with forward type references (especially for recursive model)
   </a>
@@ -666,8 +673,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#apischema-doesnt-mix-up-deserialization-with-your-code" class="md-nav__link">
-    Apischema doesn't mix up (de)serialization with your code
+  <a href="#apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff" class="md-nav__link">
+    Apischema supports Generic in Python 3.6 and without requiring additional stuff
   </a>
   
 </li>
@@ -680,20 +687,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#apischema-has-a-functional-approach-pydantic-has-an-object-one-with-its-limitations" class="md-nav__link">
-    Apischema has a functional approach, pydantic has an object one, with its limitations
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#apischema-can-use-both-camelcase-and-snake_case-with-the-same-types" class="md-nav__link">
-    Apischema can use both camelCase and snake_case with the same types
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#apischema-allows-you-to-use-composition-over-inheritance" class="md-nav__link">
     Apischema allows you to use composition over inheritance
   </a>
@@ -701,8 +694,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff" class="md-nav__link">
-    Apischema supports Generic in Python 3.6 and without requiring additional stuff
+  <a href="#apischema-has-a-functional-approach-pydantic-has-an-object-one" class="md-nav__link">
+    Apischema has a functional approach, pydantic has an object one
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-can-use-both-camelcase-and-snake_case-with-the-same-types" class="md-nav__link">
+    Apischema can use both camelCase and snake_case with the same types
   </a>
   
 </li>
@@ -763,45 +763,45 @@
                 
                 
                 <h1 id="difference-with-pydantic">Difference with pydantic<a class="headerlink" href="#difference-with-pydantic" title="Permanent link">&para;</a></h1>
-<p>The question is often asked, so it is answered in a dedicated section. Here are some the key differences between <em>Apischema</em> and <em>pydantic</em></p>
+<p>As the question is often asked, it is answered in a dedicated section. Here are some the key differences between <em>Apischema</em> and <em>pydantic</em>:</p>
 <h3 id="apischema-is-faster"><em>Apischema</em> is faster<a class="headerlink" href="#apischema-is-faster" title="Permanent link">&para;</a></h3>
-<p><em>pydantic</em> uses Cython to improve its performance (with some side effects in its code); <em>Apischema</em> doesn't need it and is still 1.5x faster — more than 2x when <em>pydantic</em> is not compiled with Cython.</p>
-<p>Better performance, and but also with more functionalities: <a href="../json_schema/#dynamic-aliasing-and-default-aliaser">dynamic aliasing</a>, <a href="../conversions/">conversions</a>, <a href="../data_model/#composition-over-inheritance---composed-dataclasses-merging">merged fields</a>, etc.</p>
+<p><em>pydantic</em> uses Cython to improve its performance; <em>Apischema</em> doesn't need it and is still 1.5x faster according to <a href="../benchmark/"><em>pydantic</em> benchmark</a> — more than 2x when <em>pydantic</em> is not compiled with Cython.</p>
+<p>Better performance, but not at the cost of fewer functionalities; that's rather the opposite: <a href="../json_schema/#dynamic-aliasing-and-default-aliaser">dynamic aliasing</a>, <a href="../conversions/">conversions</a>, <a href="../data_model/#composition-over-inheritance---composed-dataclasses-merging">merged fields</a>, etc.</p>
 <h3 id="apischema-can-generate-graphql-schema-from-your-resolvers"><em>Apischema</em> can generate <a href="../graphql/overview/"><em>GraphQL</em> schema</a> from your resolvers<a class="headerlink" href="#apischema-can-generate-graphql-schema-from-your-resolvers" title="Permanent link">&para;</a></h3>
 <p>Not just a simple printable schema but a complete <code>graphql.GraphQLSchema</code> which can be used to execute your queries/mutations/subscriptions through your resolvers/subscribers, powered by <em>Apischema</em> (de)serialization and conversions features.</p>
 <p>Types and resolvers can be used both in traditional JSON-oriented API and GraphQL API</p>
 <h3 id="apischema-uses-standard-dataclasses-and-types"><em>Apischema</em> uses standard dataclasses and types<a class="headerlink" href="#apischema-uses-standard-dataclasses-and-types" title="Permanent link">&para;</a></h3>
-<p><em>pydantic</em> uses its own <code>BaseModel</code> class, or it's own pseudo-<code>dataclass</code>, so you are forced to tie all your code the library, and you cannot easily reuse code written in a more standard way or in external libraries.</p>
+<p><em>pydantic</em> uses its own <code>BaseModel</code> class, or its own pseudo-<code>dataclass</code>, so you are forced to tie all your code to the library, and you cannot easily reuse code written in a more standard way or in external libraries.</p>
 <p>By the way, Pydantic use expressions in typing annotations (<code>conint</code>, etc.), while it's not recommended and treated as an error by tools like <em>Mypy</em></p>
 <h3 id="apischema-doesnt-require-external-plugins-for-editors-linters-etc"><em>Apischema</em> doesn't require external plugins for editors, linters, etc.<a class="headerlink" href="#apischema-doesnt-require-external-plugins-for-editors-linters-etc" title="Permanent link">&para;</a></h3>
 <p><em>pydantic</em> requires a plugin to allow <em>Mypy</em> to type checked <code>BaseModel</code> and others <em>pydantic</em> singularities (and to not raise errors on it); plugin are also needed for editors.</p>
-<p><em>Apischema</em> for its part doesn't have borderline stuff like <code>conint</code> annotations and because it uses standard dataclasses, it doesn't need anything else that dataclass support, which is standard on editors and type checkers.</p>
+<h3 id="apischema-doesnt-mix-up-deserialization-with-your-code"><em>Apischema</em> doesn't mix up (de)serialization with your code<a class="headerlink" href="#apischema-doesnt-mix-up-deserialization-with-your-code" title="Permanent link">&para;</a></h3>
+<p>While <em>pydantic</em> mix up model constructor with deserializer, <em>Apischema</em> use dedicated functions for its features, meaning your dataclasses are instantiated normally with type checking. In your code, you manipulate objects; (de)serialization is for input/output.</p>
+<p><em>Apischema</em> also doesn't mix up validation of external data with your statically checked code; there is no runtime validation in constructors.</p>
 <h3 id="apischema-truly-works-out-of-the-box-with-forward-type-references-especially-for-recursive-model"><em>Apischema</em> truly works out-of-the-box with forward type references (especially for recursive model)<a class="headerlink" href="#apischema-truly-works-out-of-the-box-with-forward-type-references-especially-for-recursive-model" title="Permanent link">&para;</a></h3>
 <p><em>pydantic</em> requires calling <code>update_forward_refs</code> method on recursive types, while <em>Apischema</em> "just works".</p>
-<h3 id="apischema-doesnt-mix-up-deserialization-with-your-code"><em>Apischema</em> doesn't mix up (de)serialization with your code<a class="headerlink" href="#apischema-doesnt-mix-up-deserialization-with-your-code" title="Permanent link">&para;</a></h3>
-<p><em>pydantic</em> mix up model constructor with deserializer. That ruins the concept of type checking if you want to instantiate a model from your code.</p>
-<p><em>Apischema</em> use dedicated functions for its features, meaning your dataclasses are instanciated normally with type checking. In your code, you manipulate objects; (de)serialization is for input/output.</p>
-<p><em>Apischema</em> also doesn't mix up validation of external data with your statically checked code; there is no runtime validation in constructors.</p>
+<h3 id="apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff"><em>Apischema</em> supports <code>Generic</code> in Python 3.6 and without requiring additional stuff<a class="headerlink" href="#apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff" title="Permanent link">&para;</a></h3>
+<p><em>pydantic</em> <code>BaseModel</code> cannot be used with generic model, you have to use <code>GenericModel</code>, and it's not supported in Python 3.6.</p>
+<p>With <em>Apischema</em>, you just write your generic classes normally. </p>
 <h3 id="apischema-conversions-feature-allows-to-support-any-type-defined-in-your-code-but-also-in-external-libraries"><em>Apischema</em> <a href="../conversions/">conversions</a> feature allows to support any type defined in your code, but also in external libraries<a class="headerlink" href="#apischema-conversions-feature-allows-to-support-any-type-defined-in-your-code-but-also-in-external-libraries" title="Permanent link">&para;</a></h3>
-<p><em>pydantic</em> is limited to the type you define in your own code (and to those it defines in its code); you cannot deserialize directly a <code>bson.ObjectID</code>. You are forced to use pseudo types to overload what you want and by using inheritance (see <a href="https://github.com/tiangolo/fastapi/issues/68">issue on <code>bson.ObjectId</code></a>).</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>In fact, you could dynamically add a method <code>__get_validators__</code> to <code>bson.ObjectID</code>, but that's not intuitive, and it doesn't work with builtin types like <code>collection.deque</code> and other types written in C.  </p>
-</div>
-<p><em>Apischema</em> has no limit, and it only requires a few lines of code to support what you want, from <code>bson.ObjectId</code> to <em>SQLAlchemy</em> models by way of builtin and generic like <code>collection.deque</code>, and even <a href="#apischema-supports-pydantic"><em>pydantic</em></a>. </p>
+<p><em>pydantic</em> doesn't make it easy to support external types, like <code>bson.ObjectId</code>; see this <a href="https://github.com/tiangolo/fastapi/issues/68">issue</a> on the subject. You could dynamically add a <code>__get_validators__</code> method to foreign classes, but that doesn't work with builtin types like <code>collection.deque</code> and other types written in C. </p>
+<p>Serialization customization is harder, with definition of encoding function by model; it cannot be done at the same place as deserialization. There is also no correlation done between (de)serialization customization and model JSON schema; you could have to overwrite the generated schema if you don't want to get an inconsistency.</p>
+<p><em>Apischema</em> only requires a few lines of code to support any type you want, from <code>bson.ObjectId</code> to <em>SQLAlchemy</em> models by way of builtin and generic like <code>collection.deque</code>, and even <a href="#apischema-supports-pydantic"><em>pydantic</em></a>. Conversions are also integrated in JSON schema this one is generated according to the source/target of the conversion</p>
 <p>Here is a comparison of a custom type support:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NamedTuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NamedTuple</span><span class="p">,</span> <span class="n">NewType</span>
 
 <span class="kn">import</span> <span class="nn">apischema</span>
+<span class="kn">import</span> <span class="nn">pydantic.validators</span>
 
-<span class="c1"># Serialization has to be handled in each class which has an RGB field</span>
-<span class="c1"># or at each call of of json method</span>
+<span class="c1"># Serialization can only be customized into the enclosing models</span>
 <span class="k">class</span> <span class="nc">RGB</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
     <span class="n">red</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">green</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">blue</span><span class="p">:</span> <span class="nb">int</span>
 
+    <span class="c1"># If you don&#39;t put this method, RGB schema will be: </span>
+    <span class="c1"># {&#39;title&#39;: &#39;Rgb&#39;, &#39;type&#39;: &#39;array&#39;, &#39;items&#39;: {}}</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">__modify_schema__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">field_schema</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">field_schema</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;pattern&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;#[0-9A-Fa-f]</span><span class="si">{6}</span><span class="s2">&quot;</span><span class="p">})</span>
@@ -809,6 +809,7 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">__get_validators__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">pydantic</span><span class="o">.</span><span class="n">validators</span><span class="o">.</span><span class="n">str_validator</span>
         <span class="k">yield</span> <span class="bp">cls</span><span class="o">.</span><span class="n">validate</span>
 
     <span class="nd">@classmethod</span>
@@ -817,52 +818,57 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid RGB&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">RGB</span><span class="p">(</span><span class="n">red</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="n">green</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="n">blue</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="mi">16</span><span class="p">))</span>
 
+<span class="c1"># Simpler with apischema</span>
 
-<span class="c1"># Simplified with apischema</span>
-
-<span class="nd">@apischema</span><span class="o">.</span><span class="n">schema</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;#[0-9A-Fa-f]</span><span class="si">{6}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">RGB</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
     <span class="n">red</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">green</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">blue</span><span class="p">:</span> <span class="nb">int</span>
 
-
-<span class="nd">@apischema</span><span class="o">.</span><span class="n">serializer</span>
-<span class="k">def</span> <span class="nf">to_hexa</span><span class="p">(</span><span class="n">rgb</span><span class="p">:</span> <span class="n">RGB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;#</span><span class="si">{</span><span class="n">rgb</span><span class="o">.</span><span class="n">red</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="n">rgb</span><span class="o">.</span><span class="n">green</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="n">rgb</span><span class="o">.</span><span class="n">blue</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span>
-
+<span class="n">HexaRGB</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;HexaRGB&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+<span class="c1"># pattern is used in JSON schema and in deserialization validation</span>
+<span class="n">apischema</span><span class="o">.</span><span class="n">schema</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;#[0-9A-Fa-f]</span><span class="si">{6}</span><span class="s2">&quot;</span><span class="p">)(</span><span class="n">HexaRGB</span><span class="p">)</span>
 
 <span class="nd">@apischema</span><span class="o">.</span><span class="n">deserializer</span>
-<span class="k">def</span> <span class="nf">from_hexa</span><span class="p">(</span><span class="n">hexa</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RGB</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">from_hexa</span><span class="p">(</span><span class="n">hexa</span><span class="p">:</span> <span class="n">HexaRGB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RGB</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">RGB</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="mi">16</span><span class="p">))</span>
+
+<span class="nd">@apischema</span><span class="o">.</span><span class="n">serializer</span>
+<span class="k">def</span> <span class="nf">to_hexa</span><span class="p">(</span><span class="n">rgb</span><span class="p">:</span> <span class="n">RGB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HexaRGB</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">HexaRGB</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;#</span><span class="si">{</span><span class="n">rgb</span><span class="o">.</span><span class="n">red</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="n">rgb</span><span class="o">.</span><span class="n">green</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="n">rgb</span><span class="o">.</span><span class="n">blue</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="p">(</span>  <span class="c1"># schema is inherited from deserialized type</span>
+    <span class="n">apischema</span><span class="o">.</span><span class="n">json_schema</span><span class="o">.</span><span class="n">deserialization_schema</span><span class="p">(</span><span class="n">RGB</span><span class="p">)</span>
+    <span class="o">==</span> <span class="n">apischema</span><span class="o">.</span><span class="n">json_schema</span><span class="o">.</span><span class="n">deserialization_schema</span><span class="p">(</span><span class="n">HexaRGB</span><span class="p">)</span>
+    <span class="o">==</span> <span class="p">{</span>
+        <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> 
+        <span class="s2">&quot;pattern&quot;</span><span class="p">:</span> <span class="s2">&quot;#[0-9A-Fa-f]</span><span class="si">{6}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">)</span>
 </code></pre></div>
 
 
-<h3 id="apischema-has-a-functional-approach-pydantic-has-an-object-one-with-its-limitations"><em>Apischema</em> has a functional approach, <em>pydantic</em> has an object one, with its limitations<a class="headerlink" href="#apischema-has-a-functional-approach-pydantic-has-an-object-one-with-its-limitations" title="Permanent link">&para;</a></h3>
-<p>Every functionality of <em>pydantic</em> is a method of <code>BaseModel</code>. You have to have a <code>BaseModel</code> instance to do something, even if you manipulate only an integer. So you have to use complex stuff like <em>root type</em>, and to have <code>BaseModel</code> namespace mixing up with your class namespace. </p>
-<p>Also, because Python has limited object features (no extensions like in Swift or Kotlin), you cannot use easily types you don't defined yourself.</p>
-<p><em>Apischema</em> is functional, it doesn't use method but simple functions, which works for every types. You can also register conversions for any types similarly you would implement a type class in a functional language (or adding an extension in Swift or Kotlin).</p>
-<p>This approach has far fewer limitations. It also allows to add feature in to <em>Apischema</em> (in the library directly or in a plugin) more easily, without breaking the paradigm; in fact, third-party plugin cannot add methods to <code>BaseModel</code> (without breaking static checking), and if <em>pydantic</em> adds a method, you have to make sure it will not mangle your model namespace.</p>
+<h3 id="apischema-allows-you-to-use-composition-over-inheritance"><em>Apischema</em> allows you to use composition over inheritance<a class="headerlink" href="#apischema-allows-you-to-use-composition-over-inheritance" title="Permanent link">&para;</a></h3>
+<p><a href="../data_model/#composition-over-inheritance---composed-dataclasses-merging">Merged fields</a> is a distinctive <em>Apischema</em> feature that is very handy to build complex model from smaller fragments; you don't have to merge yourself the fields of your fragments in a complex class with a lot of fields, <em>Apischema</em> deal with it for you, and your code is kept simple.</p>
+<h3 id="apischema-has-a-functional-approach-pydantic-has-an-object-one"><em>Apischema</em> has a functional approach, <em>pydantic</em> has an object one<a class="headerlink" href="#apischema-has-a-functional-approach-pydantic-has-an-object-one" title="Permanent link">&para;</a></h3>
+<p><em>pydantic</em> features are based on <code>BaseModel</code> methods. You have to have a <code>BaseModel</code> instance to do anything, even if you manipulate only an integer. Complex <em>pydantic</em> stuff like <code>__root__</code> model or deserialization customization come from this approach.</p>
+<p><em>Apischema</em> is functional, it doesn't use method but simple functions, which works with all types. You can also register conversions for any types similarly you would implement a type class in a functional language. And your class namespace don't mix up with a mandatory base class' one.</p>
 <h3 id="apischema-can-use-both-camelcase-and-snake_case-with-the-same-types"><em>Apischema</em> can use both <em>camelCase</em> and <em>snake_case</em> with the same types<a class="headerlink" href="#apischema-can-use-both-camelcase-and-snake_case-with-the-same-types" title="Permanent link">&para;</a></h3>
 <p>While <em>pydantic</em> field aliases are fixed at model creation, <em>Apischema</em> <a href="../json_schema/#dynamic-aliasing-and-default-aliaser">let you choose</a> which aliasing you want at (de)serialization time. </p>
-<p>It can be convenient if you need to juggle with cases for the same models between frontend and other backend services for example.</p>
-<h3 id="apischema-allows-you-to-use-composition-over-inheritance"><em>Apischema</em> allows you to use composition over inheritance<a class="headerlink" href="#apischema-allows-you-to-use-composition-over-inheritance" title="Permanent link">&para;</a></h3>
-<p><a href="../data_model/#composition-over-inheritance---composed-dataclasses-merging">Merged fields</a> is a distinctive <em>Apischema</em> feature that is very handy to build complexe model from smaller fragments; you don't have to merge yourself the fields of your fragments in a complex class with a lot of fields, <em>Apischema</em> deal with it for you, and your code is kept simple.</p>
-<h3 id="apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff"><em>Apischema</em> supports <code>Generic</code> in Python 3.6 and without requiring additional stuff<a class="headerlink" href="#apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff" title="Permanent link">&para;</a></h3>
-<p><em>pydantic</em> <code>BaseModel</code> cannot be used with generic model, you have to use <code>GenericModel</code>, and it's not supported in Python 3.6.</p>
-<p>With <em>Apischema</em>, you just write your generic classes normally. </p>
+<p>It can be convenient if you need to juggle with cases for the same models between frontends and other backend services for example.</p>
 <h3 id="apischema-doesnt-coerce-by-default"><em>Apischema</em> doesn't coerce by default<a class="headerlink" href="#apischema-doesnt-coerce-by-default" title="Permanent link">&para;</a></h3>
 <p>Your API respects its schema. </p>
 <p>It can also coerce, for example to parse configuration file, and coercion can be adjusted (for example coercing list from comma-separated string). </p>
 <h3 id="apischema-has-a-better-integration-of-json-schemaopenapi"><em>Apischema</em> has a better integration of JSON schema/<em>OpenAPI</em><a class="headerlink" href="#apischema-has-a-better-integration-of-json-schemaopenapi" title="Permanent link">&para;</a></h3>
 <p>With <em>pydantic</em>, if you want to have a <code>nullable</code> field in the generated schema, you have to put <code>nullable</code> into schema extra keywords.</p>
-<p><em>Apischema</em> is binded to the last JSON schema version but offers conversion to other version like <em>OpenAPI</em> 3.0 and <code>nullable</code> is added for <code>Optional</code> types.</p>
+<p><em>Apischema</em> is bound to the last JSON schema version but offers conversion to other version like <em>OpenAPI</em> 3.0 and <code>nullable</code> is added for <code>Optional</code> types.</p>
 <p><em>Apischema</em> also support more advanced features like <code>dependentRequired</code> or <code>unevaluatedProperties</code>. Reference handling is also more <a href="../json_schema/#complexrecursive-types---json-schema-definitionsopenapi-components">flexible</a></p>
 <h3 id="apischema-can-add-json-schema-to-newtype"><em>Apischema</em> can add JSON schema to <code>NewType</code><a class="headerlink" href="#apischema-can-add-json-schema-to-newtype" title="Permanent link">&para;</a></h3>
-<p>And that's very convenient; you can use <code>NewType</code> everywhere, to gain a better type checking, a better self-documented code.</p>
-<h3 id="apischema-validators-are-regular-methods-with-automatic-dependencies-management"><em>Apischema</em> validators are regular methods with <a href="../validation/#automatic-dependencies-management">automatic dependencies management</a><a class="headerlink" href="#apischema-validators-are-regular-methods-with-automatic-dependencies-management" title="Permanent link">&para;</a></h3>
-<p>Using regular methods allows to benefit of type checking of fields, where <em>pydantic</em> validators use dynamic stuffs and are not type-checked or have to add redundant type annotations.</p>
-<p><em>Apischema</em> validators also have automatic dependencies management. And <em>Apischema</em> directly supports JSON schema <a href="../json_schema/#property-dependencies">property dependencies</a>.</p>
+<p>So it will be used in deserialization validation. You can use <code>NewType</code> everywhere, to gain a better type checking, self-documented code.</p>
+<h3 id="apischema-validators-are-regular-methods-with-automatic-dependencies-management"><em>Apischema</em> validators are regular methods with <a href="../validation/#automatic-dependency-management">automatic dependencies management</a><a class="headerlink" href="#apischema-validators-are-regular-methods-with-automatic-dependencies-management" title="Permanent link">&para;</a></h3>
+<p>Using regular methods allows benefiting of type checking of fields, where <em>pydantic</em> validators use dynamic stuffs and are not type-checked or have to get redundant type annotations.</p>
+<p><em>Apischema</em> validators also have automatic dependency management. And <em>Apischema</em> directly supports JSON schema <a href="../json_schema/#property-dependencies">property dependencies</a>.</p>
 <p>Comparison is simple with an example:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
