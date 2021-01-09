@@ -58,7 +58,7 @@ assert deserialization_schema(
     },
 }
 assert deserialization_schema(Foo, version=JsonSchemaVersion.OPEN_API_3_0) == {
-    # No definitions for OpenAPI, use refs_schema for it
+    # No definitions for OpenAPI, use definitions_schema for it
     "$ref": "#/components/schemas/Foo",  # OpenAPI prefix
 }
 assert definitions_schema(
