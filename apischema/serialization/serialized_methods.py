@@ -1,4 +1,4 @@
-from collections import ChainMap, defaultdict
+from collections import defaultdict
 from dataclasses import dataclass
 from functools import wraps
 from inspect import Parameter, signature
@@ -19,7 +19,7 @@ from typing import (
 from apischema.conversions import Conversions
 from apischema.conversions.dataclass_models import get_model_origin
 from apischema.json_schema.schema import Schema
-from apischema.types import AnyType
+from apischema.types import AnyType, ChainMap
 from apischema.typing import get_type_hints
 from apischema.utils import (
     MethodOrProperty,
