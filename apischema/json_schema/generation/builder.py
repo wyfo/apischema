@@ -65,7 +65,7 @@ from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, OrderedDict
 from apischema.typing import get_args, get_origin
-from apischema.utils import Operation, is_hashable, UndefinedType
+from apischema.utils import Operation, UndefinedType, is_hashable
 
 constraint_by_type = {
     int: NumberConstraints,
@@ -311,14 +311,12 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
     def literal(self, values: Sequence[Any]) -> JsonSchema:
         if not values:
             raise TypeError("Empty Literal")
-        types = sorted(
-            set(
-                JsonType.from_type(type(v.value if isinstance(v, Enum) else v))
-                for v in values
-            )
-        )
+        types = {
+            JsonType.from_type(type(v.value if isinstance(v, Enum) else v))
+            for v in values
+        }
         # Mypy issue
-        type_: Any = types[0] if len(types) == 1 else types
+        type_: Any = types.pop() if len(types) == 1 else types
         if len(values) == 1:
             return json_schema(type=type_, const=values[0])
         else:
