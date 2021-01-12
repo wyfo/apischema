@@ -11,24 +11,34 @@ class Foo:
     def bar(self) -> int:
         return 0
 
+    # Serialized method can have default argument
     @serialized
-    def baz(self, some_arg_with_default: str = "") -> str:
+    def baz(self, some_arg_with_default: int = 1) -> int:
         return some_arg_with_default
 
     @serialized("aliased")
     @property
-    def aliased_property(self) -> bool:
-        return True
+    def with_alias(self) -> int:
+        return 2
 
 
-assert serialize(Foo()) == {"bar": 0, "baz": "", "aliased": True}
+# Serialized method can also be defined outside class,
+# but first parameter must be annotated
+@serialized
+def function(foo: Foo) -> int:
+    return 3
+
+
+assert serialize(Foo()) == {"bar": 0, "baz": 1, "aliased": 2, "function": 3}
 assert serialization_schema(Foo) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "type": "object",
     "properties": {
         "bar": {"readOnly": True, "type": "integer"},
-        "baz": {"readOnly": True, "type": "string"},
-        "aliased": {"readOnly": True, "type": "boolean"},
+        "baz": {"readOnly": True, "type": "integer"},
+        "aliased": {"readOnly": True, "type": "integer"},
+        "function": {"readOnly": True, "type": "integer"},
     },
+    "required": ["bar", "baz", "aliased", "function"],
     "additionalProperties": False,
 }

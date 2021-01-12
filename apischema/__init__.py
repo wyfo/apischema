@@ -16,7 +16,6 @@ __all__ = [
     "reset_cache",
     "schema",
     "schema_ref",
-    "serialization",
     "serialize",
     "serialized",
     "serializer",
@@ -33,7 +32,6 @@ from . import (
     fields,
     json_schema,
     metadata,
-    serialization,
     settings,
     skip,
     validation,
@@ -45,7 +43,8 @@ from .deserialization import deserialize
 from .json_schema.refs import schema_ref
 from .json_schema.schema import schema
 from .metadata import properties
-from .serialization import serialize, serialized
+from .serialization import serialize
+from .serialization.serialized_methods import serialized
 from .utils import Undefined, UndefinedType
 from .validation import ValidationError, validator
 from .visitor import Unsupported

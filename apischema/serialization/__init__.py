@@ -1,8 +1,5 @@
-__all__ = ["add_serialized", "serialize", "serialized"]
-
 from dataclasses import is_dataclass
 from enum import Enum
-from inspect import Parameter, iscoroutinefunction
 from typing import (
     Any,
     Callable,
@@ -27,15 +24,9 @@ from apischema.dataclass_utils import (
 )
 from apischema.fields import FIELDS_SET_ATTR, fields_set
 from apischema.metadata.keys import SKIP_METADATA, check_metadata, is_aggregate_field
-from apischema.resolvers import (
-    Resolver,
-    ResolverDescriptor,
-    add_resolver,
-    get_resolvers,
-    resolver as make_resolver,
-)
+from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES
-from apischema.utils import Operation, Undefined, typed_wraps
+from apischema.utils import Operation, Undefined
 from apischema.visitor import Unsupported
 
 PRIMITIVE_TYPES_SET = set(PRIMITIVE_TYPES)
@@ -97,15 +88,16 @@ def serialization_fields(
             aggregate_fields.append((field.name, method))
         else:
             normal_fields.append((field.name, aliaser(get_alias(field)), method))
-    for name, resolver in get_serialized_resolvers(cls).items():
+    for name, serialized in get_serialized_methods(cls).items():
 
         def method(
             obj: Any,
             _serialize: Callable,
-            func=resolver.wrapper,
-            conversions=resolver.conversions,
+            func=serialized.func,
+            conversions=serialized.conversions,
         ) -> Any:
-            return _serialize(func(obj), conversions=conversions)
+            res = func(obj)
+            return res if res is Undefined else _serialize(res, conversions=conversions)
 
         serialized_fields.append((aliaser(name), method))
 
@@ -199,67 +191,15 @@ def serialize(
                 attr = getattr(obj, field_name)
                 if attr is not Undefined:
                     result[aliaser(field_name)] = attr
+            for name, serialized in get_serialized_methods(cls).items():
+                res = serialized.func(obj)
+                if res is not Undefined:
+                    result[aliaser(name)] = _serialize(
+                        res, conversions=serialized.conversions
+                    )
             return result
         if isinstance(obj, Collection):
             return [_serialize(elt) for elt in obj]
         raise Unsupported(cls)
 
     return _serialize(obj, conversions=conversions)
-
-
-def has_parameter_without_default(resolver) -> bool:
-    return any(arg.default is Parameter.empty for arg in resolver.parameters)
-
-
-def can_be_serialized(resolver: Resolver) -> bool:
-    return not has_parameter_without_default(resolver) and not resolver.is_async
-
-
-def check_serialized(cls: Type, name: str):
-    resolver = get_resolvers(cls)[name]
-    if has_parameter_without_default(resolver):
-        raise TypeError(f"{resolver.func} cannot have parameter without default")
-    try:
-        if resolver.is_async:
-            raise TypeError(f"async {resolver.func} cannot be serialized")
-    except Exception:  # get_type_hints can fail
-        if iscoroutinefunction(resolver.func):
-            raise TypeError(f"coroutine {resolver.func} cannot be serialized")
-
-
-class SerializedDescriptor:
-    def __init__(self, resolver_desc: ResolverDescriptor):
-        self.resolver_desc = resolver_desc
-
-    def __set_name__(self, owner, name):
-        self.resolver_desc.__set_name__(owner, name)
-        check_serialized(owner, self.resolver_desc.name or name)
-
-
-def _serialized(*args, **kwargs):
-    result = make_resolver(*args, **kwargs)
-    if isinstance(result, ResolverDescriptor):
-        return SerializedDescriptor(result)
-    else:
-        return lambda method: SerializedDescriptor(result(method))
-
-
-serialized = typed_wraps(make_resolver)(_serialized)
-
-
-def _add_serialized(cls, name=None, **kwargs):
-    def decorator(func):
-        result = add_resolver(cls, name=name, **kwargs)(func)
-        check_serialized(cls, name or func.__name__)
-        return result
-
-    return decorator
-
-
-add_serialized = typed_wraps(add_resolver)(_add_serialized)
-
-
-def get_serialized_resolvers(cls: Type) -> Mapping[str, Resolver]:
-    return {
-        name: res for name, res in get_resolvers(cls).items() if can_be_serialized(res)
-    }

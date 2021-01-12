@@ -124,6 +124,14 @@ Generic converters are handled naturally
 {!field_generic_de_serializer.py!}
 ```
 
+### Serialized method conversion
+
+Serialized method can also have dedicated conversions
+
+```python
+{!serialized_conversions.py!}
+```
+
 ## Generic conversions
 
 `Generic` conversions are supported out of the box.

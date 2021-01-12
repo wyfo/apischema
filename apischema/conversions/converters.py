@@ -63,9 +63,7 @@ class MethodConverter:
         self.instance_method = instance_method
 
     def __call__(self, *args, **kwargs):
-        raise RuntimeError(
-            f"Converter method {self.method} __set_name__ has not been called"
-        )
+        raise RuntimeError("Converter method __set_name__ has not been called")
 
     @staticmethod
     def _return(owner: Type) -> Optional[Type]:
