@@ -1,16 +1,17 @@
+import warnings
 from collections import ChainMap
 from contextlib import suppress
-from dataclasses import Field, InitVar, dataclass
+from dataclasses import Field, InitVar, dataclass, field as field_, replace
 from enum import Enum
-from inspect import Parameter
+from inspect import Parameter, iscoroutinefunction
 from typing import (
     Any,
     AsyncIterable,
     AsyncIterator,
-    Awaitable,
     Callable,
     Collection,
     Dict,
+    Generic,
     Iterable,
     List,
     Mapping,
@@ -42,7 +43,13 @@ from apischema.dataclass_utils import (
     is_required,
 )
 from apischema.graphql.interfaces import get_interfaces, is_interface
-from apischema.graphql.resolvers import INFO_TYPES, resolver_resolve
+from apischema.graphql.resolvers import (
+    Resolver,
+    get_resolvers,
+    none_error_handler,
+    resolver_parameters,
+    resolver_resolve,
+)
 from apischema.json_schema.refs import get_ref, schema_ref
 from apischema.json_schema.schema import Schema, get_schema, merge_schema
 from apischema.metadata.keys import (
@@ -51,12 +58,7 @@ from apischema.metadata.keys import (
     SCHEMA_METADATA,
     check_metadata,
 )
-from apischema.resolvers import (
-    MissingFirstParameter,
-    Resolver,
-    get_resolvers,
-    resolver_parameters,
-)
+from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, NoneType
 from apischema.typing import get_args, get_origin
@@ -100,24 +102,6 @@ def exec_thunk(thunk: Thunk[graphql.GraphQLType], *, non_null=None) -> Any:
     return result
 
 
-U = TypeVar("U")
-
-
-@dataclass(frozen=True)
-class FieldParameter:
-    name: str
-    type: AnyType
-    default: Any
-
-
-def field_parameters(resolver: Resolver) -> Sequence[FieldParameter]:
-    return [
-        FieldParameter(p.name, resolver.types[p.name], p.default)
-        for p in resolver.parameters
-        if resolver.types[p.name] not in INFO_TYPES
-    ]
-
-
 @dataclass(frozen=True)
 class ObjectField:
     name: str
@@ -125,13 +109,13 @@ class ObjectField:
     alias: Optional[str] = None
     conversions: Optional[Conversions] = None
     default: Any = graphql.Undefined
-    deprecated: Optional[str] = None
-    description: Optional[str] = None
-    parameters: Optional[Collection[FieldParameter]] = None
-    required: InitVar[bool] = True
+    parameters: Optional[Tuple[Collection[Parameter], Mapping[str, AnyType]]] = None
+    required: InitVar[bool] = False
     resolve: Optional[Callable] = None
     schema: InitVar[Optional[Schema]] = None
     subscribe: Optional[Callable] = None
+    deprecated: Optional[str] = field_(init=False, default=None)
+    description: Optional[str] = field_(init=False, default=None)
 
     def __post_init__(self, required: bool, schema: Optional[Schema]):
         if required:
@@ -147,16 +131,8 @@ class ObjectField:
             if schema.annotations.default is not Undefined and not required:
                 object.__setattr__(self, "default", schema.annotations.default)
 
-    def apply_aliaser(self, aliaser: Aliaser) -> str:
-        return aliaser(self.alias or self.name)
-
-
-def wrap_return_type(return_type: AnyType, error_as_null: bool) -> AnyType:
-    return Optional[return_type] if error_as_null else return_type
-
 
 IdPredicate = Callable[[AnyType], bool]
-GenericRefFactory = Callable[[AnyType], str]
 UnionRefFactory = Callable[[Sequence[str]], str]
 
 
@@ -165,15 +141,11 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         self,
         aliaser: Optional[Aliaser],
         is_id: Optional[IdPredicate],
-        error_as_null: bool,
-        generic_ref_factory: Optional[GenericRefFactory],
         union_ref_factory: Optional[UnionRefFactory],
     ):
         super().__init__()
         self.aliaser = aliaser or (lambda s: s)
         self.is_id = is_id or (lambda t: False)
-        self.error_as_null = error_as_null
-        self.generic_ref_factory = generic_ref_factory
         self.union_ref_factory = union_ref_factory
         self._cache: Dict[Any, Thunk[graphql.GraphQLType]] = {}
         self._non_null = True
@@ -263,9 +235,9 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         return self.literal([elt.value for elt in cls])
 
     def generic(self, cls: AnyType) -> Thunk[graphql.GraphQLType]:
-        if self.generic_ref_factory is None:
+        self._ref = self._ref or get_ref(cls)
+        if self._ref is None:
             raise MissingRef
-        self._ref = self.generic_ref_factory(cls)
         return super().generic(cls)
 
     def literal(self, values: Sequence[Any]) -> Thunk[graphql.GraphQLType]:
@@ -297,7 +269,14 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
             if field_name in defaults:
                 with suppress(Exception):
                     default = serialize(defaults[field_name])
-            fields.append(ObjectField(field_name, field_type, default=default))
+            fields.append(
+                ObjectField(
+                    field_name,
+                    field_type,
+                    default=default,
+                    required=field_name in defaults,
+                )
+            )
         return self.object(cls, fields)
 
     def new_type(self, cls: Type, super_type: AnyType) -> Thunk[graphql.GraphQLType]:
@@ -322,11 +301,6 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
 
     def tuple(self, types: Sequence[AnyType]) -> Thunk[graphql.GraphQLType]:
         raise TypeError("Tuple are not supported")
-
-    def typed_dict(
-        self, cls: Type, keys: Mapping[str, AnyType], total: bool
-    ) -> Thunk[graphql.GraphQLType]:
-        raise TypeError("TyedDict are not supported")
 
     def union(self, alternatives: Sequence[AnyType]) -> Thunk[graphql.GraphQLType]:
         alternatives = list(filter_skipped(alternatives, schema_only=True))
@@ -434,7 +408,9 @@ class InputSchemaBuilder(
 ):
     def _field(self, field: ObjectField) -> Tuple[str, Lazy[graphql.GraphQLInputField]]:
         field_type = self.visit_with_conversions(field.type, field.conversions)
-        return field.apply_aliaser(self.aliaser), lambda: graphql.GraphQLInputField(
+        return self.aliaser(
+            field.alias or field.name
+        ), lambda: graphql.GraphQLInputField(
             exec_thunk(field_type),
             default_value=field.default,
             description=field.description,
@@ -456,6 +432,13 @@ class InputSchemaBuilder(
             description,
         )
 
+    def typed_dict(
+        self, cls: Type, keys: Mapping[str, AnyType], total: bool
+    ) -> Thunk[graphql.GraphQLType]:
+        return self.object(
+            cls, [ObjectField(name, type) for name, type in keys.items()]
+        )
+
     def _union_result(
         self, results: Iterable[Thunk[graphql.GraphQLType]]
     ) -> Thunk[graphql.GraphQLType]:
@@ -472,19 +455,12 @@ class OutputSchemaBuilder(
         self,
         aliaser: Optional[Aliaser],
         is_id: Optional[IdPredicate],
-        error_as_null: bool,
-        generic_ref_factory: Optional[GenericRefFactory],
         union_ref_factory: Optional[UnionRefFactory],
     ):
-        super().__init__(
-            aliaser, is_id, error_as_null, generic_ref_factory, union_ref_factory
-        )
-        self.input_builder = InputSchemaBuilder(
-            aliaser, is_id, error_as_null, generic_ref_factory, union_ref_factory
-        )
+        super().__init__(aliaser, is_id, union_ref_factory)
+        self.input_builder = InputSchemaBuilder(aliaser, is_id, union_ref_factory)
 
     def _field(self, field: ObjectField) -> Tuple[str, Lazy[graphql.GraphQLField]]:
-        alias = field.apply_aliaser(self.aliaser)
         if field.resolve is not None:
             resolve = field.resolve
         else:
@@ -492,15 +468,22 @@ class OutputSchemaBuilder(
         field_type = self.visit_with_conversions(field.type, field.conversions)
         args = None
         if field.parameters is not None:
+            parameters, types = field.parameters
             args = {}
-            for param in field.parameters:
-                default = graphql.Undefined
-                if param.default not in {Parameter.empty, Undefined, graphql.Undefined}:
-                    with suppress(Exception):
+            for param in parameters:
+                default: Any = graphql.Undefined
+                param_type = types[param.name]
+                # None because of https://github.com/python/typing/issues/775
+                if param.default in {None, Undefined, graphql.Undefined}:
+                    param_type = Optional[param_type]
+                if param.default != Parameter.empty:
+                    try:
                         default = serialize(param.default)
+                    except Exception:
+                        param_type = Optional[param_type]
 
                 def arg_thunk(
-                    arg_thunk=self.input_builder.visit(param.type),
+                    arg_thunk=self.input_builder.visit(param_type),
                     default=default,
                     out_name=param.name,
                 ) -> graphql.GraphQLArgument:
@@ -513,7 +496,7 @@ class OutputSchemaBuilder(
                     return graphql.GraphQLArgument(arg_type, default, out_name=out_name)
 
                 args[self.aliaser(param.name)] = arg_thunk
-        return alias, lambda: graphql.GraphQLField(
+        return self.aliaser(field.alias or field.name), lambda: graphql.GraphQLField(
             exec_thunk(field_type),
             {name: arg() for name, arg in args.items()} if args else None,
             resolve,
@@ -536,14 +519,12 @@ class OutputSchemaBuilder(
                 raise
             name, description = cls.__name__, self._description
         for resolver_name, resolver in get_resolvers(cls).items():
-            resolve = resolver_resolve(
-                resolver, self.aliaser, error_as_null=self.error_as_null
-            )
+            resolve = resolver_resolve(resolver, self.aliaser)
             resolver_field = ObjectField(
                 resolver_name,
-                wrap_return_type(resolver.return_type, self.error_as_null),
+                resolver.return_type,
                 conversions=resolver.conversions,
-                parameters=field_parameters(resolver),
+                parameters=(resolver.parameters, resolver.types),
                 resolve=resolve,
             )
             fields_and_resolvers.append(resolver_field)
@@ -588,6 +569,11 @@ class OutputSchemaBuilder(
                 description=description,
             )
 
+    def typed_dict(
+        self, cls: Type, keys: Mapping[str, AnyType], total: bool
+    ) -> Thunk[graphql.GraphQLType]:
+        raise TypeError("TyedDict are not supported in output schema")
+
     def _union_result(
         self, results: Iterable[Thunk[graphql.GraphQLType]]
     ) -> Thunk[graphql.GraphQLType]:
@@ -612,85 +598,125 @@ class OutputSchemaBuilder(
         return thunk
 
 
-AwaitableOrNot = Union[Awaitable[T], T]
-Subscribe = Callable[..., AwaitableOrNot[AsyncIterable]]
-
 async_iterable_origins = set(map(get_origin, (AsyncIterable[Any], AsyncIterator[Any])))
 
 _fake_type = cast(type, ...)
 
 
-def graphql_schema(
-    *,
-    query: Iterable[Callable] = (),
-    mutation: Iterable[Callable] = (),
-    subscription: Iterable[Union[Subscribe, Tuple[Subscribe, Callable]]] = (),
-    types: Iterable[Type] = (),
-    aliaser: Aliaser = to_camel_case,
-    id_types: Union[Collection[AnyType], IdPredicate] = None,
-    error_as_null: bool = True,
-    generic_ref_factory: GenericRefFactory = None,
-    union_ref_factory: UnionRefFactory = None,
-    directives: Optional[Collection[graphql.GraphQLDirective]] = None,
-    description: Optional[str] = None,
-    extensions: Optional[Dict[str, Any]] = None,
-) -> graphql.GraphQLSchema:
-    def operation_resolver(operation: Callable, *, skip_first=False) -> Resolver:
-        if skip_first:
-            wrapper = operation
+@dataclass(frozen=True)
+class Operation(Generic[T]):
+    function: Callable[..., T]
+    alias: Optional[str] = None
+    conversions: Optional[Conversions] = None
+    schema: Optional[Schema] = None
+    error_handler: ErrorHandler = Undefined
+
+
+OpOrFunc = Union[Callable[..., T], Operation[T]]
+
+
+def operation_resolver(
+    operation: OpOrFunc, *, keep_first_param=False
+) -> Tuple[str, Resolver]:
+    if not isinstance(operation, Operation):
+        operation = Operation(operation)
+    error_handler: Optional[Callable]
+    if operation.error_handler is Undefined:
+        error_handler = None
+    elif operation.error_handler is None:
+        error_handler = none_error_handler
+    else:
+        error_handler = operation.error_handler
+    if keep_first_param:
+        wrapper = operation.function
+    else:
+        op = operation.function
+        if iscoroutinefunction(op):
+
+            async def wrapper(_, *args, **kwargs):
+                return await op(*args, **kwargs)
+
         else:
 
             def wrapper(_, *args, **kwargs):
-                return operation(*args, **kwargs)
+                return op(*args, **kwargs)
 
-        parameters = resolver_parameters(operation, skip_first=skip_first)
-        return Resolver(operation, wrapper, parameters)
+        wrapper.__annotations__ = op.__annotations__
+
+    (*parameters,) = resolver_parameters(
+        operation.function, check_first=not keep_first_param
+    )
+    if keep_first_param:
+        parameters = parameters[1:]
+    return operation.alias or operation.function.__name__, Resolver(
+        wrapper, operation.conversions, operation.schema, error_handler, parameters
+    )
+
+
+def remove_error_handler(subscription: OpOrFunc) -> OpOrFunc:
+    if (
+        isinstance(subscription, Operation)
+        and subscription.error_handler is not Undefined
+    ):
+        warnings.warn("Subscriber error_handler is ignored")
+        return replace(subscription, error_handler=Undefined)
+    else:
+        return subscription
+
+
+def graphql_schema(
+    *,
+    query: Iterable[OpOrFunc] = (),
+    mutation: Iterable[OpOrFunc] = (),
+    subscription: Iterable[
+        Union[
+            OpOrFunc[AsyncIterable],
+            Tuple[Callable[..., AsyncIterable], OpOrFunc],
+        ]
+    ] = (),
+    types: Iterable[Type] = (),
+    directives: Optional[Collection[graphql.GraphQLDirective]] = None,
+    description: Optional[str] = None,
+    extensions: Optional[Dict[str, Any]] = None,
+    aliaser: Aliaser = to_camel_case,
+    id_types: Union[Collection[AnyType], IdPredicate] = None,
+    union_ref: UnionRefFactory = "Or".join,
+) -> graphql.GraphQLSchema:
 
     query_fields: List[ObjectField] = []
     mutation_fields: List[ObjectField] = []
     subscription_fields: List[ObjectField] = []
     for operations, fields in [(query, query_fields), (mutation, mutation_fields)]:
         for operation in operations:
-            resolver = operation_resolver(operation)
+            name, resolver = operation_resolver(operation)
             fields.append(
                 ObjectField(
-                    operation.__name__,
-                    wrap_return_type(resolver.return_type, error_as_null),
-                    resolve=resolver_resolve(resolver, aliaser, error_as_null),
-                    parameters=field_parameters(resolver),
-                    schema=get_schema(operation),
+                    name,
+                    resolver.return_type,
+                    parameters=(resolver.parameters, resolver.types),
+                    resolve=resolver_resolve(resolver, aliaser),
+                    schema=resolver.schema,
                 )
             )
-    for operation in subscription:  # type: ignore
+    for sub_op in subscription:  # type: ignore
         resolve: Callable
-        if isinstance(operation, tuple):
-            operation, event_handler = operation
-            name, schema = event_handler.__name__, get_schema(event_handler)
-            try:
-                resolver = operation_resolver(event_handler, skip_first=True)
-            except MissingFirstParameter:
-                raise TypeError(
-                    "Subscription resolver must have at least one parameter"
-                ) from None
+        if isinstance(sub_op, tuple):
+            operation, event_handler = cast(Tuple[Callable, OpOrFunc], sub_op)
+            operation = remove_error_handler(operation)
+            name, resolver = operation_resolver(event_handler, keep_first_param=True)
+            _, subscriber = operation_resolver(operation)
+            subscribe = resolver_resolve(subscriber, aliaser, serialized=False)
+            resolve = resolver_resolve(resolver, aliaser)
             return_type = resolver.return_type
-            subscribe = resolver_resolve(
-                operation_resolver(operation),
-                aliaser,
-                error_as_null,
-                serialized=False,
-            )
-            resolve = resolver_resolve(resolver, aliaser, error_as_null)
         else:
-            name, schema = operation.__name__, get_schema(operation)
-            resolver = operation_resolver(operation)
+            operation = remove_error_handler(cast(OpOrFunc, sub_op))
+            name, resolver = operation_resolver(sub_op)
             if get_origin(resolver.return_type) not in async_iterable_origins:
                 raise TypeError(
                     "Subscriptions must return an AsyncIterable/AsyncIterator"
                 )
             return_type = get_args(resolver.return_type)[0]
-            subscribe = resolver_resolve(
-                resolver, aliaser, error_as_null, serialized=False
-            )
+            subscribe = resolver_resolve(resolver, aliaser, serialized=False)
 
             def resolve(_, *args, **kwargs):
                 return _
@@ -698,32 +724,30 @@ def graphql_schema(
         subscription_fields.append(
             ObjectField(
                 name,
-                wrap_return_type(return_type, error_as_null),
-                parameters=field_parameters(resolver),
+                return_type,
+                parameters=(resolver.parameters, resolver.types),
                 resolve=resolve,
                 subscribe=subscribe,
-                schema=schema,
+                schema=resolver.schema,
             )
         )
 
     is_id = id_types.__contains__ if isinstance(id_types, Collection) else id_types
-    builder = OutputSchemaBuilder(
-        aliaser, is_id, error_as_null, generic_ref_factory, union_ref_factory
-    )
+    builder = OutputSchemaBuilder(aliaser, is_id, union_ref)
 
     def root_type(
         name: str, fields: Collection[ObjectField]
     ) -> Optional[graphql.GraphQLObjectType]:
-        if not fields:
+        if not fields and name != "Query":
             return None
         return exec_thunk(builder.object(type(name, (), {}), fields), non_null=False)
 
     return graphql.GraphQLSchema(
-        root_type("Query", query_fields),
-        root_type("Mutation", mutation_fields),
-        root_type("Subscription", subscription_fields),
-        [exec_thunk(builder.visit(cls), non_null=False) for cls in types],
-        directives,
-        description,
-        extensions,
+        query=root_type("Query", query_fields),
+        mutation=root_type("Mutation", mutation_fields),
+        subscription=root_type("Subscription", subscription_fields),
+        types=[exec_thunk(builder.visit(cls), non_null=False) for cls in types],
+        directives=directives,
+        description=description,
+        extensions=extensions,
     )

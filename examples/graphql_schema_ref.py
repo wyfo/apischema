@@ -3,18 +3,14 @@ from typing import Optional
 
 from graphql import print_schema
 
-from apischema.graphql import graphql_schema, interface
+from apischema import schema_ref
+from apischema.graphql import graphql_schema
 
 
-@interface
+@schema_ref("Baz")
 @dataclass
-class Bar:
+class Foo:
     bar: int
-
-
-@dataclass
-class Foo(Bar):
-    baz: str
 
 
 def foo() -> Optional[Foo]:
@@ -24,15 +20,10 @@ def foo() -> Optional[Foo]:
 schema = graphql_schema(query=[foo])
 schema_str = """\
 type Query {
-  foo: Foo
+  foo: Baz
 }
 
-type Foo implements Bar {
-  bar: Int!
-  baz: String!
-}
-
-interface Bar {
+type Baz {
   bar: Int!
 }
 """

@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from graphql import print_schema
 
@@ -17,16 +16,13 @@ class Foo(Bar):
     baz: str
 
 
-def foo() -> Optional[Foo]:
+def bar() -> Bar:
     ...
 
 
-schema = graphql_schema(query=[foo])
+schema = graphql_schema(query=[bar], types={Foo})
+# type Foo would have not been present if Foo was not put in types
 schema_str = """\
-type Query {
-  foo: Foo
-}
-
 type Foo implements Bar {
   bar: Int!
   baz: String!
@@ -34,6 +30,10 @@ type Foo implements Bar {
 
 interface Bar {
   bar: Int!
+}
+
+type Query {
+  bar: Bar!
 }
 """
 assert print_schema(schema) == schema_str

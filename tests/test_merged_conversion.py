@@ -82,7 +82,7 @@ def test_merged_dataclass_model():
         print_schema(graphql_schema(query=[get_data]))
         == """\
 type Query {
-  getData: Data
+  getData: Data!
 }
 
 type Data {
@@ -150,7 +150,7 @@ def test_merged_converted():
         print_schema(graphql_schema(query=[get_data2]))
         == """\
 type Query {
-  getData2: Data2
+  getData2: Data2!
 }
 
 type Data2 {

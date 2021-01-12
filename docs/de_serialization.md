@@ -156,11 +156,11 @@ The function name is used unless an alias is given in decorator argument.
 
 #### Error handling
 
-Errors occurring in serialized methods can be caught in a dedicated error handler registered with `error_handler` parameter. It takes in parameters the exception, the object and the alias of the serialized method, and can return a new value or raise the current or another exception — it can for example be used to log errors without throwing the complete serialization.
+Errors occurring in serialized methods can be caught in a dedicated error handler registered with `error_handler` parameter. This function takes in parameters the exception, the object and the alias of the serialized method; it can return a new value or raise the current or another exception — it can for example be used to log errors without throwing the complete serialization.
 
 The resulting serialization type will be a `Union` of the normal type and the error handling type ; if the error handler always raises, use [`typing.NoReturn`](https://docs.python.org/3/library/typing.html#typing.NoReturn) annotation. 
 
-`error_handler=None` correspond to a default handler which only return `None` — exception is thus discarded and serialization type becomes an `Optional`.
+`error_handler=None` correspond to a default handler which only return `None` — exception is thus discarded and serialization type becomes `Optional`.
 
 The error handler is only executed by *Apischema* serialization process, it's not added to the function, so this one can be executed normally and raise an exception in the rest of your code.
 

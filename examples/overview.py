@@ -50,16 +50,16 @@ def user(username: str) -> Optional[User]:
 schema = graphql_schema(query=[users, user, posts], id_types={UUID})
 schema_str = """\
 type Query {
-  users: [User!]
+  users: [User!]!
   user(username: String!): User
-  posts: [Post!]
+  posts: [Post!]!
 }
 
 type User {
   id: ID!
   username: String!
   birthday: Date
-  posts: [Post!]
+  posts: [Post!]!
 }
 
 scalar Date

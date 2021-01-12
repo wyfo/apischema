@@ -1,4 +1,3 @@
-import sys
 from typing import Generic, TypeVar
 
 from pytest import raises

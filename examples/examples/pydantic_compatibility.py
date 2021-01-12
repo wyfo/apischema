@@ -15,6 +15,7 @@ from apischema import (
 from apischema.json_schema import deserialization_schema
 from apischema.validation.errors import LocalizedError
 
+
 #################### Pydantic support code starts here
 
 
