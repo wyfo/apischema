@@ -1,9 +1,11 @@
 # flake8: noqa
 # type: ignore
+import asyncio
 import sys
 import typing
-from unittest.mock import MagicMock
 from typing import *
+from unittest.mock import MagicMock
+
 from apischema.typing import Annotated, Literal, TypedDict
 
 typing.Annotated, typing.Literal, typing.TypedDict = Annotated, Literal, TypedDict
@@ -33,3 +35,6 @@ for cls in (Dict, List, Set, FrozenSet, Tuple, Type):  # noqa
     globals()[wrapper.implem.__name__] = wrapper
 
 Set = AbstractSet
+
+if sys.version_info < (3, 7):
+    asyncio.run = lambda coro: asyncio.get_event_loop().run_until_complete(coro)

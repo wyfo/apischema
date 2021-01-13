@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import wraps
-from inspect import Parameter, signature
+from inspect import Parameter, isclass, signature
 from typing import (
     Any,
     Callable,
@@ -43,7 +43,10 @@ class Serialized:
     def types(self) -> Mapping[str, AnyType]:
         types = get_type_hints(self.func, include_extras=True)
         if "return" not in types:
-            raise TypeError("Function must be typed")
+            if isclass(self.func):
+                types["return"] = self.func
+            else:
+                raise TypeError("Function must be typed")
         return types
 
     @cached_property
