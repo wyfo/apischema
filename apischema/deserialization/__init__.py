@@ -6,7 +6,6 @@ from typing import (
     AbstractSet,
     Any,
     Callable,
-    Collection,
     Dict,
     Iterable,
     List,
@@ -17,6 +16,7 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    Union,
     cast,
     overload,
 )
@@ -232,47 +232,6 @@ def field_deserializer(
     return deserializer
 
 
-RequiredFieldChecker = Callable[
-    [Mapping[str, Any], Dict[ErrorKey, ValidationError]], None
-]
-
-
-def required_field_checker(
-    field: Field, requiring: Optional[Collection[Field]], aliaser: Aliaser
-) -> RequiredFieldChecker:
-    alias = aliaser(get_alias(field))
-    required = is_required(field)
-    if requiring is not None:
-        requiring_alias = {aliaser(get_alias(req)) for req in requiring}
-
-        def checker(
-            data: Mapping[str, Any], field_errors: Dict[ErrorKey, ValidationError]
-        ):
-            required_by = requiring_alias & data.keys()
-            if required_by:
-                field_errors[alias] = ValidationError(
-                    [f"missing property (required by {sorted(required_by)})"]
-                )
-            elif required:
-                field_errors[alias] = MISSING_PROPERTY
-
-    elif required:
-
-        def checker(
-            data: Mapping[str, Any], field_errors: Dict[ErrorKey, ValidationError]
-        ):
-            field_errors[alias] = MISSING_PROPERTY
-
-    else:
-
-        def checker(
-            data: Mapping[str, Any], field_errors: Dict[ErrorKey, ValidationError]
-        ):
-            pass
-
-    return checker
-
-
 def with_validators(
     validators: Sequence[Validator],
 ) -> Callable[[DeserializationMethod], DeserializationMethod]:
@@ -370,7 +329,9 @@ class DeserializationMethodVisitor(
         init_vars: Sequence[Field],
     ) -> DeserializationMethodFactory:
         assert is_dataclass(cls)
-        normal_fields: List[Tuple[str, FieldDeserializer, RequiredFieldChecker]] = []
+        normal_fields: List[
+            Tuple[str, FieldDeserializer, Union[bool, AbstractSet[str]]]
+        ] = []
         merged_fields: List[Tuple[AbstractSet[str], FieldDeserializer]] = []
         pattern_fields: List[Tuple[Pattern, FieldDeserializer]] = []
         additional_field: Optional[FieldDeserializer] = None
@@ -426,11 +387,11 @@ class DeserializationMethodVisitor(
                 else:
                     pattern_fields.append((pattern, deserializer))
             else:
-                checker = required_field_checker(
-                    field, required_by.get(field), self.aliaser
-                )
+                required = is_required(field) or {
+                    self.aliaser(get_alias(req)) for req in required_by.get(field) or ()
+                }
                 normal_fields.append(
-                    (self.aliaser(get_alias(field)), deserializer, checker)
+                    (self.aliaser(get_alias(field)), deserializer, required)
                 )
 
         @DeserializationMethodFactory.from_type(cls)
@@ -444,14 +405,23 @@ class DeserializationMethodVisitor(
                 errors = [] if constraints is None else constraints.errors(data)
                 field_errors: Dict[ErrorKey, ValidationError] = OrderedDict()
 
-                for alias, deserialize_field, required_checker in normal_fields:
+                for alias, deserialize_field, required in normal_fields:
                     if alias in data:
                         aliases.append(alias)
                         deserialize_field(
                             ctx, data[alias], values, errors, field_errors
                         )
+                    elif not required:
+                        pass
+                    elif required is True:
+                        field_errors[alias] = MISSING_PROPERTY
                     else:
-                        required_checker(data, field_errors)
+                        assert isinstance(required, AbstractSet)
+                        requiring = required & data.keys()
+                        if requiring:
+                            msg = f"missing property (required by {sorted(requiring)})"
+                            field_errors[alias] = ValidationError([msg])
+
                 for merged_alias, deserialize_field in merged_fields:
                     merged = {
                         alias: data[alias] for alias in merged_alias if alias in data
