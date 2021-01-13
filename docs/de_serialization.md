@@ -142,15 +142,39 @@ There is no validation, objects provided are trusted — they are supposed to be
 
 *Apischema* can execute methods/properties during serialization and add the computed values with the other fields values; just put `apischema.serialized` decorator on top of methods/properties you want to be serialized.
 
+The function name is used unless an alias is given in decorator argument.
+
 ```python
 {!serialized.py!}
 ```
 
+!!! note
+    Serialized methods must not have parameters without default, as *Apischema* need to execute them without arguments
 
 !!! note
-    The serialized methods must not have parameters without default, as *Apischema* need to execute them without arguments
+    Overriding of a serialized method in a subclass will also override the serialization of the subclass. 
 
+#### Error handling
 
+Errors occurring in serialized methods can be caught in a dedicated error handler registered with `error_handler` parameter. It takes in parameters the exception, the object and the alias of the serialized method, and can return a new value or raise the current or another exception — it can for example be used to log errors without throwing the complete serialization.
+
+The resulting serialization type will be a `Union` of the normal type and the error handling type ; if the error handler always raises, use [`typing.NoReturn`](https://docs.python.org/3/library/typing.html#typing.NoReturn) annotation. 
+
+`error_handler=None` correspond to a default handler which only return `None` — exception is thus discarded and serialization type becomes an `Optional`.
+
+The error handler is only executed by *Apischema* serialization process, it's not added to the function, so this one can be executed normally and raise an exception in the rest of your code.
+
+```python
+{!serialized_error.py!}
+```
+
+#### Required serialized methods
+
+Serialized methods (or their error handler) can return `apischema.Undefined`, in which case the property will not be included into the serialization; accordingly, the property loose the *required* qualification in the JSON schema.
+
+```python
+{!serialized_undefined.py!}
+```
 
 ### Exclude unset fields
 

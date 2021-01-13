@@ -1,6 +1,7 @@
 import collections.abc
 import sys
 import typing
+from itertools import chain
 from types import MappingProxyType
 from typing import (
     AbstractSet,
@@ -77,8 +78,13 @@ else:  # pragma: no cover
 
 if sys.version_info >= (3, 7):  # pragma: no cover
     OrderedDict = dict
+    ChainMap = collections.ChainMap
 else:  # pragma: no cover
-    from collections import OrderedDict  # noqa
+    OrderedDict = collections.OrderedDict
+
+    class ChainMap(collections.ChainMap):
+        def __iter__(self):
+            return iter({k: None for k in chain.from_iterable(reversed(self.maps))})
 
 
 class MetadataUnion(Mapping[str, Any]):

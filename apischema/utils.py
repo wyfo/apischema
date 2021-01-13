@@ -119,6 +119,32 @@ class Operation(Enum):
     SERIALIZATION = auto()
 
 
+MethodOrProperty = Union[Callable, property]
+
+
+def is_method(func: MethodOrProperty) -> bool:
+    """Return if the function is method/property declared in a class"""
+    return isinstance(func, property) or func.__name__ != func.__qualname__
+
+
+def method_wrapper(method: MethodOrProperty, name: str) -> Callable:
+    wrapper: Callable
+    if isinstance(method, property):
+
+        @wraps(method.fget)
+        def wrapper(self):
+            return getattr(self, name)
+
+    else:
+
+        @wraps(method.__get__(None, object))  # type: ignore
+        def wrapper(self, *args, **kwargs):
+
+            return getattr(self, name)(*args, **kwargs)
+
+    return wrapper
+
+
 try:
     from functools import cached_property
 except ImportError:
