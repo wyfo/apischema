@@ -6,7 +6,7 @@ It takes only 20 lines of code to support `pydantic.BaseModel` and all of its su
     This support unfortunately doesn't include *GraphQL* schema feature.
 
 !!! note
-    *pydantic* pseudo-dataclasses are de facto supported but without *pydantic* extra features; they could be fully supported but it would requires some additional lines of code.  
+    *pydantic* pseudo-dataclasses are de facto supported but without *pydantic* extra features; they could be fully supported, but it would require some additional lines of code.  
 
 ```python
 {!examples/pydantic_compatibility.py!}
