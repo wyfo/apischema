@@ -22,7 +22,7 @@ Schema types are named the same way they are in generated JSON schema: type name
 {!graphql_schema_ref.py!}
 ```
 
-However, in *GraphQL* schema, unions must be named, so `typing.Union` used should be annotated with `apischema.schema_ref`. However, `graphql_schema` also provides a `union_ref` parameter which can be passed as a function to generate a type name from the union argument. Default `union_ref` is `"Or".join` meaning `typing.Union[Foo, Bar]` will result in `union FooOrBar = Foo | Bar`
+However, in *GraphQL* schema, unions must be named, so `typing.Union` used should be annotated with `apischema.schema_ref`. `graphql_schema` also provides a `union_ref` parameter which can be passed as a function to generate a type name from the union argument. Default `union_ref` is `"Or".join` meaning `typing.Union[Foo, Bar]` will result in `union FooOrBar = Foo | Bar`
 
 ```python
 {!union_ref.py!}
@@ -41,7 +41,7 @@ However, in *GraphQL* schema, unions must be named, so `typing.Union` used shoul
 
 Subscriptions are particular operations which must return an `AsyncIterable`; this event generator can come with a dedicated resolver to post process the event.
 
-## Event generator only
+### Event generator only
 
 ```python
 {!subscription.py!}
@@ -50,7 +50,7 @@ Subscriptions are particular operations which must return an `AsyncIterable`; th
 !!! note
 `Operation` can be used instead of a raw function, but error_handler will be ignored for subscription.
 
-## Event generator + resolver
+### Event generator + resolver
 
 A resolver can be added by passing a tuple `(event_generator, resolver)`.  In this case, *Apischema* will map subscription name, parameters and return type on the resolver instead of the event generator.
 

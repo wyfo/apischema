@@ -22,7 +22,7 @@ There are 2 exceptions which can be always be used in `Union`:
 Types are assumed to be non-null by default, as in Python typing. Nullable types are obtained using `typing.Optional` (or `typing.Union` with a `None` argument).
 
 !!! note
-    There is one exception, when resolver parameter default value is not serializable (and thus cannot be included in the schema), parameter type is then set as nullable to make the parameter non-required. For example parameters not `Optional` but with `Undefined` default value will be marked as nullable. This is only for the schema, default value is still used in execution.
+    There is one exception, when resolver parameter default value is not serializable (and thus cannot be included in the schema), parameter type is then set as nullable to make the parameter non-required. For example parameters not `Optional` but with `Undefined` default value will be marked as nullable. This is only for the schema, default value is still used at execution.
 
 ## Interfaces
 
@@ -50,9 +50,9 @@ Resolvers parameters are included in the schema with their type, and their defau
 
 Resolvers can have an additional parameter of type [`graphql.GraphQLResolveInfo`](https://graphql-core-3.readthedocs.io/en/latest/modules/type.html?highlight=GraphQLResolveInfo#graphql.type.GraphQLResolveInfo) (or `Optional[graphql.GraphQLResolveInfo]`), which is automatically injected when the resolver is executed in the context of a *GraphQL* request. This parameter contains the info about the current *GraphQL* request being executed.
 
-### Undefined parameter default
+### Undefined parameter default — `null` vs. `undefined`
 
-In *GraphQL*, non required parameters are forced to be nullable. However, *Apischema* allows to distinguish a `null` input from an input absent, by putting `apischema.Undefined` as parameter default of an `Optional` field. Thus, a `null` value will result in a `None` argument whereas absent parameter will result in an `apischema.Undefined` argument.
+`Undefined` can be used as default value of resolver parameters. It can be to distinguish a `null` input from an absent/`undefined` input. In fact, `null` value will result in a `None` argument where no value will use the default value, `Undefined` so.
 
 ```python
 {!undefined_default.py!}

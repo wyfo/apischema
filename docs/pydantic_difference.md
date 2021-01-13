@@ -10,7 +10,7 @@ Better performance, but not at the cost of fewer functionalities; that's rather 
 
 ### *Apischema* can generate [*GraphQL* schema](graphql/overview.md) from your resolvers
 
-Not just a simple printable schema but a complete `graphql.GraphQLSchema` which can be used to execute your queries/mutations/subscriptions through your resolvers/subscribers, powered by *Apischema* (de)serialization and conversions features.
+Not just a simple printable schema but a complete `graphql.GraphQLSchema` (using [*graphql-core*](https://github.com/graphql-python/graphql-core/) library) which can be used to execute your queries/mutations/subscriptions through your resolvers, powered by *Apischema* (de)serialization and conversions features.
 
 Types and resolvers can be used both in traditional JSON-oriented API and GraphQL API
 
@@ -51,65 +51,12 @@ Serialization customization is harder, with definition of encoding function by m
 Here is a comparison of a custom type support:
 
 ```python
-import re
-from typing import NamedTuple, NewType
-
-import apischema
-import pydantic.validators
-
-# Serialization can only be customized into the enclosing models
-class RGB(NamedTuple):
-    red: int
-    green: int
-    blue: int
-
-    # If you don't put this method, RGB schema will be: 
-    # {'title': 'Rgb', 'type': 'array', 'items': {}}
-    @classmethod
-    def __modify_schema__(cls, field_schema) -> None:
-        field_schema.update({"type": "string", "pattern": r"#[0-9A-Fa-f]{6}"})
-        field_schema.pop("items", ...)
-
-    @classmethod
-    def __get_validators__(cls):
-        yield pydantic.validators.str_validator
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, value) -> 'RGB':
-        if not isinstance(value, str) or re.fullmatch(r"#[0-9A-Fa-f]{6}", value) is None:
-            raise ValueError("Invalid RGB")
-        return RGB(red=int(value[1:3], 16), green=int(value[3:5], 16), blue=int(value[5:7], 16))
-    
-# Simpler with apischema
-
-class RGB(NamedTuple):
-    red: int
-    green: int
-    blue: int
-    
-HexaRGB = NewType("HexaRGB", str)
-# pattern is used in JSON schema and in deserialization validation
-apischema.schema(pattern=r"#[0-9A-Fa-f]{6}")(HexaRGB)
-
-@apischema.deserializer
-def from_hexa(hexa: HexaRGB) -> RGB:
-    return RGB(int(hexa[1:3], 16), int(hexa[3:5], 16), int(hexa[5:7], 16))
-
-@apischema.serializer
-def to_hexa(rgb: RGB) -> HexaRGB:
-    return HexaRGB(f"#{rgb.red:02x}{rgb.green:02x}{rgb.blue:02x}")
-
-assert (  # schema is inherited from deserialized type
-    apischema.json_schema.deserialization_schema(RGB)
-    == apischema.json_schema.deserialization_schema(HexaRGB)
-    == {
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
-        "type": "string", 
-        "pattern": "#[0-9A-Fa-f]{6}",
-    }
-)
+{!pydantic_conversion.py!}
 ```
+
+### *Apischema* can also customize serialization with computed fields
+
+[Serialized methods/properties](de_serialization.md#serialized-methodsproperties) are regular methods/properties which are included in serialization effortlessly.
 
 ### *Apischema* allows you to use composition over inheritance
 
@@ -147,45 +94,14 @@ So it will be used in deserialization validation. You can use `NewType` everywhe
 
 ### *Apischema* validators are regular methods with [automatic dependencies management](validation.md#automatic-dependency-management)
 
-Using regular methods allows benefiting of type checking of fields, where *pydantic* validators use dynamic stuffs and are not type-checked or have to get redundant type annotations.
+Using regular methods allows benefiting of type checking of fields, where *pydantic* validators use dynamic stuffs (name of the fields as strings) and are not type-checked or have to get redundant type annotations.
 
 *Apischema* validators also have automatic dependency management. And *Apischema* directly supports JSON schema [property dependencies](json_schema.md#property-dependencies).
 
 Comparison is simple with an example:
 
 ```python
-from dataclasses import dataclass
-
-import apischema
-import pydantic
-
-class UserModel(pydantic.BaseModel):
-    username: str
-    password1: str
-    password2: str
-
-    @pydantic.root_validator
-    def check_passwords_match(cls, values):
-        # What is the type of of values? of values['password1']?
-        # If you rename password1 field, validator will hardly be updated
-        # You also have to test yourself that values are provided
-        pw1, pw2 = values.get('password1'), values.get('password2')
-        if pw1 is not None and pw2 is not None and pw1 != pw2:
-            raise ValueError('passwords do not match')
-        return values
-
-    
-@dataclass
-class LoginForm:
-    username: str
-    password1: str
-    password2: str
-
-    @apischema.validator
-    def check_password_match(self):
-        # Typed checked, simpler, and not executed if error on password1 or password2
-        if self.password1 != self.password2:
-            raise ValueError('passwords do not match')
+{!pydantic_validator.py!}
 ```
 
 ### *Apischema* supports *pydantic*

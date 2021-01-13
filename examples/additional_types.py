@@ -20,7 +20,7 @@ def bar() -> Bar:
     ...
 
 
-schema = graphql_schema(query=[bar], types={Foo})
+schema = graphql_schema(query=[bar], types=[Foo])
 # type Foo would have not been present if Foo was not put in types
 schema_str = """\
 type Foo implements Bar {

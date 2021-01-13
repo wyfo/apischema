@@ -7,23 +7,23 @@ from apischema import schema_ref
 from apischema.graphql import graphql_schema
 
 
-@schema_ref("Baz")
+@schema_ref("Foo")
 @dataclass
-class Foo:
+class FooFoo:
     bar: int
 
 
-def foo() -> Optional[Foo]:
+def foo() -> Optional[FooFoo]:
     ...
 
 
 schema = graphql_schema(query=[foo])
 schema_str = """\
 type Query {
-  foo: Baz
+  foo: Foo
 }
 
-type Baz {
+type Foo {
   bar: Int!
 }
 """
