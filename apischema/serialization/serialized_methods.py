@@ -72,7 +72,7 @@ _serialized_methods: Dict[Type, Dict[str, Serialized]] = defaultdict(dict)
 
 def get_serialized_methods(cls: Type) -> Mapping[str, Serialized]:
     serialized = {}
-    for sub_cls in cls.__mro__:
+    for sub_cls in reversed(cls.__mro__):
         serialized.update(_serialized_methods[sub_cls])
     if has_model_origin(cls):
         serialized.update(get_serialized_methods(get_model_origin(cls)))

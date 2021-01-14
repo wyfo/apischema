@@ -141,7 +141,7 @@ _resolvers: Dict[Type, Dict[str, Resolver]] = defaultdict(dict)
 
 def get_resolvers(cls: Type) -> Mapping[str, Resolver]:
     resolvers = {}
-    for sub_cls in cls.__mro__:
+    for sub_cls in reversed(cls.__mro__):
         resolvers.update(_resolvers[sub_cls])
     if has_model_origin(cls):
         resolvers.update(get_resolvers(get_model_origin(cls)))
