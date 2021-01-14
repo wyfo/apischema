@@ -5,7 +5,7 @@ with open("README.md") as f:
 
 setup(
     name="apischema",
-    version="0.12.3",
+    version="0.13.0",
     url="https://github.com/wyfo/apischema",
     author="Joseph Perez",
     author_email="joperez@hotmail.fr",
@@ -17,7 +17,7 @@ setup(
     long_description_content_type="text/markdown",
     python_requires=">=3.6",
     install_requires=["dataclasses==0.7;python_version<'3.7'"],
-    extra_require={"graphql": ["graphql-core>=3.1.2"]},
+    extras_require={"graphql": ["graphql-core>=3.1.2"]},
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
