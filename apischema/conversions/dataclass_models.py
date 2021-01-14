@@ -69,5 +69,9 @@ def dataclass_model(
     return decorator
 
 
+def has_model_origin(cls: Type) -> bool:
+    return hasattr(cls, MODEL_ORIGIN_ATTR)
+
+
 def get_model_origin(cls: Type) -> Type:
-    return getattr(cls, MODEL_ORIGIN_ATTR, cls)
+    return getattr(cls, MODEL_ORIGIN_ATTR)

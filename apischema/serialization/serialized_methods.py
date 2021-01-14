@@ -17,9 +17,9 @@ from typing import (
 )
 
 from apischema.conversions import Conversions
-from apischema.conversions.dataclass_models import get_model_origin
+from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
 from apischema.json_schema.schema import Schema
-from apischema.types import AnyType, ChainMap
+from apischema.types import AnyType
 from apischema.typing import get_type_hints
 from apischema.utils import (
     MethodOrProperty,
@@ -71,12 +71,12 @@ _serialized_methods: Dict[Type, Dict[str, Serialized]] = defaultdict(dict)
 
 
 def get_serialized_methods(cls: Type) -> Mapping[str, Serialized]:
-    serialized = (
-        _serialized_methods[sub_cls]
-        for cls2 in (cls, get_model_origin(cls))
-        for sub_cls in reversed(cls2.__mro__)
-    )
-    return ChainMap(*serialized)
+    serialized = {}
+    for sub_cls in cls.__mro__:
+        serialized.update(_serialized_methods[sub_cls])
+    if has_model_origin(cls):
+        serialized.update(get_serialized_methods(get_model_origin(cls)))
+    return serialized
 
 
 ErrorHandler = Union[Callable, None, UndefinedType]

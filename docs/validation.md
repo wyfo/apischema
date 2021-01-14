@@ -117,15 +117,15 @@ lt values, they are not run; make sure your default values make sens.
 
 ## Validators for every type
 
-Validators can be added to other user-defined types. When a user type is deseriarialized (even in case of [conversion](conversions.md)), its validators are played.
+Validators can also be declared as regular function, in which case annotation of the first param is used to associate it to the validated type; this allows to add validator to every type.
 
 ```python
-{!validator_user_type.py!}
+{!validator_function.py!}
 ```
 
 ## FAQ
 
-#### How are computed validator depedencies?
+#### How are computed validator dependencies?
 
 `ast.NodeVisitor` and the Python black magic begins...
 

@@ -1,4 +1,4 @@
-from collections import ChainMap, defaultdict
+from collections import defaultdict
 from dataclasses import dataclass, is_dataclass
 from enum import Enum
 from inspect import Parameter, iscoroutinefunction, signature
@@ -27,6 +27,7 @@ from apischema.conversions import Conversions
 from apischema.conversions.dataclass_models import (
     DataclassModelWrapper,
     get_model_origin,
+    has_model_origin,
 )
 from apischema.conversions.visitor import SerializationVisitor
 from apischema.deserialization import deserialize
@@ -139,12 +140,12 @@ _resolvers: Dict[Type, Dict[str, Resolver]] = defaultdict(dict)
 
 
 def get_resolvers(cls: Type) -> Mapping[str, Resolver]:
-    resolvers = (
-        _resolvers[sub_cls]
-        for cls2 in (cls, get_model_origin(cls))
-        for sub_cls in reversed(cls2.__mro__)
-    )
-    return ChainMap(*resolvers)
+    resolvers = {}
+    for sub_cls in cls.__mro__:
+        resolvers.update(_resolvers[sub_cls])
+    if has_model_origin(cls):
+        resolvers.update(get_resolvers(get_model_origin(cls)))
+    return resolvers
 
 
 def none_error_handler(
