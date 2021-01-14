@@ -1,7 +1,5 @@
 from collections import defaultdict
-from contextlib import suppress
 from functools import wraps
-from inspect import signature
 from types import new_class
 from typing import (
     Any,
@@ -29,7 +27,7 @@ from apischema.conversions.utils import (
     handle_generic_conversions,
 )
 from apischema.types import AnyType, OrderedDict
-from apischema.utils import Undefined, to_camel_case
+from apischema.utils import Undefined, is_method, to_camel_case
 
 if TYPE_CHECKING:
     from apischema.json_schema.annotations import Deprecated
@@ -51,32 +49,27 @@ class MethodConverter:
     def __init__(
         self,
         decorator: _ConverterSetter,
-        method: Union[Callable, classmethod, staticmethod],
+        method: Union[Callable, property, staticmethod],
         conversions: Optional[Conversions],
         extra: bool,
-        instance_method: bool,
     ):
         self.decorator = decorator
         self.method = method
         self.conversions = conversions
         self.extra = extra
-        self.instance_method = instance_method
 
     def __call__(self, *args, **kwargs):
         raise RuntimeError("Converter method __set_name__ has not been called")
 
-    @staticmethod
-    def _return(owner: Type) -> Optional[Type]:
-        return None
-
     def __set_name__(self, owner, name):
-        converter = self.method.__get__(None, owner)
-        if self.instance_method:
-            converter = wraps(converter)(lambda instance: getattr(instance, name)())
-        param = owner if self.instance_method else None
-        param, ret = check_converter(
-            converter, param, self._return(owner), {owner.__name__: owner}
-        )
+        if isinstance(self.method, property):
+            converter = wraps(self.method.fget)(lambda obj: getattr(obj, name))
+        elif isinstance(self.method, staticmethod):
+            converter = self.method.__get__(None, object)
+        else:
+            converter = wraps(self.method)(lambda obj: getattr(obj, name)())
+        param = None if isinstance(self.method, staticmethod) else owner
+        param, ret = check_converter(converter, param, None, {owner.__name__: owner})
         self.decorator(converter, param, ret, self.conversions, self.extra)
         setattr(owner, name, self.method)
 
@@ -122,23 +115,18 @@ def _converter(decorator: _ConverterSetter, *, extra: bool) -> ConverterSetter:
     ):
         if func is None:
             return lambda func: wrapper(func, param, ret, conversions)
-        if isinstance(func, (classmethod, staticmethod)):
-            return MethodConverter(
-                decorator, func, conversions, extra, instance_method=False
-            )
-        if param is None:
-            with suppress(ValueError):  # builtin type has no signature
-                first_param = next(iter(signature(func).parameters.values()), None)
-                if first_param is not None and first_param.name == "self":
-                    try:
-                        param, ret = check_converter(func, param, ret)
-                        return decorator(func, param, ret, conversions, extra)
-                    except Exception:  # param is not annotated or recursive
-                        return MethodConverter(
-                            decorator, func, conversions, extra, instance_method=True
-                        )
-        param, ret = check_converter(func, param, ret)
-        return decorator(func, param, ret, conversions, extra)
+        if isinstance(func, classmethod):
+            raise TypeError("classmethod cannot be used as a converter")
+        if isinstance(func, (property, staticmethod)):
+            return MethodConverter(decorator, func, conversions, extra)
+        try:
+            param, ret = check_converter(func, param, ret)
+            return decorator(func, param, ret, conversions, extra)
+        except Exception:  # param is not annotated or recursive
+            if is_method(func):
+                return MethodConverter(decorator, func, conversions, extra)
+            else:
+                raise
 
     return cast(ConverterSetter, wrapper)
 
@@ -201,15 +189,13 @@ def reset_deserializers(cls: AnyType):
     _deserializers.pop(cls, ...)
 
 
-class InheritedDeserializer(MethodConverter):
+class InheritedDeserializer:
     def __init__(
         self, method: classmethod, conversions: Optional[Conversions], extra: bool
     ):
-        super().__init__(_deserializer, method, conversions, extra, False)
-
-    @staticmethod
-    def _return(owner: Type) -> Optional[Type]:
-        return owner
+        self.method = method
+        self.conversions = conversions
+        self.extra = extra
 
     def __set_name__(self, owner, name):
         prev_init_subclass = owner.__init_subclass__
@@ -219,7 +205,10 @@ class InheritedDeserializer(MethodConverter):
             deserializer(getattr(cls, name), None, cls)
 
         owner.__init_subclass__ = classmethod(init_subclass)
-        super().__set_name__(owner, name)
+        converter = self.method.__get__(None, owner)
+        param, ret = check_converter(converter, None, owner, {owner.__name__: owner})
+        _deserializer(converter, param, ret, self.conversions, self.extra)
+        setattr(owner, name, self.method)
 
 
 ClsMethod = TypeVar("ClsMethod")
