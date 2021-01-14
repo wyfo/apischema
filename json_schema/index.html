@@ -548,8 +548,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../graphql/schema/" title="Schema" class="md-nav__link">
-      Schema
+    <a href="../graphql/schema/" title="GraphQL schema" class="md-nav__link">
+      GraphQL schema
     </a>
   </li>
 
@@ -969,7 +969,6 @@
 <span class="p">}</span>
 </code></pre></div>
 
-
 <h2 id="field-alias">Field alias<a class="headerlink" href="#field-alias" title="Permanent link">&para;</a></h2>
 <p>Sometimes dataclass field names can clash with language keyword, sometimes the property name is not convenient. Hopefully, field can define an <code>alias</code> which will be used in schema and  deserialization/serialization.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
@@ -993,7 +992,6 @@
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span><span class="p">})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span><span class="p">}</span>
 </code></pre></div>
-
 
 <h3 id="alias-all-fields">Alias all fields<a class="headerlink" href="#alias-all-fields" title="Permanent link">&para;</a></h3>
 <p>Field aliasing can also be done at class level by specifying an aliasing function. This aliaser is applied to field alias if defined or field name, or not applied if <code>override=False</code> is specified.</p>
@@ -1022,7 +1020,6 @@
 <span class="p">}</span>
 </code></pre></div>
 
-
 <p>Class-level aliasing can be used to define a <em>camelCase</em> API.</p>
 <h3 id="dynamic-aliasing-and-default-aliaser">Dynamic aliasing and default aliaser<a class="headerlink" href="#dynamic-aliasing-and-default-aliaser" title="Permanent link">&para;</a></h3>
 <p><em>Apischema</em> operations <code>deserialize</code>/<code>serialize</code>/<code>deserialization_schema</code>/<code>serialization_schema</code> provide an <code>aliaser</code> parameter which will be applied on every fields being processed in this operation.</p>
@@ -1033,7 +1030,6 @@
 
 <span class="n">settings</span><span class="o">.</span><span class="n">aliaser</span><span class="p">(</span><span class="n">camel_case</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
-
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1088,7 +1084,6 @@
     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre></div>
-
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1236,7 +1231,6 @@
 <span class="c1"># }</span>
 </code></pre></div>
 
-
 <h3 id="default-annotation"><code>default</code> annotation<a class="headerlink" href="#default-annotation" title="Permanent link">&para;</a></h3>
 <p><code>default</code> annotation is not added automatically when a field has a default value (see <a href="#why-field-default-value-is-not-used-by-default-to-to-generate-json-schema">FAQ</a>); <code>schema</code> <code>default</code> parameter must be used in order to make it appear in the schema. However <code>...</code> can be used as a placeholder to make <em>Apischema</em> use field default value; this one will be serialized — if serialization fails, error will be ignored as well as <code>default</code> annotation.</p>
 <h3 id="constraints-validation">Constraints validation<a class="headerlink" href="#constraints-validation" title="Permanent link">&para;</a></h3>
@@ -1277,7 +1271,6 @@
 <span class="p">]</span>
 </code></pre></div>
 
-
 <h3 id="default-schema">Default <code>schema</code><a class="headerlink" href="#default-schema" title="Permanent link">&para;</a></h3>
 <p>When no schema are defined, a default schema can be computed using <code>settings.default_schema</code> like this:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
@@ -1289,7 +1282,6 @@
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">schema</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 </code></pre></div>
-
 
 <p>Default implementation returns <code>None</code> for every types.</p>
 <h2 id="required-field-with-default-value">Required field with default value<a class="headerlink" href="#required-field-with-default-value" title="Permanent link">&para;</a></h2>
@@ -1313,7 +1305,6 @@
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{})</span>
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;missing property&quot;</span><span class="p">]}]</span>
 </code></pre></div>
-
 
 <h2 id="additional-properties-pattern-properties">Additional properties / pattern properties<a class="headerlink" href="#additional-properties-pattern-properties" title="Permanent link">&para;</a></h2>
 <h3 id="with-mapping">With <code>Mapping</code><a class="headerlink" href="#with-mapping" title="Permanent link">&para;</a></h3>
@@ -1362,7 +1353,6 @@
     <span class="p">},</span>
 <span class="p">}</span>
 </code></pre></div>
-
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1417,7 +1407,6 @@
 <span class="p">]</span>
 </code></pre></div>
 
-
 <p>Because bidirectional dependencies are a common idiom, <em>Apischema</em> provides a shortcut notation. Its indeed possible to write <code>DependentRequired([credit_card, billing_adress])</code>.</p>
 <h2 id="complexrecursive-types-json-schema-definitionsopenapi-components">Complex/recursive types - JSON schema definitions/OpenAPI components<a class="headerlink" href="#complexrecursive-types-json-schema-definitionsopenapi-components" title="Permanent link">&para;</a></h2>
 <p>For complex schema with type reuse, it's convenient to extract definitions of schema components in order to reuse them; it's even mandatory for recursive types. Then, schema use JSON pointers "$ref" to refer to the definitions. <em>Apischema</em> handles this feature natively.</p>
@@ -1449,7 +1438,6 @@
     <span class="p">},</span>
 <span class="p">}</span>
 </code></pre></div>
-
 
 <h3 id="use-ref-only-for-reused-types">Use ref only for reused types<a class="headerlink" href="#use-ref-only-for-reused-types" title="Permanent link">&para;</a></h3>
 <p>If some types appear only once in the schema, you maybe don't want to use a <code>$ref</code> and a definition but inline the type definition directly. It is possible by setting <code>schema_ref(None)</code> (see <a href="#customize-ref">next section</a>) on the the concerned type, but it could affect others schema where this types is reused several time. </p>
@@ -1511,7 +1499,6 @@
 <span class="p">}</span>
 </code></pre></div>
 
-
 <h3 id="definitions-schema-only">Definitions schema only<a class="headerlink" href="#definitions-schema-only" title="Permanent link">&para;</a></h3>
 <p>Sometimes you need to extract only the definitions in a separate schema (especially OpenAPI components). That's done with the <code>definitions_schema</code> function. It takes two lists <code>deserializations</code> and <code>serializations</code> of schema (or schema + <a href="../conversions/">conversions</a>) and combines the definitions of all the schema that would have been generated with types given in the list of schema.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -1543,7 +1530,6 @@
     <span class="p">},</span>
 <span class="p">}</span>
 </code></pre></div>
-
 
 <h2 id="customize-ref">Customize <code>$ref</code><a class="headerlink" href="#customize-ref" title="Permanent link">&para;</a></h2>
 <h3 id="add-ref-to-every-types">Add <code>$ref</code> to every types<a class="headerlink" href="#add-ref-to-every-types" title="Permanent link">&para;</a></h3>
@@ -1583,7 +1569,6 @@
 <span class="p">}</span>
 </code></pre></div>
 
-
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Actually, there is a small restriction with <code>NewType</code>: you cannot put a <code>schema_ref</code> if the super type is not a builtin type (<code>list[...]</code>/<code>int</code>/etc.). </p>
@@ -1604,7 +1589,6 @@
 <span class="k">def</span> <span class="nf">default_ref</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
     <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># This example remove default ref for every types</span>
 </code></pre></div>
-
 
 <h3 id="ref-factory">Ref factory<a class="headerlink" href="#ref-factory" title="Permanent link">&para;</a></h3>
 <p><code>schema_ref</code> is used to set a short ref, like the name of a class, but in schema, <code>$ref</code> looks like <code>#/$defs/Foo</code>. In fact, schema generation use the ref given by <code>schema_ref</code> and pass it to a <code>ref_factory</code> function (a parameter of schema generation functions) which will convert it to its final form. <a href="#json-schemaopenapi-version">JSON schema version</a> comes with its default <code>ref_factory</code>, for draft 2019-09, it prefixes the ref with <code>#/$defs/</code>, while it prefixes with <code>#/components/schema</code> in case of <em>OpenAPI</em>.</p>
@@ -1627,7 +1611,6 @@
     <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;http://some-domain.org/path/to/Foo.json#&quot;</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre></div>
-
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1696,7 +1679,7 @@
     <span class="p">},</span>
 <span class="p">}</span>
 <span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">JsonSchemaVersion</span><span class="o">.</span><span class="n">OPEN_API_3_0</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
-    <span class="c1"># No definitions for OpenAPI, use refs_schema for it</span>
+    <span class="c1"># No definitions for OpenAPI, use definitions_schema for it</span>
     <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schemas/Foo&quot;</span><span class="p">,</span>  <span class="c1"># OpenAPI prefix</span>
 <span class="p">}</span>
 <span class="k">assert</span> <span class="n">definitions_schema</span><span class="p">(</span>
@@ -1717,7 +1700,6 @@
     <span class="p">},</span>
 <span class="p">}</span>
 </code></pre></div>
-
 
 <h2 id="readonly-writeonly"><code>readOnly</code> / <code>writeOnly</code><a class="headerlink" href="#readonly-writeonly" title="Permanent link">&para;</a></h2>
 <p>Dataclasses <code>InitVar</code> and <code>field(init=False)</code> fields will be flagged respectively with <code>"writeOnly": true</code> and <code>"readOnly": true</code> in the generated schema.</p>

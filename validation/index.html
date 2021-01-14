@@ -388,8 +388,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#how-are-computed-validator-depedencies" class="md-nav__link">
-    How are computed validator depedencies?
+  <a href="#how-are-computed-validator-dependencies" class="md-nav__link">
+    How are computed validator dependencies?
   </a>
   
 </li>
@@ -487,8 +487,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../graphql/schema/" title="Schema" class="md-nav__link">
-      Schema
+    <a href="../graphql/schema/" title="GraphQL schema" class="md-nav__link">
+      GraphQL schema
     </a>
   </li>
 
@@ -779,8 +779,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#how-are-computed-validator-depedencies" class="md-nav__link">
-    How are computed validator depedencies?
+  <a href="#how-are-computed-validator-dependencies" class="md-nav__link">
+    How are computed validator dependencies?
   </a>
   
 </li>
@@ -864,7 +864,6 @@
 <span class="p">]</span>
 </code></pre></div>
 
-
 <p>As shown in the example, <em>Apischema</em> will not stop at the first error met but tries to validate all parts of the data.</p>
 <h2 id="dataclass-validators">Dataclass validators<a class="headerlink" href="#dataclass-validators" title="Permanent link">&para;</a></h2>
 <p>Dataclass validation can be completed by custom validators. These are simple decorated methods which will be executed during validation, after all fields having been deserialized.</p>
@@ -893,7 +892,6 @@
     <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">]}</span>
 <span class="p">]</span>
 </code></pre></div>
-
 
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -930,7 +928,6 @@
     <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;confirmation&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;missing property&quot;</span><span class="p">]}</span>
 <span class="p">]</span>
 </code></pre></div>
-
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -971,7 +968,6 @@
     <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ips&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ip not in subnet&quot;</span><span class="p">]},</span>
 <span class="p">]</span>
 </code></pre></div>
-
 
 <h4 id="error-path">Error path<a class="headerlink" href="#error-path" title="Permanent link">&para;</a></h4>
 <p>In the example, validator yield a tuple of an "error path" and the error message. Error path can be:</p>
@@ -1024,7 +1020,6 @@
 <span class="p">]</span>
 </code></pre></div>
 
-
 <h3 id="field-validators">Field validators<a class="headerlink" href="#field-validators" title="Permanent link">&para;</a></h3>
 <h4 id="at-field-level">At field level<a class="headerlink" href="#at-field-level" title="Permanent link">&para;</a></h4>
 <p>Fields are validated according to their types and schema. But it's also possible to add validators to fields</p>
@@ -1052,7 +1047,6 @@
     <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;number has duplicate digits&quot;</span><span class="p">]}</span>
 <span class="p">]</span>
 </code></pre></div>
-
 
 <p>When validation fails for a field, it is discarded and cannot be used in class validators, as it is the case when field schema validation fails.</p>
 <div class="admonition note">
@@ -1100,7 +1094,6 @@
 <span class="p">]</span>
 </code></pre></div>
 
-
 <h3 id="validators-inheritance">Validators inheritance<a class="headerlink" href="#validators-inheritance" title="Permanent link">&para;</a></h3>
 <p>Validators are inherited just like other class fields.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -1136,7 +1129,6 @@
 <span class="p">]</span>
 </code></pre></div>
 
-
 <h3 id="validator-with-initvar">Validator with <code>InitVar</code><a class="headerlink" href="#validator-with-initvar" title="Permanent link">&para;</a></h3>
 <p>Dataclasses <code>InitVar</code> are accessible in validators by using parameters the same way <code>__post_init__</code> does. Only the needed fields has to be put in parameters, they are then added to validator dependencies.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">InitVar</span><span class="p">,</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
@@ -1161,7 +1153,6 @@
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">})</span>
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;negative&quot;</span><span class="p">]}]</span>
 </code></pre></div>
-
 
 <h3 id="validators-are-not-run-on-default-values">Validators are not run on default values<a class="headerlink" href="#validators-are-not-run-on-default-values" title="Permanent link">&para;</a></h3>
 <p>If all validator dependencies are initialized with their defau
@@ -1189,21 +1180,19 @@ lt values, they are not run; make sure your default values make sens.</p>
 <span class="k">assert</span> <span class="ow">not</span> <span class="n">validator_run</span>
 </code></pre></div>
 
-
 <h2 id="validators-for-every-type">Validators for every type<a class="headerlink" href="#validators-for-every-type" title="Permanent link">&para;</a></h2>
-<p>Validators can be added to other user-defined types. When a user type is deseriarialized (even in case of <a href="../conversions/">conversion</a>), its validators are played.</p>
+<p>Validators can also be declared as regular function, in which case annotation of the first param is used to associate it to the validated type; this allows to add validator to every type.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
-<span class="kn">from</span> <span class="nn">apischema.validation</span> <span class="kn">import</span> <span class="n">add_validator</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">validator</span>
 
 <span class="n">Palindrome</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Palindrome&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
 
 
-<span class="nd">@add_validator</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">check_palindrome</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="nd">@validator</span>
+<span class="k">def</span> <span class="nf">check_palindrome</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">Palindrome</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Not a palindrome&quot;</span><span class="p">)</span>
@@ -1211,13 +1200,12 @@ lt values, they are not run; make sure your default values make sens.</p>
 
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;tacocat&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;tacocat&quot;</span>
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-    <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;not a palindrome&quot;</span><span class="p">)</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;this is not a palindrome&quot;</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Not a palindrome&quot;</span><span class="p">]}]</span>
 </code></pre></div>
 
-
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
-<h4 id="how-are-computed-validator-depedencies">How are computed validator depedencies?<a class="headerlink" href="#how-are-computed-validator-depedencies" title="Permanent link">&para;</a></h4>
+<h4 id="how-are-computed-validator-dependencies">How are computed validator dependencies?<a class="headerlink" href="#how-are-computed-validator-dependencies" title="Permanent link">&para;</a></h4>
 <p><code>ast.NodeVisitor</code> and the Python black magic begins...</p>
 <h4 id="why-only-validate-at-deserialization-and-not-at-instantiation">Why only validate at deserialization and not at instantiation?<a class="headerlink" href="#why-only-validate-at-deserialization-and-not-at-instantiation" title="Permanent link">&para;</a></h4>
 <p><em>Apischema</em> uses type annotations, so every objects used can already be statically type-checked (with <em>Mypy</em>/<em>Pycharm</em>/etc.) at instantiation but also at modification.</p>

@@ -516,8 +516,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../graphql/schema/" title="Schema" class="md-nav__link">
-      Schema
+    <a href="../graphql/schema/" title="GraphQL schema" class="md-nav__link">
+      GraphQL schema
     </a>
   </li>
 
@@ -907,7 +907,6 @@ In addition to the common parameters of <a href="https://docs.python.org/3/libra
     <span class="p">)</span>
 </code></pre></div>
 
-
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Field's metadata are just an ordinary <code>dict</code>; <em>Apischema</em> provides some functions to enrich these metadata with it's own keys (<code>alias("foo_bar)</code> is roughly equivalent to `{"_apischema_alias": "foo_bar"}) and use them when the time comes, but metadata are not reserved to <em>Apischema</em> and other keys can be added.</p>
@@ -1036,7 +1035,6 @@ In addition to the common parameters of <a href="https://docs.python.org/3/libra
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Box</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="p">{</span><span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">})</span>
 </code></pre></div>
 
-
 <h2 id="recursive-types-string-annotations-and-pep-563">Recursive types, string annotations and PEP 563<a class="headerlink" href="#recursive-types-string-annotations-and-pep-563" title="Permanent link">&para;</a></h2>
 <p>Recursive classes can be typed as they usually do, with or without <a href="https://www.python.org/dev/peps/pep-0563/">PEP 563</a>.
 Here with string annotations:</p>
@@ -1055,7 +1053,6 @@ Here with string annotations:</p>
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}})</span> <span class="o">==</span> <span class="n">Node</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Node</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
 </code></pre></div>
 
-
 <p>Here with PEP 563 (requires 3.7+)</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
@@ -1073,7 +1070,6 @@ Here with string annotations:</p>
 
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}})</span> <span class="o">==</span> <span class="n">Node</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Node</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
 </code></pre></div>
-
 
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -1112,7 +1108,6 @@ Here with string annotations:</p>
 <span class="p">}</span>
 </code></pre></div>
 
-
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><code>UndefinedType</code> must only be used inside an <code>Union</code>, as it has no sense as a standalone type. By the way, no suitable name was found to shorten <code>Union[T, UndefinedType]</code> but propositions are welcomed.</p>
@@ -1146,7 +1141,6 @@ Here with string annotations:</p>
 <span class="p">]</span>
 </code></pre></div>
 
-
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><code>Skip(schema_only=True)</code> can also be used to skip the member only for <a href="../json_schema/">JSON schema generation</a></p>
@@ -1176,7 +1170,6 @@ Here with string annotations:</p>
 <span class="p">]</span>
 </code></pre></div>
 
-
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>You can also use <a href="#null-vs-undefined"><code>Undefined</code></a>, but it can be more convenient to directly manipulate an <code>Optional</code> field, especially in the rest of the code unrelated to (de)serialization.</p>
@@ -1204,7 +1197,6 @@ Here with string annotations:</p>
     <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">}</span>   
 </code></pre></div>
-
 
 <h2 id="composition-over-inheritance-composed-dataclasses-merging">Composition over inheritance - composed dataclasses merging<a class="headerlink" href="#composition-over-inheritance-composed-dataclasses-merging" title="Permanent link">&para;</a></h2>
 <p>Dataclass fields which are themselves dataclass can be "merged" into the owning one by using <code>merged</code> metadata. Then, when the class will be (de)serialized, "merged" fields will be (de)serialized at the same level than the owning class.</p>
@@ -1278,7 +1270,6 @@ Here with string annotations:</p>
 <span class="p">}</span>
 </code></pre></div>
 
-
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This feature use JSON schema draft 2019-09 <a href="https://json-schema.org/draft/2019-09/json-schema-core.html#unevaluatedProperties"><code>unevaluatedProperties</code> keyword</a>. However, this keyword is removed when JSON schema is converted in a version that doesn't support it, like OpenAPI 3.0.</p>
@@ -1302,7 +1293,6 @@ Here with string annotations:</p>
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">Unsupported</span><span class="p">):</span>
     <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span>
 </code></pre></div>
-
 
 <p>See <a href="../conversions/">conversion</a> section to make <em>Apischema</em> support all your classes.</p>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>

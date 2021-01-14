@@ -366,8 +366,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../schema/" title="Schema" class="md-nav__link">
-      Schema
+    <a href="../schema/" title="GraphQL schema" class="md-nav__link">
+      GraphQL schema
     </a>
   </li>
 
@@ -581,15 +581,10 @@
                 
                 
                 <h1 id="graphql-overview">GraphQL Overview<a class="headerlink" href="#graphql-overview" title="Permanent link">&para;</a></h1>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This documentation is not complete as the feature was recently added.</p>
-</div>
 <p><em>Apischema</em> supports <em>GraphQL</em> through <a href="https://github.com/graphql-python/graphql-core"><em>graphql-core</em></a> library.</p>
 <p>You can install this dependency directly with <em>Apischema</em> using the following extra requirement:</p>
 <div class="codehilite"><pre><span></span><code>pip install apischema<span class="o">[</span>graphql<span class="o">]</span>
 </code></pre></div>
-
 
 <p><em>GraphQL</em> supports consists of generating a <em>GraphQL</em> schema <code>graphql.GraphQLSchema</code> from your data model and endpoints (queries/mutations/subscribtions), in a similar way than the JSON schema generation. This schema can then be used through <em>graphql-core</em> library to query/mutate/subscribe.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -644,16 +639,16 @@
 <span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">users</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">posts</span><span class="p">],</span> <span class="n">id_types</span><span class="o">=</span><span class="p">{</span><span class="n">UUID</span><span class="p">})</span>
 <span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">type Query {</span>
-<span class="s2">  users: [User!]</span>
+<span class="s2">  users: [User!]!</span>
 <span class="s2">  user(username: String!): User</span>
-<span class="s2">  posts: [Post!]</span>
+<span class="s2">  posts: [Post!]!</span>
 <span class="s2">}</span>
 
 <span class="s2">type User {</span>
 <span class="s2">  id: ID!</span>
 <span class="s2">  username: String!</span>
 <span class="s2">  birthday: Date</span>
-<span class="s2">  posts: [Post!]</span>
+<span class="s2">  posts: [Post!]!</span>
 <span class="s2">}</span>
 
 <span class="s2">scalar Date</span>
@@ -686,7 +681,6 @@
     <span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
-
 
 <p><em>GraphQL</em> is fully integrated with the rest of <em>Apischema</em> features, especially <a href="../../conversions/">conversions</a>, so it's easy to integrate ORM and other custom types in the generated schema; this concerns query results but also arguments.</p>
 <p>By the way, while <em>GraphQL</em> doesn't support constraints, <em>Apischema</em> still offers you all the power of its <a href="../../validation/">validation feature</a>. In fact, <em>Apischema</em> deserialize and validate all the arguments passed to resolvers. </p>

@@ -320,6 +320,26 @@
     Serialized methods/properties
   </a>
   
+    <nav class="md-nav" aria-label="Serialized methods/properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    Error handling
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-serialized-methods" class="md-nav__link">
+    Required serialized methods
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -459,8 +479,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../graphql/schema/" title="Schema" class="md-nav__link">
-      Schema
+    <a href="../graphql/schema/" title="GraphQL schema" class="md-nav__link">
+      GraphQL schema
     </a>
   </li>
 
@@ -707,6 +727,26 @@
     Serialized methods/properties
   </a>
   
+    <nav class="md-nav" aria-label="Serialized methods/properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    Error handling
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-serialized-methods" class="md-nav__link">
+    Required serialized methods
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -773,6 +813,7 @@
 <p>Let start again with the <a href="..#example">overview example</a></p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Collection</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">uuid4</span>
 
 <span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
@@ -820,7 +861,7 @@
 
 
 <span class="c1"># Define GraphQL operations</span>
-<span class="k">def</span> <span class="nf">resources</span><span class="p">(</span><span class="n">tags</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Collection</span><span class="p">[</span><span class="n">Resource</span><span class="p">]:</span>
+<span class="k">def</span> <span class="nf">resources</span><span class="p">(</span><span class="n">tags</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Collection</span><span class="p">[</span><span class="n">Resource</span><span class="p">]]:</span>
     <span class="o">...</span>
 
 
@@ -840,13 +881,11 @@
 <span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 
-
 <h2 id="deserialization_1">Deserialization<a class="headerlink" href="#deserialization_1" title="Permanent link">&para;</a></h2>
 <p>Deserialization is done through the function <code>apischema.deserialize</code> with the following simplified signature:</p>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
     <span class="o">...</span>
 </code></pre></div>
-
 
 <ul>
 <li><code>cls</code> can be a <code>dataclass</code> as well as a <code>list[int]</code> a <code>NewType</code>, or whatever you want (see <a href="../conversions/">conversions</a> to extend deserialization support to every type you want).</li>
@@ -878,7 +917,6 @@ assert deserialize(Mapping[str, Collection[Foo]], {"key": [{"bar": "42"}]}) == {
     <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span> <span class="n">coercion</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
-
 
 <p><code>bool</code> can be coerced from <code>str</code> with the following case-insensitive mapping:</p>
 <table>
@@ -949,7 +987,6 @@ assert deserialize(Mapping[str, Collection[Foo]], {"key": [{"bar": "42"}]}) == {
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">coercion</span><span class="o">=</span><span class="n">coerce</span><span class="p">)</span>
 </code></pre></div>
 
-
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If coercer result is not an instance of class passed in argument, a ValidationError will be raised with an appropriate error message</p>
@@ -979,7 +1016,6 @@ assert deserialize(Mapping[str, Collection[Foo]], {"key": [{"bar": "42"}]}) == {
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">additional_properties</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">)</span>
 </code></pre></div>
 
-
 <h4 id="default-fallback">Default fallback<a class="headerlink" href="#default-fallback" title="Permanent link">&para;</a></h4>
 <p>Validation error can happen when deserializing an ill-formed field. However, if this field has a default value/factory, deserialization can fallback to this default; this is enabled by <code>default_fallback</code> parameter. This behavior can also be configured for each field using metadata. </p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
@@ -1003,7 +1039,6 @@ assert deserialize(Mapping[str, Collection[Foo]], {"key": [{"bar": "42"}]}) == {
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">()</span>
 </code></pre></div>
 
-
 <h4 id="strictness-configuration">Strictness configuration<a class="headerlink" href="#strictness-configuration" title="Permanent link">&para;</a></h4>
 <p><em>Apischema</em> global configuration is managed through <code>apischema.settings</code> module.
 This module has, among other, three global variables <code>settings.additional_properties</code>, <code>settings.coercion</code> and <code>settings.default_fallback</code> whose values are used as default parameter values for the <code>deserialize</code> function.</p>
@@ -1026,7 +1061,6 @@ This module has, among other, three global variables <code>settings.additional_p
         <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">err</span>
 </code></pre></div>
-
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1079,7 +1113,6 @@ This module has, among other, three global variables <code>settings.additional_p
 <span class="k">assert</span> <span class="n">fields_set</span><span class="p">(</span><span class="n">foo3</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">}</span>
 </code></pre></div>
 
-
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p><code>with_fields_set</code> decorator MUST be put above <code>dataclass</code> one. This is because both of them modify <code>__init__</code> method, but only the first is built to take the second in account.</p>
@@ -1106,9 +1139,9 @@ This module has, among other, three global variables <code>settings.additional_p
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">({</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)})</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">]}</span>
 </code></pre></div>
 
-
 <h3 id="serialized-methodsproperties">Serialized methods/properties<a class="headerlink" href="#serialized-methodsproperties" title="Permanent link">&para;</a></h3>
 <p><em>Apischema</em> can execute methods/properties during serialization and add the computed values with the other fields values; just put <code>apischema.serialized</code> decorator on top of methods/properties you want to be serialized.</p>
+<p>The function name is used unless an alias is given in decorator argument.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serialized</span>
@@ -1122,34 +1155,111 @@ This module has, among other, three global variables <code>settings.additional_p
     <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">0</span>
 
+    <span class="c1"># Serialized method can have default argument</span>
     <span class="nd">@serialized</span>
-    <span class="k">def</span> <span class="nf">baz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">some_arg_with_default</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">baz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">some_arg_with_default</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">some_arg_with_default</span>
 
     <span class="nd">@serialized</span><span class="p">(</span><span class="s2">&quot;aliased&quot;</span><span class="p">)</span>
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">aliased_property</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">def</span> <span class="nf">with_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">2</span>
 
 
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;aliased&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="c1"># Serialized method can also be defined outside class,</span>
+<span class="c1"># but first parameter must be annotated</span>
+<span class="nd">@serialized</span>
+<span class="k">def</span> <span class="nf">function</span><span class="p">(</span><span class="n">foo</span><span class="p">:</span> <span class="n">Foo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mi">3</span>
+
+
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;aliased&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;function&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
 <span class="k">assert</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
     <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;readOnly&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
-        <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;readOnly&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
-        <span class="s2">&quot;aliased&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;readOnly&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;boolean&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;readOnly&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;aliased&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;readOnly&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;function&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;readOnly&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
     <span class="p">},</span>
+    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">,</span> <span class="s2">&quot;aliased&quot;</span><span class="p">,</span> <span class="s2">&quot;function&quot;</span><span class="p">],</span>
     <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre></div>
 
-
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The serialized methods must not have parameters without default, as <em>Apischema</em> need to execute them without arguments</p>
+<p>Serialized methods must not have parameters without default, as <em>Apischema</em> need to execute them without arguments</p>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Overriding of a serialized method in a subclass will also override the serialization of the subclass. </p>
+</div>
+<h4 id="error-handling">Error handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h4>
+<p>Errors occurring in serialized methods can be caught in a dedicated error handler registered with <code>error_handler</code> parameter. This function takes in parameters the exception, the object and the alias of the serialized method; it can return a new value or raise the current or another exception — it can for example be used to log errors without throwing the complete serialization.</p>
+<p>The resulting serialization type will be a <code>Union</code> of the normal type and the error handling type ; if the error handler always raises, use <a href="https://docs.python.org/3/library/typing.html#typing.NoReturn"><code>typing.NoReturn</code></a> annotation. </p>
+<p><code>error_handler=None</code> correspond to a default handler which only return <code>None</code> — exception is thus discarded and serialization type becomes <code>Optional</code>.</p>
+<p>The error handler is only executed by <em>Apischema</em> serialization process, it's not added to the function, so this one can be executed normally and raise an exception in the rest of your code.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serialized</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">serialization_schema</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">log_error</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">alias</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+        <span class="s2">&quot;Serialization error in </span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">alias</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">error</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="nd">@serialized</span><span class="p">(</span><span class="n">error_handler</span><span class="o">=</span><span class="n">log_error</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Some error&quot;</span><span class="p">)</span>
+
+
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>  <span class="c1"># Logs &quot;Serialization error in Foo.bar&quot;</span>
+<span class="k">assert</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;readOnly&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]}},</span>
+    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h4 id="required-serialized-methods">Required serialized methods<a class="headerlink" href="#required-serialized-methods" title="Permanent link">&para;</a></h4>
+<p>Serialized methods (or their error handler) can return <code>apischema.Undefined</code>, in which case the property will not be included into the serialization; accordingly, the property loose the <em>required</em> qualification in the JSON schema.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serialized</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">serialization_schema</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="nd">@serialized</span>
+    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">UndefinedType</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">Undefined</span>
+
+
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span> <span class="o">==</span> <span class="p">{}</span>
+<span class="k">assert</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;readOnly&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
+    <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div>
+
 <h3 id="exclude-unset-fields">Exclude unset fields<a class="headerlink" href="#exclude-unset-fields" title="Permanent link">&para;</a></h3>
 <p>When a class has a lot of optional fields, it can be convenient to not include all of them, to avoid a bunch of useless fields in your serialized data.
 Using the previous feature of <a href="#fields-set">fields set tracking</a>, <code>serialize</code> can exclude unset fields using its <code>exclude_unset</code> parameter; this parameter is defaulted to <code>True</code>.</p>
@@ -1171,7 +1281,6 @@ Using the previous feature of <a href="#fields-set">fields set tracking</a>, <co
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">exclude_unset</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
 </code></pre></div>
-
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1196,7 +1305,6 @@ Using the previous feature of <a href="#fields-set">fields set tracking</a>, <co
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
 </code></pre></div>
-
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>

@@ -309,8 +309,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../graphql/schema/" title="Schema" class="md-nav__link">
-      Schema
+    <a href="../../graphql/schema/" title="GraphQL schema" class="md-nav__link">
+      GraphQL schema
     </a>
   </li>
 
@@ -512,7 +512,7 @@
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><em>pydantic</em> pseudo-dataclasses are de facto supported but without <em>pydantic</em> extra features; they could be fully supported but it would requires some additional lines of code.  </p>
+<p><em>pydantic</em> pseudo-dataclasses are de facto supported but without <em>pydantic</em> extra features; they could be fully supported, but it would require some additional lines of code.  </p>
 </div>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Mapping</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">NewType</span>
@@ -530,6 +530,7 @@
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 <span class="kn">from</span> <span class="nn">apischema.validation.errors</span> <span class="kn">import</span> <span class="n">LocalizedError</span>
+
 
 <span class="c1">#################### Pydantic support code starts here</span>
 
