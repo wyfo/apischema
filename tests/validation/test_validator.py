@@ -45,7 +45,7 @@ def non_trivial(data: Data):
 
 
 def test_get_validators():
-    assert get_validators(Data) == (Data.a_gt_10, Data.a_lt_100, Data.non_trivial)
+    assert get_validators(Data) == [Data.a_gt_10, Data.a_lt_100, Data.non_trivial]
 
 
 def test_validator_descriptor():
@@ -71,7 +71,7 @@ def test_validate():
 
 def test_non_trivial():
     with raises(NonTrivialDependency) as err:
-        validate(ValidatorMock(Data, {"a": 42}))
+        validate(ValidatorMock(Data, {"a": 42}), get_validators(Data))
     # err.value.attr != "c" because `c` has a default value
     assert err.value.attr == "b"
     assert err.value.validator == Data.non_trivial

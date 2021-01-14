@@ -1,3 +1,4 @@
+from collections import defaultdict
 from dataclasses import Field, dataclass
 from functools import wraps
 from inspect import Parameter, isgeneratorfunction, signature
@@ -7,8 +8,10 @@ from typing import (
     Any,
     Callable,
     Collection,
+    Dict,
     Iterable,
     Iterator,
+    List,
     Optional,
     Sequence,
     Type,
@@ -17,8 +20,10 @@ from typing import (
     overload,
 )
 
-from apischema.types import MetadataMixin
-from apischema.utils import PREFIX
+from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
+from apischema.types import AnyType, MetadataMixin
+from apischema.typing import get_type_hints
+from apischema.utils import get_origin_or_class, is_method
 from apischema.validation.dependencies import find_all_dependencies
 from apischema.validation.errors import (
     Error,
@@ -29,8 +34,19 @@ from apischema.validation.errors import (
 )
 from apischema.validation.mock import NonTrivialDependency
 
-# use attribute instead of global dict in order to be inherited
-VALIDATORS_ATTR = f"{PREFIX}validators"
+_validators: Dict[Type, List["Validator"]] = defaultdict(list)
+
+
+def get_validators(cls: AnyType) -> Sequence["Validator"]:
+    validators = []
+    if hasattr(cls, "__mro__"):
+        for sub_cls in cls.__mro__:
+            validators.extend(_validators[sub_cls])
+    else:
+        validators.extend(_validators[cls])
+    if has_model_origin(cls):
+        validators.extend(get_validators(get_model_origin(cls)))
+    return validators
 
 
 class Discard(Exception):
@@ -100,44 +116,7 @@ class Validator:
 
     def __set_name__(self, owner, name):
         self.dependencies = find_all_dependencies(owner, self.func) | self.params
-        setattr(owner, VALIDATORS_ATTR, (*get_validators(owner), self))
-
-
-Func = TypeVar("Func", bound=Callable)
-
-
-def get_validators(obj) -> Sequence[Validator]:
-    return getattr(obj, VALIDATORS_ATTR, ())
-
-
-@overload
-def add_validator(
-    cls: Type, *, field: Field = None, discard: Collection[Field] = None
-) -> Callable[[Func], Func]:
-    ...
-
-
-@overload
-def add_validator(
-    cls: Type, *funcs: Callable, field: Field = None, discard: Collection[Field] = None
-):
-    ...
-
-
-def add_validator(
-    cls: Type, *funcs: Callable, field: Field = None, discard: Collection[Field] = None
-):
-    if not funcs:
-
-        def wrapper(func: Func) -> Func:
-            add_validator(cls, func, field=field, discard=discard)
-            return func
-
-        return wrapper
-
-    for func in funcs:
-        validator = Validator(func, field, discard)
-        validator.__set_name__(cls, func.__name__)
+        _validators[owner].append(self)
 
 
 T = TypeVar("T")
@@ -145,9 +124,7 @@ T = TypeVar("T")
 
 def validate(__obj: T, __validators: Iterable[Validator] = None, **kwargs) -> T:
     if __validators is None:
-        __validators = get_validators(__obj)
-    if not __validators:
-        return __obj
+        __validators = get_validators(type(__obj))
     error: Optional[ValidationError] = None
     __validators = iter(__validators)
     while True:
@@ -197,10 +174,18 @@ def validator(field: Any = None, *, discard: Any = None) -> Callable[[V], V]:
 
 
 def validator(arg=None, *, discard=None):
-    if callable(arg):
-        return Validator(arg, None, discard)
     if arg is None:
-        return lambda func: validator(func, discard=discard)
+        return lambda func: Validator(func, None, discard)
+    if callable(arg):
+        validator_ = Validator(arg, None, None)
+        if not is_method(arg):
+            try:
+                first_param = next(iter(signature(arg).parameters))
+                owner = get_origin_or_class(get_type_hints(arg)[first_param])
+                validator_.__set_name__(owner, arg.__name__)
+            except Exception:
+                raise ValueError("Validator function must have its first param typed")
+        return validator_
     field = arg
     if not isinstance(field, Field):
         raise TypeError(

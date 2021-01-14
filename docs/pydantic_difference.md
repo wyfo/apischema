@@ -88,7 +88,7 @@ With *pydantic*, if you want to have a `nullable` field in the generated schema,
 
 *Apischema* also support more advanced features like `dependentRequired` or `unevaluatedProperties`. Reference handling is also more [flexible](json_schema.md#complexrecursive-types---json-schema-definitionsopenapi-components)
 
-### *Apischema* can add JSON schema to `NewType`
+### *Apischema* can add validators and JSON schema to `NewType`
 
 So it will be used in deserialization validation. You can use `NewType` everywhere, to gain a better type checking, self-documented code.
 
