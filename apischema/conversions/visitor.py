@@ -12,11 +12,10 @@ from apischema.conversions.dataclass_models import DataclassModelWrapper, get_mo
 from apischema.conversions.utils import (
     Conversions,
     ConverterWithConversions,
-    get_parameters,
 )
-from apischema.type_vars import resolve_type_vars
 from apischema.types import AnyType
-from apischema.utils import Operation
+from apischema.typing import get_args, get_origin
+from apischema.utils import Operation, get_parameters, substitute_type_vars
 from apischema.visitor import Return, Visitor
 
 Conv = TypeVar("Conv")
@@ -44,12 +43,10 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
         return self._is_conversion(cls, arg)
 
     def is_extra_conversions(self, cls: AnyType) -> bool:
-        return (
-            isinstance(cls, type)
-            and self._conversions is not None
-            and cls in self._conversions
-            and self.is_conversion(cls) is not None
-        )
+        if not isinstance(cls, type) or not self.is_conversion(cls):
+            return False
+        with self._replace_conversions(None):
+            return not self.is_conversion(cls)
 
     def visit_conversion(self, cls: AnyType, conversion: Conv) -> Return:
         raise NotImplementedError()
@@ -82,6 +79,11 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
     def visit_with_conversions(
         self, cls: AnyType, conversions: Optional[Conversions]
     ) -> Return:
+        if self._generic is not None:
+            substitution = dict(
+                zip(get_parameters(get_origin(self._generic)), get_args(self._generic))
+            )
+            cls = substitute_type_vars(cls, substitution)
         with self._replace_conversions(conversions):
             return self.visit(cls)
 
@@ -89,7 +91,7 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
 def handle_generic_conversion(base: AnyType, other: AnyType) -> AnyType:
     if isinstance(other, tuple):
         type_vars, other = other
-        return resolve_type_vars(other, dict(zip(type_vars, get_parameters(base))))
+        return substitute_type_vars(other, dict(zip(type_vars, get_parameters(base))))
     else:
         return other
 

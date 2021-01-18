@@ -46,12 +46,12 @@ def serialize_recoverable(recoverable: Recoverable[T]) -> T:
 
 assert deserialize(Recoverable[int], 0).value == 0
 with raises(RecoverableRaw) as err:
-    assert deserialize(Recoverable[int], "bad").value
+    deserialize(Recoverable[int], "bad").value
 assert err.value.raw == "bad"
 
 assert serialize(Recoverable(0)) == 0
 with raises(RecoverableRaw) as err:
-    assert serialize(Recoverable(RecoverableRaw("bad")))
+    serialize(Recoverable(RecoverableRaw("bad")))
 assert err.value.raw == "bad"
 
 assert (

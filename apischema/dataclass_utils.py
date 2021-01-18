@@ -31,8 +31,8 @@ from apischema.dependent_required import (
     Requirements,
 )
 from apischema.types import AnyType
-from apischema.typing import get_origin, get_type_hints
-from apischema.utils import Operation, PREFIX
+from apischema.typing import get_origin, get_type_hints, get_type_hints2
+from apischema.utils import Operation, PREFIX, get_origin_or_class, has_type_vars
 
 if TYPE_CHECKING:
     from apischema.conversions.utils import Converter
@@ -47,12 +47,13 @@ if sys.version_info <= (3, 7):  # pragma: no cover
 
 @lru_cache()
 def dataclass_types_and_fields(
-    cls: Type,
+    tp: AnyType,
 ) -> Tuple[Mapping[str, AnyType], Sequence[Field], Sequence[Field]]:
     from apischema.metadata.keys import INIT_VAR_METADATA
 
+    cls = get_origin_or_class(tp)
     assert is_dataclass(cls)
-    types = get_type_hints(cls, include_extras=True)
+    types = get_type_hints2(tp)
     fields, init_fields = [], []
     for field in getattr(cls, _FIELDS).values():
         assert isinstance(field, Field)
@@ -69,6 +70,8 @@ def dataclass_types_and_fields(
             init_field = (PREFIX, metadata[INIT_VAR_METADATA], ...)
             tmp_cls = make_dataclass("Tmp", [init_field], bases=(cls,))  # type: ignore
             types[field.name] = get_type_hints(tmp_cls, include_extras=True)[PREFIX]
+            if has_type_vars(types[field.name]):
+                raise TypeError("Generic InitVar are not supported before 3.8")
             init_fields.append(field)
         else:
             fields.append(field)
@@ -154,6 +157,8 @@ def get_field_conversion(
 
     if CONVERSIONS_METADATA not in field.metadata:
         return field_type, None, None
+    if has_type_vars(field_type):
+        raise TypeError("Generic field cannot have conversion")
     conversions = field.metadata[CONVERSIONS_METADATA]
     if isinstance(conversions, FieldConversionsModel):
         return field_type, {field_type: conversions.model}, None

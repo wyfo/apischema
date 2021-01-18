@@ -1,4 +1,6 @@
 from collections import ChainMap
+from enum import Enum, auto
+
 from dataclasses import dataclass, fields
 from types import MappingProxyType
 from typing import Callable, Mapping, Optional, Type, TypeVar, overload
@@ -10,20 +12,34 @@ from apischema.conversions.utils import (
     check_converter,
 )
 from apischema.dataclass_utils import is_dataclass
-from apischema.type_vars import resolve_type_vars
+from apischema.utils import is_type_var, substitute_type_vars
 from apischema.types import AnyType, Metadata, MetadataMixin
 from apischema.typing import get_args, get_origin
-from apischema.utils import is_type_var
+
+
+class Variance(Enum):
+    COVARIANT = auto()
+    CONTRAVARIANT = auto()
 
 
 def handle_generic_field_type(
-    field_type: AnyType, base: AnyType, other: AnyType, covariant: bool
+    field_type: AnyType, base: AnyType, other: AnyType, variance: Variance
 ) -> AnyType:
-    contravariant = not covariant
-    type_vars = None
+    """When conversion is generic, try to adapt the other side of the conversion
+    depending on the field_type
+
+    Args:
+        field_type: type of the field
+        base: side of the conversion where the field is
+        other: other side of the conversion
+        variance: variance of the conversion
+    """
     if is_type_var(base):
         type_vars = {base: field_type}
-    if (
+    elif (
+        # field_type is generic with free typevars, field_type also generic with
+        # number of args, none of their args are generic (must be type or typevar)
+        # and with
         get_origin(base) is not None
         and getattr(base, "__parameters__", ())
         and len(get_args(base)) == len(get_args(field_type))
@@ -37,17 +53,23 @@ def handle_generic_field_type(
         type_vars = {}
         for base_arg, field_arg in zip(get_args(base), get_args(field_type)):
             if base_arg in type_vars and type_vars[base_arg] != field_arg:
-                type_vars = None
+                type_vars = {}
                 break
             type_vars[base_arg] = field_arg
         field_type_origin, base_origin = get_origin(field_type), get_origin(base)
         assert field_type_origin is not None and base_origin is not None
         if base_origin != field_type_origin:
-            if covariant and not issubclass(base_origin, field_type_origin):
-                type_vars = None
-            if contravariant and not issubclass(field_type_origin, base_origin):
-                type_vars = None
-    return resolve_type_vars(other, type_vars)
+            if variance == Variance.COVARIANT and not issubclass(
+                base_origin, field_type_origin
+            ):
+                type_vars = {}
+            if variance == Variance.CONTRAVARIANT and not issubclass(
+                field_type_origin, base_origin
+            ):
+                type_vars = {}
+    else:
+        type_vars = {}
+    return substitute_type_vars(other, type_vars)
 
 
 def deserializer_parameter(deserializer: Converter, field_type: AnyType) -> AnyType:
@@ -56,7 +78,7 @@ def deserializer_parameter(deserializer: Converter, field_type: AnyType) -> AnyT
     except TypeError:
         param, _ = check_converter(deserializer, None, field_type)
     else:
-        param = handle_generic_field_type(field_type, ret, param, True)
+        param = handle_generic_field_type(field_type, ret, param, Variance.COVARIANT)
     return param
 
 
@@ -66,7 +88,7 @@ def serializer_return(serializer: Converter, field_type: AnyType) -> AnyType:
     except TypeError:
         _, ret = check_converter(serializer, field_type, None)
     else:
-        ret = handle_generic_field_type(field_type, param, ret, False)
+        ret = handle_generic_field_type(field_type, param, ret, Variance.CONTRAVARIANT)
     return ret
 
 

@@ -336,7 +336,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
             self._non_null = non_null_save
 
     def visit_not_conversion(self, cls: AnyType) -> Thunk[graphql.GraphQLType]:
-        key = self._resolve_type_vars(cls), self._ref, self._schema
+        key = self._generic or cls, self._ref, self._schema
         if key in self._cache:
             return self._cache[key]
         cache = None

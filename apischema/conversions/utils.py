@@ -12,10 +12,9 @@ from typing import (
     cast,
 )
 
-from apischema.type_vars import get_parameters, resolve_type_vars
 from apischema.types import AnyType
-from apischema.typing import get_args, get_origin, get_type_hints
-from apischema.utils import is_type_var, type_name
+from apischema.typing import get_type_hints
+from apischema.utils import type_name
 from apischema.visitor import Unsupported, Visitor
 
 Conversions = Mapping[AnyType, Any]
@@ -64,21 +63,6 @@ def check_converter(
                 else:
                     raise TypeError("converter return must be typed")
     return param, ret
-
-
-def handle_generic_conversions(
-    base: AnyType, other: AnyType
-) -> Tuple[AnyType, AnyType]:
-    origin = get_origin(base)
-    if origin is None:
-        return base, other
-    args = get_args(base)
-    if not all(map(is_type_var, args)):
-        raise TypeError(
-            f"Generic conversion doesn't support specialization,"
-            f" aka {type_name(base)}[{','.join(map(type_name, args))}]"
-        )
-    return origin, resolve_type_vars(other, dict(zip(args, get_parameters(origin))))
 
 
 class ConvertibleVisitor(Visitor[bool]):
