@@ -189,9 +189,15 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         return lambda: graphql.GraphQLList(exec_thunk(value_thunk))
 
     def _object_field(self, field: Field, field_type: AnyType) -> ObjectField:
-        field_type, conversions, _ = get_field_conversion(
+        field_type, conversions, serializer = get_field_conversion(
             field, field_type, self.operation
         )
+        resolve: Optional[Callable] = None
+        if serializer is not None:
+
+            def resolve(obj, info):
+                return serializer(getattr(obj, field.name))
+
         default: Any = graphql.Undefined
         if not is_required(field):
             with suppress(Exception):
@@ -203,6 +209,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
             conversions=conversions,
             default=default,
             required=is_required(field),
+            resolve=resolve,
             schema=field.metadata.get(SCHEMA_METADATA),
         )
 
