@@ -5,6 +5,7 @@ from typing import (
     Callable,
     Dict,
     Hashable,
+    Iterable,
     Mapping,
     Optional,
     Tuple,
@@ -15,7 +16,7 @@ from typing import (
 )
 
 from apischema.types import AnyType
-from apischema.typing import _GenericAlias, get_origin
+from apischema.typing import _GenericAlias, _collect_type_vars, get_origin
 
 PREFIX = "_apischema_"
 
@@ -98,8 +99,40 @@ def merge_opts_mapping(m1: Mapping[K, V], m2: Mapping[K, V]) -> Mapping[K, V]:
     return {**m1, **m2}
 
 
-def is_type_var(cls: AnyType) -> bool:
-    return isinstance(cls, TypeVar)  # type: ignore
+def is_type_var(tp: AnyType) -> bool:
+    return isinstance(tp, TypeVar)  # type: ignore
+
+
+def has_type_vars(tp: AnyType) -> bool:
+    return is_type_var(tp) or bool(getattr(tp, "__parameters__", ()))
+
+
+TV = AnyType  # TypeVar is not supported as a type
+# 10 should be enough for all builtin types
+_type_vars = [TypeVar(f"T{i}") for i in range(10)]
+
+
+def get_parameters(tp: AnyType) -> Iterable[TV]:
+    if hasattr(tp, "__parameters__"):
+        return tp.__parameters__
+    elif hasattr(tp, "__orig_bases__"):
+        return _collect_type_vars(tp.__orig_bases__)
+    else:
+        return _type_vars
+
+
+def substitute_type_vars(tp: AnyType, type_vars: Mapping[TV, AnyType]) -> AnyType:
+    if is_type_var(tp):
+        if tp in type_vars:
+            return type_vars[tp]
+        elif tp.__constraints__:
+            return Union[tp.__constraints__]
+        else:
+            return Any
+    elif getattr(tp, "__parameters__", ()):
+        return tp[tuple(substitute_type_vars(p, type_vars) for p in tp.__parameters__)]
+    else:
+        return tp
 
 
 Func = TypeVar("Func", bound=Callable)

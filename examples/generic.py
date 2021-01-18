@@ -11,7 +11,6 @@ T = TypeVar("T")
 @dataclass
 class Box(Generic[T]):
     content: T
-    shaken: bool = False
 
 
 assert deserialize(Box[str], {"content": "void"}) == Box("void")

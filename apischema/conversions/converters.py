@@ -24,10 +24,18 @@ from apischema.conversions.utils import (
     ConverterWithConversions,
     check_converter,
     check_convertible,
-    handle_generic_conversions,
 )
 from apischema.types import AnyType, OrderedDict
-from apischema.utils import Undefined, is_method, to_camel_case
+from apischema.typing import get_args, get_origin
+from apischema.utils import (
+    Undefined,
+    get_parameters,
+    is_method,
+    is_type_var,
+    substitute_type_vars,
+    to_camel_case,
+    type_name,
+)
 
 if TYPE_CHECKING:
     from apischema.json_schema.annotations import Deprecated
@@ -129,6 +137,30 @@ def _converter(decorator: _ConverterSetter, *, extra: bool) -> ConverterSetter:
                 raise
 
     return cast(ConverterSetter, wrapper)
+
+
+def handle_generic_conversions(
+    base: AnyType, other: AnyType
+) -> Tuple[AnyType, AnyType]:
+    """
+    Args:
+        base: (generic) type on the registered side the conversion
+        other: other side of the conversion
+
+    Returns:
+        The type on which is registered conversion (its origin when generic) and the
+        other side of the conversion with its original parameters
+    """
+    origin = get_origin(base)
+    if origin is None:
+        return base, other
+    args = get_args(base)
+    if not all(map(is_type_var, args)):
+        raise TypeError(
+            f"Generic conversion doesn't support specialization,"
+            f" aka {type_name(base)}[{','.join(map(type_name, args))}]"
+        )
+    return origin, substitute_type_vars(other, dict(zip(args, get_parameters(origin))))
 
 
 def _deserializer(

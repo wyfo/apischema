@@ -17,7 +17,6 @@ from typing import (
 )
 
 from apischema.dataclass_utils import dataclass_types_and_fields
-from apischema.type_vars import TypeVarContext, resolve_type_vars, type_var_context
 from apischema.types import (
     AnyType,
     COLLECTION_TYPES,
@@ -30,7 +29,7 @@ from apischema.typing import (
     _TypedDictMeta,
     get_args,
     get_origin,
-    get_type_hints,
+    get_type_hints2,
 )
 from apischema.utils import is_type_var
 
@@ -45,7 +44,7 @@ TUPLE_TYPE = get_origin(Tuple[Any])
 @lru_cache()
 def type_hints_cache(obj) -> Mapping[str, AnyType]:
     # Use immutable return because of cache
-    return MappingProxyType(get_type_hints(obj, include_extras=True))
+    return MappingProxyType(get_type_hints2(obj))
 
 
 class Unsupported(TypeError):
@@ -58,10 +57,7 @@ Return = TypeVar("Return", covariant=True)
 
 class Visitor(Generic[Return]):
     def __init__(self):
-        self._type_vars: Optional[TypeVarContext] = None
-
-    def _resolve_type_vars(self, cls: AnyType) -> Any:
-        return resolve_type_vars(cls, self._type_vars)
+        self._generic: Optional[AnyType] = None
 
     def annotated(self, cls: AnyType, annotations: Sequence[Any]) -> Return:
         return self.visit(cls)
@@ -85,12 +81,12 @@ class Visitor(Generic[Return]):
         raise NotImplementedError()
 
     def generic(self, cls: AnyType) -> Return:
-        type_vars = self._type_vars
+        _generic = self._generic
+        self._generic = cls
         try:
-            self._type_vars = type_var_context(cls, self._type_vars)
             return self._visit(get_origin(cls))
         finally:
-            self._type_vars = type_vars
+            self._generic = _generic
 
     def literal(self, values: Sequence[Any]) -> Return:
         raise NotImplementedError()
@@ -154,7 +150,9 @@ class Visitor(Generic[Return]):
         if cls in PRIMITIVE_TYPES:
             return self.primitive(cls)
         if is_dataclass(cls):
-            return self.dataclass(cls, *dataclass_types_and_fields(cls))  # type: ignore
+            return self.dataclass(
+                cls, *dataclass_types_and_fields(self._generic or cls)  # type: ignore
+            )
         if hasattr(cls, "__supertype__"):
             return self.new_type(cls, cls.__supertype__)
         if cls is Any:
@@ -176,7 +174,7 @@ class Visitor(Generic[Return]):
             # NamedTuple
             if issubclass(cls, tuple) and hasattr(cls, "_fields"):
                 if hasattr(cls, "__annotations__"):
-                    types = type_hints_cache(cls)
+                    types = type_hints_cache(self._generic or cls)
                 elif hasattr(cls, "__field_types"):  # pragma: no cover
                     types = cls._field_types  # type: ignore
                 else:  # pragma: no cover
@@ -188,18 +186,21 @@ class Visitor(Generic[Return]):
         if isinstance(cls, _TypedDictMeta):
             total = cls.__total__  # type: ignore
             assert isinstance(cls, type)
-            return self.typed_dict(cls, type_hints_cache(cls), total)
+            return self.typed_dict(cls, type_hints_cache(self._generic or cls), total)
         return self.unsupported(cls)
 
     def visit(self, cls: AnyType) -> Return:
         if get_origin(cls) is not None:
             return self._visit_generic(cls)
         if is_type_var(cls):
-            return self.visit(self._resolve_type_vars(cls))
+            if cls.__constraints__:
+                return self.visit(Union[cls.__constraints__])
+            else:
+                return self.visit(Any)
         else:
-            type_vars = self._type_vars
-            self._type_vars = None
+            _generic = self._generic
+            self._generic = None
             try:
                 return self._visit(cls)
             finally:
-                self._type_vars = type_vars
+                self._generic = _generic
