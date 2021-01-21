@@ -13,7 +13,9 @@ logger = getLogger(__name__)
 def log_error(
     error: Exception, obj: Any, info: graphql.GraphQLResolveInfo, **kwargs
 ) -> None:
-    logger.error("Resolve error in %s", ".".join(info.path.as_list()), exc_info=error)
+    logger.error(
+        "Resolve error in %s", ".".join(map(str, info.path.as_list())), exc_info=error
+    )
     return None
 
 

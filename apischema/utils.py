@@ -1,9 +1,10 @@
 from enum import Enum, auto
 from functools import wraps
+from types import FunctionType
 from typing import (
     Any,
     Callable,
-    Dict,
+    Generic,
     Hashable,
     Iterable,
     Mapping,
@@ -58,9 +59,6 @@ def to_hashable(data: Union[None, int, float, str, bool, list, dict]) -> Hashabl
 def to_camel_case(s: str):
     pascal_case = "".join(map(str.capitalize, s.split("_")))
     return pascal_case[0].lower() + pascal_case[1:]
-
-
-_type_hints: Dict[str, Mapping[str, Type]] = {}
 
 
 def type_name(cls: AnyType) -> str:
@@ -121,16 +119,14 @@ def get_parameters(tp: AnyType) -> Iterable[TV]:
         return _type_vars
 
 
-def substitute_type_vars(tp: AnyType, type_vars: Mapping[TV, AnyType]) -> AnyType:
+def substitute_type_vars(tp: AnyType, substitution: Mapping[TV, AnyType]) -> AnyType:
     if is_type_var(tp):
-        if tp in type_vars:
-            return type_vars[tp]
-        elif tp.__constraints__:
-            return Union[tp.__constraints__]
-        else:
-            return Any
+        try:
+            return substitution[tp]
+        except KeyError:
+            return Union[tp.__constraints__] if tp.__constraints__ else Any
     elif getattr(tp, "__parameters__", ()):
-        return tp[tuple(substitute_type_vars(p, type_vars) for p in tp.__parameters__)]
+        return tp[tuple(substitution.get(p, p) for p in tp.__parameters__)]
     else:
         return tp
 
@@ -147,7 +143,7 @@ def get_origin_or_class(cls: AnyType) -> Type:
     return origin if origin is not None else cls
 
 
-class Operation(Enum):
+class OperationKind(Enum):
     DESERIALIZATION = auto()
     SERIALIZATION = auto()
 
@@ -155,27 +151,80 @@ class Operation(Enum):
 MethodOrProperty = Union[Callable, property]
 
 
-def is_method(func: MethodOrProperty) -> bool:
-    """Return if the function is method/property declared in a class"""
-    return isinstance(func, property) or func.__name__ != func.__qualname__
-
-
-def method_wrapper(method: MethodOrProperty, name: str) -> Callable:
-    wrapper: Callable
+def _method_location(method: MethodOrProperty) -> Optional[Type]:
     if isinstance(method, property):
+        method = method.fget
+    while hasattr(method, "__wrapped__"):
+        method = method.__wrapped__  # type: ignore
+    assert isinstance(method, FunctionType)
+    global_name, *class_path = method.__qualname__.split(".")[:-1]
+    if global_name not in method.__globals__:
+        return None
+    location = method.__globals__[global_name]
+    for attr in class_path:
+        if hasattr(location, attr):
+            location = getattr(location, attr)
+        else:
+            break
+    return location
+
+
+def is_method(method: MethodOrProperty) -> bool:
+    """Return if the function is method/property declared in a class"""
+    return (isinstance(method, property) and is_method(method.fget)) or (
+        isinstance(method, FunctionType)
+        and method.__name__ != method.__qualname__
+        and isinstance(_method_location(method), (type, type(None)))
+    )
+
+
+def method_class(method: MethodOrProperty) -> Optional[Type]:
+    cls = _method_location(method)
+    return cls if isinstance(cls, type) else None
+
+
+METHOD_WRAPPER_ATTR = f"{PREFIX}method_wrapper"
+
+
+def method_wrapper(method: MethodOrProperty, name: str = None) -> Callable:
+    if isinstance(method, property):
+        name = name or method.fget.__name__
 
         @wraps(method.fget)
         def wrapper(self):
             return getattr(self, name)
 
     else:
+        if hasattr(method, METHOD_WRAPPER_ATTR):
+            return method
+        name = name or method.__name__
 
-        @wraps(method.__get__(None, object))  # type: ignore
+        @wraps(method)
         def wrapper(self, *args, **kwargs):
-
             return getattr(self, name)(*args, **kwargs)
 
+    setattr(wrapper, METHOD_WRAPPER_ATTR, True)
     return wrapper
+
+
+class MethodWrapper(Generic[T]):
+    def __init__(self, method: T):
+        self._method = method
+
+    def getter(self, func):
+        self._method.getter(func)
+        return self
+
+    def setter(self, func):
+        self._method.setter(func)
+        return self
+
+    def deleter(self, func):
+        self._method.deleter(func)
+        return self
+
+    def __set_name__(self, owner, name):
+        setattr(owner, name, self._method)
 
 
 try:

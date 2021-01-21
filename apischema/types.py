@@ -103,18 +103,15 @@ else:  # pragma: no cover
 
 
 class MetadataMixin(MetadataUnion):
-    _key: str
-
-    def __init__(self, key: str):
-        super().__setattr__("_key", key)
+    key: str
 
     def __getitem__(self, key):
-        if key != self._key:
+        if key != self.key:
             raise KeyError(key)
         return self
 
     def __iter__(self):
-        return iter((self._key,))
+        return iter((self.key,))
 
     def __len__(self):
         return 1

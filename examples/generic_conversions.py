@@ -2,7 +2,8 @@ from typing import Generic, TypeVar
 
 from pytest import raises
 
-from apischema import ValidationError, deserialize, deserializer, serialize, serializer
+from apischema import ValidationError, deserialize, serialize
+from apischema.conversions import deserializer, serializer
 from apischema.json_schema import deserialization_schema, serialization_schema
 
 T = TypeVar("T")
@@ -12,13 +13,13 @@ class Wrapper(Generic[T]):
     def __init__(self, wrapped: T):
         self.wrapped = wrapped
 
-    # serializer methods of generic class are not handled in Python 3.6
+    # serializer decorator for methods of generic class is not supported in Python 3.6
     def unwrap(self) -> T:
         return self.wrapped
 
 
-serializer(Wrapper.unwrap, Wrapper[T], T)
-deserializer(Wrapper, T, Wrapper[T])
+deserializer(Wrapper)
+serializer(Wrapper.unwrap)
 
 
 assert deserialize(Wrapper[list[int]], [0, 1]).wrapped == [0, 1]

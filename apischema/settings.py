@@ -9,18 +9,17 @@ __all__ = [
     "serialization",
 ]
 
-from typing import Any, Callable, Optional, Type, TypeVar, overload
+from typing import Callable, Optional, Type, TypeVar, overload
 
 from apischema import aliases
-from apischema.deserialization import coercion as coercion_
 from apischema.aliases import Aliaser
 from apischema.cache import reset_cache
+from apischema.conversions.conversions import Conversions
 from apischema.conversions.visitor import (
-    Deserialization,
     DeserializationVisitor,
-    Serialization,
     SerializationVisitor,
 )
+from apischema.deserialization import coercion as coercion_
 from apischema.json_schema import refs, schema, versions
 from apischema.types import AnyType
 from apischema.utils import to_camel_case
@@ -28,6 +27,7 @@ from apischema.utils import to_camel_case
 additional_properties = False
 coercion: bool = False
 default_fallback = False
+exclude_unset = True
 json_schema_version = versions.JsonSchemaVersion.DRAFT_2019_09
 
 
@@ -51,44 +51,43 @@ def coercer(func=None):
         return func
 
 
-DeserializationFunc = Callable[[Type, Optional[Any]], Optional[Deserialization]]
-SerializationFunc = Callable[[Type, Optional[Any]], Optional[Serialization]]
+ConversionsFunc = Callable[[Type], Optional[Conversions]]
 
 
 @overload
-def deserialization() -> DeserializationFunc:
+def deserialization() -> ConversionsFunc:
     ...
 
 
 @overload
-def deserialization(func: DeserializationFunc) -> DeserializationFunc:
+def deserialization(func: ConversionsFunc) -> ConversionsFunc:
     ...
 
 
 def deserialization(func=None):
     if func is None:
-        return DeserializationVisitor._is_conversion
+        return DeserializationVisitor._default_conversions
     else:
-        DeserializationVisitor._is_conversion = staticmethod(func)
+        DeserializationVisitor._default_conversions = staticmethod(func)
         reset_cache()
         return func
 
 
 @overload
-def serialization() -> SerializationFunc:
+def serialization() -> ConversionsFunc:
     ...
 
 
 @overload
-def serialization(func: SerializationFunc) -> SerializationFunc:
+def serialization(func: ConversionsFunc) -> ConversionsFunc:
     ...
 
 
 def serialization(func=None):
     if func is None:
-        return SerializationVisitor._is_conversion
+        return SerializationVisitor._default_conversions
     else:
-        SerializationVisitor._is_conversion = staticmethod(func)
+        SerializationVisitor._default_conversions = staticmethod(func)
         reset_cache()
         return func
 

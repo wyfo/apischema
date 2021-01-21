@@ -1,5 +1,5 @@
-# Attrs compatibility
+# Attrs support
 
 ```python
-{!examples/attrs_compatibility.py!}
+{!examples/attrs_support.py!}
 ```

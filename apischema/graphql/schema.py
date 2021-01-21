@@ -1,7 +1,6 @@
 import warnings
-from collections import ChainMap
 from contextlib import suppress
-from dataclasses import Field, InitVar, dataclass, field as field_, replace
+from dataclasses import Field, InitVar, dataclass, field as field_
 from enum import Enum
 from inspect import Parameter, iscoroutinefunction
 from typing import (
@@ -28,11 +27,15 @@ import graphql
 
 from apischema import serialize
 from apischema.aliases import Aliaser
-from apischema.conversions import Conversions, Deserialization, Serialization
+from apischema.conversions import identity
+from apischema.conversions.conversions import Conversions
+from apischema.conversions.utils import Converter
 from apischema.conversions.visitor import (
     Conv,
     ConversionsVisitor,
+    Deserialization,
     DeserializationVisitor,
+    Serialization,
     SerializationVisitor,
 )
 from apischema.dataclass_utils import (
@@ -42,11 +45,13 @@ from apischema.dataclass_utils import (
     get_fields,
     is_required,
 )
+from apischema.dataclasses import replace
 from apischema.graphql.interfaces import get_interfaces, is_interface
 from apischema.graphql.resolvers import (
     Resolver,
     get_resolvers,
     none_error_handler,
+    partial_serialize,
     resolver_parameters,
     resolver_resolve,
 )
@@ -62,7 +67,7 @@ from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, NoneType
 from apischema.typing import get_args, get_origin
-from apischema.utils import Undefined, is_hashable, to_camel_case, type_name
+from apischema.utils import Undefined, to_camel_case, type_name
 
 JsonScalar = graphql.GraphQLScalarType(
     "JSON",
@@ -189,21 +194,22 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         return lambda: graphql.GraphQLList(exec_thunk(value_thunk))
 
     def _object_field(self, field: Field, field_type: AnyType) -> ObjectField:
-        field_type, conversions, serializer = get_field_conversion(
-            field, field_type, self.operation
-        )
+        field_name = field.name
+        field_type, conversion = get_field_conversion(field, field_type, self.operation)
+        conversions: Optional[Conversions] = None
         resolve: Optional[Callable] = None
-        if serializer is not None:
+        if conversion is not None:
+            converter, conversions = conversion.converter, conversion.conversions
 
             def resolve(obj, info):
-                return serializer(getattr(obj, field.name))
+                return converter(getattr(obj, field_name))  # type: ignore
 
         default: Any = graphql.Undefined
         if not is_required(field):
             with suppress(Exception):
                 default = serialize(get_default(field), conversions=conversions)
         return ObjectField(
-            field.name,
+            field_name,
             field_type,
             alias=get_alias(field),
             conversions=conversions,
@@ -211,6 +217,14 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
             required=is_required(field),
             resolve=resolve,
             schema=field.metadata.get(SCHEMA_METADATA),
+        )
+
+    def _visit_merged(
+        self, field: Field, field_type: AnyType
+    ) -> Thunk[graphql.GraphQLType]:
+        field_type, conversion = get_field_conversion(field, field_type, self.operation)
+        return self.visit_with_conversions(
+            field_type, conversion.conversions if conversion is not None else None
         )
 
     def dataclass(
@@ -225,14 +239,9 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         merged_types: Dict[str, Thunk[graphql.GraphQLType]] = {}
         for field in get_fields(fields, init_vars, self.operation):
             check_metadata(field)
-            metadata = field.metadata
-            if MERGED_METADATA in metadata:
-                field_type, conversions, _ = get_field_conversion(
-                    field, types[field.name], self.operation
-                )
-                with self._replace_conversions(conversions):
-                    merged_types[field.name] = self.visit(field_type)
-            elif PROPERTIES_METADATA in metadata:
+            if MERGED_METADATA in field.metadata:
+                merged_types[field.name] = self._visit_merged(field, types[field.name])
+            elif PROPERTIES_METADATA in field.metadata:
                 continue
             else:
                 object_fields.append(self._object_field(field, types[field.name]))
@@ -326,7 +335,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     ) -> Thunk[graphql.GraphQLType]:
         if self.is_id(cls):
             return graphql.GraphQLNonNull(graphql.GraphQLID)
-        if is_hashable(cls) and not self.is_extra_conversions(cls):
+        if not self.is_dynamic_conversion(cls):
             ref, schema = ref or get_ref(cls), merge_schema(get_schema(cls), schema)
         else:
             schema, ref = None, None
@@ -342,8 +351,8 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
             self._ref, self._schema = ref_save, schema_save
             self._non_null = non_null_save
 
-    def visit_not_conversion(self, cls: AnyType) -> Thunk[graphql.GraphQLType]:
-        key = self._generic or cls, self._ref, self._schema
+    def _visit(self, cls: AnyType) -> Thunk[graphql.GraphQLType]:
+        key = self._generic or cls, self._ref, self._schema, self._conversions
         if key in self._cache:
             return self._cache[key]
         cache = None
@@ -354,7 +363,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
 
         self._cache[key] = rec_sentinel
         try:
-            cache = exec_thunk(super().visit_not_conversion(cls))
+            cache = exec_thunk(super()._visit(cls))
         except Exception:
             del self._cache[key]
             raise
@@ -365,15 +374,6 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         return self.visit_with_schema(cls, None, None)
 
 
-def deref_merged_field(
-    merged_attr: str, field: graphql.GraphQLField
-) -> graphql.GraphQLField:
-    def resolve(obj, info, **kwargs):
-        return field.resolve(getattr(obj, merged_attr), info, **kwargs)
-
-    return graphql.GraphQLField(**ChainMap(dict(resolve=resolve), field.to_kwargs()))
-
-
 FieldType = TypeVar("FieldType", graphql.GraphQLInputField, graphql.GraphQLField)
 
 
@@ -381,7 +381,6 @@ def merge_fields(
     cls: Type,
     fields: Mapping[str, Lazy[FieldType]],
     merged_types: Mapping[str, Thunk[graphql.GraphQLType]],
-    merged_field_modifier: Callable[[str, FieldType], FieldType] = None,
 ) -> Dict[str, FieldType]:
     all_merged_fields: Dict[str, FieldType] = {}
     for merged_name, merged_thunk in merged_types.items():
@@ -400,11 +399,6 @@ def merge_fields(
         merged_fields: Mapping[str, FieldType] = merged_type.fields
         if merged_fields.keys() & all_merged_fields.keys() & fields.keys():
             raise TypeError(f"Conflict in merged fields of {cls}")
-        if merged_field_modifier:
-            merged_fields = {
-                name: merged_field_modifier(merged_name, field)
-                for name, field in merged_fields.items()
-            }
         all_merged_fields.update(merged_fields)
     return {**{name: field() for name, field in fields.items()}, **all_merged_fields}
 
@@ -466,12 +460,30 @@ class OutputSchemaBuilder(
     ):
         super().__init__(aliaser, is_id, union_ref_factory)
         self.input_builder = InputSchemaBuilder(aliaser, is_id, union_ref_factory)
+        self._get_merged: Optional[Callable] = None
+
+    def _wrap_resolve(self, resolve: Callable):
+        if self._get_merged is None:
+            return resolve
+        else:
+            get_merged = self._get_merged
+
+            def resolve_wrapper(__obj, __info, **kwargs):
+                return resolve(get_merged(__obj), __info, **kwargs)
+
+            return resolve_wrapper
 
     def _field(self, field: ObjectField) -> Tuple[str, Lazy[graphql.GraphQLField]]:
         if field.resolve is not None:
             resolve = field.resolve
         else:
-            resolve = lambda obj, _: getattr(obj, field.name)  # noqa: E731
+            field_name = field.name
+
+            def resolve(obj, _):
+                return getattr(obj, field_name)
+
+        resolve = self._wrap_resolve(resolve)
+
         field_type = self.visit_with_conversions(field.type, field.conversions)
         args = None
         if field.parameters is not None:
@@ -512,6 +524,35 @@ class OutputSchemaBuilder(
             field.deprecated,
         )
 
+    def _visit_merged(
+        self, field: Field, field_type: AnyType
+    ) -> Thunk[graphql.GraphQLType]:
+        field_type, conversion = get_field_conversion(field, field_type, self.operation)
+        field_name, aliaser = field.name, self.aliaser
+        converter: Converter = identity
+        conversions: Optional[Conversions] = None
+        if conversion is not None:
+            converter = conversion.converter  # type: ignore
+            conversions = conversion.conversions
+        get_prev_merged = self._get_merged if self._get_merged is not None else identity
+
+        def get_merge(obj):
+            return partial_serialize(
+                converter(getattr(get_prev_merged(obj), field_name)),
+                conversions=conversions,
+                aliaser=aliaser,
+            )
+
+        merged_save = self._get_merged
+        self._get_merged = get_merge
+        try:
+            return self.visit_with_conversions(
+                field_type,
+                conversion.conversions if conversion is not None else None,
+            )
+        finally:
+            self._get_merged = merged_save
+
     def object(
         self,
         cls: Type,
@@ -526,13 +567,12 @@ class OutputSchemaBuilder(
                 raise
             name, description = cls.__name__, self._description
         for resolver_name, resolver in get_resolvers(cls).items():
-            resolve = resolver_resolve(resolver, self.aliaser)
             resolver_field = ObjectField(
                 resolver_name,
                 resolver.return_type,
                 conversions=resolver.conversions,
                 parameters=(resolver.parameters, resolver.types),
-                resolve=resolve,
+                resolve=self._wrap_resolve(resolver_resolve(resolver, self.aliaser)),
             )
             fields_and_resolvers.append(resolver_field)
         visited_fields = dict(map(self._field, fields_and_resolvers))
@@ -542,7 +582,6 @@ class OutputSchemaBuilder(
                 cls,
                 visited_fields,
                 merged_types or {},
-                deref_merged_field,
             )
 
         interfaces = list(map(self.visit, get_interfaces(cls)))

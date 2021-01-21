@@ -1,12 +1,13 @@
+from collections.abc import Collection
 from dataclasses import field, make_dataclass
 from inspect import getmembers
-from typing import Any, Collection, Optional
+from typing import Any, Optional
 
 from graphql import print_schema
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import as_declarative
 
-from apischema import Undefined, deserialize, serialize
+from apischema import Undefined, deserialize, deserializer, serialize, serializer
 from apischema.conversions import dataclass_model
 from apischema.graphql import graphql_schema
 from apischema.json_schema import serialization_schema
@@ -42,7 +43,9 @@ class Base:
             (column.name or field_name, column_type(column), column_field(column))
             for field_name, column in columns
         ]
-        dataclass_model(cls)(make_dataclass(cls.__name__, fields))
+        d_conv, s_conv = dataclass_model(cls, make_dataclass(cls.__name__, fields))
+        deserializer(d_conv)
+        serializer(s_conv)
 
 
 class Foo(Base):

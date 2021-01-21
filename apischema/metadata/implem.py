@@ -1,7 +1,9 @@
 import re
-from typing import Pattern, Union
+from dataclasses import dataclass
+from typing import Callable, Optional, Pattern, TYPE_CHECKING, Tuple, Union
 
 from apischema.metadata.keys import (
+    CONVERSIONS_METADATA,
     DEFAULT_AS_SET,
     DEFAULT_FALLBACK_METADATA,
     INIT_VAR_METADATA,
@@ -10,12 +12,37 @@ from apischema.metadata.keys import (
     PROPERTIES_METADATA,
     REQUIRED_METADATA,
     SKIP_METADATA,
+    VALIDATORS_METADATA,
 )
-from apischema.types import AnyType, MappingWithUnion, Metadata
+from apischema.types import AnyType, MappingWithUnion, Metadata, MetadataMixin
+
+if TYPE_CHECKING:
+    from apischema.conversions.conversions import ConvOrFunc
+    from apischema.validation.validator import Validator
 
 
 def simple_metadata(key: str) -> Metadata:
     return MappingWithUnion({key: ...})
+
+
+@dataclass
+class ConversionMetadata(MetadataMixin):
+    key = CONVERSIONS_METADATA
+    deserialization: Optional["ConvOrFunc"] = None
+    serialization: Optional["ConvOrFunc"] = None
+
+
+if False:  # For Pycharm
+
+    def conversion(
+        deserialization: "ConvOrFunc" = None,
+        serialization: "ConvOrFunc" = None,
+    ) -> ConversionMetadata:
+        ...
+
+
+else:
+    conversion = ConversionMetadata
 
 
 default_as_set = simple_metadata(DEFAULT_AS_SET)
@@ -50,3 +77,15 @@ properties = PropertiesMetadata()
 required = simple_metadata(REQUIRED_METADATA)
 
 skip = simple_metadata(SKIP_METADATA)
+
+
+@dataclass(frozen=True)
+class ValidatorsMetadata(MetadataMixin):
+    key = VALIDATORS_METADATA
+    validators: Tuple["Validator", ...]
+
+
+def validators(*validator: Callable) -> ValidatorsMetadata:
+    from apischema.validation.validator import Validator
+
+    return ValidatorsMetadata(tuple(map(Validator, validator)))

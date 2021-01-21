@@ -66,15 +66,12 @@ def __getattr__(name):
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-def default_conversions():
+def register_default_conversions():
     """Handle standard library + internal types"""
-    from typing import Sequence
     from . import std_types  # noqa: F401
-    from .validation.errors import LocalizedError
 
-    deserializer(ValidationError.deserialize, Sequence[LocalizedError], ValidationError)
-    serializer(ValidationError.serialize, ValidationError)
+    deserializer(ValidationError.deserialize)
+    serializer(ValidationError.serialize)
 
 
-default_conversions()
-del default_conversions  # clean namespace
+register_default_conversions()

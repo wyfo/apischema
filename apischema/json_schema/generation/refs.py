@@ -73,11 +73,13 @@ class RefsExtractor(ConversionsVisitor):
         init_vars: Sequence[Field],
     ):
         for field in get_fields(fields, init_vars, self.operation):
-            field_type, conversions, _ = get_field_conversion(
+            field_type, conversion = get_field_conversion(
                 field, types[field.name], self.operation
             )
-            with self._replace_conversions(conversions):
-                self.visit(field_type)
+            self.visit_with_conversions(
+                field_type,
+                conversion.conversions if conversion is not None else None,
+            )
 
     def enum(self, cls: Type[Enum]):
         pass
@@ -120,14 +122,9 @@ class RefsExtractor(ConversionsVisitor):
             pass
 
     def union(self, alternatives: Sequence[AnyType]):
-        return self._union_result(
-            map(self.visit, filter_skipped(alternatives, schema_only=True))
-        )
+        for tp in filter_skipped(alternatives, schema_only=True):
+            self.visit(tp)
 
     def visit(self, cls: AnyType):
-        if (
-            not is_hashable(cls)
-            or self.is_extra_conversions(cls)
-            or not self._incr_ref(get_ref(cls), cls)
-        ):
+        if self.is_dynamic_conversion(cls) or not self._incr_ref(get_ref(cls), cls):
             super().visit(cls)

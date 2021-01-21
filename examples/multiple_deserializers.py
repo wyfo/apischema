@@ -1,29 +1,27 @@
-import os
-import time
-from datetime import datetime
+from dataclasses import dataclass
 
 from apischema import deserialize, deserializer
 from apischema.json_schema import deserialization_schema
 
-# Set UTC timezone for example
-os.environ["TZ"] = "UTC"
-time.tzset()
 
-# There is already `deserializer(datetime.fromisoformat, str, datetime) in apischema
-# Let's add an other deserializer for datetime from a timestamp
+@dataclass
+class Expression:
+    value: int
 
 
 @deserializer
-def datetime_from_timestamp(timestamp: int) -> datetime:
-    return datetime.fromtimestamp(timestamp)
+def evaluate_expression(expr: str) -> Expression:
+    return Expression(int(eval(expr)))
 
 
-assert deserialization_schema(datetime) == {
+# Could be shorten into deserializer(Expression), because class is callable too
+@deserializer
+def expression_from_value(value: int) -> Expression:
+    return Expression(value)
+
+
+assert deserialization_schema(Expression) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
-    "anyOf": [{"type": "string", "format": "date-time"}, {"type": "integer"}],
+    "type": ["string", "integer"],
 }
-assert (
-    deserialize(datetime, "2019-10-13")
-    == datetime(2019, 10, 13)
-    == deserialize(datetime, 1570924800)
-)
+assert deserialize(Expression, 0) == deserialize(Expression, "1 - 1") == Expression(0)

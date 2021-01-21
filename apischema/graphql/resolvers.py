@@ -23,19 +23,19 @@ from typing import (
 import graphql
 
 from apischema.aliases import Aliaser
-from apischema.conversions import Conversions
+from apischema.conversions.conversions import Conversions, to_hashable_conversions
 from apischema.conversions.dataclass_models import (
-    DataclassModelWrapper,
+    DataclassModel,
     get_model_origin,
     has_model_origin,
 )
-from apischema.conversions.visitor import SerializationVisitor
 from apischema.deserialization import deserialize
 from apischema.json_schema.schema import Schema
 from apischema.serialization import (
     COLLECTION_TYPE_SET,
     MAPPING_TYPE_SET,
     PRIMITIVE_TYPES_SET,
+    get_conversions,
     serialize,
 )
 from apischema.serialization.serialized_methods import (
@@ -52,6 +52,7 @@ from apischema.utils import (
     UndefinedType,
     get_origin_or_class,
     is_method,
+    method_class,
     method_wrapper,
 )
 from apischema.validation.errors import ValidationError
@@ -77,19 +78,14 @@ def partial_serialize(
         return serialize(
             obj, conversions=conversions, aliaser=aliaser, exclude_unset=False
         )
-    target = None
-    if conversions is not None:
-        try:
-            target = conversions[cls]
-        except KeyError:
-            pass
-    conversion = SerializationVisitor._is_conversion(cls, target)
+    conversion = get_conversions(cls, to_hashable_conversions(conversions))
     if conversion is not None:
-        _, (converter, sub_conversions) = conversion
-        if isinstance(target, DataclassModelWrapper):
+        if isinstance(conversion.target, DataclassModel):
             return obj
         return partial_serialize(
-            converter(obj), conversions=sub_conversions, aliaser=aliaser
+            conversion.converter(obj),  # type: ignore
+            conversions=conversion.conversions,
+            aliaser=aliaser,
         )
     if is_dataclass(cls):
         return obj
@@ -201,30 +197,30 @@ def register_resolver(
 class ResolverDescriptor(SerializedDescriptor):
     def __init__(
         self,
-        func: MethodOrProperty,
+        method: MethodOrProperty,
         alias: Optional[str],
         conversions: Optional[Conversions],
         schema: Optional[Schema],
         error_handler: ErrorHandler,
         serialized: bool,
     ):
-        super().__init__(func, alias, conversions, schema, error_handler)
+        super().__init__(method, alias, conversions, schema, error_handler)
         self.serialized = serialized
 
     def __set_name__(self, owner, name):
         register_resolver(
-            method_wrapper(self.func, name),
-            self.alias or name,
-            self.conversions,
-            self.schema,
-            self.error_handler,
+            method_wrapper(self._method),
+            self._alias or name,
+            self._conversions,
+            self._schema,
+            self._error_handler,
             self.serialized,
             owner,
         )
-        setattr(owner, name, self.func)
+        setattr(owner, name, self._method)
 
 
-MethodOrProp = TypeVar("MethodOrProp", bound=MethodOrProperty)
+MethodOrProp = TypeVar("MethodOrProp", Callable, property)
 
 
 @overload
@@ -255,25 +251,28 @@ def resolver(
     serialized: bool = False,
     owner: Type = None,
 ):
-    def decorator(func: MethodOrProp) -> MethodOrProp:
-        if is_method(func):
-            return cast(
-                MethodOrProp,
-                ResolverDescriptor(
-                    func, alias, conversions, schema, error_handler, serialized
-                ),
+    def decorator(method: MethodOrProperty):
+        nonlocal owner
+        if is_method(method) and method_class(method) is None:
+            return ResolverDescriptor(
+                method, alias, conversions, schema, error_handler, serialized
             )
         else:
+            if is_method(method):
+                if owner is None:
+                    owner = method_class(method)
+                method = method_wrapper(method)
+            assert not isinstance(method, property)
             register_resolver(
-                cast(Callable, func),
-                alias or func.__name__,
+                cast(Callable, method),
+                alias or method.__name__,
                 conversions,
                 schema,
                 error_handler,
                 serialized,
                 owner,
             )
-            return func
+            return method
 
     if isinstance(__arg, str) or __arg is None:
         alias = alias or __arg

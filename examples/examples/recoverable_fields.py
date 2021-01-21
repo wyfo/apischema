@@ -8,17 +8,19 @@ from apischema.skip import Skip
 
 
 class RecoverableRaw(Exception):
-    def __init__(self, raw):
+    def __init__(self, raw: Any):
         self.raw = raw
 
 
-deserializer(RecoverableRaw, Any, RecoverableRaw)
+deserializer(RecoverableRaw)
 
 T = TypeVar("T")
 
 
 class Recoverable(Generic[T]):
-    def __init__(self, value: T):
+    def __init__(
+        self, value: Union[T, Annotated[RecoverableRaw, Skip(schema_only=True)]]
+    ):
         self._value = value
 
     @property
@@ -32,21 +34,12 @@ class Recoverable(Generic[T]):
         self._value = value
 
 
-deserializer(
-    Recoverable,
-    Union[T, Annotated[RecoverableRaw, Skip(schema_only=True)]],
-    Recoverable[T],
-)
-
-
-@serializer
-def serialize_recoverable(recoverable: Recoverable[T]) -> T:
-    return recoverable.value
-
+deserializer(Recoverable)
+serializer(Recoverable.value)
 
 assert deserialize(Recoverable[int], 0).value == 0
 with raises(RecoverableRaw) as err:
-    deserialize(Recoverable[int], "bad").value
+    _ = deserialize(Recoverable[int], "bad").value
 assert err.value.raw == "bad"
 
 assert serialize(Recoverable(0)) == 0

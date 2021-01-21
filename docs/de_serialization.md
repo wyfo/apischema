@@ -179,7 +179,7 @@ Serialized methods (or their error handler) can return `apischema.Undefined`, in
 ### Exclude unset fields
 
 When a class has a lot of optional fields, it can be convenient to not include all of them, to avoid a bunch of useless fields in your serialized data.
-Using the previous feature of [fields set tracking](#fields-set), `serialize` can exclude unset fields using its `exclude_unset` parameter; this parameter is defaulted to `True`.
+Using the previous feature of [fields set tracking](#fields-set), `serialize` can exclude unset fields using its `exclude_unset` parameter or `settings.exclude_unset` (default is `True`).
 
 ```python
 {!exclude_unset.py!}

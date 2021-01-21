@@ -117,7 +117,9 @@ lt values, they are not run; make sure your default values make sens.
 
 ## Validators for every type
 
-Validators can also be declared as regular function, in which case annotation of the first param is used to associate it to the validated type; this allows to add validator to every type.
+Validators can also be declared as regular function, in which case annotation of the first param is used to associate it to the validated type (you can also use the `owner` parameter); this allows to add validator to every type.
+
+Last but not least, validators can be embedded directly into `Annotated` arguments using `validators` metadata.
 
 ```python
 {!validator_function.py!}

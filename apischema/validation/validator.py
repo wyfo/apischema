@@ -1,5 +1,5 @@
 from collections import defaultdict
-from dataclasses import Field, dataclass
+from dataclasses import Field
 from functools import wraps
 from inspect import Parameter, isgeneratorfunction, signature
 from types import MethodType
@@ -21,9 +21,9 @@ from typing import (
 )
 
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
-from apischema.types import AnyType, MetadataMixin
+from apischema.types import AnyType
 from apischema.typing import get_type_hints
-from apischema.utils import get_origin_or_class, is_method
+from apischema.utils import get_origin_or_class, is_method, method_class
 from apischema.validation.dependencies import find_all_dependencies
 from apischema.validation.errors import (
     Error,
@@ -107,6 +107,7 @@ class Validator:
                     raise Discard(self.discard, err)
 
         self.validate: Callable[..., Iterator[Error]] = validate
+        self._registered = False
 
     def __get__(self, instance, owner):
         return self if instance is None else MethodType(self.func, instance)
@@ -114,9 +115,15 @@ class Validator:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
-    def __set_name__(self, owner, name):
+    def _register(self, owner: Type):
+        if self._registered:
+            raise RuntimeError("Validator already registered")
         self.dependencies = find_all_dependencies(owner, self.func) | self.params
         _validators[owner].append(self)
+        self._registered = True
+
+    def __set_name__(self, owner, name):
+        self._register(owner)
 
 
 T = TypeVar("T")
@@ -169,22 +176,29 @@ def validator(func: V) -> V:
 
 
 @overload
-def validator(field: Any = None, *, discard: Any = None) -> Callable[[V], V]:
+def validator(
+    field: Any = None, *, discard: Any = None, owner: Type = None
+) -> Callable[[V], V]:
     ...
 
 
-def validator(arg=None, *, discard=None):
+def validator(arg=None, *, discard=None, owner=None):
     if arg is None:
         return lambda func: Validator(func, None, discard)
     if callable(arg):
         validator_ = Validator(arg, None, None)
-        if not is_method(arg):
+        if is_method(arg) and method_class(arg) is None:
+            return validator_
+        if is_method(arg):
+            if owner is None:
+                owner = method_class(arg)
+        if owner is None:
             try:
                 first_param = next(iter(signature(arg).parameters))
                 owner = get_origin_or_class(get_type_hints(arg)[first_param])
-                validator_.__set_name__(owner, arg.__name__)
             except Exception:
-                raise ValueError("Validator function must have its first param typed")
+                raise ValueError("Validator first parameter must be typed")
+        validator_._register(owner)
         return validator_
     field = arg
     if not isinstance(field, Field):
@@ -198,17 +212,3 @@ def validator(arg=None, *, discard=None):
         ):
             raise TypeError("discard must be a field or a collection of fields")
     return lambda func: Validator(func, field, discard)
-
-
-@dataclass(frozen=True)
-class ValidatorsMetadata(MetadataMixin):
-    validators: Sequence[Validator]
-
-    def __post_init__(self):
-        from apischema.metadata.keys import VALIDATORS_METADATA
-
-        MetadataMixin.__init__(self, VALIDATORS_METADATA)
-
-
-def validators(*validator: Callable) -> ValidatorsMetadata:
-    return ValidatorsMetadata(list(map(Validator, validator)))

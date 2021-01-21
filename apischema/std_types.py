@@ -23,7 +23,7 @@ from pathlib import (
 from typing import Deque, List, NewType, TypeVar
 from uuid import UUID
 
-from apischema.conversions.converters import as_str, deserializer, serializer
+from apischema.conversions import Conversion, as_str, deserializer, serializer
 from apischema.json_schema.schema import schema
 
 T = TypeVar("T")
@@ -31,7 +31,7 @@ T = TypeVar("T")
 
 # =================== bytes =====================
 
-deserializer(b64decode, str, bytes)
+deserializer(Conversion(b64decode, source=str, target=bytes))
 
 
 @serializer
@@ -41,11 +41,11 @@ def to_base64(b: bytes) -> str:
 
 # ================ collections ==================
 
-deserializer(deque, List[T], Deque[T])
-serializer(list, Deque[T], List[T])
+deserializer(Conversion(deque, source=List[T], target=Deque[T]))
+serializer(Conversion(list, source=Deque[T], target=List[T]))
 if sys.version_info < (3, 7):
-    deserializer(deque, List, deque)
-    serializer(list, deque, List)
+    deserializer(Conversion(deque, source=List, target=deque))
+    serializer(Conversion(list, source=deque, target=List))
 
 
 # ================== datetime ===================
@@ -53,20 +53,20 @@ if sys.version_info < (3, 7):
 if sys.version_info >= (3, 7):  # pragma: no cover
     for cls, format in [(date, "date"), (datetime, "date-time"), (time, "time")]:
         str_type = schema(format=format)(NewType(cls.__name__.capitalize(), str))
-        deserializer(cls.fromisoformat, str_type, cls)  # type: ignore
-        serializer(cls.isoformat, cls, str_type)  # type: ignore
+        deserializer(Conversion(cls.fromisoformat, source=str_type, target=cls))  # type: ignore # noqa: E501
+        serializer(Conversion(cls.isoformat, source=cls, target=str_type))  # type: ignore # noqa: E501
 
 # ================== decimal ====================
 
-deserializer(Decimal, float, Decimal)
-serializer(float, Decimal, float)
+deserializer(Conversion(Decimal, source=float, target=Decimal))
+serializer(Conversion(float, source=Decimal, target=float))
 
 # ================= ipaddress ===================
 
 for cls in (IPv4Address, IPv4Interface, IPv4Network):
-    as_str(cls, format="ipv4")
+    schema(format="ipv4")(as_str(cls))
 for cls in (IPv6Address, IPv6Interface, IPv6Network):
-    as_str(cls, format="ipv6")
+    schema(format="ipv6")(as_str(cls))
 
 # ==================== path =====================
 
@@ -76,9 +76,10 @@ for cls in (PurePath, PurePosixPath, PureWindowsPath, Path, PosixPath, WindowsPa
 # =================== pattern ===================
 
 Pattern = type(re.compile(r""))
-deserializer(re.compile, str, Pattern)
-serializer(lambda p: p.pattern, Pattern, str)
+deserializer(Conversion(re.compile, source=str, target=Pattern))
+serializer(Conversion(lambda p: p.pattern, source=Pattern, target=str))
+
 
 # ==================== uuid =====================
 
-as_str(UUID, format="uuid")
+schema(format="uuid")(as_str(UUID))

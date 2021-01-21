@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+from itertools import takewhile
 from pathlib import Path
 from shutil import rmtree
 from typing import Iterator, Tuple
@@ -8,8 +9,9 @@ ROOT_DIR = Path(__file__).parent.parent
 
 EXAMPLES_PATH = ROOT_DIR / "examples"
 GENERATED_PATH = ROOT_DIR / "tests" / "__generated__"
-with open(ROOT_DIR / "scripts" / "39_compatibility.py") as compat_file:
-    compatibility_lines = ["##\n", *compat_file, "##\n"]
+with open(ROOT_DIR / "scripts" / "test_wrapper.py") as wrapper_file:
+    before_lines = [*takewhile(lambda l: not l.startswith("##"), wrapper_file), "##\n"]
+    after_lines = ["##\n", *wrapper_file]
 
 
 def iter_paths() -> Iterator[Tuple[Path, Path]]:
@@ -37,23 +39,37 @@ def generate():
                 first_line = next(example)
                 if first_line.startswith("from __future__ import"):
                     test.write(first_line)
-                    test.writelines(compatibility_lines)
+                    test.writelines(before_lines)
                 else:
-                    test.writelines(compatibility_lines)
+                    test.writelines(before_lines)
                     test.write(first_line)
-                # Test function begin at the first assertion because all declarations
-                # must be done in global namespace for get_type_hints to work
-                for line in example:
-                    if line.startswith("assert ") or line.startswith("with raises("):
-                        test.write(f"def {test_path.stem}():\n")
-                        test.write(INDENTATION + line)
+                test_count = 0
+                while example:
+                    # Classes must be declared in global namespace in order to get
+                    # get_type_hints and is_method to work
+                    # Test function begin at the first assertion.
+                    for line in example:
+                        if line.startswith("assert ") or line.startswith(
+                            "with raises("
+                        ):
+                            test.write(f"def {test_path.stem}{test_count}():\n")
+                            test.write(INDENTATION + line)
+                            break
+                        test.write(line)
+                    else:
                         break
-                    test.write(line)
-                cur_indent = INDENTATION
-                for line in example:
-                    test.write(cur_indent + line)
-                    if '"""' in line:
-                        cur_indent = "" if cur_indent else INDENTATION
+                    cur_indent = INDENTATION
+                    for line in example:
+                        if any(line.startswith(s) for s in ("class ", "@")):
+                            test.write(line)
+                            test_count += 1
+                            break
+                        test.write(cur_indent + line)
+                        if '"""' in line:
+                            cur_indent = "" if cur_indent else INDENTATION
+                    else:
+                        break
+                test.writelines(after_lines)
 
     for path in GENERATED_PATH.glob("**"):
         if path.is_dir():

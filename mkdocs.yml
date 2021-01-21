@@ -23,8 +23,8 @@ nav:
 - Examples:
   - OpenRPC: examples/open_rpc.md
   - examples/sqlalchemy.md
-  - examples/pydantic_compatibility.md
-  - examples/attrs_compatibility.md
+  - examples/pydantic_support.md
+  - examples/attrs_support.md
   - examples/subclasses_union.md
   - examples/recoverable_fields.md
 - benchmark.md

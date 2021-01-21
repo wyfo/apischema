@@ -8,7 +8,7 @@ from dataclasses import (  # type: ignore
 from apischema.dataclass_utils import dataclass_types_and_fields
 from apischema.dataclasses import replace
 from apischema.fields import fields, fields_set, with_fields_set
-from apischema.metadata.misc import init_var
+from apischema.metadata.implem import init_var
 
 
 @dataclass
