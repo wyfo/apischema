@@ -6,7 +6,7 @@ from apischema import schema_ref
 from apischema.json_schema import deserialization_schema
 
 Tags = NewType("Tags", Set[str])
-schema_ref(...)(Tags)
+schema_ref("ResourceTags")(Tags)
 
 
 @dataclass
@@ -20,11 +20,18 @@ assert deserialization_schema(Resource, all_refs=True) == {
     "$defs": {
         "Resource": {
             "type": "object",
-            "properties": {"id": {"type": "integer"}, "tags": {"$ref": "#/$defs/Tags"}},
+            "properties": {
+                "id": {"type": "integer"},
+                "tags": {"$ref": "#/$defs/ResourceTags"},
+            },
             "required": ["id", "tags"],
             "additionalProperties": False,
         },
-        "Tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
+        "ResourceTags": {
+            "type": "array",
+            "items": {"type": "string"},
+            "uniqueItems": True,
+        },
     },
     "$ref": "#/$defs/Resource",
 }

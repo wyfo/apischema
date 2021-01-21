@@ -200,14 +200,19 @@ Sometimes you need to extract only the definitions in a separate schema (especia
 
 ### Add `$ref` to every types
 
-In the previous example, only dataclasses has a `$ref`, but it can be fully customized. You can use `schema_ref` on any defined types (`NewType`/`class`/`Annotated`/etc.). `schema_ref` argument can be:
+In the previous example, only dataclasses has a `$ref`, but it can be fully customized. You can use `apischema.schema_ref` on almost any types. `schema_ref` argument can be:
 - `str` -> this string will be used directly in schema generation
-- `...` -> schema generation will use the name of the type
+- `...` -> schema generation will use the name of the type (it's not supported for generic aliases)
 - `None` -> this type will have no `$ref` in schema
+
+Generic types can have a ref, but they need to be specialized; `Foo[T, int]` cannot have a ref but `Foo[str, int]` can.
 
 ```python
 {!schema_ref.py!}
 ```
+
+!!! note
+    Builtin collections are interchangeable when a ref is registered. For example, if a ref is registered for `list[Foo]`, this ref will also be used for `Sequence[Foo]` or `Collection[Foo]`.
 
 !!! note
     Actually, there is a small restriction with `NewType`: you cannot put a `schema_ref` if the super type is not a builtin type (`list[...]`/`int`/etc.). 
