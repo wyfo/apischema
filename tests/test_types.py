@@ -3,8 +3,8 @@ from typing import AbstractSet, Dict, List, Mapping, Set
 
 from pytest import mark
 
-from apischema.json_schema.types import replace_builtins
 from apischema.types import MappingWithUnion, MetadataMixin, subscriptable_origin
+from apischema.utils import replace_builtins
 
 
 def test_metadata():

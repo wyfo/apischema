@@ -1,4 +1,3 @@
-import collections.abc
 from enum import Enum
 from functools import wraps
 from inspect import signature
@@ -7,11 +6,9 @@ from typing import (
     Callable,
     Collection,
     Dict,
-    List,
     Mapping,
     Pattern,
     Sequence,
-    Set,
     Type,
     TypeVar,
     Union,
@@ -19,16 +16,8 @@ from typing import (
 )
 
 
-from apischema.types import (
-    AnyType,
-    COLLECTION_TYPES,
-    MAPPING_TYPES,
-    NoneType,
-    Number,
-    subscriptable_origin,
-)
-from apischema.typing import get_args
-from apischema.utils import Undefined, get_origin_or_class
+from apischema.types import NoneType, Number
+from apischema.utils import Undefined
 
 
 class JsonType(str, Enum):
@@ -116,18 +105,3 @@ def json_schema(
     writeOnly: bool = False,
 ) -> JsonSchema:
     ...
-
-
-def replace_builtins(tp: AnyType) -> AnyType:
-    origin = get_origin_or_class(tp)
-    args = tuple(map(replace_builtins, get_args(tp)))
-    if origin in COLLECTION_TYPES:
-        if issubclass(origin, collections.abc.Set):
-            replacement = subscriptable_origin(Set[None])
-        else:
-            replacement = subscriptable_origin(List[None])
-    elif origin in MAPPING_TYPES:
-        replacement = subscriptable_origin(Dict[None, None])
-    else:
-        replacement = origin
-    return replacement[args] if args else replacement

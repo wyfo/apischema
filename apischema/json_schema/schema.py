@@ -13,7 +13,7 @@ from typing import (
 )
 
 from apischema.types import AnyType, MetadataMixin, Number
-from apischema.utils import Undefined, merge_opts
+from apischema.utils import Undefined, merge_opts, replace_builtins
 from .annotations import Annotations, Deprecated, merge_annotations
 from .constraints import (
     ArrayConstraints,
@@ -23,8 +23,13 @@ from .constraints import (
     StringConstraints,
     merge_constraints,
 )
-from .types import replace_builtins
-from ..metadata.keys import SCHEMA_METADATA
+from apischema.metadata.keys import SCHEMA_METADATA
+from apischema.typing import get_origin
+
+try:
+    from apischema.typing import Annotated
+except ImportError:
+    Annotated = ...  # type: ignore
 
 T = TypeVar("T")
 
@@ -36,9 +41,11 @@ class Schema(MetadataMixin):
     constraints: Optional[Constraints] = None
     override: bool = False
 
-    def __call__(self, obj: T) -> T:
-        _schema[replace_builtins(obj)] = self
-        return obj
+    def __call__(self, tp: T) -> T:
+        if get_origin(tp) is Annotated:
+            raise TypeError("Cannot register schema on Annotated type")
+        _schema[replace_builtins(tp)] = self
+        return tp
 
     def __set_name__(self, owner, name):
         self.__call__(owner)

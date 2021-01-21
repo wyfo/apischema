@@ -45,12 +45,14 @@ from apischema.serialization.serialized_methods import (
     register_serialized,
 )
 from apischema.types import AnyType, NoneType, PRIMITIVE_TYPES
-from apischema.typing import get_args, get_origin, get_type_hints
+from apischema.typing import get_origin, get_type_hints
 from apischema.utils import (
     MethodOrProperty,
     Undefined,
     UndefinedType,
-    get_origin_or_class,
+    get_args2,
+    get_origin2,
+    get_origin_or_type,
     is_method,
     method_class,
     method_wrapper,
@@ -108,12 +110,12 @@ awaitable_origin = get_origin(Awaitable[Any])
 def is_async(func: Callable) -> bool:
     return (
         iscoroutinefunction(func)
-        or get_origin_or_class(get_type_hints(func).get("return")) == awaitable_origin
+        or get_origin_or_type(get_type_hints(func).get("return")) == awaitable_origin
     )
 
 
 def unwrap_awaitable(tp: AnyType) -> AnyType:
-    return get_args(tp)[0] if get_origin_or_class(tp) == awaitable_origin else tp
+    return get_args2(tp)[0] if get_origin_or_type(tp) == awaitable_origin else tp
 
 
 @dataclass(frozen=True)
@@ -127,7 +129,7 @@ class Resolver(Serialized):
             error_ret = unwrap_awaitable(self.error_handler_types["return"])
             if error_ret is not NoReturn:
                 ret = Union[ret, error_ret]
-        if get_origin(ret) == Union and UndefinedType in get_args(ret):
+        if get_origin2(ret) == Union and UndefinedType in get_args2(ret):
             raise TypeError("Resolver cannot return Undefined")
         return ret
 
@@ -181,7 +183,7 @@ def register_resolver(
     resolver = Resolver(func, conversions, schema, error_handler, parameters)
     if owner is None:
         try:
-            owner = get_origin_or_class(resolver.types[first_param.name])
+            owner = get_origin_or_type(resolver.types[first_param.name])
         except KeyError:
             raise TypeError("First parameter of resolver must be typed") from None
     _resolvers[owner][alias] = resolver
@@ -287,14 +289,14 @@ def resolver_resolve(
     parameters, info_parameter = [], None
     for param in resolver.parameters:
         param_type = resolver.types[param.name]
-        is_union = get_origin(param_type) == Union
+        is_union = get_origin2(param_type) == Union
         if param_type == graphql.GraphQLResolveInfo or (
-            is_union and graphql.GraphQLResolveInfo in get_args(param_type)
+            is_union and graphql.GraphQLResolveInfo in get_args2(param_type)
         ):
             info_parameter = param.name
         else:
             parameters.append(
-                (param.name, param_type, is_union and NoneType in get_args(param_type))
+                (param.name, param_type, is_union and NoneType in get_args2(param_type))
             )
     func, error_handler = resolver.func, resolver.error_handler
 

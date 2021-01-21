@@ -66,8 +66,8 @@ from apischema.metadata.keys import (
 from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, NoneType
-from apischema.typing import get_args, get_origin
-from apischema.utils import Undefined, to_camel_case, type_name
+from apischema.typing import get_origin
+from apischema.utils import Undefined, get_args2, get_origin2, to_camel_case, type_name
 
 JsonScalar = graphql.GraphQLScalarType(
     "JSON",
@@ -757,11 +757,11 @@ def graphql_schema(
         else:
             operation = remove_error_handler(cast(OpOrFunc, sub_op))
             name, resolver = operation_resolver(sub_op)
-            if get_origin(resolver.return_type) not in async_iterable_origins:
+            if get_origin2(resolver.return_type) not in async_iterable_origins:
                 raise TypeError(
                     "Subscriptions must return an AsyncIterable/AsyncIterator"
                 )
-            return_type = get_args(resolver.return_type)[0]
+            return_type = get_args2(resolver.return_type)[0]
             subscribe = resolver_resolve(resolver, aliaser, serialized=False)
 
             def resolve(_, *args, **kwargs):

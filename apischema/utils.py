@@ -1,14 +1,18 @@
+import collections.abc
 from enum import Enum, auto
 from functools import wraps
 from types import FunctionType
 from typing import (
     Any,
     Callable,
+    Dict,
     Generic,
     Hashable,
     Iterable,
+    List,
     Mapping,
     Optional,
+    Set,
     Tuple,
     Type,
     TypeVar,
@@ -16,8 +20,18 @@ from typing import (
     cast,
 )
 
-from apischema.types import AnyType
-from apischema.typing import _GenericAlias, _collect_type_vars, get_origin
+from apischema.types import (
+    AnyType,
+    COLLECTION_TYPES,
+    MAPPING_TYPES,
+    subscriptable_origin,
+)
+from apischema.typing import _GenericAlias, _collect_type_vars, get_args, get_origin
+
+try:
+    from apischema.typing import Annotated
+except ImportError:
+    Annotated = ...  # type: ignore
 
 PREFIX = "_apischema_"
 
@@ -129,9 +143,19 @@ def typed_wraps(wrapped: Func) -> Callable[[Callable], Func]:
     return cast(Func, wraps(wrapped))
 
 
-def get_origin_or_class(cls: AnyType) -> Type:
-    origin = get_origin(cls)
-    return origin if origin is not None else cls
+def get_origin2(tp: AnyType) -> Optional[Type]:
+    origin = get_origin(tp)
+    return get_origin(get_args(tp)[0]) if origin is Annotated else origin
+
+
+def get_args2(tp: AnyType) -> Tuple[AnyType, ...]:
+    origin = get_origin(tp)
+    return get_args(get_args(tp)[0]) if origin is Annotated else get_args(tp)
+
+
+def get_origin_or_type(tp: AnyType) -> Type:
+    origin = get_origin2(tp)
+    return origin if origin is not None else tp
 
 
 class OperationKind(Enum):
@@ -216,6 +240,22 @@ class MethodWrapper(Generic[T]):
 
     def __set_name__(self, owner, name):
         setattr(owner, name, self._method)
+
+
+def replace_builtins(tp: AnyType) -> AnyType:
+    origin = get_origin_or_type(tp)
+    args = tuple(map(replace_builtins, get_args2(tp)))
+    if origin in COLLECTION_TYPES:
+        if issubclass(origin, collections.abc.Set):
+            replacement = subscriptable_origin(Set[None])
+        else:
+            replacement = subscriptable_origin(List[None])
+    elif origin in MAPPING_TYPES:
+        replacement = subscriptable_origin(Dict[None, None])
+    else:
+        replacement = origin
+    res = replacement[args] if args else replacement
+    return Annotated[(res, *get_args(tp)[1:])] if get_origin(tp) == Annotated else res
 
 
 try:

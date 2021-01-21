@@ -27,7 +27,7 @@ from apischema.utils import (
     Undefined,
     UndefinedType,
     cached_property,
-    get_origin_or_class,
+    get_origin_or_type,
     is_method,
     method_class,
     method_wrapper,
@@ -121,7 +121,7 @@ def register_serialized(
     serialized = Serialized(func, conversions, schema, error_handler)
     if owner is None:
         try:
-            owner = get_origin_or_class(serialized.types[parameters[0].name])
+            owner = get_origin_or_type(serialized.types[parameters[0].name])
         except KeyError:
             raise TypeError(
                 "First parameter of serialized method must be typed"

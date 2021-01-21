@@ -14,12 +14,9 @@ from typing import (
 )
 
 from apischema.dataclass_utils import is_dataclass
-from apischema.json_schema.types import replace_builtins
-from apischema.types import (
-    AnyType,
-)
+from apischema.types import AnyType
 from apischema.typing import _TypedDictMeta, get_origin
-from apischema.utils import has_type_vars, is_type_var, type_name
+from apischema.utils import has_type_vars, is_type_var, replace_builtins, type_name
 from apischema.visitor import Unsupported, Visitor
 
 Ref = Union[str, "ellipsis", None]  # noqa: F821
