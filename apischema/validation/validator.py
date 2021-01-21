@@ -37,15 +37,15 @@ from apischema.validation.mock import NonTrivialDependency
 _validators: Dict[Type, List["Validator"]] = defaultdict(list)
 
 
-def get_validators(cls: AnyType) -> Sequence["Validator"]:
+def get_validators(tp: AnyType) -> Sequence["Validator"]:
     validators = []
-    if hasattr(cls, "__mro__"):
-        for sub_cls in cls.__mro__:
+    if hasattr(tp, "__mro__"):
+        for sub_cls in tp.__mro__:
             validators.extend(_validators[sub_cls])
     else:
-        validators.extend(_validators[cls])
-    if has_model_origin(cls):
-        validators.extend(get_validators(get_model_origin(cls)))
+        validators.extend(_validators[tp])
+    if has_model_origin(tp):
+        validators.extend(get_validators(get_model_origin(tp)))
     return validators
 
 

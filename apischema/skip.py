@@ -38,12 +38,11 @@ else:
     NotNull = _NotNull()  # type: ignore
 
 
-def is_skipped(cls: AnyType, *, schema_only) -> bool:
-    return cls is UndefinedType or (
-        get_origin(cls) is Annotated
+def is_skipped(tp: AnyType, *, schema_only) -> bool:
+    return tp is UndefinedType or (
+        get_origin(tp) is Annotated
         and (
-            Skip in get_args(cls)[1:]
-            or (schema_only and SkipSchema in get_args(cls)[1:])
+            Skip in get_args(tp)[1:] or (schema_only and SkipSchema in get_args(tp)[1:])
         )
     )
 

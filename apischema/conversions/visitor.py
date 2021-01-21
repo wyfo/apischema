@@ -61,11 +61,11 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
     def _get_conversions(
         tp: Type, conversions: Conversions
     ) -> Union[Conv, None, UndefinedType]:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @staticmethod
     def _default_conversions(tp: Type) -> Optional[Conversions]:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @classmethod
     def get_conversions(
@@ -86,11 +86,11 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
         else:
             return self._dynamic_conversion_resolver(self._conversions).visit(tp)
 
-    def visit_conversion(self, cls: AnyType, conversion: Conv) -> Return:
-        raise NotImplementedError()
+    def visit_conversion(self, cls: Type, conversion: Conv) -> Return:
+        raise NotImplementedError
 
-    def visit_not_conversion(self, cls: AnyType) -> Return:
-        return super()._visit(cls)
+    def visit_not_conversion(self, tp: AnyType) -> Return:
+        return super()._visit(tp)
 
     @contextmanager
     def _replace_conversions(self, conversions: Optional[Conversions]):
@@ -101,18 +101,18 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
         finally:
             self._conversions = conversions_save
 
-    def _visit(self, cls: AnyType) -> Return:
-        if not is_convertible(cls):
-            if isinstance(cls, DataclassModel):
-                return self.visit(cls.dataclass)
+    def _visit(self, tp: AnyType) -> Return:
+        if not is_convertible(tp):
+            if isinstance(tp, DataclassModel):
+                return self.visit(tp.dataclass)
             else:
-                return self.visit_not_conversion(cls)
-        conversion = self.get_conversions(cls, self._conversions)
+                return self.visit_not_conversion(tp)
+        conversion = self.get_conversions(tp, self._conversions)
         with self._replace_conversions(None):
             if conversion is not None:
-                return self.visit_conversion(cls, conversion)
+                return self.visit_conversion(tp, conversion)
             else:
-                return self.visit_not_conversion(cls)
+                return self.visit_not_conversion(tp)
 
     def _replace_generic_args(self, tp: AnyType) -> AnyType:
         if self._generic is not None:
@@ -124,10 +124,10 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
             return tp
 
     def visit_with_conversions(
-        self, cls: AnyType, conversions: Optional[Conversions]
+        self, tp: AnyType, conversions: Optional[Conversions]
     ) -> Return:
         with self._replace_conversions(conversions):
-            return self.visit(cls)
+            return self.visit(tp)
 
 
 class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
@@ -158,7 +158,7 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
 
     _default_conversions = staticmethod(_deserializers.get)  # type: ignore
 
-    def visit_conversion(self, cls: AnyType, conversion: Deserialization) -> Return:
+    def visit_conversion(self, cls: Type, conversion: Deserialization) -> Return:
         return self._union_result(
             [
                 self.visit_with_conversions(
@@ -192,7 +192,7 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
         else:
             return None
 
-    def visit_conversion(self, cls: AnyType, conversion: Serialization) -> Return:
+    def visit_conversion(self, cls: Type, conversion: Serialization) -> Return:
         return self.visit_with_conversions(
             self._replace_generic_args(conversion.target), conversion.conversions
         )
@@ -203,8 +203,8 @@ class DynamicConversionResolver(ConversionsVisitor[Conv, Optional[AnyType]]):
         super().__init__()
         self._conversions = to_hashable_conversions(conversions)
 
-    def annotated(self, cls: AnyType, annotations: Sequence[Any]) -> Optional[AnyType]:
-        result = self.visit(cls)
+    def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> Optional[AnyType]:
+        result = self.visit(tp)
         return Annotated[(result, *annotations)]
 
     def collection(
@@ -243,21 +243,21 @@ class DynamicConversionResolver(ConversionsVisitor[Conv, Optional[AnyType]]):
     def _final_type(self, conversion: Conv) -> Optional[AnyType]:
         raise NotImplementedError
 
-    def _visit(self, cls: AnyType) -> Optional[AnyType]:
-        if self._conversions is None or not is_convertible(cls):
+    def _visit(self, tp: AnyType) -> Optional[AnyType]:
+        if self._conversions is None or not is_convertible(tp):
             return None
-        conv = self._get_conversions(cls, self._conversions)
+        conv = self._get_conversions(tp, self._conversions)
         if conv is None or conv is Undefined:
             return None
         try:
-            result = self.visit_conversion(cls, conv)
+            result = self.visit_conversion(tp, conv)
             return result if result is not None else self._final_type(conv)
         except Exception:
             return self._final_type(conv)
 
-    def visit(self, cls: AnyType) -> Optional[AnyType]:
+    def visit(self, tp: AnyType) -> Optional[AnyType]:
         try:
-            return super().visit(cls)
+            return super().visit(tp)
         except Exception:
             return None
 

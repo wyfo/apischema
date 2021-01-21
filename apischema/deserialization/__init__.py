@@ -107,8 +107,8 @@ class DeserializationContext:
         self.coercer = get_coercer(self.coercion)
 
 
-def get_constraints(cls: AnyType) -> Optional[Constraints]:
-    schema = get_schema(cls)
+def get_constraints(tp: AnyType) -> Optional[Constraints]:
+    schema = get_schema(tp)
     return schema.constraints if schema is not None else None
 
 
@@ -127,9 +127,9 @@ class DeserializationMethodFactory:
         return self.factory(self.constraints, self.validators)  # type: ignore
 
     @staticmethod
-    def from_type(cls: AnyType) -> Callable[[Factory], "DeserializationMethodFactory"]:
+    def from_type(tp: AnyType) -> Callable[[Factory], "DeserializationMethodFactory"]:
         return lambda factory: DeserializationMethodFactory(
-            factory, get_constraints(cls), get_validators(cls)
+            factory, get_constraints(tp), get_validators(tp)
         )
 
     def merge(
@@ -260,22 +260,22 @@ class DeserializationMethodVisitor(
         self._rec_sentinel: Dict[Any, RecDeserializerMethodFactory] = {}
         self.aliaser = aliaser
 
-    def _visit(self, cls: AnyType) -> DeserializationMethodFactory:
-        key = self._generic or cls, self._conversions
+    def _visit(self, tp: AnyType) -> DeserializationMethodFactory:
+        key = self._generic or tp, self._conversions
         if key in self._rec_sentinel:
             return cast(DeserializationMethodFactory, self._rec_sentinel[key])
         else:
             self._rec_sentinel[key] = RecDeserializerMethodFactory()
-            factory = super()._visit(cls)
+            factory = super()._visit(tp)
             return self._rec_sentinel.pop(key).set_ref(factory)
 
     def method(self, cls) -> DeserializationMethod:
         return self.visit(cls).method
 
     def annotated(
-        self, cls: AnyType, annotations: Sequence[Any]
+        self, tp: AnyType, annotations: Sequence[Any]
     ) -> DeserializationMethodFactory:
-        factory = self.visit(cls)
+        factory = self.visit(tp)
         for annotation in reversed(annotations):
             if isinstance(annotation, Schema):
                 factory = factory.merge(constraints=annotation.constraints)
@@ -633,9 +633,9 @@ class DeserializationMethodVisitor(
         return factory
 
     def new_type(
-        self, cls: AnyType, super_type: AnyType
+        self, tp: AnyType, super_type: AnyType
     ) -> DeserializationMethodFactory:
-        return self.visit(super_type).merge(get_constraints(cls), get_validators(cls))
+        return self.visit(super_type).merge(get_constraints(tp), get_validators(tp))
 
     def primitive(self, cls: Type) -> DeserializationMethodFactory:
         @DeserializationMethodFactory
@@ -769,7 +769,7 @@ class DeserializationMethodVisitor(
         return factory
 
     def visit_conversion(
-        self, cls: AnyType, conversion: Deserialization
+        self, cls: Type, conversion: Deserialization
     ) -> DeserializationMethodFactory:
         assert conversion
         factories = [
@@ -831,19 +831,17 @@ class DeserializationMethodVisitor(
 
 @cache
 def get_method(
-    cls: AnyType,
-    conversions: Optional[HashableConversions],
-    aliaser: Aliaser,
+    tp: AnyType, conversions: Optional[HashableConversions], aliaser: Aliaser
 ) -> DeserializationMethod:
     factory = DeserializationMethodVisitor(aliaser).visit_with_conversions(
-        cls, conversions
+        tp, conversions
     )
     return factory.method
 
 
 @overload
 def deserialize(
-    cls: Type[T],
+    tp: Type[T],
     data: Any,
     *,
     conversions: Conversions = None,
@@ -857,7 +855,7 @@ def deserialize(
 
 @overload
 def deserialize(
-    cls: AnyType,
+    tp: AnyType,
     data: Any,
     *,
     conversions: Conversions = None,
@@ -870,7 +868,7 @@ def deserialize(
 
 
 def deserialize(
-    cls: AnyType,
+    tp: AnyType,
     data: Any,
     *,
     conversions: Conversions = None,
@@ -888,4 +886,4 @@ def deserialize(
     if aliaser is None:
         aliaser = settings.aliaser()
     ctx = DeserializationContext(additional_properties, coercion, default_fallback)
-    return get_method(cls, to_hashable_conversions(conversions), aliaser)(ctx, data)
+    return get_method(tp, to_hashable_conversions(conversions), aliaser)(ctx, data)

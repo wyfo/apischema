@@ -17,7 +17,6 @@ from apischema.conversions.conversions import (
     resolve_serialization,
 )
 from apischema.conversions.utils import converter_types
-from apischema.types import AnyType
 from apischema.utils import (
     MethodOrProperty,
     MethodWrapper,
@@ -123,11 +122,11 @@ def serializer(arg=None, **kwargs):
     return arg
 
 
-def reset_deserializers(cls: AnyType):
+def reset_deserializers(cls: Type):
     _deserializers.pop(cls, ...)
 
 
-def reset_serializer(cls: AnyType):
+def reset_serializer(cls: Type):
     _deserializers.pop(cls, ...)
 
 

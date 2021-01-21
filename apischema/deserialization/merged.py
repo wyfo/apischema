@@ -43,11 +43,9 @@ class InitMergedAliasVisitor(DeserializationVisitor[Iterator[str]]):
     ) -> Iterator[str]:
         yield from keys
 
-    def visit_conversion(
-        self, cls: AnyType, conversion: Deserialization
-    ) -> Iterator[str]:
+    def visit_conversion(self, cls: Type, conversion: Deserialization) -> Iterator[str]:
         if len(conversion) != 1:
-            raise NotImplementedError()
+            raise NotImplementedError
         conv = conversion[0]
         return self.visit_with_conversions(conv.source, conv.conversions)
 

@@ -34,29 +34,29 @@ class RefsExtractor(ConversionsVisitor):
         super().__init__()
         self.refs = refs
 
-    def _incr_ref(self, ref: Optional[str], cls: AnyType) -> bool:
+    def _incr_ref(self, ref: Optional[str], tp: AnyType) -> bool:
         if ref is None:
             return False
         else:
-            ref_cls, count = self.refs.get(ref, (cls, 0))
-            if ref_cls != cls:
+            ref_cls, count = self.refs.get(ref, (tp, 0))
+            if ref_cls != tp:
                 raise ValueError(
-                    f"Types {cls} and {self.refs[ref]} share same reference '{ref}'"
+                    f"Types {tp} and {self.refs[ref]} share same reference '{ref}'"
                 )
             self.refs[ref] = (ref_cls, count + 1)
             return count > 0
 
-    def annotated(self, cls: AnyType, annotations: Sequence[Any]):
+    def annotated(self, tp: AnyType, annotations: Sequence[Any]):
         for annotation in reversed(annotations):
             if isinstance(annotation, schema_ref):
-                annotation.check_type(cls)
+                annotation.check_type(tp)
                 ref = annotation.ref
                 if not isinstance(ref, str):
                     raise ValueError("Annotated schema_ref can only be str")
-                annotated = Annotated[(cls, *annotations)]  # type: ignore
+                annotated = Annotated[(tp, *annotations)]  # type: ignore
                 if self._incr_ref(ref, annotated):
                     return
-        return self.visit(cls)
+        return self.visit(tp)
 
     def any(self):
         pass
@@ -99,7 +99,7 @@ class RefsExtractor(ConversionsVisitor):
         for cls in types.values():
             self.visit(cls)
 
-    def new_type(self, cls: AnyType, super_type: AnyType):
+    def new_type(self, tp: AnyType, super_type: AnyType):
         self.visit(super_type)
 
     def primitive(self, cls: Type):
@@ -124,9 +124,9 @@ class RefsExtractor(ConversionsVisitor):
         for tp in filter_skipped(alternatives, schema_only=True):
             self.visit(tp)
 
-    def visit(self, cls: AnyType):
-        dynamic = self._apply_dynamic_conversions(cls)
+    def visit(self, tp: AnyType):
+        dynamic = self._apply_dynamic_conversions(tp)
         if dynamic is not None:
-            cls = dynamic
-        if not self._incr_ref(get_ref(cls), cls):
-            super().visit(cls)
+            tp = dynamic
+        if not self._incr_ref(get_ref(tp), tp):
+            super().visit(tp)
