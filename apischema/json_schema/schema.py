@@ -170,16 +170,16 @@ def schema(override=False, **kwargs) -> Schema:
     return Schema(annotations, constraints, override)
 
 
-def _default_schema(cls: AnyType) -> Optional[Schema]:
+def _default_schema(tp: AnyType) -> Optional[Schema]:
     return None
 
 
 _schema: Dict[Any, Schema] = {}
 
 
-def get_schema(cls: AnyType) -> Optional[Schema]:
-    cls = replace_builtins(cls)
-    return _schema[cls] if cls in _schema else _default_schema(cls)
+def get_schema(tp: AnyType) -> Optional[Schema]:
+    tp = replace_builtins(tp)
+    return _schema[tp] if tp in _schema else _default_schema(tp)
 
 
 @merge_opts

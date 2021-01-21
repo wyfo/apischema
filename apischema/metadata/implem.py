@@ -50,8 +50,8 @@ default_as_set = simple_metadata(DEFAULT_AS_SET)
 default_fallback = simple_metadata(DEFAULT_FALLBACK_METADATA)
 
 
-def init_var(cls: AnyType) -> Metadata:
-    return MappingWithUnion({INIT_VAR_METADATA: cls})
+def init_var(tp: AnyType) -> Metadata:
+    return MappingWithUnion({INIT_VAR_METADATA: tp})
 
 
 merged = simple_metadata(MERGED_METADATA)

@@ -3,12 +3,12 @@ from typing import Pattern
 from apischema.types import AnyType
 
 
-def infer_pattern(cls: AnyType) -> Pattern:
+def infer_pattern(tp: AnyType) -> Pattern:
     from apischema.json_schema.generation.schema import DeserializationSchemaBuilder
 
     try:
         builder = DeserializationSchemaBuilder(lambda s: s, lambda s: s, {}, False)
-        prop_schema = builder.visit(cls)
+        prop_schema = builder.visit(tp)
     except RecursionError:
         pass
     else:

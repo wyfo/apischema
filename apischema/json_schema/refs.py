@@ -23,18 +23,18 @@ Ref = Union[str, "ellipsis", None]  # noqa: F821
 _refs: Dict[AnyType, Optional[Ref]] = {}
 
 
-def _default_ref(cls: AnyType) -> Ref:
-    if not hasattr(cls, "__parameters__") and (
+def _default_ref(tp: AnyType) -> Ref:
+    if not hasattr(tp, "__parameters__") and (
         (
-            isinstance(cls, type)
+            isinstance(tp, type)
             and (
-                is_dataclass(cls)
-                or (issubclass(cls, tuple) and hasattr(cls, "_field"))
-                or issubclass(cls, Enum)
+                is_dataclass(tp)
+                or (issubclass(tp, tuple) and hasattr(tp, "_field"))
+                or issubclass(tp, Enum)
             )
         )
-        or (hasattr(cls, "__supertype__") and is_builtin(cls))
-        or isinstance(cls, _TypedDictMeta)
+        or (hasattr(tp, "__supertype__") and is_builtin(tp))
+        or isinstance(tp, _TypedDictMeta)
     ):
         return ...
     else:
@@ -58,18 +58,18 @@ class schema_ref:
         if self.ref == "":
             raise ValueError("Empty schema ref not allowed")
 
-    def check_type(self, cls: AnyType):
-        if hasattr(cls, "__supertype__") and not is_builtin(cls):
+    def check_type(self, tp: AnyType):
+        if hasattr(tp, "__supertype__") and not is_builtin(tp):
             # NewType of non-builtin types cannot have a ref because their serialization
             # could be customized, but the NewType ref would then erase this
             # customization in the schema.
             raise TypeError("NewType of non-builtin type can not have a ref")
-        if is_type_var(cls):
+        if is_type_var(tp):
             raise TypeError("TypeVar cannot have a ref")
-        elif has_type_vars(cls):
+        elif has_type_vars(tp):
             raise TypeError("Unspecialized generic types cannot have a ref")
-        if get_origin(cls) is not None and self.ref is ...:
-            raise TypeError(f"Generic alias {cls} cannot have ... ref")
+        if get_origin(tp) is not None and self.ref is ...:
+            raise TypeError(f"Generic alias {tp} cannot have ... ref")
 
     def __call__(self, cls: T) -> T:
         self.check_type(cls)
@@ -101,9 +101,9 @@ class BuiltinVisitor(Visitor):
             self.visit(alt)
 
 
-def is_builtin(cls: AnyType) -> bool:
+def is_builtin(tp: AnyType) -> bool:
     try:
-        BuiltinVisitor().visit(cls)
+        BuiltinVisitor().visit(tp)
     except (NotImplementedError, Unsupported):
         return False
     else:

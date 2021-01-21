@@ -61,15 +61,15 @@ MAPPING_TYPES = {
 
 if (3, 7) <= sys.version_info < (3, 9):  # pragma: no cover
 
-    def subscriptable_origin(cls: AnyType) -> AnyType:
+    def subscriptable_origin(tp: AnyType) -> AnyType:
         if (
-            type(cls) == type(List[int])  # noqa: E721
-            and cls.__module__ == "typing"
-            and hasattr(cls, "_name")
+            type(tp) == type(List[int])  # noqa: E721
+            and tp.__module__ == "typing"
+            and hasattr(tp, "_name")
         ):
-            return getattr(typing, cls._name)
+            return getattr(typing, tp._name)
         else:
-            return get_origin(cls)
+            return get_origin(tp)
 
 
 else:  # pragma: no cover

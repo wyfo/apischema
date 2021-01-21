@@ -89,8 +89,8 @@ class Nullable(Exception):
     pass
 
 
-def ref_or_name(cls: AnyType) -> str:
-    return get_ref(cls) or type_name(cls)
+def ref_or_name(tp: AnyType) -> str:
+    return get_ref(tp) or type_name(tp)
 
 
 T = TypeVar("T")
@@ -171,18 +171,18 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         return self._ref, self._description
 
     def annotated(
-        self, cls: AnyType, annotations: Sequence[Any]
+        self, tp: AnyType, annotations: Sequence[Any]
     ) -> Thunk[graphql.GraphQLType]:
         for annotation in annotations:
             if isinstance(annotation, schema_ref):
-                annotation.check_type(cls)
+                annotation.check_type(tp)
                 ref = annotation.ref
                 if not isinstance(ref, str):
                     raise ValueError("Annotated schema_ref can only be str")
                 self._ref = self._ref or ref
             if isinstance(annotation, Schema):
                 self._schema = merge_schema(annotation, self._schema)
-        return self.visit_with_schema(cls, self._ref, self._schema)
+        return self.visit_with_schema(tp, self._ref, self._schema)
 
     def any(self) -> Thunk[graphql.GraphQLType]:
         return JsonScalar
@@ -250,11 +250,11 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     def enum(self, cls: Type[Enum]) -> Thunk[graphql.GraphQLType]:
         return self.literal([elt.value for elt in cls])
 
-    def generic(self, cls: AnyType) -> Thunk[graphql.GraphQLType]:
-        self._ref = self._ref or get_ref(cls)
+    def generic(self, tp: AnyType) -> Thunk[graphql.GraphQLType]:
+        self._ref = self._ref or get_ref(tp)
         if self._ref is None:
             raise MissingRef
-        return super().generic(cls)
+        return super().generic(tp)
 
     def literal(self, values: Sequence[Any]) -> Thunk[graphql.GraphQLType]:
         if not all(isinstance(v, str) for v in values):
@@ -295,7 +295,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
             )
         return self.object(cls, fields)
 
-    def new_type(self, cls: Type, super_type: AnyType) -> Thunk[graphql.GraphQLType]:
+    def new_type(self, tp: Type, super_type: AnyType) -> Thunk[graphql.GraphQLType]:
         return self.visit_with_schema(super_type, self._ref, self._schema)
 
     def object(
@@ -331,28 +331,28 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         return self._union_result(results)
 
     def visit_with_schema(
-        self, cls: AnyType, ref: Optional[str], schema: Optional[Schema]
+        self, tp: AnyType, ref: Optional[str], schema: Optional[Schema]
     ) -> Thunk[graphql.GraphQLType]:
-        if self._apply_dynamic_conversions(cls) is None:
-            if self.is_id(cls):
+        if self._apply_dynamic_conversions(tp) is None:
+            if self.is_id(tp):
                 return graphql.GraphQLNonNull(graphql.GraphQLID)
-            ref, schema = ref or get_ref(cls), merge_schema(get_schema(cls), schema)
+            ref, schema = ref or get_ref(tp), merge_schema(get_schema(tp), schema)
         else:
             ref, schema = None, None
         ref_save, schema_save, non_null_save = self._ref, self._schema, self._non_null
         self._ref, self._schema, self._non_null = ref, schema, True
         try:
-            result = super().visit(cls)
+            result = super().visit(tp)
             non_null = self._non_null
             return lambda: exec_thunk(result, non_null=non_null)
         except MissingRef:
-            raise TypeError(f"Missing ref for type {cls}")
+            raise TypeError(f"Missing ref for type {tp}")
         finally:
             self._ref, self._schema = ref_save, schema_save
             self._non_null = non_null_save
 
-    def _visit(self, cls: AnyType) -> Thunk[graphql.GraphQLType]:
-        key = self._generic or cls, self._ref, self._schema, self._conversions
+    def _visit(self, tp: AnyType) -> Thunk[graphql.GraphQLType]:
+        key = self._generic or tp, self._ref, self._schema, self._conversions
         if key in self._cache:
             return self._cache[key]
         cache = None
@@ -363,15 +363,15 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
 
         self._cache[key] = rec_sentinel
         try:
-            cache = exec_thunk(super()._visit(cls))
+            cache = exec_thunk(super()._visit(tp))
         except Exception:
             del self._cache[key]
             raise
         else:
             return cache
 
-    def visit(self, cls: AnyType) -> Thunk[graphql.GraphQLType]:
-        return self.visit_with_schema(cls, None, None)
+    def visit(self, tp: AnyType) -> Thunk[graphql.GraphQLType]:
+        return self.visit_with_schema(tp, None, None)
 
 
 FieldType = TypeVar("FieldType", graphql.GraphQLInputField, graphql.GraphQLField)

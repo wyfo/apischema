@@ -128,10 +128,10 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
     def _ref_schema(self, ref: str) -> JsonSchema:
         return JsonSchema({"$ref": self.ref_factory(ref)})
 
-    def annotated(self, cls: AnyType, annotations: Sequence[Any]) -> JsonSchema:
+    def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> JsonSchema:
         for annotation in reversed(annotations):
             if isinstance(annotation, schema_ref):
-                annotation.check_type(cls)
+                annotation.check_type(tp)
                 if annotation.ref in self.refs:
                     if self._ignore_first_ref:
                         self._ignore_first_ref = False
@@ -143,7 +143,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
                     raise ValueError("Annotated schema_ref can only be str")
             if isinstance(annotation, Schema):
                 self._merge_schema(annotation)
-        return self.visit_with_schema(cls, self._schema)
+        return self.visit_with_schema(tp, self._schema)
 
     @with_schema
     def any(self) -> JsonSchema:
@@ -312,9 +312,9 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
             raise TypeError("Empty enum")
         return self.literal(list(cls))
 
-    def generic(self, cls: AnyType) -> JsonSchema:
-        self._merge_schema(get_schema(get_origin(cls)))
-        return super().generic(cls)
+    def generic(self, tp: AnyType) -> JsonSchema:
+        self._merge_schema(get_schema(get_origin(tp)))
+        return super().generic(tp)
 
     @with_schema
     def literal(self, values: Sequence[Any]) -> JsonSchema:
@@ -371,7 +371,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
             additionalProperties=settings.additional_properties,
         )
 
-    def new_type(self, cls: Type, super_type: AnyType) -> JsonSchema:
+    def new_type(self, tp: Type, super_type: AnyType) -> JsonSchema:
         return self.visit_with_schema(super_type, self._schema)
 
     @with_schema
@@ -447,25 +447,25 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
             map(self.visit, filter_skipped(alternatives, schema_only=True))
         )
 
-    def visit_with_schema(self, cls: AnyType, schema: Optional[Schema]) -> JsonSchema:
+    def visit_with_schema(self, tp: AnyType, schema: Optional[Schema]) -> JsonSchema:
         schema_save = self._schema
-        dynamic = self._apply_dynamic_conversions(cls)
-        cls, self._schema = (dynamic, None) if dynamic is not None else (cls, schema)
-        ref = get_ref(cls)
+        dynamic = self._apply_dynamic_conversions(tp)
+        tp, self._schema = (dynamic, None) if dynamic is not None else (tp, schema)
+        ref = get_ref(tp)
         if ref in self.refs:
             if self._ignore_first_ref:
                 self._ignore_first_ref = False
             else:
                 assert isinstance(ref, str)
                 return self._ref_schema(ref)
-        self._merge_schema(get_schema(cls))
+        self._merge_schema(get_schema(tp))
         try:
-            return super().visit(cls)
+            return super().visit(tp)
         finally:
             self._schema = schema_save
 
-    def visit(self, cls: AnyType) -> JsonSchema:
-        return self.visit_with_schema(cls, None)
+    def visit(self, tp: AnyType) -> JsonSchema:
+        return self.visit_with_schema(tp, None)
 
     @contextmanager
     def _without_ref(self):
@@ -537,7 +537,7 @@ def _refs_schema(
 
 def _schema(
     builder: Type[SchemaBuilder],
-    cls: AnyType,
+    tp: AnyType,
     schema: Optional[Schema],
     conversions: Optional[Conversions],
     version: Optional[JsonSchemaVersion],
@@ -552,10 +552,10 @@ def _schema(
     if aliaser is None:
         aliaser = settings.aliaser()
     version, ref_factory, all_refs = _default_version(version, ref_factory, all_refs)
-    refs = _extract_refs([(cls, conversions)], builder, all_refs)
+    refs = _extract_refs([(tp, conversions)], builder, all_refs)
     visitor = builder(aliaser, ref_factory, refs, False)
     with visitor._replace_conversions(conversions):
-        json_schema = visitor.visit_with_schema(cls, schema)
+        json_schema = visitor.visit_with_schema(tp, schema)
     if add_defs:
         defs = _refs_schema(builder, aliaser, refs, ref_factory)
         if defs:
@@ -567,7 +567,7 @@ def _schema(
 
 
 def deserialization_schema(
-    cls: AnyType,
+    tp: AnyType,
     *,
     schema: Schema = None,
     conversions: Conversions = None,
@@ -579,7 +579,7 @@ def deserialization_schema(
 ) -> Mapping[str, Any]:
     return _schema(
         DeserializationSchemaBuilder,
-        cls,
+        tp,
         schema,
         conversions,
         version,
@@ -591,7 +591,7 @@ def deserialization_schema(
 
 
 def serialization_schema(
-    cls: AnyType,
+    tp: AnyType,
     *,
     schema: Schema = None,
     conversions: Conversions = None,
@@ -603,7 +603,7 @@ def serialization_schema(
 ) -> Mapping[str, Any]:
     return _schema(
         SerializationSchemaBuilder,
-        cls,
+        tp,
         schema,
         conversions,
         version,

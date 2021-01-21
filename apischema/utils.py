@@ -66,11 +66,11 @@ def to_camel_case(s: str):
     return pascal_case[0].lower() + pascal_case[1:]
 
 
-def type_name(cls: AnyType) -> str:
-    if hasattr(cls, "__name__"):
-        return cls.__name__
-    elif isinstance(cls, _GenericAlias):
-        return cls._name
+def type_name(tp: AnyType) -> str:
+    if hasattr(tp, "__name__"):
+        return tp.__name__
+    elif isinstance(tp, _GenericAlias):
+        return tp._name
     else:
         raise NotImplementedError
 
