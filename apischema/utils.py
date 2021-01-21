@@ -39,15 +39,6 @@ class UndefinedType(Enum):
 Undefined = UndefinedType.Undefined
 
 
-def is_hashable(obj) -> bool:
-    try:
-        hash(obj)
-    except Exception:  # should be TypeError, but who knows what can happen
-        return False
-    else:
-        return True
-
-
 def to_hashable(data: Union[None, int, float, str, bool, list, dict]) -> Hashable:
     if isinstance(data, list):
         return tuple(map(to_hashable, data))

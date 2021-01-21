@@ -50,7 +50,8 @@ class ResolvedConversion:
     converter: Converter
     source: AnyType
     target: AnyType
-    lazy_conversions: Optional[Callable[[], Optional[Conversions]]]
+    get_conversions: Optional[Callable[[], Optional[Conversions]]]
+    lazy: bool
     additional_properties: Optional[bool]
     coercion: Optional["Coercion"]
     default_fallback: Optional[bool]
@@ -60,18 +61,21 @@ class ResolvedConversion:
     def from_conversion(conversion: Conversion) -> "ResolvedConversion":
         assert not isinstance(conversion.converter, property)
         assert conversion.source is not None and conversion.target is not None
-        lazy_conversions: Optional[Callable[[], Optional[Conversions]]]
+        get_conversions: Optional[Callable[[], Optional[Conversions]]]
+        lazy = False
         if conversion.conversions is not None:
-            lazy_conversions = lambda: conversion.conversions  # noqa: E731
+            get_conversions = lambda: conversion.conversions  # noqa: E731
         elif conversion.lazy_conversions is not None:
-            lazy_conversions = conversion.lazy_conversions
+            get_conversions = conversion.lazy_conversions
+            lazy = True
         else:
-            lazy_conversions = None
+            get_conversions = None
         return ResolvedConversion(
             conversion.converter,
             conversion.source,
             conversion.target,
-            lazy_conversions,
+            get_conversions,
+            lazy,
             conversion.additional_properties,
             conversion.coercion,
             conversion.default_fallback,
@@ -80,8 +84,8 @@ class ResolvedConversion:
 
     @cached_property
     def conversions(self) -> Optional["HashableConversions"]:
-        if self.lazy_conversions is not None:
-            return to_hashable_conversions(self.lazy_conversions())
+        if self.get_conversions is not None:
+            return to_hashable_conversions(self.get_conversions())
         else:
             return None
 
@@ -93,7 +97,7 @@ class ResolvedConversion:
             and all(
                 attr is None
                 for attr in (
-                    self.lazy_conversions,
+                    self.get_conversions,
                     self.additional_properties,
                     self.coercion,
                     self.default_fallback,

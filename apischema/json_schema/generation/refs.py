@@ -16,7 +16,6 @@ from apischema.dataclass_utils import get_field_conversion, get_fields
 from apischema.json_schema.refs import get_ref, schema_ref
 from apischema.skip import filter_skipped
 from apischema.types import AnyType
-from apischema.utils import is_hashable
 
 try:
     from apischema.typing import Annotated
@@ -54,7 +53,7 @@ class RefsExtractor(ConversionsVisitor):
                 ref = annotation.ref
                 if not isinstance(ref, str):
                     raise ValueError("Annotated schema_ref can only be str")
-                annotated = Annotated[(cls, *filter(is_hashable, annotations))]  # type: ignore # noqa: E501
+                annotated = Annotated[(cls, *annotations)]  # type: ignore
                 if self._incr_ref(ref, annotated):
                     return
         return self.visit(cls)
@@ -126,5 +125,8 @@ class RefsExtractor(ConversionsVisitor):
             self.visit(tp)
 
     def visit(self, cls: AnyType):
-        if self.is_dynamic_conversion(cls) or not self._incr_ref(get_ref(cls), cls):
+        dynamic = self._apply_dynamic_conversions(cls)
+        if dynamic is not None:
+            cls = dynamic
+        if not self._incr_ref(get_ref(cls), cls):
             super().visit(cls)

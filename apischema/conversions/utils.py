@@ -92,7 +92,7 @@ BUILTIN_TYPES = {*PRIMITIVE_TYPES, *COLLECTION_TYPES, *MAPPING_TYPES}
 
 
 def is_convertible(tp: AnyType) -> bool:
-    return isinstance(tp, type)
+    return isinstance(tp, type) and tp not in BUILTIN_TYPES
 
 
 T = TypeVar("T")

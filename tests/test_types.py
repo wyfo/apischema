@@ -1,4 +1,10 @@
-from apischema.types import MappingWithUnion, MetadataMixin
+import sys
+from typing import AbstractSet, Dict, List, Mapping, Set
+
+from pytest import mark
+
+from apischema.json_schema.types import replace_builtins
+from apischema.types import MappingWithUnion, MetadataMixin, subscriptable_origin
 
 
 def test_metadata():
@@ -14,3 +20,26 @@ class KeyMetadata(MetadataMixin):
 def test_metadata_mixin():
     instance = KeyMetadata()
     assert list(instance.items()) == [("key", instance)]
+
+
+LIST = subscriptable_origin(List[None])
+SET = subscriptable_origin(Set[None])
+DICT = subscriptable_origin(Dict[None, None])
+
+
+@mark.parametrize(
+    "tp, expected",
+    [
+        (int, int),
+        (List[int], LIST[int]),
+        (Mapping[str, int], DICT[str, int]),
+        (AbstractSet[str], SET[str]),
+        *(
+            [(dict[str, bool], DICT[str, bool])]  # type: ignore
+            if sys.version_info >= (3, 9)
+            else []
+        ),
+    ],
+)
+def test_replace_builtins(tp, expected):
+    assert replace_builtins(tp) == expected

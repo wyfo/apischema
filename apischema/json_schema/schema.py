@@ -23,6 +23,7 @@ from .constraints import (
     StringConstraints,
     merge_constraints,
 )
+from .types import replace_builtins
 from ..metadata.keys import SCHEMA_METADATA
 
 T = TypeVar("T")
@@ -36,7 +37,7 @@ class Schema(MetadataMixin):
     override: bool = False
 
     def __call__(self, obj: T) -> T:
-        _schema[obj] = self
+        _schema[replace_builtins(obj)] = self
         return obj
 
     def __set_name__(self, owner, name):
@@ -170,6 +171,7 @@ _schema: Dict[Any, Schema] = {}
 
 
 def get_schema(cls: AnyType) -> Optional[Schema]:
+    cls = replace_builtins(cls)
     return _schema[cls] if cls in _schema else _default_schema(cls)
 
 

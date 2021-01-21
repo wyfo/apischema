@@ -333,12 +333,12 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     def visit_with_schema(
         self, cls: AnyType, ref: Optional[str], schema: Optional[Schema]
     ) -> Thunk[graphql.GraphQLType]:
-        if self.is_id(cls):
-            return graphql.GraphQLNonNull(graphql.GraphQLID)
-        if not self.is_dynamic_conversion(cls):
+        if self._apply_dynamic_conversions(cls) is None:
+            if self.is_id(cls):
+                return graphql.GraphQLNonNull(graphql.GraphQLID)
             ref, schema = ref or get_ref(cls), merge_schema(get_schema(cls), schema)
         else:
-            schema, ref = None, None
+            ref, schema = None, None
         ref_save, schema_save, non_null_save = self._ref, self._schema, self._non_null
         self._ref, self._schema, self._non_null = ref, schema, True
         try:

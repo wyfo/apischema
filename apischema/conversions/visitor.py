@@ -1,11 +1,14 @@
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
 from types import new_class
 from typing import (
+    Any,
     Collection,
     Generic,
+    Iterable,
     Mapping,
     Optional,
     Sequence,
+    Tuple,
     Type,
     TypeVar,
     Union,
@@ -35,6 +38,11 @@ from apischema.utils import (
     substitute_type_vars,
 )
 from apischema.visitor import Return, Visitor
+
+try:
+    from apischema.typing import Annotated
+except ImportError:
+    Annotated = ...  # type: ignore
 
 Deserialization = Sequence[ResolvedConversion]
 Serialization = ResolvedConversion
@@ -72,10 +80,11 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
                 result = cls._get_conversions(tp, conversions)
         return result if result is not Undefined else None  # type: ignore
 
-    def is_dynamic_conversion(self, tp: AnyType) -> bool:
-        return self._conversions is not None and self._dynamic_conversion_resolver(
-            self._conversions
-        ).visit(tp)
+    def _apply_dynamic_conversions(self, tp: AnyType) -> Optional[AnyType]:
+        if self._conversions is None:
+            return None
+        else:
+            return self._dynamic_conversion_resolver(self._conversions).visit(tp)
 
     def visit_conversion(self, cls: AnyType, conversion: Conv) -> Return:
         raise NotImplementedError()
@@ -189,47 +198,80 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
         )
 
 
-class DynamicConversionResolver(ConversionsVisitor[Conv, bool]):
+class DynamicConversionResolver(ConversionsVisitor[Conv, Optional[AnyType]]):
     def __init__(self, conversions: Conversions):
         super().__init__()
         self._conversions = to_hashable_conversions(conversions)
 
-    def collection(self, cls: Type[Collection], value_type: AnyType) -> bool:
-        return self.visit(value_type)
+    def annotated(self, cls: AnyType, annotations: Sequence[Any]) -> Optional[AnyType]:
+        result = self.visit(cls)
+        return Annotated[(result, *annotations)]
 
-    def mapping(self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType):
-        self.visit(key_type)
-        self.visit(value_type)
+    def collection(
+        self, cls: Type[Collection], value_type: AnyType
+    ) -> Optional[AnyType]:
+        value = self.visit(value_type)
+        return None if value is None else Sequence[value]  # type: ignore
 
-    def tuple(self, types: Sequence[AnyType]):
-        for cls in types:
-            self.visit(cls)
+    def mapping(
+        self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType
+    ) -> Optional[AnyType]:
+        key = self.visit(key_type)
+        value = self.visit(value_type)
+        return None if key is None or value is None else Mapping[key, value]  # type: ignore # noqa: E501
 
-    def union(self, alternatives: Sequence[AnyType]):
-        for tp in filter_skipped(alternatives, schema_only=True):
-            with suppress(Exception):
-                if self.visit(tp):
-                    return True
+    def visit_types(
+        self, types: Iterable[AnyType], origin: AnyType
+    ) -> Optional[AnyType]:
+        modified = False
+        types2 = []
+        for tp in types:
+            try:
+                res = self.visit(tp)
+                types2.append(res if res is not None else tp)
+                modified = True
+            except Exception:
+                types2.append(tp)
+        return origin[types] if modified else None
 
-    def _visit(self, cls: AnyType) -> bool:
-        return (
-            is_convertible(cls)
-            and self._get_conversions(cls, self._conversions) is not None  # type: ignore # noqa: E501
-        )
+    def tuple(self, types: Sequence[AnyType]) -> Optional[AnyType]:
+        return self.visit_types(types, Tuple)
 
-    def visit(self, cls: AnyType) -> bool:
+    def union(self, alternatives: Sequence[AnyType]) -> Optional[AnyType]:
+        return self.visit_types(filter_skipped(alternatives, schema_only=True), Union)
+
+    def _final_type(self, conversion: Conv) -> Optional[AnyType]:
+        raise NotImplementedError
+
+    def _visit(self, cls: AnyType) -> Optional[AnyType]:
+        if self._conversions is None or not is_convertible(cls):
+            return None
+        conv = self._get_conversions(cls, self._conversions)
+        if conv is None or conv is Undefined:
+            return None
+        try:
+            result = self.visit_conversion(cls, conv)
+            return result if result is not None else self._final_type(conv)
+        except Exception:
+            return self._final_type(conv)
+
+    def visit(self, cls: AnyType) -> Optional[AnyType]:
         try:
             return super().visit(cls)
         except Exception:
-            return False
+            return None
 
 
 class DynamicDeserializationResolver(DynamicConversionResolver, DeserializationVisitor):
-    pass
+    def _final_type(self, conversion: Deserialization) -> Optional[AnyType]:
+        return Union[
+            tuple(self._replace_generic_args(conv.source) for conv in conversion)
+        ]
 
 
 class DynamicSerializationResolver(DynamicConversionResolver, SerializationVisitor):
-    pass
+    def _final_type(self, conversion: Serialization) -> Optional[AnyType]:
+        return self._replace_generic_args(conversion.target)
 
 
 DeserializationVisitor._dynamic_conversion_resolver = DynamicDeserializationResolver

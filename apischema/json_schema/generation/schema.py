@@ -68,7 +68,7 @@ from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, OrderedDict
 from apischema.typing import get_args, get_origin
-from apischema.utils import OperationKind, UndefinedType, is_hashable
+from apischema.utils import OperationKind, UndefinedType
 
 constraint_by_type = {
     int: NumberConstraints,
@@ -444,20 +444,16 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
 
     def visit_with_schema(self, cls: AnyType, schema: Optional[Schema]) -> JsonSchema:
         schema_save = self._schema
-        if not is_hashable(cls):
-            self._schema = schema
-        elif self.is_dynamic_conversion(cls):
-            self._schema = None
-        else:
-            self._schema = schema
-            ref = get_ref(cls)
-            if ref in self.refs:
-                if self._ignore_first_ref:
-                    self._ignore_first_ref = False
-                else:
-                    assert isinstance(ref, str)
-                    return self._ref_schema(ref)
-            self._merge_schema(get_schema(cls))
+        dynamic = self._apply_dynamic_conversions(cls)
+        cls, self._schema = (dynamic, None) if dynamic is not None else (cls, schema)
+        ref = get_ref(cls)
+        if ref in self.refs:
+            if self._ignore_first_ref:
+                self._ignore_first_ref = False
+            else:
+                assert isinstance(ref, str)
+                return self._ref_schema(ref)
+        self._merge_schema(get_schema(cls))
         try:
             return super().visit(cls)
         finally:

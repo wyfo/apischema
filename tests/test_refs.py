@@ -1,15 +1,10 @@
-import sys
 from dataclasses import dataclass
 from typing import (
-    AbstractSet,
     Collection,
-    Dict,
     Generic,
     List,
-    Mapping,
     Optional,
     Sequence,
-    Set,
     TypeVar,
 )
 
@@ -19,8 +14,7 @@ from pytest import mark
 from apischema import schema_ref
 from apischema.json_schema import deserialization_schema
 from apischema.json_schema.generation.schema import DeserializationSchemaBuilder
-from apischema.json_schema.refs import get_ref, replace_builtins
-from apischema.types import subscriptable_origin
+from apischema.json_schema.refs import get_ref
 from apischema.typing import Annotated
 
 
@@ -108,25 +102,6 @@ def test_generic_schema():
             }
         },
     }
-
-
-LIST = subscriptable_origin(List[None])
-SET = subscriptable_origin(Set[None])
-DICT = subscriptable_origin(Dict[None, None])
-
-
-@mark.parametrize(
-    "tp, expected",
-    [
-        (int, int),
-        (List[int], LIST[int]),
-        (Mapping[str, int], DICT[str, int]),
-        (AbstractSet[str], SET[str]),
-        *([(dict[str, bool], DICT[str, bool])] if sys.version_info >= (3, 9) else []),
-    ],
-)
-def test_replace_builtins(tp, expected):
-    assert replace_builtins(tp) == expected
 
 
 def test_get_refs_of_replaced():
