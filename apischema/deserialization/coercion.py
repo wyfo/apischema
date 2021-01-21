@@ -51,13 +51,13 @@ def coerce(cls: Type[T], data: Any) -> T:
         if isinstance(data, cls):
             return data
         if data is None and cls is not NoneType:
-            raise ValueError()
+            raise ValueError
         if cls is bool and isinstance(data, str):
             return STR_TO_BOOL[data.lower()]  # type: ignore
         if cls is NoneType and data in STR_NONE_VALUES:
             return None  # type: ignore
         if cls is list and isinstance(data, str):
-            raise ValueError()
+            raise ValueError
         return cls(data)  # type: ignore
     except (ValueError, TypeError, KeyError):
         raise coercion_error(cls, data) from None

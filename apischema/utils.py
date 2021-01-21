@@ -72,7 +72,7 @@ def type_name(cls: AnyType) -> str:
     elif isinstance(cls, _GenericAlias):
         return cls._name
     else:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 MakeDataclassField = Union[Tuple[str, AnyType], Tuple[str, AnyType, Any]]

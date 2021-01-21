@@ -437,7 +437,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
                         result = JsonSchema({**result, "type": [*types, "null"]})
                     return result
             else:
-                raise NotImplementedError()
+                raise NotImplementedError
         else:
             return json_schema(anyOf=results)
 

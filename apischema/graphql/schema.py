@@ -304,7 +304,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         fields: Collection[ObjectField],
         merged_types: Mapping[str, Thunk[graphql.GraphQLType]] = None,
     ) -> Thunk[graphql.GraphQLType]:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def primitive(self, cls: Type) -> Thunk[graphql.GraphQLType]:
         if cls is NoneType:

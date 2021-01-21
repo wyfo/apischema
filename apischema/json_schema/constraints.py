@@ -88,7 +88,7 @@ class Constraints:
         return data
 
     def errors(self, data: Any) -> List[str]:
-        raise NotImplementedError()  # initialized in __post_init__
+        raise NotImplementedError  # initialized in __post_init__
 
     def as_dict(self) -> Mapping[str, Any]:
         return {

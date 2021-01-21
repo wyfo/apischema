@@ -113,7 +113,7 @@ def get_default(field: Field) -> Any:
         return field.default_factory()  # type: ignore
     if field.default is not MISSING:
         return field.default
-    raise NotImplementedError()
+    raise NotImplementedError
 
 
 def get_alias(field: Field) -> str:

@@ -61,11 +61,11 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
     def _get_conversions(
         tp: Type, conversions: Conversions
     ) -> Union[Conv, None, UndefinedType]:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @staticmethod
     def _default_conversions(tp: Type) -> Optional[Conversions]:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @classmethod
     def get_conversions(
@@ -87,7 +87,7 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
             return self._dynamic_conversion_resolver(self._conversions).visit(tp)
 
     def visit_conversion(self, cls: AnyType, conversion: Conv) -> Return:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def visit_not_conversion(self, cls: AnyType) -> Return:
         return super()._visit(cls)

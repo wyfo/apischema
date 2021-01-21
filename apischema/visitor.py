@@ -63,10 +63,10 @@ class Visitor(Generic[Return]):
         return self.visit(cls)
 
     def any(self) -> Return:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def collection(self, cls: Type[Collection], value_type: AnyType) -> Return:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def dataclass(
         self,
@@ -75,10 +75,10 @@ class Visitor(Generic[Return]):
         fields: Sequence[Field],
         init_vars: Sequence[Field],
     ) -> Return:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def enum(self, cls: Type[Enum]) -> Return:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def generic(self, cls: AnyType) -> Return:
         _generic = self._generic
@@ -89,12 +89,12 @@ class Visitor(Generic[Return]):
             self._generic = _generic
 
     def literal(self, values: Sequence[Any]) -> Return:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def mapping(
         self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType
     ) -> Return:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def named_tuple(
         self,
@@ -102,25 +102,25 @@ class Visitor(Generic[Return]):
         types: Mapping[str, AnyType],
         defaults: Mapping[str, Any],
     ) -> Return:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def new_type(self, cls: AnyType, super_type: AnyType) -> Return:
         return self.visit(super_type)
 
     def primitive(self, cls: Type) -> Return:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def subprimitive(self, cls: Type, superclass: Type) -> Return:
         return self.primitive(superclass)
 
     def tuple(self, types: Sequence[AnyType]) -> Return:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def typed_dict(self, cls: Type, keys: Mapping[str, AnyType], total: bool) -> Return:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def _union_result(self, results: Iterable[Return]) -> Return:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def union(self, alternatives: Sequence[AnyType]) -> Return:
         return self._union_result(map(self.visit, alternatives))

@@ -94,7 +94,7 @@ class BuiltinVisitor(Visitor):
         pass
 
     def subprimitive(self, cls: Type, superclass: Type):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def union(self, alternatives: Sequence[AnyType]):
         for alt in alternatives:
