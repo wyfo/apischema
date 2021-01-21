@@ -100,6 +100,14 @@ By the way, builtin classes are not affected by conversions, this is especially 
 {!local_conversions.py!}
 ```
 
+### Dynamic conversions interact with `schema_ref`
+
+Dynamic conversions are applied before looking for a ref registered with `schema_ref`
+
+```python
+{!dynamic_schema_ref.py!}
+```
+
 ## Generic conversions
 
 `Generic` conversions are supported out of the box.

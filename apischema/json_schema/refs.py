@@ -1,15 +1,12 @@
-import collections.abc
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
     Any,
     Dict,
     Iterable,
-    List,
     Mapping,
     Optional,
     Sequence,
-    Set,
     Type,
     TypeVar,
     Union,
@@ -17,14 +14,12 @@ from typing import (
 )
 
 from apischema.dataclass_utils import is_dataclass
+from apischema.json_schema.types import replace_builtins
 from apischema.types import (
     AnyType,
-    COLLECTION_TYPES,
-    MAPPING_TYPES,
-    subscriptable_origin,
 )
-from apischema.typing import _TypedDictMeta, get_args, get_origin
-from apischema.utils import get_origin_or_class, has_type_vars, is_type_var, type_name
+from apischema.typing import _TypedDictMeta, get_origin
+from apischema.utils import has_type_vars, is_type_var, type_name
 from apischema.visitor import Unsupported, Visitor
 
 Ref = Union[str, "ellipsis", None]  # noqa: F821
@@ -83,21 +78,6 @@ class schema_ref:
         self.check_type(cls)
         _refs[replace_builtins(cls)] = self.ref
         return cls
-
-
-def replace_builtins(tp: AnyType) -> AnyType:
-    origin = get_origin_or_class(tp)
-    args = tuple(map(replace_builtins, get_args(tp)))
-    if origin in COLLECTION_TYPES:
-        if issubclass(origin, collections.abc.Set):
-            replacement = subscriptable_origin(Set[None])
-        else:
-            replacement = subscriptable_origin(List[None])
-    elif origin in MAPPING_TYPES:
-        replacement = subscriptable_origin(Dict[None, None])
-    else:
-        replacement = origin
-    return replacement[args] if args else replacement
 
 
 class BuiltinVisitor(Visitor):
