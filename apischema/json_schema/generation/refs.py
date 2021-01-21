@@ -132,9 +132,9 @@ class RefsExtractor(ConversionsVisitor):
         ref_tp = dynamic if dynamic is not None else tp
         with suppress(TypeError):
             recursion = ref_tp in self._rec_guard
-        if recursion:
-            raise TypeError(f"Recursive type {tp} need a ref")
         if not self._incr_ref(get_ref(ref_tp), ref_tp):
+            if recursion:
+                raise TypeError(f"Recursive type {tp} need a ref")
             with suppress(TypeError):
                 self._rec_guard.add(ref_tp)
             try:
