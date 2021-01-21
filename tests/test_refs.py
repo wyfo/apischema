@@ -68,7 +68,6 @@ def test_generic_ref_error(cls):
 
 def test_generic_schema():
     schema_ref("StrData")(DataGeneric[str])
-    print()
     assert deserialization_schema(DataGeneric, all_refs=True) == {
         "$schema": "http://json-schema.org/draft/2019-09/schema#",
         "type": "object",
