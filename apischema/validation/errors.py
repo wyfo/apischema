@@ -26,7 +26,12 @@ from apischema.aliases import Aliaser
 from apischema.dataclass_utils import get_alias
 from apischema.dataclasses import replace
 from apischema.typing import get_args, get_origin
-from apischema.utils import merge_opts
+from apischema.utils import get_args2, get_origin2, merge_opts
+
+try:
+    from apischema.typing import Annotated
+except ImportError:
+    Annotated = ...  # type: ignore
 
 ErrorMsg = str
 Error = Union[ErrorMsg, Tuple[Any, ErrorMsg]]
@@ -215,7 +220,11 @@ def with_validation_error(func: Callable[..., ValidatorResult[T]]) -> Callable[.
             match = re.match(r"ValidatorResult\[(?P<ret>.*)\]", ret)
             if match is not None:
                 ret = match.groupdict("ret")
-        elif get_origin(ret) == GeneratorOrigin:
-            ret = get_args(ret)[2]
+        else:
+            annotations = get_args(ret)[1:] if get_origin(ret) == Annotated else ()
+            if get_origin2(ret) == GeneratorOrigin:
+                ret = get_args2(ret)[2]
+                if annotations:
+                    ret = Annotated[(ret, *annotations)]
         wrapper.__annotations__["return"] = ret
     return wrapper

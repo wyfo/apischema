@@ -5,6 +5,11 @@ from apischema.types import AnyType, COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_
 from apischema.typing import get_args, get_origin, get_type_hints
 from apischema.utils import get_parameters, is_type_var, substitute_type_vars, type_name
 
+try:
+    from apischema.typing import Annotated
+except ImportError:
+    Annotated = ...  # type: ignore
+
 Converter = Callable[[Any], Any]
 
 
@@ -77,6 +82,8 @@ def get_conversion_type(base: AnyType, other: AnyType) -> Tuple[AnyType, AnyType
         other side of the conversion with its original parameters
     """
     origin = get_origin(base)
+    if origin is Annotated:
+        raise TypeError("Annotated types cannot have conversions")
     if origin is None:
         return base, other
     args = get_args(base)

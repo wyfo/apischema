@@ -33,8 +33,14 @@ from apischema.dependent_required import (
 from apischema.metadata.implem import ConversionMetadata
 from apischema.metadata.keys import CONVERSIONS_METADATA
 from apischema.types import AnyType
-from apischema.typing import get_origin, get_type_hints, get_type_hints2
-from apischema.utils import OperationKind, PREFIX, get_origin_or_class, has_type_vars
+from apischema.typing import get_type_hints, get_type_hints2
+from apischema.utils import (
+    OperationKind,
+    PREFIX,
+    get_origin2,
+    get_origin_or_type,
+    has_type_vars,
+)
 
 if TYPE_CHECKING:
     from apischema.conversions.conversions import ResolvedConversion
@@ -52,7 +58,7 @@ def dataclass_types_and_fields(
 ) -> Tuple[Mapping[str, AnyType], Sequence[Field], Sequence[Field]]:
     from apischema.metadata.keys import INIT_VAR_METADATA
 
-    cls = get_origin_or_class(tp)
+    cls = get_origin_or_type(tp)
     assert is_dataclass(cls)
     types = get_type_hints2(tp)
     fields, init_fields = [], []
@@ -137,7 +143,7 @@ def get_requirements(
 
 
 def check_merged_class(merged_cls: AnyType) -> Type:
-    origin = get_origin(merged_cls)
+    origin = get_origin2(merged_cls)
     if origin is None:
         origin = merged_cls
     if not is_dataclass(origin):

@@ -67,8 +67,13 @@ from apischema.serialization import serialize
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, OrderedDict
-from apischema.typing import get_args, get_origin
-from apischema.utils import OperationKind, UndefinedType
+from apischema.typing import get_origin
+from apischema.utils import (
+    OperationKind,
+    UndefinedType,
+    get_args2,
+    get_origin2,
+)
 
 constraint_by_type = {
     int: NumberConstraints,
@@ -228,9 +233,9 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
                             serialized.return_type, serialized.schema
                         ),
                     )
-                if get_origin(
+                if get_origin2(
                     serialized.return_type
-                ) != Union or UndefinedType not in get_args(serialized.return_type):
+                ) != Union or UndefinedType not in get_args2(serialized.return_type):
                     required.append(alias)
         return properties, required
 

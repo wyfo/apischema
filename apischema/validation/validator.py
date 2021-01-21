@@ -23,7 +23,7 @@ from typing import (
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
 from apischema.types import AnyType
 from apischema.typing import get_type_hints
-from apischema.utils import get_origin_or_class, is_method, method_class
+from apischema.utils import get_origin_or_type, is_method, method_class
 from apischema.validation.dependencies import find_all_dependencies
 from apischema.validation.errors import (
     Error,
@@ -195,7 +195,7 @@ def validator(arg=None, *, discard=None, owner=None):
         if owner is None:
             try:
                 first_param = next(iter(signature(arg).parameters))
-                owner = get_origin_or_class(get_type_hints(arg)[first_param])
+                owner = get_origin_or_type(get_type_hints(arg)[first_param])
             except Exception:
                 raise ValueError("Validator first parameter must be typed")
         validator_._register(owner)

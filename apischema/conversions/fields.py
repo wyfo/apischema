@@ -10,7 +10,12 @@ from apischema.conversions.utils import converter_types
 from apischema.dataclasses import replace
 from apischema.types import AnyType
 from apischema.typing import get_args, get_origin
-from apischema.utils import is_type_var, substitute_type_vars
+from apischema.utils import get_args2, get_origin2, is_type_var, substitute_type_vars
+
+try:
+    from apischema.typing import Annotated
+except ImportError:
+    Annotated = ...  # type: ignore
 
 
 class Variance(Enum):
@@ -36,17 +41,17 @@ def handle_generic_field_type(
         # field_type is generic with free typevars, field_type also generic with
         # number of args, none of their args are generic (must be type or typevar)
         # and with
-        get_origin(base) is not None
+        get_origin2(base) is not None
         and getattr(base, "__parameters__", ())
-        and len(get_args(base)) == len(get_args(field_type))
-        and not any(map(get_origin, get_args(base)))
-        and not any(map(get_origin, get_args(field_type)))
+        and len(get_args2(base)) == len(get_args2(field_type))
+        and not any(map(get_origin2, get_args2(base)))
+        and not any(map(get_origin2, get_args2(field_type)))
         and not any(
             not is_type_var(base_arg) and base_arg != field_arg
-            for base_arg, field_arg in zip(get_args(base), get_args(field_type))
+            for base_arg, field_arg in zip(get_args2(base), get_args2(field_type))
         )
     ):
-        field_type_origin, base_origin = get_origin(field_type), get_origin(base)
+        field_type_origin, base_origin = get_origin2(field_type), get_origin2(base)
         assert field_type_origin is not None and base_origin is not None
         if base_origin != field_type_origin:
             if variance == Variance.COVARIANT and not issubclass(
@@ -58,12 +63,14 @@ def handle_generic_field_type(
             ):
                 return other
         type_vars = {}
-        for base_arg, field_arg in zip(get_args(base), get_args(field_type)):
+        for base_arg, field_arg in zip(get_args2(base), get_args2(field_type)):
             if base_arg in type_vars and type_vars[base_arg] != field_arg:
                 return other
             type_vars[base_arg] = field_arg
     else:
         return other
+    if get_origin(base) is Annotated:
+        other = Annotated[(other, *get_args(base)[1:])]
     return substitute_type_vars(other, type_vars)
 
 
