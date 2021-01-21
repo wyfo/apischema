@@ -5,7 +5,7 @@ __all__ = [
     "serialization_schema",
 ]
 
-from .generation.builder import (
+from .generation.schema import (
     definitions_schema,
     deserialization_schema,
     serialization_schema,

@@ -23,20 +23,17 @@ from .constraints import (
     StringConstraints,
     merge_constraints,
 )
+from ..metadata.keys import SCHEMA_METADATA
 
 T = TypeVar("T")
 
 
 @dataclass(frozen=True)
 class Schema(MetadataMixin):
+    key = SCHEMA_METADATA
     annotations: Optional[Annotations] = None
     constraints: Optional[Constraints] = None
     override: bool = False
-
-    def __post_init__(self):
-        from apischema.metadata.keys import SCHEMA_METADATA
-
-        super().__init__(SCHEMA_METADATA)
 
     def __call__(self, obj: T) -> T:
         _schema[obj] = self

@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from dataclasses import Field, replace
+from dataclasses import Field
 from enum import Enum
 from functools import wraps
 from itertools import chain
@@ -23,7 +23,9 @@ from typing import (  # type: ignore
 
 from apischema import settings
 from apischema.aliases import Aliaser
-from apischema.conversions.utils import Conversions
+from apischema.conversions import identity
+from apischema.conversions.conversions import Conversions
+from apischema.conversions.utils import Converter
 from apischema.conversions.visitor import (
     Conv,
     ConversionsVisitor,
@@ -40,6 +42,7 @@ from apischema.dataclass_utils import (
     is_dataclass,
     is_required,
 )
+from apischema.dataclasses import replace
 from apischema.dependent_required import DependentRequired
 from apischema.json_schema.constraints import (
     ArrayConstraints,
@@ -65,7 +68,7 @@ from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, OrderedDict
 from apischema.typing import get_args, get_origin
-from apischema.utils import Operation, UndefinedType, is_hashable
+from apischema.utils import OperationKind, UndefinedType, is_hashable
 
 constraint_by_type = {
     int: NumberConstraints,
@@ -151,9 +154,12 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
         )
 
     def visit_field(self, field: Field, field_type: AnyType):
-        field_type, conversions, _ = get_field_conversion(
-            field, field_type, self.operation
-        )
+        field_type, conversion = get_field_conversion(field, field_type, self.operation)
+        converter: Converter = identity
+        sub_conversions: Optional[Conversions] = None
+        if conversion is not None:
+            converter = conversion.converter  # type: ignore
+            sub_conversions = conversion.conversions
         schema: Optional[Schema] = None
         if SCHEMA_METADATA in field.metadata:
             schema = cast(Schema, field.metadata[SCHEMA_METADATA])
@@ -161,13 +167,15 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
                 if not has_default(field):
                     raise TypeError("Invalid ... without field default")
                 try:
-                    default = serialize(get_default(field), conversions=conversions)
+                    default = serialize(
+                        converter(get_default(field)), conversions=sub_conversions
+                    )
                 except Exception:
                     pass
                 else:
                     annotations = replace(schema.annotations, default=default)
                     schema = replace(schema, annotations=annotations)
-        with self._replace_conversions(conversions):
+        with self._replace_conversions(sub_conversions):
             return self.visit_with_schema(field_type, schema)
 
     def _properties_schema(self, field: Field, field_type: AnyType) -> JsonSchema:
@@ -210,7 +218,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
     ) -> Tuple[Mapping[str, JsonSchema], Collection[str]]:
         properties: Dict[str, JsonSchema] = {}
         required: List[str] = []
-        if self.operation == Operation.SERIALIZATION:
+        if self.operation == OperationKind.SERIALIZATION:
             for name, serialized in get_serialized_methods(cls).items():
                 alias = self.aliaser(name)
                 with self._replace_conversions(serialized.conversions):
@@ -238,7 +246,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
         self._check_constraints(ObjectConstraints)
         properties = {}
         required: List[str] = []
-        merged_schemas = []
+        merged_schemas: List[JsonSchema] = []
         pattern_properties = {}
         additional_properties: Union[bool, JsonSchema] = settings.additional_properties
         for field in get_fields(fields, init_vars, self.operation):
@@ -300,11 +308,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
         return self.literal(list(cls))
 
     def generic(self, cls: AnyType) -> JsonSchema:
-        origin = get_origin(cls)
-        if is_hashable(origin) and self.is_extra_conversions(origin):
-            self._schema = None
-        else:
-            self._merge_schema(get_schema(origin))
+        self._merge_schema(get_schema(get_origin(cls)))
         return super().generic(cls)
 
     @with_schema
@@ -407,8 +411,10 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
         if len(results) == 1:
             return results[0]
         elif all(alt.keys() == {"type"} for alt in results):
-            types = chain.from_iterable(
-                [res["type"]] if isinstance(res["type"], JsonType) else res["type"]
+            types: Any = chain.from_iterable(
+                [res["type"]]
+                if isinstance(res["type"], (str, JsonType))
+                else res["type"]
                 for res in results
             )
             return json_schema(type=list(types))
@@ -420,8 +426,8 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
             for result in results:
                 if result != {"type": "null"}:
                     types = result["type"]
-                    if isinstance(types, str):
-                        types = [types]  # type: ignore
+                    if isinstance(types, (str, JsonType)):
+                        types = [types]
                     if "null" not in types:
                         result = JsonSchema({**result, "type": [*types, "null"]})
                     return result
@@ -440,7 +446,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
         schema_save = self._schema
         if not is_hashable(cls):
             self._schema = schema
-        elif self.is_extra_conversions(cls):
+        elif self.is_dynamic_conversion(cls):
             self._schema = None
         else:
             self._schema = schema
@@ -553,7 +559,7 @@ def _schema(
         defs = _refs_schema(builder, aliaser, refs, ref_factory)
         if defs:
             json_schema["$defs"] = defs
-    result = serialize(json_schema, conversions=version.conversions)
+    result = serialize(json_schema, conversions=version.conversion)
     if with_schema and version.schema is not None:
         result["$schema"] = version.schema
     return result
@@ -660,7 +666,7 @@ def definitions_schema(
                 f" for deserialization and serialization"
             )
     return {
-        ref: serialize(schema, conversions=version.conversions)
+        ref: serialize(schema, conversions=version.conversion)
         for ref, schema in chain(
             deserialization_schemas.items(), serialization_schemas.items()
         )

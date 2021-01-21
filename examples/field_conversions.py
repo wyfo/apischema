@@ -4,26 +4,23 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from apischema import deserialize, serialize
-from apischema.conversions import extra_deserializer, extra_serializer
-from apischema.metadata import conversions
+from apischema.conversions import Conversion
+from apischema.metadata import conversion
 
 # Set UTC timezone for example
 os.environ["TZ"] = "UTC"
 time.tzset()
 
-extra_deserializer(datetime.fromtimestamp, int, datetime)
+from_timestamp = Conversion(datetime.fromtimestamp, source=int, target=datetime)
 
 
-@extra_serializer
 def to_timestamp(d: datetime) -> int:
     return int(d.timestamp())
 
 
 @dataclass
 class Foo:
-    some_date: datetime = field(metadata=conversions(int))
-    # `conversions(int)` is equivalent to
-    # `conversions(deserialization={datetime: int}, serialization={datetime: int})`
+    some_date: datetime = field(metadata=conversion(from_timestamp, to_timestamp))
     other_date: datetime
 
 

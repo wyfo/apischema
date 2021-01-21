@@ -1,12 +1,14 @@
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from operator import itemgetter
-from typing import Dict, Mapping, Sequence, TypeVar
+from typing import Generic, TypeVar
 
 from apischema import alias, serialize
 from apischema.json_schema import serialization_schema
-from apischema.metadata import conversions
+from apischema.metadata import conversion
 
 T = TypeVar("T")
+V = TypeVar("V")
 
 
 def sort_by_priority(values_with_priority: Mapping[int, T]) -> Sequence[T]:
@@ -17,14 +19,14 @@ assert sort_by_priority({1: "a", 0: "b"}) == ["b", "a"]
 
 
 @dataclass
-class Foo:
-    values_with_priority: Dict[int, str] = field(
-        metadata=alias("values") | conversions(serializer=sort_by_priority)
+class Foo(Generic[V]):
+    values_with_priority: dict[int, V] = field(
+        metadata=alias("values") | conversion(serialization=sort_by_priority)
     )
 
 
 assert serialize(Foo({1: "a", 0: "b"})) == {"values": ["b", "a"]}
-assert serialization_schema(Foo) == {
+assert serialization_schema(Foo[str]) == {
     "type": "object",
     "properties": {"values": {"type": "array", "items": {"type": "string"}}},
     "required": ["values"],

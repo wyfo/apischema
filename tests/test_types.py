@@ -7,6 +7,10 @@ def test_metadata():
     assert {"b": 2} | metadata == metadata
 
 
+class KeyMetadata(MetadataMixin):
+    key = "key"
+
+
 def test_metadata_mixin():
-    instance = MetadataMixin("key")
+    instance = KeyMetadata()
     assert list(instance.items()) == [("key", instance)]

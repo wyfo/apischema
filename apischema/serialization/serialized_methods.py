@@ -16,18 +16,20 @@ from typing import (
     overload,
 )
 
-from apischema.conversions import Conversions
+from apischema.conversions.conversions import Conversions
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
 from apischema.json_schema.schema import Schema
 from apischema.types import AnyType
 from apischema.typing import get_type_hints
 from apischema.utils import (
     MethodOrProperty,
+    MethodWrapper,
     Undefined,
     UndefinedType,
     cached_property,
     get_origin_or_class,
     is_method,
+    method_class,
     method_wrapper,
 )
 
@@ -127,37 +129,37 @@ def register_serialized(
     _serialized_methods[owner][alias] = serialized
 
 
-class SerializedDescriptor:
+class SerializedDescriptor(MethodWrapper[MethodOrProperty]):
     def __init__(
         self,
-        func: MethodOrProperty,
+        method: MethodOrProperty,
         alias: Optional[str],
         conversions: Optional[Conversions],
         schema: Optional[Schema],
         error_handler: ErrorHandler,
     ):
-        self.func = func
-        self.alias = alias
-        self.conversions = conversions
-        self.schema = schema
-        self.error_handler = error_handler
+        super().__init__(method)
+        self._alias = alias
+        self._conversions = conversions
+        self._schema = schema
+        self._error_handler = error_handler
 
     def __set_name__(self, owner, name):
+        super().__set_name__(owner, name)
         register_serialized(
-            method_wrapper(self.func, name),
-            self.alias or name,
-            self.conversions,
-            self.schema,
-            self.error_handler,
+            method_wrapper(self._method, name),
+            self._alias or name,
+            self._conversions,
+            self._schema,
+            self._error_handler,
             owner,
         )
-        setattr(owner, name, self.func)
 
     def __call__(self, *args, **kwargs):
         raise RuntimeError("Method __set_name__ has not been called")
 
 
-MethodOrProp = TypeVar("MethodOrProp", bound=MethodOrProperty)
+MethodOrProp = TypeVar("MethodOrProp", Callable, property)
 
 
 @overload
@@ -186,24 +188,27 @@ def serialized(
     error_handler: ErrorHandler = Undefined,
     owner: Type = None,
 ):
-    def decorator(func: MethodOrProp) -> MethodOrProp:
-        if isinstance(func, (classmethod, staticmethod)):
-            raise TypeError("Serialized method cannot be staticmethod/classmethod")
-        if is_method(func):
-            return cast(
-                MethodOrProp,
-                SerializedDescriptor(func, alias, conversions, schema, error_handler),
+    def decorator(method: MethodOrProperty):
+        nonlocal owner
+        if is_method(method) and method_class(method) is None:
+            return SerializedDescriptor(
+                method, alias, conversions, schema, error_handler
             )
         else:
+            if is_method(method):
+                if owner is None:
+                    owner = method_class(method)
+                method = method_wrapper(method)
+            assert not isinstance(method, property)
             register_serialized(
-                cast(Callable, func),
-                alias or func.__name__,
+                cast(Callable, method),
+                alias or method.__name__,
                 conversions,
                 schema,
                 error_handler,
                 owner,
             )
-            return func
+            return method
 
     if isinstance(__arg, str) or __arg is None:
         alias = alias or __arg

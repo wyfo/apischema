@@ -30,13 +30,14 @@ from apischema.dependent_required import (
     DependentRequired,
     Requirements,
 )
+from apischema.metadata.implem import ConversionMetadata
+from apischema.metadata.keys import CONVERSIONS_METADATA
 from apischema.types import AnyType
 from apischema.typing import get_origin, get_type_hints, get_type_hints2
-from apischema.utils import Operation, PREFIX, get_origin_or_class, has_type_vars
+from apischema.utils import OperationKind, PREFIX, get_origin_or_class, has_type_vars
 
 if TYPE_CHECKING:
-    from apischema.conversions.utils import Converter
-    from apischema.conversions import Conversions
+    from apischema.conversions.conversions import ResolvedConversion
 
 if sys.version_info <= (3, 7):  # pragma: no cover
     is_dataclass_ = is_dataclass
@@ -80,12 +81,12 @@ def dataclass_types_and_fields(
 
 
 def get_fields(
-    fields: Sequence[Field], init_vars: Sequence[Field], operation: Operation
+    fields: Sequence[Field], init_vars: Sequence[Field], operation: OperationKind
 ) -> Sequence[Field]:
     from apischema.metadata.keys import SKIP_METADATA
 
     fields_by_operation = {
-        Operation.DESERIALIZATION: chain((f for f in fields if f.init), init_vars),
+        OperationKind.DESERIALIZATION: chain((f for f in fields if f.init), init_vars),
         operation.SERIALIZATION: fields,
     }[operation]
     return [f for f in fields_by_operation if SKIP_METADATA not in f.metadata]
@@ -118,7 +119,7 @@ def get_alias(field: Field) -> str:
 def get_requirements(
     cls: Type,
     method: Callable[[DependentRequired], Requirements],
-    operation: Operation,
+    operation: OperationKind,
 ) -> Requirements:
     assert is_dataclass(cls)
     _, fields, init_vars = dataclass_types_and_fields(cls)  # type: ignore
@@ -145,29 +146,30 @@ def check_merged_class(merged_cls: AnyType) -> Type:
 
 
 def get_field_conversion(
-    field: Field, field_type: AnyType, operation: Operation
-) -> Tuple[AnyType, Optional["Conversions"], Optional["Converter"]]:
-    from apischema.conversions.metadata import (
-        FieldConversions,
-        FieldConversionsModel,
-        deserializer_parameter,
-        serializer_return,
+    field: Field, field_type: AnyType, operation: OperationKind
+) -> Tuple[AnyType, Optional["ResolvedConversion"]]:
+    from apischema.conversions.fields import (
+        resolve_field_deserialization,
+        resolve_field_serialization,
     )
-    from apischema.metadata.keys import CONVERSIONS_METADATA
 
     if CONVERSIONS_METADATA not in field.metadata:
-        return field_type, None, None
-    if has_type_vars(field_type):
-        raise TypeError("Generic field cannot have conversion")
+        return field_type, None
     conversions = field.metadata[CONVERSIONS_METADATA]
-    if isinstance(conversions, FieldConversionsModel):
-        return field_type, {field_type: conversions.model}, None
-    assert isinstance(conversions, FieldConversions)
-    if operation == Operation.DESERIALIZATION:
-        if conversions.deserializer is not None:
-            field_type = deserializer_parameter(conversions.deserializer, field_type)
-        return field_type, conversions.deserialization, conversions.deserializer
+    assert isinstance(conversions, ConversionMetadata)
+    if (
+        operation == OperationKind.DESERIALIZATION
+        and conversions.deserialization is not None
+    ):
+        conversion = resolve_field_deserialization(
+            field_type, conversions.deserialization
+        )
+        return conversion.source, conversion
+    elif (
+        operation == OperationKind.SERIALIZATION
+        and conversions.serialization is not None
+    ):
+        conversion = resolve_field_serialization(field_type, conversions.serialization)
+        return conversion.target, conversion
     else:
-        if conversions.serializer is not None:
-            field_type = serializer_return(conversions.serializer, field_type)
-        return field_type, conversions.serialization, conversions.serializer
+        return field, None

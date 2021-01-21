@@ -5,7 +5,7 @@ from apischema.conversions.visitor import Deserialization, DeserializationVisito
 from apischema.dataclass_utils import get_alias, get_field_conversion, get_fields
 from apischema.metadata.keys import MERGED_METADATA
 from apischema.types import AnyType
-from apischema.utils import Operation
+from apischema.utils import OperationKind
 from apischema.visitor import Unsupported
 
 
@@ -17,7 +17,9 @@ class InitMergedAliasVisitor(DeserializationVisitor[Iterator[str]]):
         fields: Sequence[Field],
         init_vars: Sequence[Field],
     ) -> Iterator[str]:
-        for field in get_fields(fields, init_vars, operation=Operation.DESERIALIZATION):
+        for field in get_fields(
+            fields, init_vars, operation=OperationKind.DESERIALIZATION
+        ):
             if MERGED_METADATA in field.metadata:
                 yield from get_init_merged_alias(cls, field, types[field.name])
             else:
@@ -46,22 +48,22 @@ class InitMergedAliasVisitor(DeserializationVisitor[Iterator[str]]):
     ) -> Iterator[str]:
         if len(conversion) != 1:
             raise NotImplementedError()
-        source, (_, conversions) = next(iter(conversion.items()))
-        with self._replace_conversions(conversions):
-            return self.visit(source)
+        conv = conversion[0]
+        return self.visit_with_conversions(conv.source, conv.conversions)
 
 
 def get_init_merged_alias(
     cls: Type, field: Field, field_type: AnyType
 ) -> Iterator[str]:
-    field_type, conversions, _ = get_field_conversion(
-        field, field_type, Operation.DESERIALIZATION
+    field_type, conversion = get_field_conversion(
+        field, field_type, OperationKind.DESERIALIZATION
     )
     try:
         yield from InitMergedAliasVisitor().visit_with_conversions(
-            field_type, conversions
+            field_type, conversion.conversions if conversion is not None else None
         )
     except (NotImplementedError, Unsupported):
         raise TypeError(
             f"Merged field {cls.__name__}.{field.name} must have an object type"
+            f" or an unique deserializer to an object type"
         ) from None

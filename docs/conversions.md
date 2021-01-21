@@ -10,19 +10,22 @@ In fact, you can even add support of competitor libraries like *Pydantic* (see [
 
 ## Principle - *Apischema* conversions
 
-An *Apischema* conversion is composed of a source type, let's call it `Source`, a target type `Target` and a function of signature `(Source) -> Target`.
+An *Apischema* conversion is composed of a source type, let's call it `Source`, a target type `Target` and a converter function of signature `(Source) -> Target`.
 
-When a type (actually, a non-builtin type, so not `int`/`list[str]`/etc.) is deserialized, *Apischema* will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then conversion function will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply conversion (normally get the target type).
+When a class (actually, a non-builtin class, so not `int`/`list`/etc.) is deserialized, *Apischema* will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then the converter will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply then converter, and get the target type.
 
-Conversions are also handled in schema generation: for a deserialization schema, source schema is used (after merging target schema annotations) while target schema is used (after merging source schema annotations) for a serialization schema.
+Conversion can only be applied on classes, not other types like `NewType`, etc. (see [FAQ](#why-conversion-can-only-be-applied-on-classes-and-not-on-others-types-newtype-etc-))
+
+Conversions are also handled in schema generation: for a deserialization schema, source schema is merged to target schema, while target schema is merged to source schema for a serialization schema.
+
 
 ## Register a conversion
 
-Conversion is registered using `deserializer`/`serializer` for deserialization/serialization respectively.
+Conversion is registered using `apischema.deserializer`/`apischema.serializer` for deserialization/serialization respectively.
 
-When used as a decorator, the `Source`/`Target` types are directly extracted from conversion function signature. They can also be passed as argument when the function has no type annotations (builtins like `datetime.isoformat` or foreign library functions).
+When used as function decorator, the `Source`/`Target` types are directly extracted from conversion function signature. 
 
-Methods can be used for `serializer`, as well as `classmethod`/`staticmethod` for both (especially `deserializer`) 
+`serializer` can be called on methods/properties, in which case `Source` type is inferred to be th owning type.
 
 ```python
 {!conversions.py!}
@@ -39,20 +42,15 @@ Sometimes, you want to have several possibilities to deserialize a type. If it's
 {!multiple_deserializers.py!}
 ```
 
-!!! note
-    If it seems that the deserializer declared is equivalent to `deserializer(datetime.fromtimestamp, int, datetime)`, there is actually a slight difference: in the example, the deserializer makes 2 function calls (`datetime_from_timestamp` and `datetime.fromtimestamp`) while the second inlined form imply only one function call to `datetime.fromtimestamp`.
-    
-    In Python, function calls are heavy, so it's good to know. 
+On the other hand, serializer registration overwrite the previous registration if any. 
 
-On the other hand, serializer registration overwrite the previous registration if any. That's how the default serialization of builtin types like `datetime` can be modified (because it's just a `serializer` call in *Apischema* code).
-
-This is not possible to overwrite this way deserializers (because they stack), but `reset_deserializers` can be used to reset them before adding new ones. Also, `self_deserializer` can be used to add a class itself as a deserializer (when it's a supported type like a dataclass).
+`apischema.conversions.reset_deserializers`/`apischema.conversions.reset_serializers` can be used to reset (de)serializers (even those of the standard types embedded in *Apischema*)
 
 ### Inheritance
 
 All serializers are naturally inherited. In fact, with a conversion function `(Source) -> Target`, you can always pass a subtype of `Source` and get a `Target` in return.
 
-Moreover, when serializer is a method, overriding this method in a subclass will override the inherited serializer.
+Moreover, when serializer is a method/property, overriding this method/property in a subclass will override the inherited serializer.
 
 ```python
 {!serializer_inheritance.py!}
@@ -60,7 +58,7 @@ Moreover, when serializer is a method, overriding this method in a subclass will
 
 On the other hand, deserializers cannot be inherited, because the same `Source` passed to a conversion function `(Source) -> Target` will always give the same `Target` (not ensured to be the desired subtype).
 
-However, there is one way to do it by using a `classmethod` and the special decorator `inherited_deserializer`; the class parameter of the method is then assumed to be used to instantiate the return.  
+However, there is one way to do it by using a `classmethod` and the special decorator `apischema.conversions.inherited_deserializer`; the class parameter of the method is then assumed to be used to instantiate the return.  
 
 ```python
 {!deserializer_inheritance.py!}
@@ -69,67 +67,37 @@ However, there is one way to do it by using a `classmethod` and the special deco
 !!! note
     An "other" way to achieve that would be to use `__init_subclass__` method in order to add a deserializer to each subclass. In fact, that's what `inherited_deserializer` is doing behind the scene.
 
-## Extra conversions - choose the conversion you want
+## Conversion object
 
-Conversion is a powerful feature, but, registering only one (de)serialization by type may not be enough. Some types may have different representations, or you may have different serialization for a given entity with more or less data (for example a "simple" and a "detailed" view). Hopefully, *Apischema* let you register as many conversion as you want for your classes and gives you the possibility to select the one you want.
- 
-Conversions registered with `deserializer`/`serializer` are the default ones, they are selected when no conversion is precised. Other conversions are registered `extra_deserializer`/`extra_serializer` (they have the same signature than the previous ones).
+In previous example, conversions where registered using only converter functions. However, everywhere you can pass a converter, you can also pass a `apischema.conversions.Conversion` instance.
+`Conversion` allows to add additional metadata to conversion than a function can do ; it can also be used to precise converter source/target when annotations are not available.
 
-Conversions can then be selected using the `conversions` parameter of *Apischema* functions `deserialize`/`serialize`/`deserialization_schema`/`serialization_schema`. This parameter must be mapping of types:
+```python
+{!conversion_object.py!}
+```
 
-- for deserialization, target as key and source(s) as value
-- for serialization, source as key and target as value
+## Dynamic conversions — select conversions at runtime
 
-(Actually, the type for which is registered the conversion is in key) 
-For deserialization, if there is [several possible source](#multiple-deserializers), `conversions` values can also be a collection of types. It will again result in a `Union` deserialization.
+No matter if a conversion is registered or not for a given type, conversions can also be provided at runtime, using `conversions` parameter of `deserialize`/`serialize`/`deserialization_schema`/`serialization_schema`.
+
+```python
+{!dynamic_conversions.py!}
+```
 
 !!! note
-    For `definitions_schema`, conversions can be added with types by using a tuple instead, for example `definitions_schema(serializations=[(list[Foo], {Foo: Bar})])`. 
-    
-```python
-{!extra_de_serializer.py!}
-```
+    For `definitions_schema`, conversions can be added with types by using a tuple instead, for example `definitions_schema(serializations=[(list[Foo], foo_to_bar)])`. 
 
-### Chain conversions
+`conversions` parameter can also take a list of conversions, when you have a `Union`, a `tuple` or when you want to have several deserializations for the same type
 
-Conversions mapping put in `conversions` parameter is not used in all the deserialization/serialization. In fact it is "reset" as soon as a non-builtin type (so, not `int`/`list[int]`/`NewType` instances/etc.) is encountered. Not having this reset would completely break the possibility to have `$ref` in generated schema, because a `conversions` could then change the serialization of a field of a dataclass in one particular schema but not in another (and bye-bye *OpenAPI* components schema).
 
-But everything is not lost. Let's illustrate with an example. As previously mentioned, *Apischema* uses its own feature internally at several places. One of them is schema generation. JSON schema is generated using an internal `JsonSchema` type, and is then serialized; the JSON schema version selection result in fact in a conversion that is selected according to the version (by `JsonSchemaVersion.conversions` property). However, JSON schema is recursive and the serialization of `JsonSchema` returns a dictionary which can contain other `JsonSchema` ... but it has been written above that `conversions` is reset.
+### Dynamic conversions are local
 
-That's why `deserializer` and others conversion registers have a `conversions` parameter that will be taken as the new `conversions` after the conversion application. In JSON schema example, it allows sub-`JsonSchema` to be serialized with the correct `conversions`. The following example is extracted from [*Apischema* code](https://github.com/wyfo/apischema/blob/master/apischema/json_schema/versions.py):
+Dynamic conversions are discarded after having been applied (or after class without conversion having been encountered). For example, you can't apply directly a dynamic conversion to a dataclass field when calling  `serialize` on an instance of this dataclass. Reasons of this design are detailed in the [FAQ](#why-dynamic-conversion-cannot-apply-on-the-whole-data-model). 
+
+By the way, builtin classes are not affected by conversions, this is especially true for containers like `list` or `dict`. Dynamic conversions can thus be used to modify a type inside it's container.
 
 ```python
-{!chain_conversions.py!}
-```
-
-### Field conversions
-
-Dataclass fields conversions can also be customized using `conversions` metadata. 
-
-```python
-{!field_conversions.py!}
-```
-
-#### Field (de)serializer
-
-`conversions` metadata can also be used to add directly a (de)serializer to a field — `deserialization` and `serialization` are then applied after the (de)serializer as [chained conversions](#chain-conversions)
-
-```python
-{!field_de_serializer.py!}
-```
-
-Generic converters are handled naturally
-
-```python
-{!field_generic_de_serializer.py!}
-```
-
-### Serialized method conversion
-
-Serialized method can also have dedicated conversions
-
-```python
-{!serialized_conversions.py!}
+{!local_conversions.py!}
 ```
 
 ## Generic conversions
@@ -141,25 +109,65 @@ Serialized method can also have dedicated conversions
 ```
 
 !!! warning
-    (De)serializer methods of `Generic` classes are not handled before 3.7
-    
-!!! note
-    *Apischema* doesn't support specialization of `Generic` conversion like `Foo[bool] -> int`.
-    
-By the way, it's also possible to use *extra* conversions and select them the following way:
+(De)serializer cannot decorate methods of `Generic` classes in Python 3.6, it has to be used outside of class.
+
+However, *Apischema* doesn't support conversion of specialized generic like `Foo[bool] -> int` (see [FAQ](#why-conversion-can-only-be-applied-on-classes-and-not-on-others-types-newtype-fooint-etc))
+
+By the way, dynamic generic conversions are also supported.
 
 ```python
-{!generic_extra_conversions.py!}
+{!dynamic_generic_conversions.py!}
 ```
 
+## Field conversions
+
+It is possible to register a conversion for a particular dataclass field using `conversion` metadata.
+
+```python
+{!field_conversions.py!}
+```
+
+!!! note
+    It's possible to pass a conversion only for deserialization or only for serialization
+
+Fields conversions are different of other conversion by the fact they apply directly on the field type and not on a particular class: if field type is a list of `Foo`, the converter will have to take a list in parameter.
+However, it's possible with [sub-conversions](#sub-conversions) to get a similar behaviour to normal conversions.
+
+### Generic field conversions
+
+Generic field conversions are again handled naturally out-of-the-box
+
+```python
+{!field_generic_conversion.py!}
+```
+
+!!! note
+As shown in the example, *Apischema* will substitute `TypeVar`s according to the field type, even if it has itself a generic type. By the way, LSP is taken in account when field has not the same type as the conversion side (here, `dict` is a subtype of `Mapping`, so type vars can be substituted in a serialization context)
+
+## Sub-conversions
+
+Sub-conversions are quite an advanced use; they are [dynamic conversions](#dynamic-conversions--select-conversions-at-runtime) applied after a conversion (or an other computation, like a serialized method).
+
+```python
+{!sub_conversions.py!}
+```
+
+### Serialized method conversion
+
+Serialized method can also have dedicated conversions
+
+```python
+{!serialized_conversions.py!}
+```
 
 ## Dataclass model - automatic conversion from/to dataclass
 
 Conversions are a powerful tool, which allows to support every type you need. If it is particularly well suited for scalar types (`datetime.datetime`, `bson.ObjectId`, etc.), it may seem a little bit complex for object types. In fact, the conversion would often be a simple mapping of fields between the type and a dataclass.
 
-That's why *Apischema* provides a shortcut for this case: `apischema.dataclass_model`; it allows to specify a dataclass which will be used as a typed model for a given class : each field of the dataclass will be mapped on the attributes of the class instances.
+That's why *Apischema* provides a shortcut for this case: `apischema.conversions.dataclass_model`; it allows to specify a dataclass which will be used as a typed model for a given class : each field of the dataclass will be mapped on the attributes of the class instances.
+The function returns two `Conversion` object, one for deserialization and the other for serialization. They can then be registered with `serializer`/`deserializer`, or be used dynamically.
 
-Dataclass can also be declared dynamically with `dataclasses.make_dataclasses`. That's especially useful when it comes to add support for libraries like ORM. The following example show how to add a [basic support for 
+Remember that dataclass can also be declared dynamically with `dataclasses.make_dataclasses`. That's especially useful when it comes to add support for libraries like ORM. The following example show how to add a [basic support for 
 *SQLAlchemy*](examples/sqlalchemy.md):
 
 ```python
@@ -168,11 +176,43 @@ Dataclass can also be declared dynamically with `dataclasses.make_dataclasses`. 
 
 There are two differences with regular conversions :
 
-- The dataclass model computation can be deferred until it's needed. This is because some libraries do some resolutions after class definition (for example SQLAchemy resolves dynamic string references in relationships). So you can replace the following line in the example
+- The dataclass model computation can be deferred until it's needed. This is because some libraries do some resolutions after class definition (for example SQLAchemy resolves dynamic string references in relationships). So you could replace the following line in the example, it would works too.
 
 ```python
 # dataclass_model(cls)(make_dataclass(cls.__name__, fields))
 dataclass_model(cls)(lambda: make_dataclass(cls.__name__, fields))
 ```
 
-- [Serialized methods/properties](de_serialization.md#serialized-methodsproperties) of the class are automatically added to the dataclass model (but you can also declare serialized methods in the dataclass model).
+- [Serialized methods/properties](de_serialization.md#serialized-methodsproperties) of the class are automatically added to the dataclass model (but you can also declare serialized methods in the dataclass model). This behavior can be toggled off using `fields_only` parameter with a `True` value. 
+
+## Default conversions
+
+As almost every default behavior in *Apischema*, default conversion can be configured using `apischema.settings.deserialization`/`apischema.settings.serialization`. The initial value of these settings are the function which retrieved conversions registered with `deserializer`/`serializer`.
+
+You can for example [support *attrs*](examples/attrs_compatibility.md) classes with this feature:
+
+
+```python
+{!examples/attrs_support.py!}
+```
+
+## FAQ
+
+#### Why conversion can only be applied on classes and not on others types (`NewType`, `Foo[int]`, etc.)?
+
+Serialization doesn't have access to annotations (it's way less performant to use model annotations, and things like `Union` are useless in a serialization point of view), it uses instead the class of the object serialized; so `NewType` and other things that don't exist at runtime are simply unavailable. (As a side effect, serialization conversions applied to a `NewType` super-type will be applied to objects even if they are annotated with `NewType`, but it's a corner case as `NewType` is mainly used with builtin types `int`, `str`, etc.)
+
+Serialization conversions with specialized generic like `Foo[int]` are impossible too, because the generic argument of `Foo` cannot be retrieved. 
+
+On the other hand, deserialization use annotations, so it could indeed apply conversions to other types (and it was in fact the case in the firsts versions).
+
+However, it has been judged better to get the same restriction on both operation for simplicity and because the main need of deserialization customization is validation, which can already be registered for `NewType` or embedded in `Annotated`, etc.
+
+#### Why conversion cannot be applied on primitive type?
+
+It's not a technical issue (it was a performance isssue in the first versions), but rather a design choice to keep things simple.
+
+#### Why dynamic conversion cannot apply on the whole data model?
+
+Actually, it would be to implement global dynamic conversions for (de)serialization. However, when it comes to JSON schema generation, things would get completely messy. In fact, it would break the concept of `$ref`, because the content of a `$ref` would be changed between two endpoints with different global conversions, as conversions could change the fields in one and not in the other. 
+

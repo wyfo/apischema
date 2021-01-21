@@ -1,6 +1,6 @@
 __all__ = [
     "alias",
-    "conversions",
+    "conversion",
     "default_as_set",
     "default_fallback",
     "init_var",
@@ -13,9 +13,8 @@ __all__ = [
 ]
 
 from apischema.aliases import alias
-from apischema.conversions.metadata import conversions
-from apischema.validation.validator import validators
-from .misc import (
+from .implem import (
+    conversion,
     default_as_set,
     default_fallback,
     init_var,
@@ -24,4 +23,5 @@ from .misc import (
     properties,
     required,
     skip,
+    validators,
 )

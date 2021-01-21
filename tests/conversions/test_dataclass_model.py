@@ -1,77 +1,58 @@
-from dataclasses import dataclass, field, make_dataclass
-from typing import Type
+from dataclasses import dataclass, field
+from typing import Type, cast
+
+from pytest import mark
 
 from apischema import alias, deserialize, serialize
 from apischema.conversions.dataclass_models import dataclass_model
-from apischema.json_schema import deserialization_schema
+from apischema.json_schema import deserialization_schema, serialization_schema
 
 
-class Simple:
+class Data:
     def __init__(self, a: int):
         self.a = a
 
     def __eq__(self, other):
-        return type(other) == Simple and other.a == self.a
+        return type(other) == Data and other.a == self.a
 
 
-@dataclass_model(Simple)
 @dataclass
-class SimpleModel:
+class DataModel1:
     a: int
 
 
-@dataclass_model(Simple, extra=True)
 @dataclass
-class SimpleModel2:
+class DataModel2:
     a: int = field(metadata=alias("b"))
 
 
-def test_simple_dataclass_model():
-    assert deserialize(Simple, {"a": 0}) == Simple(0)
-    assert serialize(Simple(0)) == {"a": 0}
-    assert deserialization_schema(Simple) == {
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
-        "type": "object",
-        "properties": {"a": {"type": "integer"}},
-        "required": ["a"],
-        "additionalProperties": False,
-    }
+d_conv1, s_conv1 = dataclass_model(Data, DataModel1)
+d_conv2, s_conv2 = dataclass_model(Data, DataModel2)
+tmp: Type = cast(Type, ...)
+d_conv3, s_conv3 = dataclass_model(Data, lambda: tmp)
+# Assign tmp after dataclass_model call to show that it's called lazily
+tmp = DataModel1
 
 
-class Lazy:
-    def __init__(self, a: int):
-        self.a = a
-
-    def __eq__(self, other):
-        return type(other) == Lazy and other.a == self.a
-
-
-@dataclass_model(Lazy)
-def lazy_model() -> Type:
-    return make_dataclass("LazyModel", [("a", int)])
-
-
-@dataclass_model(Lazy, extra=True)
-def lazy_model2() -> Type:
-    return make_dataclass("LazyModel", [("a", int, field(metadata=alias("b")))])
-
-
-def test_lazy_dataclass_model():
-    assert deserialize(Lazy, {"a": 0}) == Lazy(0)
-    assert serialize(Lazy(0)) == {"a": 0}
-    assert deserialization_schema(Lazy) == {
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
-        "type": "object",
-        "properties": {"a": {"type": "integer"}},
-        "required": ["a"],
-        "additionalProperties": False,
-    }
-
-
-def test_dataclass_model_conversions_selection():
-    assert deserialize(Simple, {"b": 0}, conversions={Simple: SimpleModel2}) == Simple(
-        0
+@mark.parametrize(
+    "d_conv, s_conv, alias",
+    [
+        (d_conv1, s_conv1, "a"),
+        (d_conv2, s_conv2, "b"),
+        (d_conv3, s_conv3, "a"),
+    ],
+)
+def test_simple_dataclass_model(d_conv, s_conv, alias):
+    assert deserialize(Data, {alias: 0}, conversions=d_conv) == Data(0)
+    assert serialize(Data(0), conversions=s_conv) == {alias: 0}
+    assert (
+        deserialization_schema(Data, conversions=d_conv)
+        == serialization_schema(Data, conversions=s_conv)
+        == {
+            "$schema": "http://json-schema.org/draft/2019-09/schema#",
+            "type": "object",
+            "properties": {alias: {"type": "integer"}},
+            "required": [alias],
+            "additionalProperties": False,
+        }
     )
-    assert serialize(Simple(0), conversions={Simple: SimpleModel2}) == {"b": 0}
-    assert deserialize(Lazy, {"b": 0}, conversions={Lazy: lazy_model2}) == Lazy(0)
-    assert serialize(Lazy(0), conversions={Lazy: lazy_model2}) == {"b": 0}

@@ -1,8 +1,9 @@
 import re
 from typing import NamedTuple, NewType
 
-import apischema
 import pydantic.validators
+
+import apischema
 
 
 # Serialization can only be customized into the enclosing models
@@ -44,17 +45,19 @@ class RGB(NamedTuple):
     blue: int
 
 
+# NewType can be used to add schema to conversion source/target
+# but Annotated[str, apischema.schema(pattern=r"#[0-9A-Fa-f]{6}")] would have worked too
 HexaRGB = NewType("HexaRGB", str)
 # pattern is used in JSON schema and in deserialization validation
 apischema.schema(pattern=r"#[0-9A-Fa-f]{6}")(HexaRGB)
 
 
-@apischema.deserializer
+@apischema.deserializer  # could be declared as a staticmethod of RGB class
 def from_hexa(hexa: HexaRGB) -> RGB:
     return RGB(int(hexa[1:3], 16), int(hexa[3:5], 16), int(hexa[5:7], 16))
 
 
-@apischema.serializer  # could be declared as a method of RGB class
+@apischema.serializer  # could be declared as a method/property of RGB class
 def to_hexa(rgb: RGB) -> HexaRGB:
     return HexaRGB(f"#{rgb.red:02x}{rgb.green:02x}{rgb.blue:02x}")
 

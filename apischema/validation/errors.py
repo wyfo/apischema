@@ -1,7 +1,7 @@
 import collections.abc
 import re
 import sys
-from dataclasses import Field, dataclass, field, replace
+from dataclasses import Field, dataclass, field
 from functools import reduce, wraps
 from inspect import isgeneratorfunction
 from typing import (
@@ -24,6 +24,7 @@ from typing import (
 
 from apischema.aliases import Aliaser
 from apischema.dataclass_utils import get_alias
+from apischema.dataclasses import replace
 from apischema.typing import get_args, get_origin
 from apischema.utils import merge_opts
 

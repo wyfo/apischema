@@ -1,17 +1,7 @@
 from dataclasses import dataclass
-from typing import (
-    Any,
-    Callable,
-    ClassVar,
-    Dict,
-    Mapping,
-    NewType,
-    Optional,
-    Type,
-)
+from typing import Any, Callable, ClassVar, Dict, Mapping, Optional
 
-from apischema.conversions.converters import extra_serializer
-from apischema.conversions.utils import Conversions
+from apischema.conversions import Conversion
 from apischema.json_schema.types import JsonSchema
 
 RefFactory = Callable[[str], str]
@@ -28,11 +18,7 @@ def isolate_ref(schema: Dict[str, Any]):
         schema.setdefault("allOf", []).append({"$ref": schema.pop("$ref")})
 
 
-JsonSchema7 = NewType("JsonSchema7", Mapping[str, Any])
-
-
-@extra_serializer(conversions={JsonSchema: JsonSchema7})
-def to_json_schema_7(schema: JsonSchema) -> JsonSchema7:
+def to_json_schema_7(schema: JsonSchema) -> Mapping[str, Any]:
     result = schema.copy()
     isolate_ref(result)
     if "$defs" in result:
@@ -42,14 +28,10 @@ def to_json_schema_7(schema: JsonSchema) -> JsonSchema7:
             **result.pop("dependentRequired"),
             **result.get("dependencies", {}),
         }
-    return JsonSchema7(result)
+    return result
 
 
-OpenAPI30 = NewType("OpenAPI30", Mapping[str, Any])
-
-
-@extra_serializer(conversions={JsonSchema: OpenAPI30})
-def to_open_api_3_0(schema: JsonSchema) -> OpenAPI30:
+def to_open_api_3_0(schema: JsonSchema) -> Mapping[str, Any]:
     result = schema.copy()
     for key in ("dependentRequired", "unevaluatedProperties", "$defs"):
         result.pop(key, ...)
@@ -66,19 +48,26 @@ def to_open_api_3_0(schema: JsonSchema) -> OpenAPI30:
         result["anyOf"] = [a for a in result["anyOf"] if a != {"type": "null"}]
     if "examples" in result:
         result.setdefault("example", result.pop("examples")[0])
-    return OpenAPI30(result)
+    return result
 
 
 @dataclass
 class JsonSchemaVersion:
     schema: Optional[str] = None
     ref_prefix: str = ""
-    serialization: Optional[Type] = None
+    serialization: Optional[Callable] = None
     all_refs: bool = True
 
     @property
-    def conversions(self) -> Optional[Conversions]:
-        return None if self.serialization is None else {JsonSchema: self.serialization}
+    def conversion(self) -> Optional[Conversion]:
+        if self.serialization:
+            # Recursive conversion pattern
+            tmp = None
+            conversion = Conversion(self.serialization, lazy_conversions=lambda: tmp)
+            tmp = conversion
+            return conversion
+        else:
+            return None
 
     @property
     def ref_factory(self) -> RefFactory:
@@ -93,8 +82,8 @@ JsonSchemaVersion.DRAFT_2019_09 = JsonSchemaVersion(
     "http://json-schema.org/draft/2019-09/schema#", "#/$defs/", None, False
 )
 JsonSchemaVersion.DRAFT_7 = JsonSchemaVersion(
-    "http://json-schema.org/draft-07/schema#", "#/definitions/", JsonSchema7, False
+    "http://json-schema.org/draft-07/schema#", "#/definitions/", to_json_schema_7, False
 )
 JsonSchemaVersion.OPEN_API_3_0 = JsonSchemaVersion(
-    None, "#/components/schemas/", OpenAPI30, True
+    None, "#/components/schemas/", to_open_api_3_0, True
 )

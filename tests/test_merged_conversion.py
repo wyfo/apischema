@@ -1,14 +1,13 @@
 from dataclasses import dataclass, field
 
-from graphql import print_schema
+from graphql import graphql_sync, print_schema
 from pytest import raises
 
-from apischema import deserialize, serialize
-from apischema.conversions import dataclass_model, extra_deserializer, extra_serializer
-from apischema.conversions.metadata import conversions
+from apischema import deserialize, deserializer, serialize, serializer
+from apischema.conversions import dataclass_model
 from apischema.graphql import graphql_schema
 from apischema.json_schema import deserialization_schema, serialization_schema
-from apischema.metadata import merged
+from apischema.metadata import conversion, merged
 
 
 class Field:
@@ -16,10 +15,14 @@ class Field:
         self.attr = attr
 
 
-@dataclass_model(Field)
 @dataclass
 class FieldModel:
     attr: int
+
+
+d_conv, s_conv = dataclass_model(Field, FieldModel)
+deserializer(d_conv)
+serializer(s_conv)
 
 
 @dataclass
@@ -53,7 +56,7 @@ type Data {
 
 
 def get_data() -> Data:
-    ...
+    return Data(Field(0))
 
 
 def test_merged_dataclass_model():
@@ -78,8 +81,10 @@ def test_merged_dataclass_model():
             "unevaluatedProperties": False,
         }
     )
+    schema = graphql_schema(query=[get_data])
+    assert graphql_sync(schema, "{getData{attr}}").data == {"getData": {"attr": 0}}
     assert (
-        print_schema(graphql_schema(query=[get_data]))
+        print_schema(schema)
         == """\
 type Query {
   getData: Data!
@@ -96,32 +101,30 @@ class Field2:
     def __init__(self, attr: int):
         self.attr = attr
 
-    @extra_deserializer
     @staticmethod
     def from_field(field: Field) -> "Field2":
         return Field2(field.attr)
 
-    @extra_serializer
     def to_field(self) -> Field:
         return Field(self.attr)
 
-    @extra_deserializer
     @staticmethod
     def from_int(i: int) -> "Field2":
         return Field2(i)
 
-    @extra_serializer
     def to_int(self) -> int:
         return self.attr
 
 
 @dataclass
 class Data2:
-    data_field2: Field2 = field(metadata=merged | conversions(Field))
+    data_field2: Field2 = field(
+        metadata=merged | conversion(Field2.from_field, Field2.to_field)
+    )
 
 
 def get_data2() -> Data2:
-    ...
+    return Data2(Field2(0))
 
 
 def test_merged_converted():
@@ -146,8 +149,10 @@ def test_merged_converted():
             "unevaluatedProperties": False,
         }
     )
+    schema = graphql_schema(query=[get_data2])
+    assert graphql_sync(schema, "{getData2{attr}}").data == {"getData2": {"attr": 0}}
     assert (
-        print_schema(graphql_schema(query=[get_data2]))
+        print_schema(schema)
         == """\
 type Query {
   getData2: Data2!
@@ -162,7 +167,9 @@ type Data2 {
 
 @dataclass
 class Data3:
-    data_field2: Field2 = field(metadata=merged | conversions(int))
+    data_field2: Field2 = field(
+        metadata=merged | conversion(Field2.from_int, Field2.to_int)
+    )
 
 
 def get_data3() -> Data3:

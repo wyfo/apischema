@@ -1,4 +1,3 @@
-from contextlib import suppress
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
@@ -26,17 +25,19 @@ _refs: Dict[AnyType, Optional[Ref]] = {}
 
 def _default_ref(cls: AnyType) -> Ref:
     if not hasattr(cls, "__parameters__") and (
-        (isinstance(cls, type) and is_dataclass(cls))
+        (
+            isinstance(cls, type)
+            and (
+                is_dataclass(cls)
+                or (issubclass(cls, tuple) and hasattr(cls, "_field"))
+                or issubclass(cls, Enum)
+            )
+        )
         or (hasattr(cls, "__supertype__") and is_builtin(cls))
         or isinstance(cls, _TypedDictMeta)
     ):
         return ...
     else:
-        with suppress(TypeError):
-            if (issubclass(cls, tuple) and hasattr(cls, "_field")) or issubclass(
-                cls, Enum
-            ):
-                return ...
         return None
 
 

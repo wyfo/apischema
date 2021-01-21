@@ -1,4 +1,4 @@
-from dataclasses import Field, dataclass, field, is_dataclass, replace
+from dataclasses import Field, dataclass, is_dataclass
 from enum import Enum
 from functools import wraps
 from itertools import chain
@@ -24,7 +24,12 @@ from typing import (
 from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.cache import cache
-from apischema.conversions.utils import Conversions, ConversionsWrapper, identity
+from apischema.conversions.conversions import (
+    Conversions,
+    HashableConversions,
+    to_hashable_conversions,
+)
+from apischema.conversions.utils import Converter, identity
 from apischema.conversions.visitor import Deserialization, DeserializationVisitor
 from apischema.dataclass_utils import (
     get_alias,
@@ -35,6 +40,7 @@ from apischema.dataclass_utils import (
     has_default,
     is_required,
 )
+from apischema.dataclasses import replace
 from apischema.dependent_required import DependentRequired
 from apischema.deserialization.coercion import Coercion, get_coercer
 from apischema.deserialization.merged import get_init_merged_alias
@@ -45,6 +51,7 @@ from apischema.json_schema.constraints import (
 )
 from apischema.json_schema.patterns import infer_pattern
 from apischema.json_schema.schema import Schema, get_schema
+from apischema.metadata.implem import ValidatorsMetadata
 from apischema.metadata.keys import (
     DEFAULT_FALLBACK_METADATA,
     MERGED_METADATA,
@@ -65,7 +72,7 @@ from apischema.types import (
     OrderedDict,
 )
 from apischema.typing import get_origin
-from apischema.utils import Operation
+from apischema.utils import OperationKind
 from apischema.validation.errors import (
     ErrorKey,
     ValidationError,
@@ -75,7 +82,6 @@ from apischema.validation.errors import (
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validator import (
     Validator,
-    ValidatorsMetadata,
     get_validators,
     validate,
 )
@@ -93,11 +99,9 @@ T = TypeVar("T")
 # TODO maybe ctx parameters to deserializers
 @dataclass
 class DeserializationContext:
-    additional_properties: bool = field(
-        default_factory=lambda: settings.additional_properties
-    )
-    coercion: Coercion = field(default_factory=lambda: settings.coercion)
-    default_fallback: bool = field(default_factory=lambda: settings.default_fallback)
+    additional_properties: bool
+    coercion: Coercion
+    default_fallback: bool
 
     def __post_init__(self):
         self.coercer = get_coercer(self.coercion)
@@ -257,7 +261,7 @@ class DeserializationMethodVisitor(
         self.aliaser = aliaser
 
     def _visit(self, cls: AnyType) -> DeserializationMethodFactory:
-        key = self._generic or cls, id(self._conversions)
+        key = self._generic or cls, self._conversions
         if key in self._rec_sentinel:
             return cast(DeserializationMethodFactory, self._rec_sentinel[key])
         else:
@@ -342,26 +346,22 @@ class DeserializationMethodVisitor(
         }
         defaults: Dict[str, Callable[[], Any]] = {}
         required_by = get_requirements(
-            cls, DependentRequired.required_by, Operation.DESERIALIZATION
+            cls, DependentRequired.required_by, OperationKind.DESERIALIZATION
         )
         for field in get_fields(  # noqa: F402
-            fields, init_vars, Operation.DESERIALIZATION
+            fields, init_vars, OperationKind.DESERIALIZATION
         ):
             metadata = check_metadata(field)
             if SKIP_METADATA in metadata or not field.init:
                 continue
-            field_type = types[field.name]
             if has_default(field):
                 defaults[field.name] = lambda: get_default(field)
-            conversion_type, conversions, converter = get_field_conversion(
-                field, field_type, Operation.DESERIALIZATION
+            field_type = types[field.name]
+            field_type, conversion = get_field_conversion(
+                field, field_type, OperationKind.DESERIALIZATION
             )
-            if converter is not None:
-                field_factory = self.visit_with_conversions(
-                    field_type, {conversion_type: (converter, conversions)}
-                )
-            elif conversions is not None:
-                field_factory = self.visit_with_conversions(field_type, conversions)
+            if conversion is not None:
+                field_factory = self.visit_conversion(field_type, [conversion])
             else:
                 field_factory = self.visit(field_type)
             if SCHEMA_METADATA in metadata:
@@ -773,8 +773,13 @@ class DeserializationMethodVisitor(
     ) -> DeserializationMethodFactory:
         assert conversion
         factories = [
-            (self.visit_with_conversions(source, conversions), converter)
-            for source, (converter, conversions) in conversion.items()
+            (
+                self.visit_with_conversions(
+                    self._replace_generic_args(conv.source), conv.conversions
+                ),
+                cast(Converter, conv.converter),
+            )
+            for conv in conversion
         ]
 
         @DeserializationMethodFactory.from_type(cls)
@@ -827,10 +832,9 @@ class DeserializationMethodVisitor(
 @cache
 def get_method(
     cls: AnyType,
-    wrapper: Optional[ConversionsWrapper],
+    conversions: Optional[HashableConversions],
     aliaser: Aliaser,
 ) -> DeserializationMethod:
-    conversions = wrapper.conversions if wrapper is not None else None
     factory = DeserializationMethodVisitor(aliaser).visit_with_conversions(
         cls, conversions
     )
@@ -884,5 +888,4 @@ def deserialize(
     if aliaser is None:
         aliaser = settings.aliaser()
     ctx = DeserializationContext(additional_properties, coercion, default_fallback)
-    wrapper = ConversionsWrapper(conversions) if conversions is not None else None
-    return get_method(cls, wrapper, aliaser)(ctx, data)
+    return get_method(cls, to_hashable_conversions(conversions), aliaser)(ctx, data)

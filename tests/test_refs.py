@@ -6,7 +6,7 @@ from pytest import mark
 
 from apischema import schema_ref
 from apischema.json_schema import deserialization_schema
-from apischema.json_schema.generation.builder import DeserializationSchemaBuilder
+from apischema.json_schema.generation.schema import DeserializationSchemaBuilder
 from apischema.typing import Annotated
 
 

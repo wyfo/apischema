@@ -1,121 +1,102 @@
 from inspect import Parameter, isclass, signature
-from typing import (
-    Any,
-    Callable,
-    Collection,
-    Dict,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    cast,
-)
+from typing import Any, Callable, Dict, Generic, Optional, Tuple, Type, TypeVar, cast
 
-from apischema.types import AnyType
-from apischema.typing import get_type_hints
-from apischema.utils import type_name
-from apischema.visitor import Unsupported, Visitor
+from apischema.types import AnyType, COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES
+from apischema.typing import get_args, get_origin, get_type_hints
+from apischema.utils import get_parameters, is_type_var, substitute_type_vars, type_name
 
-Conversions = Mapping[AnyType, Any]
 Converter = Callable[[Any], Any]
-ConverterWithConversions = Tuple[Converter, Optional[Conversions]]
 
 
-def check_converter(
+def converter_types(
     converter: Converter,
-    param: Optional[AnyType],
-    ret: Optional[AnyType],
+    source: Optional[AnyType] = None,
+    target: Optional[AnyType] = None,
     namespace: Dict[str, Any] = None,
 ) -> Tuple[AnyType, AnyType]:
     try:
-        parameters = iter(signature(converter).parameters.values())
+        # in pre 3.9, Generic __new__ perturb signature of types
+        if (
+            isinstance(converter, type)
+            and converter.__new__ is Generic.__new__ is not object.__new__
+            and converter.__init__ is not object.__init__  # type: ignore
+        ):
+            parameters = list(signature(converter.__init__).parameters.values())[1:]  # type: ignore # noqa: E501
+        else:
+            parameters = list(signature(converter).parameters.values())
     except ValueError:  # builtin types
-        if ret is None and isclass(converter):
-            ret = cast(Type[Any], converter)
-        if param is None:
-            raise TypeError("converter parameter must be typed")
+        if target is None and isclass(converter):
+            target = cast(Type[Any], converter)
+        if source is None:
+            raise TypeError("Converter source is unknown") from None
     else:
-        try:
-            first = next(parameters)
-        except StopIteration:
+        if not parameters:
             raise TypeError("converter must have at least one parameter")
-        types = get_type_hints(converter, None, namespace, include_extras=True)
-        for p in parameters:
+        first_param, *other_params = parameters
+        for p in other_params:
             if p.default is Parameter.empty and p.kind not in (
                 Parameter.VAR_POSITIONAL,
                 Parameter.VAR_KEYWORD,
             ):
                 raise TypeError(
-                    "converter must have at most one parameter " "without default"
+                    "converter must have at most one parameter without default"
                 )
-        if param is None:
+        if source is not None and target is not None:
+            return source, target
+        types = get_type_hints(converter, None, namespace, include_extras=True)
+        if not types and isclass(converter):
+            types = get_type_hints(
+                converter.__new__, None, namespace, include_extras=True
+            ) or get_type_hints(
+                converter.__init__, None, namespace, include_extras=True  # type: ignore
+            )
+        if source is None:
             try:
-                param = types.pop(first.name)
+                source = types.pop(first_param.name)
             except KeyError:
-                raise TypeError("converter parameter must be typed")
-        if ret is None:
+                raise TypeError("converter source is unknown") from None
+        if target is None:
             try:
-                ret = types.pop("return")
+                target = types.pop("return")
             except KeyError:
                 if isclass(converter):
-                    ret = cast(Type, converter)
+                    target = cast(Type, converter)
                 else:
-                    raise TypeError("converter return must be typed")
-    return param, ret
+                    raise TypeError("converter target is unknown") from None
+    return source, target
 
 
-class ConvertibleVisitor(Visitor[bool]):
-    def annotated(self, cls: AnyType, annotations: Sequence[Any]) -> bool:
-        return False
+def get_conversion_type(base: AnyType, other: AnyType) -> Tuple[AnyType, AnyType]:
+    """
+    Args:
+        base: (generic) type on the registered side the conversion
+        other: other side of the conversion
 
-    def any(self) -> bool:
-        return False
-
-    def collection(self, cls: Type[Collection], value_type: AnyType) -> bool:
-        return False
-
-    def generic(self, cls: AnyType) -> bool:
-        return True
-
-    def literal(self, values: Sequence[Any]) -> bool:
-        return False
-
-    def mapping(
-        self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType
-    ) -> bool:
-        return False
-
-    def new_type(self, cls: AnyType, super_type: AnyType) -> bool:
-        return False
-
-    def tuple(self, types: Sequence[AnyType]) -> bool:
-        return False
-
-    def union(self, alternatives: Sequence[AnyType]) -> bool:
-        return False
+    Returns:
+        The type on which is registered conversion (its origin when generic) and the
+        other side of the conversion with its original parameters
+    """
+    origin = get_origin(base)
+    if origin is None:
+        return base, other
+    args = get_args(base)
+    if not all(map(is_type_var, args)):
+        raise TypeError(
+            f"Generic conversion doesn't support specialization,"
+            f" aka {type_name(base)}[{','.join(map(type_name, args))}]"
+        )
+    return origin, substitute_type_vars(other, dict(zip(args, get_parameters(origin))))
 
 
-def is_convertible(cls: AnyType):
-    try:
-        return ConvertibleVisitor().visit(cls)
-    except (NotImplementedError, Unsupported):
-        return True
+BUILTIN_TYPES = {*PRIMITIVE_TYPES, *COLLECTION_TYPES, *MAPPING_TYPES}
 
 
-def check_convertible(cls: AnyType):
-    if not is_convertible(cls):
-        raise TypeError(f"{type_name(cls)} is not a class")
+def is_convertible(tp: AnyType) -> bool:
+    return isinstance(tp, type)
 
 
-class ConversionsWrapper:
-    """Allows to hash conversions — conversions must be immutable"""
-
-    def __init__(self, conversions: Conversions):
-        self.conversions = conversions
-
-    def __hash__(self):
-        return id(self.conversions)
+T = TypeVar("T")
 
 
-identity = lambda x: x  # noqa: E731
+def identity(x: T) -> T:
+    return x

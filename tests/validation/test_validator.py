@@ -11,8 +11,8 @@ from apischema.validation.validator import (
     Validator,
     get_validators,
     validate,
-    validators,
 )
+from apischema.metadata import validators
 
 
 @dataclass

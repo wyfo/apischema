@@ -12,6 +12,7 @@ from apischema import (
     serialize,
     serializer,
 )
+from apischema.conversions import Conversion
 from apischema.json_schema import deserialization_schema
 from apischema.validation.errors import LocalizedError
 
@@ -31,9 +32,10 @@ def add_deserializer(cls: type[pydantic.BaseModel]):
                 [LocalizedError(err["loc"], [err["msg"]]) for err in error.errors()]
             )
 
-    deserializer(deserialize_pydantic, Data, cls)
+    deserializer(Conversion(deserialize_pydantic, source=Data, target=cls))
 
 
+# You can use __subclasses__ or add __init_subclass__ according to your needs
 for cls in pydantic.BaseModel.__subclasses__():
     add_deserializer(cls)
 pydantic.BaseModel.__init_subclass__ = classmethod(add_deserializer)  # type: ignore
@@ -41,7 +43,7 @@ pydantic.BaseModel.__init_subclass__ = classmethod(add_deserializer)  # type: ig
 
 @serializer
 def serialize_pydantic(obj: pydantic.BaseModel) -> Mapping[str, Any]:
-    # There is currently no mean to retrieve `serialize` parameters,
+    # There is currently no way to retrieve `serialize` parameters,
     # so exclude unset is set to True as it's the default apischema setting
     return obj.dict(exclude_unset=True)
 

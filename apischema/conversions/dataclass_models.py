@@ -1,72 +1,75 @@
-from dataclasses import dataclass, is_dataclass
+from dataclasses import dataclass
 from types import new_class
-from typing import Callable, Type, Union
+from typing import Callable, Optional, TYPE_CHECKING, Tuple, Type, Union
 
-from apischema.cache import cache
-from apischema.conversions.converters import (
-    deserializer,
-    extra_deserializer,
-    extra_serializer,
-    serializer,
-)
+from apischema.conversions import Conversion
 from apischema.conversions.utils import identity
-from apischema.utils import PREFIX
+from apischema.dataclasses import replace
+from apischema.utils import PREFIX, cached_property
 
-MODEL_ORIGIN_ATTR = f"{PREFIX}apischema"
-
+if TYPE_CHECKING:
+    from apischema.deserialization.coercion import Coercion
 
 Model = Union[Type, Callable[[], Type]]
 
 
-@dataclass(frozen=True)
-class DataclassModelWrapper:
-    cls: Type
-    model: Model
-
-
-@cache
-def get_model(cls: Type, model: Model) -> Type:
+def check_model(origin: Type, model: Type):
     if not isinstance(model, type):
-        model = model()
-
-    if not is_dataclass(model):
         raise TypeError("Dataclass model must be a dataclass")
-    if len(getattr(cls, "__parameters__", ())) != len(
-        getattr(model, "__parameters__", ())
-    ):
+    if getattr(origin, "__parameters__", ()) != getattr(model, "__parameters__", ()):
         raise TypeError("Dataclass model must have the same generic parameters")
-    base = model[cls.__parameters__] if hasattr(cls, "__parameters__") else model
 
-    def __new__(_, *args, **kwargs):
-        return cls(*args, **kwargs)
 
-    return new_class(
-        model.__name__,
-        (base,),
-        {},
-        lambda ns: ns.update({"__new__": __new__, MODEL_ORIGIN_ATTR: cls}),
-    )
+MODEL_ORIGIN_ATTR = f"{PREFIX}model_origin"
+
+
+@dataclass(frozen=True)
+class DataclassModel:
+    origin: Type
+    model: Model
+    fields_only: bool
+
+    @cached_property
+    def dataclass(self) -> Type:
+        origin = self.origin
+        if isinstance(self.model, type):
+            assert check_model(origin, self.model) is None
+            model = self.model
+        else:
+            model = self.model()
+            check_model(origin, model)
+        namespace = {"__new__": lambda _, *args, **kwargs: origin(*args, **kwargs)}
+        if not self.fields_only:
+            namespace[MODEL_ORIGIN_ATTR] = origin
+        return new_class(
+            model.__name__, (model,), exec_body=lambda ns: ns.update(namespace)
+        )
 
 
 def dataclass_model(
-    cls: Type, *, deserialization=True, serialization=True, extra=False
-) -> Callable[[Model], DataclassModelWrapper]:
-    def decorator(model: Model) -> DataclassModelWrapper:
-        wrapped_model = DataclassModelWrapper(cls, model)
-        if deserialization:
-            if extra:
-                extra_deserializer(identity, wrapped_model, cls)
-            else:
-                deserializer(identity, wrapped_model, cls)
-        if serialization:
-            if extra:
-                extra_serializer(identity, cls, wrapped_model)
-            else:
-                serializer(identity, cls, wrapped_model)
+    origin: Type,
+    model: Model,
+    *,
+    fields_only: bool = False,
+    additional_properties: Optional[bool] = None,
+    coercion: Optional["Coercion"] = None,
+    default_fallback: Optional[bool] = None,
+    exclude_unset: Optional[bool] = None,
+) -> Tuple[Conversion, Conversion]:
+    if isinstance(model, type):
+        check_model(origin, model)
 
-        return wrapped_model
-
-    return decorator
+    model_type = DataclassModel(origin, model, fields_only)
+    conversion = Conversion(
+        identity,
+        additional_properties=additional_properties,
+        coercion=coercion,
+        default_fallback=default_fallback,
+        exclude_unset=exclude_unset,
+    )
+    d_conv = replace(conversion, source=model_type, target=origin)
+    s_conv = replace(conversion, source=origin, target=model_type)
+    return d_conv, s_conv
 
 
 def has_model_origin(cls: Type) -> bool:
