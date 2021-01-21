@@ -12,7 +12,8 @@ from _pytest.python_api import raises
 from pytest import mark
 
 from apischema import schema_ref
-from apischema.json_schema import deserialization_schema
+from apischema.conversions import Conversion
+from apischema.json_schema import deserialization_schema, serialization_schema
 from apischema.json_schema.generation.schema import DeserializationSchemaBuilder
 from apischema.json_schema.refs import get_ref
 from apischema.typing import Annotated
@@ -107,3 +108,19 @@ def test_generic_schema():
 def test_get_refs_of_replaced():
     schema_ref("test")(Sequence[A])
     assert get_ref(List[A]) == get_ref(Collection[A]) == "test"
+
+
+class RecConv:
+    pass
+
+
+def rec_converter(rec: RecConv) -> List[RecConv]:
+    ...
+
+
+def test_recursive_conversion_without_ref():
+    tmp = None
+    conversion = Conversion(rec_converter, lazy_conversions=lambda: tmp)
+    tmp = conversion
+    with raises(TypeError, match=r"Recursive type <.*> need a ref"):
+        serialization_schema(RecConv, conversions=conversion)

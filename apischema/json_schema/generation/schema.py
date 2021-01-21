@@ -483,14 +483,14 @@ class DeserializationSchemaBuilder(DeserializationVisitor, SchemaBuilder):
     class RefsExtractor(DeserializationVisitor, RefsExtractor):  # type: ignore
         pass
 
-    visit_conversion = with_schema(DeserializationVisitor.visit_conversion)
+    visit_conversion = with_schema(DeserializationVisitor.visit_conversion)  # type: ignore # noqa: E501
 
 
 class SerializationSchemaBuilder(SerializationVisitor, SchemaBuilder):
     class RefsExtractor(SerializationVisitor, RefsExtractor):  # type: ignore
         pass
 
-    visit_conversion = with_schema(SerializationVisitor.visit_conversion)
+    visit_conversion = with_schema(SerializationVisitor.visit_conversion)  # type: ignore # noqa: E501
 
 
 TypesWithConversions = Collection[Union[AnyType, Tuple[AnyType, Conversions]]]

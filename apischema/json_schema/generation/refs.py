@@ -1,3 +1,4 @@
+from contextlib import suppress
 from dataclasses import Field
 from enum import Enum
 from typing import (  # type: ignore
@@ -7,6 +8,7 @@ from typing import (  # type: ignore
     Mapping,
     Optional,
     Sequence,
+    Set,
     Tuple,
     Type,
 )
@@ -33,6 +35,7 @@ class RefsExtractor(ConversionsVisitor):
     def __init__(self, refs: Refs):
         super().__init__()
         self.refs = refs
+        self._rec_guard: Set[AnyType] = set()
 
     def _incr_ref(self, ref: Optional[str], tp: AnyType) -> bool:
         if ref is None:
@@ -126,7 +129,16 @@ class RefsExtractor(ConversionsVisitor):
 
     def visit(self, tp: AnyType):
         dynamic = self._apply_dynamic_conversions(tp)
-        if dynamic is not None:
-            tp = dynamic
-        if not self._incr_ref(get_ref(tp), tp):
-            super().visit(tp)
+        ref_tp = dynamic if dynamic is not None else tp
+        with suppress(TypeError):
+            recursion = ref_tp in self._rec_guard
+        if recursion:
+            raise TypeError(f"Recursive type {tp} need a ref")
+        if not self._incr_ref(get_ref(ref_tp), ref_tp):
+            with suppress(TypeError):
+                self._rec_guard.add(ref_tp)
+            try:
+                super().visit(ref_tp)
+            finally:
+                with suppress(TypeError):
+                    self._rec_guard.discard(ref_tp)
