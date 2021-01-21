@@ -268,10 +268,26 @@ class DynamicDeserializationResolver(DynamicConversionResolver, DeserializationV
             tuple(self._replace_generic_args(conv.source) for conv in conversion)
         ]
 
+    def visit_conversion(
+        self, cls: Type, conversion: Deserialization
+    ) -> Optional[AnyType]:
+        if any(conv.lazy for conv in conversion):
+            return None
+        else:
+            return super().visit_conversion(cls, conversion)
+
 
 class DynamicSerializationResolver(DynamicConversionResolver, SerializationVisitor):
     def _final_type(self, conversion: Serialization) -> Optional[AnyType]:
         return self._replace_generic_args(conversion.target)
+
+    def visit_conversion(
+        self, cls: Type, conversion: Serialization
+    ) -> Optional[AnyType]:
+        if conversion.lazy:
+            return None
+        else:
+            return super().visit_conversion(cls, conversion)
 
 
 DeserializationVisitor._dynamic_conversion_resolver = DynamicDeserializationResolver
