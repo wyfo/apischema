@@ -24,12 +24,12 @@ _refs: Dict[AnyType, Optional[Ref]] = {}
 
 
 def _default_ref(tp: AnyType) -> Ref:
-    if not hasattr(tp, "__parameters__") and (
+    if not has_type_vars(tp) and (
         (
             isinstance(tp, type)
             and (
                 is_dataclass(tp)
-                or (issubclass(tp, tuple) and hasattr(tp, "_field"))
+                or (issubclass(tp, tuple) and hasattr(tp, "_fields"))
                 or issubclass(tp, Enum)
             )
         )
@@ -71,10 +71,10 @@ class schema_ref:
         if get_origin(tp) is not None and self.ref is ...:
             raise TypeError(f"Generic alias {tp} cannot have ... ref")
 
-    def __call__(self, cls: T) -> T:
-        self.check_type(cls)
-        _refs[replace_builtins(cls)] = self.ref
-        return cls
+    def __call__(self, tp: T) -> T:
+        self.check_type(tp)
+        _refs[replace_builtins(tp)] = self.ref
+        return tp
 
 
 class BuiltinVisitor(Visitor):
