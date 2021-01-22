@@ -200,9 +200,14 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         resolve: Optional[Callable] = None
         if conversion is not None:
             converter, conversions = conversion.converter, conversion.conversions
+            aliaser = self.aliaser
 
             def resolve(obj, info):
-                return converter(getattr(obj, field_name))  # type: ignore
+                return partial_serialize(
+                    converter(getattr(obj, field_name)),
+                    conversions=conversions,
+                    aliaser=aliaser,
+                )
 
         default: Any = graphql.Undefined
         if not is_required(field):
@@ -477,10 +482,12 @@ class OutputSchemaBuilder(
         if field.resolve is not None:
             resolve = field.resolve
         else:
-            field_name = field.name
+            field_name, conv, aliaser = field.name, field.conversions, self.aliaser
 
             def resolve(obj, _):
-                return getattr(obj, field_name)
+                return partial_serialize(
+                    getattr(obj, field_name), conversions=conv, aliaser=aliaser
+                )
 
         resolve = self._wrap_resolve(resolve)
 
