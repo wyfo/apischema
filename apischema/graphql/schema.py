@@ -67,7 +67,14 @@ from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, NoneType
 from apischema.typing import get_origin
-from apischema.utils import Undefined, get_args2, get_origin2, to_camel_case, type_name
+from apischema.utils import (
+    Undefined,
+    get_args2,
+    get_origin2,
+    is_union_of,
+    to_camel_case,
+    type_name,
+)
 
 JsonScalar = graphql.GraphQLScalarType(
     "JSON",
@@ -506,6 +513,8 @@ class OutputSchemaBuilder(
             for param in parameters:
                 default: Any = graphql.Undefined
                 param_type = types[param.name]
+                if is_union_of(param_type, graphql.GraphQLResolveInfo):
+                    break
                 # None because of https://github.com/python/typing/issues/775
                 if param.default in {None, Undefined, graphql.Undefined}:
                     param_type = Optional[param_type]
