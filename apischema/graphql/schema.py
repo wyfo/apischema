@@ -413,15 +413,22 @@ class InputSchemaBuilder(
     SchemaBuilder[Deserialization],
 ):
     def _field(self, field: ObjectField) -> Tuple[str, Lazy[graphql.GraphQLInputField]]:
-        field_type = self.visit_with_conversions(field.type, field.conversions)
-        return self.aliaser(
-            field.alias or field.name
-        ), lambda: graphql.GraphQLInputField(
-            exec_thunk(field_type),
-            default_value=field.default,
-            description=field.description,
-            out_name=field.name,
-        )
+        type_thunk = self.visit_with_conversions(field.type, field.conversions)
+
+        def field_thunk():
+            field_type = exec_thunk(type_thunk)
+            if (
+                not isinstance(field_type, graphql.GraphQLNonNull)
+                and field.default is None
+            ):
+                default = graphql.Undefined
+            else:
+                default = field.default
+            return graphql.GraphQLInputField(
+                field_type, default_value=default, description=field.description
+            )
+
+        return self.aliaser(field.alias or field.name), field_thunk
 
     def object(
         self,
