@@ -168,12 +168,20 @@ The error handler is only executed by *Apischema* serialization process, it's no
 {!serialized_error.py!}
 ```
 
-#### Required serialized methods
+#### Non-required serialized methods
 
 Serialized methods (or their error handler) can return `apischema.Undefined`, in which case the property will not be included into the serialization; accordingly, the property loose the *required* qualification in the JSON schema.
 
 ```python
 {!serialized_undefined.py!}
+```
+
+#### Generic serialized methods
+
+Serialized methods of generic classes get the right type when their owning class is specialized.
+
+```python
+{!serialized_generic.py!}
 ```
 
 ### Exclude unset fields
