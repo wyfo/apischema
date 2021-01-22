@@ -10,12 +10,11 @@ from typing import (
     Dict,
     Iterable,
     Mapping,
-    NoReturn,
     Optional,
     Sequence,
+    Tuple,
     Type,
     TypeVar,
-    Union,
     cast,
     overload,
 )
@@ -24,11 +23,7 @@ import graphql
 
 from apischema.aliases import Aliaser
 from apischema.conversions.conversions import Conversions, to_hashable_conversions
-from apischema.conversions.dataclass_models import (
-    DataclassModel,
-    get_model_origin,
-    has_model_origin,
-)
+from apischema.conversions.dataclass_models import DataclassModel
 from apischema.deserialization import deserialize
 from apischema.json_schema.schema import Schema
 from apischema.serialization import (
@@ -42,6 +37,7 @@ from apischema.serialization.serialized_methods import (
     ErrorHandler,
     Serialized,
     SerializedDescriptor,
+    _get_methods,
     register_serialized,
 )
 from apischema.types import AnyType, NoneType, PRIMITIVE_TYPES
@@ -51,7 +47,6 @@ from apischema.utils import (
     Undefined,
     UndefinedType,
     get_args2,
-    get_origin2,
     get_origin_or_type,
     is_method,
     is_union_of,
@@ -123,28 +118,24 @@ def unwrap_awaitable(tp: AnyType) -> AnyType:
 class Resolver(Serialized):
     parameters: Sequence[Parameter]
 
-    @property
-    def return_type(self) -> AnyType:
-        ret = unwrap_awaitable(self.types["return"])
-        if self.error_handler is not None:
-            error_ret = unwrap_awaitable(self.error_handler_types["return"])
-            if error_ret is not NoReturn:
-                ret = Union[ret, error_ret]
-        if get_origin2(ret) == Union and UndefinedType in get_args2(ret):
+    def error_type(self) -> AnyType:
+        return unwrap_awaitable(super().error_type())
+
+    def return_type(self, return_type: AnyType) -> AnyType:
+        return super().return_type(unwrap_awaitable(return_type))
+
+    def types(self, owner: AnyType = None) -> Mapping[str, AnyType]:
+        types = super().types(owner)
+        if is_union_of(types["return"], UndefinedType):
             raise TypeError("Resolver cannot return Undefined")
-        return ret
+        return types
 
 
 _resolvers: Dict[Type, Dict[str, Resolver]] = defaultdict(dict)
 
 
-def get_resolvers(cls: Type) -> Mapping[str, Resolver]:
-    resolvers = {}
-    for sub_cls in reversed(cls.__mro__):
-        resolvers.update(_resolvers[sub_cls])
-    if has_model_origin(cls):
-        resolvers.update(get_resolvers(get_model_origin(cls)))
-    return resolvers
+def get_resolvers(tp: AnyType) -> Mapping[str, Tuple[Resolver, Mapping[str, AnyType]]]:
+    return _get_methods(tp, _resolvers)
 
 
 def none_error_handler(
@@ -184,7 +175,7 @@ def register_resolver(
     resolver = Resolver(func, conversions, schema, error_handler, parameters)
     if owner is None:
         try:
-            owner = get_origin_or_type(resolver.types[first_param.name])
+            owner = get_origin_or_type(get_type_hints(func)[first_param.name])
         except KeyError:
             raise TypeError("First parameter of resolver must be typed") from None
     _resolvers[owner][alias] = resolver
@@ -285,11 +276,14 @@ def resolver(
 
 
 def resolver_resolve(
-    resolver: Resolver, aliaser: Aliaser, serialized: bool = True
+    resolver: Resolver,
+    types: Mapping[str, AnyType],
+    aliaser: Aliaser,
+    serialized: bool = True,
 ) -> Callable:
     parameters, info_parameter = [], None
     for param in resolver.parameters:
-        param_type = resolver.types[param.name]
+        param_type = types[param.name]
         if is_union_of(param_type, graphql.GraphQLResolveInfo):
             info_parameter = param.name
         else:

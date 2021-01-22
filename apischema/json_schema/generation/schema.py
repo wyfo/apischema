@@ -224,18 +224,16 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
         properties: Dict[str, JsonSchema] = {}
         required: List[str] = []
         if self.operation == OperationKind.SERIALIZATION:
-            for name, serialized in get_serialized_methods(cls).items():
+            for name, (serialized, types) in get_serialized_methods(
+                self._generic or cls
+            ).items():
                 alias = self.aliaser(name)
+                ret = types["return"]
                 with self._replace_conversions(serialized.conversions):
                     properties[alias] = json_schema(
-                        readOnly=True,
-                        **self.visit_with_schema(
-                            serialized.return_type, serialized.schema
-                        ),
+                        readOnly=True, **self.visit_with_schema(ret, serialized.schema)
                     )
-                if get_origin2(
-                    serialized.return_type
-                ) != Union or UndefinedType not in get_args2(serialized.return_type):
+                if get_origin2(ret) != Union or UndefinedType not in get_args2(ret):
                     required.append(alias)
         return properties, required
 

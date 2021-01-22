@@ -9,6 +9,7 @@ from typing import (
     Mapping,
     NoReturn,
     Optional,
+    Tuple,
     Type,
     TypeVar,
     Union,
@@ -20,17 +21,20 @@ from apischema.conversions.conversions import Conversions
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
 from apischema.json_schema.schema import Schema
 from apischema.types import AnyType
-from apischema.typing import get_type_hints
+from apischema.typing import generic_mro, get_args, get_type_hints
 from apischema.utils import (
     MethodOrProperty,
     MethodWrapper,
     Undefined,
     UndefinedType,
-    cached_property,
+    get_args2,
+    get_origin2,
     get_origin_or_type,
+    get_parameters,
     is_method,
     method_class,
     method_wrapper,
+    substitute_type_vars,
 )
 
 
@@ -41,44 +45,64 @@ class Serialized:
     schema: Optional[Schema]
     error_handler: Optional[Callable]
 
-    @cached_property
-    def types(self) -> Mapping[str, AnyType]:
+    def error_type(self) -> AnyType:
+        assert self.error_handler is not None
+        types = get_type_hints(self.error_handler, include_extras=True)
+        if "return" not in types:
+            raise TypeError("Error handler must be typed")
+        return types["return"]
+
+    def return_type(self, return_type: AnyType) -> AnyType:
+        if self.error_handler is not None:
+            error_type = self.error_type()
+            if error_type is not NoReturn:
+                return Union[return_type, error_type]
+        return return_type
+
+    def types(self, owner: AnyType = None) -> Mapping[str, AnyType]:
         types = get_type_hints(self.func, include_extras=True)
         if "return" not in types:
             if isclass(self.func):
                 types["return"] = self.func
             else:
                 raise TypeError("Function must be typed")
+        types["return"] = self.return_type(types["return"])
+        if get_args2(owner):
+            substitution = dict(
+                zip(get_parameters(get_origin2(owner)), get_args2(owner))
+            )
+            types = {
+                name: substitute_type_vars(tp, substitution)
+                for name, tp in types.items()
+            }
         return types
-
-    @cached_property
-    def error_handler_types(self) -> Mapping[str, AnyType]:
-        assert self.error_handler is not None
-        types = get_type_hints(self.error_handler, include_extras=True)
-        if "return" not in types:
-            raise TypeError("Error handler must be typed")
-        return types
-
-    @property
-    def return_type(self) -> AnyType:
-        ret = self.types["return"]
-        if self.error_handler is not None:
-            error_ret = self.error_handler_types["return"]
-            if error_ret is not NoReturn:
-                return Union[ret, error_ret]
-        return ret
 
 
 _serialized_methods: Dict[Type, Dict[str, Serialized]] = defaultdict(dict)
 
+S = TypeVar("S", bound=Serialized)
 
-def get_serialized_methods(cls: Type) -> Mapping[str, Serialized]:
-    serialized = {}
-    for sub_cls in reversed(cls.__mro__):
-        serialized.update(_serialized_methods[sub_cls])
-    if has_model_origin(cls):
-        serialized.update(get_serialized_methods(get_model_origin(cls)))
-    return serialized
+
+def _get_methods(
+    tp: AnyType, all_methods: Mapping[Type, Mapping[str, S]]
+) -> Mapping[str, Tuple[S, Mapping[str, AnyType]]]:
+    result = {}
+    for base in reversed(generic_mro(tp)):
+        for name, method in all_methods[get_origin_or_type(base)].items():
+            result[name] = (method, method.types(base))
+    if has_model_origin(tp):
+        origin = get_model_origin(tp)
+        if get_args2(tp):
+            substitution = dict(zip(get_parameters(tp), get_args(tp)))
+            origin = substitute_type_vars(origin, substitution)
+        result.update(_get_methods(origin, all_methods))
+    return result
+
+
+def get_serialized_methods(
+    tp: AnyType,
+) -> Mapping[str, Tuple[Serialized, Mapping[str, AnyType]]]:
+    return _get_methods(tp, _serialized_methods)
 
 
 ErrorHandler = Union[Callable, None, UndefinedType]
@@ -121,7 +145,7 @@ def register_serialized(
     serialized = Serialized(func, conversions, schema, error_handler)
     if owner is None:
         try:
-            owner = get_origin_or_type(serialized.types[parameters[0].name])
+            owner = get_origin_or_type(get_type_hints(func)[parameters[0].name])
         except KeyError:
             raise TypeError(
                 "First parameter of serialized method must be typed"
