@@ -27,7 +27,7 @@ This library fulfills the following goals:
 No known alternative achieves all of this. 
 
 !!! note
-    Actually, *Apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code ([pydantic support example](examples/pydantic_compatibility.md) using [conversions feature](conversions.md))  
+    Actually, *Apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code ([pydantic support example](examples/pydantic_support.md) using [conversions feature](conversions.md))  
 
 ## Example
 

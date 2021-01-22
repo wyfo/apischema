@@ -4,9 +4,9 @@
 
 Actually, *Apischema* uses internally its own feature to support standard library data types like UUID/datetime/etc. (see [std_types.py](https://github.com/wyfo/apischema/blob/master/apischema/std_types.py))
 
-ORM support can easily be achieved with this feature (see [SQLAlchemy example](examples/sqlalchemy.md)).
+ORM support can easily be achieved with this feature (see [SQLAlchemy example](examples/sqlalchemy_support.md)).
 
-In fact, you can even add support of competitor libraries like *Pydantic* (see [*Pydantic* compatibility example](examples/pydantic_compatibility.md))
+In fact, you can even add support of competitor libraries like *Pydantic* (see [*Pydantic* compatibility example](examples/pydantic_support.md))
 
 ## Principle - *Apischema* conversions
 
@@ -176,7 +176,7 @@ That's why *Apischema* provides a shortcut for this case: `apischema.conversions
 The function returns two `Conversion` object, one for deserialization and the other for serialization. They can then be registered with `serializer`/`deserializer`, or be used dynamically.
 
 Remember that dataclass can also be declared dynamically with `dataclasses.make_dataclasses`. That's especially useful when it comes to add support for libraries like ORM. The following example show how to add a [basic support for 
-*SQLAlchemy*](examples/sqlalchemy.md):
+*SQLAlchemy*](examples/sqlalchemy_support.md):
 
 ```python
 {!examples/sqlalchemy_support.py!}
@@ -197,7 +197,7 @@ dataclass_model(cls)(lambda: make_dataclass(cls.__name__, fields))
 
 As almost every default behavior in *Apischema*, default conversion can be configured using `apischema.settings.deserialization`/`apischema.settings.serialization`. The initial value of these settings are the function which retrieved conversions registered with `deserializer`/`serializer`.
 
-You can for example [support *attrs*](examples/attrs_compatibility.md) classes with this feature:
+You can for example [support *attrs*](examples/attrs_support.md) classes with this feature:
 
 
 ```python

@@ -129,7 +129,7 @@ def _rec_build_error(path: Sequence[str], msg: ErrorMsg) -> ValidationError:
 class FieldPath(str):
     def __new__(cls, field: Field):
         obj = super().__new__(cls, field.name)  # type: ignore
-        obj.field = field
+        obj.field = field  # type: ignore
         return obj
 
 
