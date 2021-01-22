@@ -334,7 +334,9 @@ def resolver_resolve(
                     kwargs.pop(param_name)
                     continue
                 try:
-                    kwargs[param_name] = deserialize(param_type, kwargs[param_name])
+                    kwargs[param_name] = deserialize(
+                        param_type, kwargs[param_name], aliaser=aliaser
+                    )
                 except ValidationError as err:
                     errors[aliaser(param_name)] = err
         if errors:
