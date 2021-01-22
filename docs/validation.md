@@ -24,7 +24,7 @@ Dataclass validation can be completed by custom validators. These are simple dec
     **DO NOT use `assert`** statement to validate external data, never. In fact, this statement is made to be disabled when executed in optimized mode (see [documentation](https://docs.python.org/3/reference/simple_stmts.html#the-assert-statement)), so validation would be disabled too. This warning doesn't concern only *Apischema*; `assert` is only for internal assertion in debug/development environment. That's why *Apischema* will not catch `AssertionError` as a validation error but reraises it, making `deserialize` fail. 
     
 !!! note
-    Validators are alawys executed in order of declaration.
+    Validators are always executed in order of declaration.
 
 ### Automatic dependency management
 

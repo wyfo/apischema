@@ -9,9 +9,12 @@ T = TypeVar("T")
 
 @dataclass
 class Foo(Generic[T]):
-    @serialized
+    # serialized decorator for methods of generic class is not supported in Python 3.6
     def bar(self) -> T:
         ...
+
+
+serialized(Foo.bar)
 
 
 @dataclass

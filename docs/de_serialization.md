@@ -183,6 +183,8 @@ Serialized methods of generic classes get the right type when their owning class
 ```python
 {!serialized_generic.py!}
 ```
+!!! warning
+`serialized` cannot decorate methods of `Generic` classes in Python 3.6, it has to be used outside of class.
 
 ### Exclude unset fields
 
