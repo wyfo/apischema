@@ -106,4 +106,4 @@ Comparison is simple with an example:
 
 ### *Apischema* supports *pydantic*
 
-It's not a feature, is just the result of [20 lines of code](examples/pydantic_compatibility.md).
+It's not a feature, is just the result of [20 lines of code](examples/pydantic_support.md).

@@ -22,7 +22,7 @@ nav:
   - graphql/schema.md
 - Examples:
   - OpenRPC: examples/open_rpc.md
-  - examples/sqlalchemy.md
+  - examples/sqlalchemy_support.md
   - examples/pydantic_support.md
   - examples/attrs_support.md
   - examples/subclasses_union.md
