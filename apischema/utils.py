@@ -163,6 +163,10 @@ def get_origin_or_type(tp: AnyType) -> Type:
     return origin if origin is not None else tp
 
 
+def is_union_of(tp: AnyType, of: AnyType) -> bool:
+    return tp == of or (get_origin_or_type(tp) == Union and of in get_args2(tp))
+
+
 class OperationKind(Enum):
     DESERIALIZATION = auto()
     SERIALIZATION = auto()
