@@ -67,7 +67,14 @@ from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, NoneType
 from apischema.typing import get_origin
-from apischema.utils import Undefined, get_args2, get_origin2, to_camel_case, type_name
+from apischema.utils import (
+    Undefined,
+    get_args2,
+    get_origin2,
+    is_union_of,
+    to_camel_case,
+    type_name,
+)
 
 JsonScalar = graphql.GraphQLScalarType(
     "JSON",
@@ -200,9 +207,14 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         resolve: Optional[Callable] = None
         if conversion is not None:
             converter, conversions = conversion.converter, conversion.conversions
+            aliaser = self.aliaser
 
             def resolve(obj, info):
-                return converter(getattr(obj, field_name))  # type: ignore
+                return partial_serialize(
+                    converter(getattr(obj, field_name)),
+                    conversions=conversions,
+                    aliaser=aliaser,
+                )
 
         default: Any = graphql.Undefined
         if not is_required(field):
@@ -408,15 +420,22 @@ class InputSchemaBuilder(
     SchemaBuilder[Deserialization],
 ):
     def _field(self, field: ObjectField) -> Tuple[str, Lazy[graphql.GraphQLInputField]]:
-        field_type = self.visit_with_conversions(field.type, field.conversions)
-        return self.aliaser(
-            field.alias or field.name
-        ), lambda: graphql.GraphQLInputField(
-            exec_thunk(field_type),
-            default_value=field.default,
-            description=field.description,
-            out_name=field.name,
-        )
+        type_thunk = self.visit_with_conversions(field.type, field.conversions)
+
+        def field_thunk():
+            field_type = exec_thunk(type_thunk)
+            if (
+                not isinstance(field_type, graphql.GraphQLNonNull)
+                and field.default is None
+            ):
+                default = graphql.Undefined
+            else:
+                default = field.default
+            return graphql.GraphQLInputField(
+                field_type, default_value=default, description=field.description
+            )
+
+        return self.aliaser(field.alias or field.name), field_thunk
 
     def object(
         self,
@@ -477,10 +496,12 @@ class OutputSchemaBuilder(
         if field.resolve is not None:
             resolve = field.resolve
         else:
-            field_name = field.name
+            field_name, conv, aliaser = field.name, field.conversions, self.aliaser
 
             def resolve(obj, _):
-                return getattr(obj, field_name)
+                return partial_serialize(
+                    getattr(obj, field_name), conversions=conv, aliaser=aliaser
+                )
 
         resolve = self._wrap_resolve(resolve)
 
@@ -492,6 +513,8 @@ class OutputSchemaBuilder(
             for param in parameters:
                 default: Any = graphql.Undefined
                 param_type = types[param.name]
+                if is_union_of(param_type, graphql.GraphQLResolveInfo):
+                    break
                 # None because of https://github.com/python/typing/issues/775
                 if param.default in {None, Undefined, graphql.Undefined}:
                     param_type = Optional[param_type]

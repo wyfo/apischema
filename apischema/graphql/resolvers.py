@@ -54,6 +54,7 @@ from apischema.utils import (
     get_origin2,
     get_origin_or_type,
     is_method,
+    is_union_of,
     method_class,
     method_wrapper,
 )
@@ -289,14 +290,11 @@ def resolver_resolve(
     parameters, info_parameter = [], None
     for param in resolver.parameters:
         param_type = resolver.types[param.name]
-        is_union = get_origin2(param_type) == Union
-        if param_type == graphql.GraphQLResolveInfo or (
-            is_union and graphql.GraphQLResolveInfo in get_args2(param_type)
-        ):
+        if is_union_of(param_type, graphql.GraphQLResolveInfo):
             info_parameter = param.name
         else:
             parameters.append(
-                (param.name, param_type, is_union and NoneType in get_args2(param_type))
+                (param.name, param_type, is_union_of(param_type, NoneType))
             )
     func, error_handler = resolver.func, resolver.error_handler
 
@@ -336,7 +334,9 @@ def resolver_resolve(
                     kwargs.pop(param_name)
                     continue
                 try:
-                    kwargs[param_name] = deserialize(param_type, kwargs[param_name])
+                    kwargs[param_name] = deserialize(
+                        param_type, kwargs[param_name], aliaser=aliaser
+                    )
                 except ValidationError as err:
                     errors[aliaser(param_name)] = err
         if errors:
