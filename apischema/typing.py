@@ -104,8 +104,6 @@ def _generic_mro(result, tp):
     result[origin] = tp
     if hasattr(origin, "__orig_bases__"):
         parameters = _collect_type_vars(origin.__orig_bases__)
-        if origin is tp and parameters:
-            result[origin] = origin[parameters]
         substitution = dict(zip(parameters, get_args(tp)))
         for base in origin.__orig_bases__:
             if get_origin(base) in result:
