@@ -84,4 +84,16 @@ Error handler can be synchronous or asynchronous.
 ```
 
 !!! note
-    A finer control on `ID` fields could be achieved using `typing.Annotated` to tag a particular type in one place and a predicate taking type tags in account.
+    `ID` type could also be identified using `typing.Annotated` and a predicate looking into annotations.
+
+
+### ID (de)serializer
+
+`ID` (de)serialization can directly be controlled the `id_serializer`/`id_deserializer` parameters of `graphql_schema`. A current practice is to use *base64* encoding for `ID`.
+
+```python
+{!id_conversion.py!}
+```
+
+!!! note
+    `ID` serialization (respectively deserialization) is applied **after** *Apischema* conversions (respectively before *Apischema* conversion): in the example, uuid is already converted into string before being passed to `id_serializer`.

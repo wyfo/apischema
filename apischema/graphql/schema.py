@@ -14,6 +14,7 @@ from typing import (
     Iterable,
     List,
     Mapping,
+    NewType,
     Optional,
     Sequence,
     Tuple,
@@ -87,6 +88,8 @@ GRAPHQL_PRIMITIVE_TYPES = {
     bool: graphql.GraphQLBoolean,
 }
 
+ID = NewType("ID", str)
+
 
 class MissingRef(Exception):
     pass
@@ -152,11 +155,13 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     def __init__(
         self,
         aliaser: Optional[Aliaser],
+        id_type: graphql.GraphQLScalarType,
         is_id: Optional[IdPredicate],
         union_ref_factory: Optional[UnionRefFactory],
     ):
         super().__init__()
         self.aliaser = aliaser or (lambda s: s)
+        self.id_type = id_type
         self.is_id = is_id or (lambda t: False)
         self.union_ref_factory = union_ref_factory
         self._cache: Dict[Any, Thunk[graphql.GraphQLType]] = {}
@@ -264,8 +269,6 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
 
     def generic(self, tp: AnyType) -> Thunk[graphql.GraphQLType]:
         self._ref = self._ref or get_ref(tp)
-        if self._ref is None:
-            raise MissingRef
         return super().generic(tp)
 
     def literal(self, values: Sequence[Any]) -> Thunk[graphql.GraphQLType]:
@@ -345,9 +348,9 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     def visit_with_schema(
         self, tp: AnyType, ref: Optional[str], schema: Optional[Schema]
     ) -> Thunk[graphql.GraphQLType]:
+        if self.is_id(tp) or tp == ID:
+            return graphql.GraphQLNonNull(self.id_type)
         if self._apply_dynamic_conversions(tp) is None:
-            if self.is_id(tp):
-                return graphql.GraphQLNonNull(graphql.GraphQLID)
             ref, schema = ref or get_ref(tp), merge_schema(get_schema(tp), schema)
         else:
             ref, schema = None, None
@@ -358,7 +361,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
             non_null = self._non_null
             return lambda: exec_thunk(result, non_null=non_null)
         except MissingRef:
-            raise TypeError(f"Missing ref for type {tp}")
+            raise TypeError(f"Missing ref for type {tp}") from None
         finally:
             self._ref, self._schema = ref_save, schema_save
             self._non_null = non_null_save
@@ -474,11 +477,14 @@ class OutputSchemaBuilder(
     def __init__(
         self,
         aliaser: Optional[Aliaser],
+        id_type: graphql.GraphQLScalarType,
         is_id: Optional[IdPredicate],
         union_ref_factory: Optional[UnionRefFactory],
     ):
-        super().__init__(aliaser, is_id, union_ref_factory)
-        self.input_builder = InputSchemaBuilder(aliaser, is_id, union_ref_factory)
+        super().__init__(aliaser, id_type, is_id, union_ref_factory)
+        self.input_builder = InputSchemaBuilder(
+            aliaser, id_type, is_id, union_ref_factory
+        )
         self._get_merged: Optional[Callable] = None
 
     def _wrap_resolve(self, resolve: Callable):
@@ -749,6 +755,8 @@ def graphql_schema(
     extensions: Optional[Dict[str, Any]] = None,
     aliaser: Aliaser = to_camel_case,
     id_types: Union[Collection[AnyType], IdPredicate] = None,
+    id_deserializer: Callable[[str], Any] = None,
+    id_serializer: Callable[[Any], str] = None,
     union_ref: UnionRefFactory = "Or".join,
 ) -> graphql.GraphQLSchema:
 
@@ -802,7 +810,17 @@ def graphql_schema(
         )
 
     is_id = id_types.__contains__ if isinstance(id_types, Collection) else id_types
-    builder = OutputSchemaBuilder(aliaser, is_id, union_ref)
+    if id_deserializer is None and id_serializer is None:
+        id_type: graphql.GraphQLScalarType = graphql.GraphQLID
+    else:
+        id_type = graphql.GraphQLScalarType(
+            name="ID",
+            serialize=id_serializer or graphql.GraphQLID.serialize,
+            parse_value=id_deserializer or graphql.GraphQLID.parse_value,
+            parse_literal=graphql.GraphQLID.parse_literal,
+            description=graphql.GraphQLID.description,
+        )
+    builder = OutputSchemaBuilder(aliaser, id_type, is_id, union_ref)
 
     def root_type(
         name: str, fields: Collection[ObjectField]
