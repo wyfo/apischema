@@ -72,7 +72,7 @@ from apischema.types import (
     OrderedDict,
 )
 from apischema.typing import get_origin
-from apischema.utils import OperationKind
+from apischema.utils import OperationKind, opt_or
 from apischema.validation.errors import (
     ErrorKey,
     ValidationError,
@@ -105,6 +105,27 @@ class DeserializationContext:
 
     def __post_init__(self):
         self.coercer = get_coercer(self.coercion)
+
+    def merge(
+        self,
+        additional_properties: bool = None,
+        coercion: Coercion = None,
+        default_fallback: bool = None,
+    ) -> "DeserializationContext":
+        if any(
+            arg is not None
+            for arg in (additional_properties, coercion, default_fallback)
+        ):
+            return replace(
+                self,
+                additional_properties=opt_or(
+                    additional_properties, self.additional_properties
+                ),
+                coercion=opt_or(coercion, self.coercion),
+                default_fallback=opt_or(default_fallback, self.default_fallback),
+            )
+        else:
+            return self
 
 
 def get_constraints(tp: AnyType) -> Optional[Constraints]:
@@ -778,6 +799,7 @@ class DeserializationMethodVisitor(
                     self._replace_generic_args(conv.source), conv.conversions
                 ),
                 cast(Converter, conv.converter),
+                (conv.additional_properties, conv.coercion, conv.default_fallback),
             )
             for conv in conversion
         ]
@@ -787,18 +809,20 @@ class DeserializationMethodVisitor(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
             alt_deserializers = [
-                (fact.merge(constraints, validators).method, converter)
-                for fact, converter in factories
+                (fact.merge(constraints, validators).method, converter, conv_ctx)
+                for fact, converter, conv_ctx in factories
             ]
             if len(alt_deserializers) == 1:
-                ((deserialize_alt, converter),) = alt_deserializers
+                deserialize_alt, converter, conv_ctx = alt_deserializers[0]
                 if converter is identity:
                     method = deserialize_alt
                 else:
 
                     def method(ctx: DeserializationContext, data: Any) -> Any:
                         try:
-                            return converter(deserialize_alt(ctx, data))
+                            return converter(
+                                deserialize_alt(ctx.merge(*conv_ctx), data)
+                            )
                         except (ValidationError, AssertionError):
                             raise
                         except Exception as err:
@@ -808,9 +832,9 @@ class DeserializationMethodVisitor(
 
                 def method(ctx: DeserializationContext, data: Any) -> Any:
                     error: Optional[ValidationError] = None
-                    for deserialize_alt, converter in alt_deserializers:
+                    for deserialize_alt, converter, conv_ctx in alt_deserializers:
                         try:
-                            value = deserialize_alt(ctx, data)
+                            value = deserialize_alt(ctx.merge(*conv_ctx), data)
                             break
                         except ValidationError as err:
                             error = merge_errors(error, err)

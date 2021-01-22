@@ -35,6 +35,9 @@ except ImportError:
 
 PREFIX = "_apischema_"
 
+T = TypeVar("T")
+U = TypeVar("U")
+
 
 # Singleton type, see https://www.python.org/dev/peps/pep-0484/#id30
 class UndefinedType(Enum):
@@ -51,6 +54,10 @@ class UndefinedType(Enum):
 
 
 Undefined = UndefinedType.Undefined
+
+
+def opt_or(opt: Optional[T], default: U) -> Union[T, U]:
+    return opt if opt is not None else default
 
 
 def to_hashable(data: Union[None, int, float, str, bool, list, dict]) -> Hashable:
@@ -76,8 +83,6 @@ def type_name(tp: AnyType) -> str:
 
 
 MakeDataclassField = Union[Tuple[str, AnyType], Tuple[str, AnyType, Any]]
-
-T = TypeVar("T")
 
 
 def merge_opts(
