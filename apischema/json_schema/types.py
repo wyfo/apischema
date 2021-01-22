@@ -31,15 +31,18 @@ class JsonType(str, Enum):
 
     @staticmethod
     def from_type(cls: Type) -> "JsonType":
-        return {
-            NoneType: JsonType.NULL,
-            bool: JsonType.BOOLEAN,
-            str: JsonType.STRING,
-            int: JsonType.INTEGER,
-            float: JsonType.NUMBER,
-            list: JsonType.ARRAY,
-            dict: JsonType.OBJECT,
-        }[cls]
+        try:
+            return {
+                NoneType: JsonType.NULL,
+                bool: JsonType.BOOLEAN,
+                str: JsonType.STRING,
+                int: JsonType.INTEGER,
+                float: JsonType.NUMBER,
+                list: JsonType.ARRAY,
+                dict: JsonType.OBJECT,
+            }[cls]
+        except KeyError:
+            raise TypeError(f"Invalid JSON type {cls}")
 
 
 class JsonSchema(Dict[str, Any]):
