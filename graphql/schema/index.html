@@ -407,6 +407,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../relay/" title="Relay" class="md-nav__link">
+      Relay
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -455,7 +467,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../examples/sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+    <a href="../../examples/sqlalchemy_support/" title="SQLAlchemy support" class="md-nav__link">
       SQLAlchemy support
     </a>
   </li>
@@ -467,8 +479,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../examples/pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
-      Pydantic compatibility
+    <a href="../../examples/pydantic_support/" title="Pydantic support" class="md-nav__link">
+      Pydantic support
     </a>
   </li>
 
@@ -479,8 +491,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../examples/attrs_compatibility/" title="Attrs compatibility" class="md-nav__link">
-      Attrs compatibility
+    <a href="../../examples/attrs_support/" title="Attrs support" class="md-nav__link">
+      Attrs support
     </a>
   </li>
 
@@ -791,9 +803,8 @@
 <span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
 
 
-<span class="c1"># GraphQL schema requires a non-empty query</span>
-<span class="k">def</span> <span class="nf">mandatory_query</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="k">return</span> <span class="kc">True</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="s2">&quot;world&quot;</span>
 
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">events</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">AsyncIterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -801,10 +812,10 @@
     <span class="k">yield</span> <span class="s2">&quot;au revoir&quot;</span>
 
 
-<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">mandatory_query</span><span class="p">],</span> <span class="n">subscription</span><span class="o">=</span><span class="p">[</span><span class="n">events</span><span class="p">])</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">hello</span><span class="p">],</span> <span class="n">subscription</span><span class="o">=</span><span class="p">[</span><span class="n">events</span><span class="p">])</span>
 <span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">type Query {</span>
-<span class="s2">  mandatoryQuery: Boolean!</span>
+<span class="s2">  hello: String!</span>
 <span class="s2">}</span>
 
 <span class="s2">type Subscription {</span>
@@ -845,9 +856,8 @@
 <span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
 
 
-<span class="c1"># GraphQL schema requires a non-empty query</span>
-<span class="k">def</span> <span class="nf">mandatory_query</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="k">return</span> <span class="kc">True</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="s2">&quot;world&quot;</span>
 
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">events</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">AsyncIterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -861,10 +871,10 @@
 
 
 <span class="c1"># Message can also be used directly as a function</span>
-<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">mandatory_query</span><span class="p">],</span> <span class="n">subscription</span><span class="o">=</span><span class="p">[(</span><span class="n">events</span><span class="p">,</span> <span class="n">Message</span><span class="p">)])</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">hello</span><span class="p">],</span> <span class="n">subscription</span><span class="o">=</span><span class="p">[(</span><span class="n">events</span><span class="p">,</span> <span class="n">Message</span><span class="p">)])</span>
 <span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">type Query {</span>
-<span class="s2">  mandatoryQuery: Boolean!</span>
+<span class="s2">  hello: String!</span>
 <span class="s2">}</span>
 
 <span class="s2">type Subscription {</span>
@@ -928,13 +938,13 @@
           </a>
         
         
-          <a href="../../examples/open_rpc/" title="OpenRPC" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../relay/" title="Relay" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                OpenRPC
+                Relay
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

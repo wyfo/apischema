@@ -15,7 +15,7 @@
     
     
       
-        <title>Attrs compatibility - Apischema</title>
+        <title>Attrs support - Apischema</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#attrs-compatibility" class="md-skip">
+        <a href="#attrs-support" class="md-skip">
           Skip to content
         </a>
       
@@ -88,7 +88,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              Attrs compatibility
+              Attrs support
             
           </span>
         </div>
@@ -315,6 +315,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../graphql/relay/" title="Relay" class="md-nav__link">
+      Relay
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -365,7 +377,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+    <a href="../sqlalchemy_support/" title="SQLAlchemy support" class="md-nav__link">
       SQLAlchemy support
     </a>
   </li>
@@ -377,8 +389,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
-      Pydantic compatibility
+    <a href="../pydantic_support/" title="Pydantic support" class="md-nav__link">
+      Pydantic support
     </a>
   </li>
 
@@ -397,8 +409,8 @@
       
     
     
-    <a href="./" title="Attrs compatibility" class="md-nav__link md-nav__link--active">
-      Attrs compatibility
+    <a href="./" title="Attrs support" class="md-nav__link md-nav__link--active">
+      Attrs support
     </a>
     
   </li>
@@ -496,7 +508,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/attrs_compatibility.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/attrs_support.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
@@ -504,29 +516,33 @@
                   
                 
                 
-                <h1 id="attrs-compatibility">Attrs compatibility<a class="headerlink" href="#attrs-compatibility" title="Permanent link">&para;</a></h1>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">field</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">make_dataclass</span>
+                <h1 id="attrs-support">Attrs support<a class="headerlink" href="#attrs-support" title="Permanent link">&para;</a></h1>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">MISSING</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">make_dataclass</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">attr</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">settings</span>
-<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">Conversions</span><span class="p">,</span> <span class="n">Deserialization</span><span class="p">,</span> <span class="n">Serialization</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">dataclass_model</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions.conversions</span> <span class="kn">import</span> <span class="n">Conversion</span><span class="p">,</span> <span class="n">Conversions</span>
 
 
-<span class="nd">@lru_cache</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">attrs_to_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
-    <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__attrs_attrs__&quot;</span><span class="p">)</span>
-    <span class="n">fields_without_default</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">type</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__attrs_attrs__</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">default</span> <span class="o">==</span> <span class="n">attr</span><span class="o">.</span><span class="n">NOTHING</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span>
+            <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">a</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+            <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">default</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">default</span> <span class="o">!=</span> <span class="n">attr</span><span class="o">.</span><span class="n">NOTHING</span> <span class="k">else</span> <span class="n">MISSING</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__attrs_attrs__&quot;</span><span class="p">)</span>
     <span class="p">]</span>
-    <span class="n">fields_with_default</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">default</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__attrs_attrs__</span>
-        <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">default</span> <span class="o">!=</span> <span class="n">attr</span><span class="o">.</span><span class="n">NOTHING</span>
-    <span class="p">]</span>
-    <span class="k">return</span> <span class="n">make_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">fields_without_default</span> <span class="o">+</span> <span class="n">fields_with_default</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">make_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
+
+
+<span class="nd">@lru_cache</span><span class="p">()</span>  <span class="c1"># Use cache because it will be called often</span>
+<span class="k">def</span> <span class="nf">attrs_dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Conversion</span><span class="p">,</span> <span class="n">Conversion</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">attrs_to_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="p">))</span>
 
 
 <span class="n">prev_deserialization</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">deserialization</span><span class="p">()</span>
@@ -534,37 +550,25 @@
 
 
 <span class="nd">@settings</span><span class="o">.</span><span class="n">deserialization</span>
-<span class="k">def</span> <span class="nf">deserialization</span><span class="p">(</span>
-    <span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">conversions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Conversions</span><span class="p">]</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Deserialization</span><span class="p">]:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">prev_deserialization</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">conversions</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">deserialization</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Conversions</span><span class="p">]:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">prev_deserialization</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">result</span>
     <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__attrs_attrs__&quot;</span><span class="p">):</span>
-        <span class="n">source</span> <span class="o">=</span> <span class="n">attrs_to_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
-
-        <span class="k">def</span> <span class="nf">converter</span><span class="p">(</span><span class="n">source_obj</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">source_obj</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">(</span><span class="n">source</span><span class="p">)})</span>
-
-        <span class="k">return</span> <span class="p">{</span><span class="n">source</span><span class="p">:</span> <span class="p">(</span><span class="n">converter</span><span class="p">,</span> <span class="kc">None</span><span class="p">)}</span>
+        <span class="n">deserialization_conversion</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">attrs_dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">deserialization_conversion</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
 
 
 <span class="nd">@settings</span><span class="o">.</span><span class="n">serialization</span>
-<span class="k">def</span> <span class="nf">serialization</span><span class="p">(</span>
-    <span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">conversions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Conversions</span><span class="p">]</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Serialization</span><span class="p">]:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">prev_serialization</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">conversions</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">serialization</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Conversions</span><span class="p">]:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">prev_serialization</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">result</span>
     <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__attrs_attrs__&quot;</span><span class="p">):</span>
-        <span class="n">target</span> <span class="o">=</span> <span class="n">attrs_to_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
-
-        <span class="k">def</span> <span class="nf">converter</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">target</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__attrs_attrs__</span><span class="p">})</span>
-
-        <span class="k">return</span> <span class="n">target</span><span class="p">,</span> <span class="p">(</span><span class="n">converter</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">serialization_conversion</span> <span class="o">=</span> <span class="n">attrs_dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">serialization_conversion</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
 
@@ -595,7 +599,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../pydantic_compatibility/" title="Pydantic compatibility" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../pydantic_support/" title="Pydantic support" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -604,7 +608,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Pydantic compatibility
+                Pydantic support
               </div>
             </div>
           </a>

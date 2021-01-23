@@ -554,6 +554,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../graphql/relay/" title="Relay" class="md-nav__link">
+      Relay
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -602,7 +614,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+    <a href="../examples/sqlalchemy_support/" title="SQLAlchemy support" class="md-nav__link">
       SQLAlchemy support
     </a>
   </li>
@@ -614,8 +626,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
-      Pydantic compatibility
+    <a href="../examples/pydantic_support/" title="Pydantic support" class="md-nav__link">
+      Pydantic support
     </a>
   </li>
 
@@ -626,8 +638,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/attrs_compatibility/" title="Attrs compatibility" class="md-nav__link">
-      Attrs compatibility
+    <a href="../examples/attrs_support/" title="Attrs support" class="md-nav__link">
+      Attrs support
     </a>
   </li>
 
@@ -1533,10 +1545,11 @@
 
 <h2 id="customize-ref">Customize <code>$ref</code><a class="headerlink" href="#customize-ref" title="Permanent link">&para;</a></h2>
 <h3 id="add-ref-to-every-types">Add <code>$ref</code> to every types<a class="headerlink" href="#add-ref-to-every-types" title="Permanent link">&para;</a></h3>
-<p>In the previous example, only dataclasses has a <code>$ref</code>, but it can be fully customized. You can use <code>schema_ref</code> on any defined types (<code>NewType</code>/<code>class</code>/<code>Annotated</code>/etc.). <code>schema_ref</code> argument can be:
+<p>In the previous example, only dataclasses has a <code>$ref</code>, but it can be fully customized. You can use <code>apischema.schema_ref</code> on almost any types. <code>schema_ref</code> argument can be:
 - <code>str</code> -&gt; this string will be used directly in schema generation
-- <code>...</code> -&gt; schema generation will use the name of the type
+- <code>...</code> -&gt; schema generation will use the name of the type (it's not supported for generic aliases)
 - <code>None</code> -&gt; this type will have no <code>$ref</code> in schema</p>
+<p>Generic types can have a ref, but they need to be specialized; <code>Foo[T, int]</code> cannot have a ref but <code>Foo[str, int]</code> can.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Set</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
@@ -1545,7 +1558,7 @@
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 
 <span class="n">Tags</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Tags&quot;</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span>
-<span class="n">schema_ref</span><span class="p">(</span><span class="o">...</span><span class="p">)(</span><span class="n">Tags</span><span class="p">)</span>
+<span class="n">schema_ref</span><span class="p">(</span><span class="s2">&quot;ResourceTags&quot;</span><span class="p">)(</span><span class="n">Tags</span><span class="p">)</span>
 
 
 <span class="nd">@dataclass</span>
@@ -1559,16 +1572,27 @@
     <span class="s2">&quot;$defs&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;Resource&quot;</span><span class="p">:</span> <span class="p">{</span>
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span> <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Tags&quot;</span><span class="p">}},</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
+                <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/ResourceTags&quot;</span><span class="p">},</span>
+            <span class="p">},</span>
             <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;tags&quot;</span><span class="p">],</span>
             <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">},</span>
-        <span class="s2">&quot;Tags&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span> <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span> <span class="s2">&quot;uniqueItems&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+        <span class="s2">&quot;ResourceTags&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;uniqueItems&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="p">},</span>
     <span class="p">},</span>
     <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Resource&quot;</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre></div>
 
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Builtin collections are interchangeable when a ref is registered. For example, if a ref is registered for <code>list[Foo]</code>, this ref will also be used for <code>Sequence[Foo]</code> or <code>Collection[Foo]</code>.</p>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Actually, there is a small restriction with <code>NewType</code>: you cannot put a <code>schema_ref</code> if the super type is not a builtin type (<code>list[...]</code>/<code>int</code>/etc.). </p>

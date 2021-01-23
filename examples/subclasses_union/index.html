@@ -315,6 +315,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../graphql/relay/" title="Relay" class="md-nav__link">
+      Relay
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -365,7 +377,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+    <a href="../sqlalchemy_support/" title="SQLAlchemy support" class="md-nav__link">
       SQLAlchemy support
     </a>
   </li>
@@ -377,8 +389,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
-      Pydantic compatibility
+    <a href="../pydantic_support/" title="Pydantic support" class="md-nav__link">
+      Pydantic support
     </a>
   </li>
 
@@ -389,8 +401,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../attrs_compatibility/" title="Attrs compatibility" class="md-nav__link">
-      Attrs compatibility
+    <a href="../attrs_support/" title="Attrs support" class="md-nav__link">
+      Attrs support
     </a>
   </li>
 
@@ -510,12 +522,14 @@
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserializer</span>
-<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">identity</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">Conversion</span><span class="p">,</span> <span class="n">identity</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 
 
 <span class="k">class</span> <span class="nc">Base</span><span class="p">:</span>
-    <span class="k">pass</span>
+    <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># You can use __init_subclass__ to register new subclass automatically</span>
+        <span class="n">deserializer</span><span class="p">(</span><span class="n">Conversion</span><span class="p">(</span><span class="n">identity</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">cls</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">Base</span><span class="p">))</span>
 
 
 <span class="nd">@dataclass</span>
@@ -526,24 +540,6 @@
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Bar</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
     <span class="n">bar</span><span class="p">:</span> <span class="nb">str</span>
-
-
-<span class="nd">@deserializer</span>
-<span class="k">def</span> <span class="nf">from_foo</span><span class="p">(</span><span class="n">foo</span><span class="p">:</span> <span class="n">Foo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Base</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">foo</span>
-
-
-<span class="n">deserializer</span><span class="p">(</span><span class="n">identity</span><span class="p">,</span> <span class="n">Bar</span><span class="p">,</span> <span class="n">Base</span><span class="p">)</span>
-<span class="c1"># Roughly equivalent to</span>
-<span class="c1"># @deserializer</span>
-<span class="c1"># def from_bar(bar: Bar) -&gt; Base:</span>
-<span class="c1">#     return bar</span>
-<span class="c1"># but identity is optimized by Apischema</span>
-
-<span class="c1"># You can even add deserializers which are not subclass</span>
-<span class="nd">@deserializer</span>
-<span class="k">def</span> <span class="nf">from_list_of_int</span><span class="p">(</span><span class="n">ints</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Base</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">Base</span><span class="p">()</span>
 
 
 <span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Base</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
@@ -560,7 +556,6 @@
             <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span>
             <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">},</span>
-        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span> <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
     <span class="p">],</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
 <span class="p">}</span>
@@ -583,7 +578,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../attrs_compatibility/" title="Attrs compatibility" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../attrs_support/" title="Attrs support" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -592,7 +587,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Attrs compatibility
+                Attrs support
               </div>
             </div>
           </a>

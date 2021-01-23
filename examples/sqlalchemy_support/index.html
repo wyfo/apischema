@@ -315,6 +315,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../graphql/relay/" title="Relay" class="md-nav__link">
+      Relay
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -386,8 +398,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
-      Pydantic compatibility
+    <a href="../pydantic_support/" title="Pydantic support" class="md-nav__link">
+      Pydantic support
     </a>
   </li>
 
@@ -398,8 +410,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../attrs_compatibility/" title="Attrs compatibility" class="md-nav__link">
-      Attrs compatibility
+    <a href="../attrs_support/" title="Attrs support" class="md-nav__link">
+      Attrs support
     </a>
   </li>
 
@@ -496,7 +508,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/sqlalchemy.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/sqlalchemy_support.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
@@ -506,15 +518,16 @@
                 
                 <h1 id="sqlalchemy-support">SQLAlchemy support<a class="headerlink" href="#sqlalchemy-support" title="Permanent link">&para;</a></h1>
 <p>This example shows a simple support of <em>SQLAlchemy</em>.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">field</span><span class="p">,</span> <span class="n">make_dataclass</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Collection</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">field</span><span class="p">,</span> <span class="n">make_dataclass</span>
 <span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">getmembers</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">String</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">as_declarative</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
 <span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">dataclass_model</span>
 <span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">serialization_schema</span>
@@ -550,7 +563,9 @@
             <span class="p">(</span><span class="n">column</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">column_type</span><span class="p">(</span><span class="n">column</span><span class="p">),</span> <span class="n">column_field</span><span class="p">(</span><span class="n">column</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span>
         <span class="p">]</span>
-        <span class="n">dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">)(</span><span class="n">make_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">fields</span><span class="p">))</span>
+        <span class="n">d_conv</span><span class="p">,</span> <span class="n">s_conv</span> <span class="o">=</span> <span class="n">dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">make_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">fields</span><span class="p">))</span>
+        <span class="n">deserializer</span><span class="p">(</span><span class="n">d_conv</span><span class="p">)</span>
+        <span class="n">serializer</span><span class="p">(</span><span class="n">s_conv</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
@@ -622,13 +637,13 @@
           </a>
         
         
-          <a href="../pydantic_compatibility/" title="Pydantic compatibility" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../pydantic_support/" title="Pydantic support" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Pydantic compatibility
+                Pydantic support
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

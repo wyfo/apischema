@@ -493,6 +493,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../graphql/relay/" title="Relay" class="md-nav__link">
+      Relay
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -541,7 +553,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+    <a href="../examples/sqlalchemy_support/" title="SQLAlchemy support" class="md-nav__link">
       SQLAlchemy support
     </a>
   </li>
@@ -553,8 +565,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
-      Pydantic compatibility
+    <a href="../examples/pydantic_support/" title="Pydantic support" class="md-nav__link">
+      Pydantic support
     </a>
   </li>
 
@@ -565,8 +577,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/attrs_compatibility/" title="Attrs compatibility" class="md-nav__link">
-      Attrs compatibility
+    <a href="../examples/attrs_support/" title="Attrs support" class="md-nav__link">
+      Attrs support
     </a>
   </li>
 
@@ -899,7 +911,7 @@
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Validators are alawys executed in order of declaration.</p>
+<p>Validators are always executed in order of declaration.</p>
 </div>
 <h3 id="automatic-dependency-management">Automatic dependency management<a class="headerlink" href="#automatic-dependency-management" title="Permanent link">&para;</a></h3>
 <p>It makes no sense to execute a validator using a field that is ill-formed. Hopefully, <em>Apischema</em> is able to compute validator dependencies — the fields used in validator; validator is executed only if the all its dependencies are ok.</p>
@@ -1181,12 +1193,14 @@ lt values, they are not run; make sure your default values make sens.</p>
 </code></pre></div>
 
 <h2 id="validators-for-every-type">Validators for every type<a class="headerlink" href="#validators-for-every-type" title="Permanent link">&para;</a></h2>
-<p>Validators can also be declared as regular function, in which case annotation of the first param is used to associate it to the validated type; this allows to add validator to every type.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
+<p>Validators can also be declared as regular function, in which case annotation of the first param is used to associate it to the validated type (you can also use the <code>owner</code> parameter); this allows to add validator to every type.</p>
+<p>Last but not least, validators can be embedded directly into <code>Annotated</code> arguments using <code>validators</code> metadata.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">NewType</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">validator</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">validators</span>
 
 <span class="n">Palindrome</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Palindrome&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
 
@@ -1200,7 +1214,12 @@ lt values, they are not run; make sure your default values make sens.</p>
 
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;tacocat&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;tacocat&quot;</span>
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-    <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;this is not a palindrome&quot;</span><span class="p">)</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;palindrome&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Not a palindrome&quot;</span><span class="p">]}]</span>
+
+<span class="c1"># Using Annotated</span>
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">validators</span><span class="p">(</span><span class="n">check_palindrome</span><span class="p">)],</span> <span class="s2">&quot;palindrom&quot;</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Not a palindrome&quot;</span><span class="p">]}]</span>
 </code></pre></div>
 

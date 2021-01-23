@@ -15,7 +15,7 @@
     
     
       
-        <title>Pydantic compatibility - Apischema</title>
+        <title>Pydantic support - Apischema</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#pydantic-compatibility" class="md-skip">
+        <a href="#pydantic-support" class="md-skip">
           Skip to content
         </a>
       
@@ -88,7 +88,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              Pydantic compatibility
+              Pydantic support
             
           </span>
         </div>
@@ -315,6 +315,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../graphql/relay/" title="Relay" class="md-nav__link">
+      Relay
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -365,7 +377,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+    <a href="../sqlalchemy_support/" title="SQLAlchemy support" class="md-nav__link">
       SQLAlchemy support
     </a>
   </li>
@@ -385,8 +397,8 @@
       
     
     
-    <a href="./" title="Pydantic compatibility" class="md-nav__link md-nav__link--active">
-      Pydantic compatibility
+    <a href="./" title="Pydantic support" class="md-nav__link md-nav__link--active">
+      Pydantic support
     </a>
     
   </li>
@@ -398,8 +410,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../attrs_compatibility/" title="Attrs compatibility" class="md-nav__link">
-      Attrs compatibility
+    <a href="../attrs_support/" title="Attrs support" class="md-nav__link">
+      Attrs support
     </a>
   </li>
 
@@ -496,7 +508,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/pydantic_compatibility.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/pydantic_support.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
@@ -504,7 +516,7 @@
                   
                 
                 
-                <h1 id="pydantic-compatibility">Pydantic compatibility<a class="headerlink" href="#pydantic-compatibility" title="Permanent link">&para;</a></h1>
+                <h1 id="pydantic-support">Pydantic support<a class="headerlink" href="#pydantic-support" title="Permanent link">&para;</a></h1>
 <p>It takes only 20 lines of code to support <code>pydantic.BaseModel</code> and all of its subclasses. You could add these lines to your project using <em>pydantic</em> and start to benefit of <em>Apischema</em> features.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -528,6 +540,7 @@
     <span class="n">serialize</span><span class="p">,</span>
     <span class="n">serializer</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">Conversion</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 <span class="kn">from</span> <span class="nn">apischema.validation.errors</span> <span class="kn">import</span> <span class="n">LocalizedError</span>
 
@@ -547,9 +560,10 @@
                 <span class="p">[</span><span class="n">LocalizedError</span><span class="p">(</span><span class="n">err</span><span class="p">[</span><span class="s2">&quot;loc&quot;</span><span class="p">],</span> <span class="p">[</span><span class="n">err</span><span class="p">[</span><span class="s2">&quot;msg&quot;</span><span class="p">]])</span> <span class="k">for</span> <span class="n">err</span> <span class="ow">in</span> <span class="n">error</span><span class="o">.</span><span class="n">errors</span><span class="p">()]</span>
             <span class="p">)</span>
 
-    <span class="n">deserializer</span><span class="p">(</span><span class="n">deserialize_pydantic</span><span class="p">,</span> <span class="n">Data</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span>
+    <span class="n">deserializer</span><span class="p">(</span><span class="n">Conversion</span><span class="p">(</span><span class="n">deserialize_pydantic</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">Data</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="bp">cls</span><span class="p">))</span>
 
 
+<span class="c1"># You can use __subclasses__ or add __init_subclass__ according to your needs</span>
 <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">():</span>
     <span class="n">add_deserializer</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
 <span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="o">.</span><span class="n">__init_subclass__</span> <span class="o">=</span> <span class="nb">classmethod</span><span class="p">(</span><span class="n">add_deserializer</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
@@ -557,7 +571,7 @@
 
 <span class="nd">@serializer</span>
 <span class="k">def</span> <span class="nf">serialize_pydantic</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="c1"># There is currently no mean to retrieve `serialize` parameters,</span>
+    <span class="c1"># There is currently no way to retrieve `serialize` parameters,</span>
     <span class="c1"># so exclude unset is set to True as it&#39;s the default apischema setting</span>
     <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="n">exclude_unset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -602,7 +616,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../sqlalchemy/" title="SQLAlchemy support" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../sqlalchemy_support/" title="SQLAlchemy support" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -617,13 +631,13 @@
           </a>
         
         
-          <a href="../attrs_compatibility/" title="Attrs compatibility" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../attrs_support/" title="Attrs support" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Attrs compatibility
+                Attrs support
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

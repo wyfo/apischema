@@ -315,6 +315,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../graphql/relay/" title="Relay" class="md-nav__link">
+      Relay
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -363,7 +375,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+    <a href="../examples/sqlalchemy_support/" title="SQLAlchemy support" class="md-nav__link">
       SQLAlchemy support
     </a>
   </li>
@@ -375,8 +387,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
-      Pydantic compatibility
+    <a href="../examples/pydantic_support/" title="Pydantic support" class="md-nav__link">
+      Pydantic support
     </a>
   </li>
 
@@ -387,8 +399,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/attrs_compatibility/" title="Attrs compatibility" class="md-nav__link">
-      Attrs compatibility
+    <a href="../examples/attrs_support/" title="Attrs support" class="md-nav__link">
+      Attrs support
     </a>
   </li>
 
@@ -805,8 +817,9 @@
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NamedTuple</span><span class="p">,</span> <span class="n">NewType</span>
 
-<span class="kn">import</span> <span class="nn">apischema</span>
 <span class="kn">import</span> <span class="nn">pydantic.validators</span>
+
+<span class="kn">import</span> <span class="nn">apischema</span>
 
 
 <span class="c1"># Serialization can only be customized into the enclosing models</span>
@@ -848,17 +861,19 @@
     <span class="n">blue</span><span class="p">:</span> <span class="nb">int</span>
 
 
+<span class="c1"># NewType can be used to add schema to conversion source/target</span>
+<span class="c1"># but Annotated[str, apischema.schema(pattern=r&quot;#[0-9A-Fa-f]{6}&quot;)] would have worked too</span>
 <span class="n">HexaRGB</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;HexaRGB&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
 <span class="c1"># pattern is used in JSON schema and in deserialization validation</span>
 <span class="n">apischema</span><span class="o">.</span><span class="n">schema</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;#[0-9A-Fa-f]</span><span class="si">{6}</span><span class="s2">&quot;</span><span class="p">)(</span><span class="n">HexaRGB</span><span class="p">)</span>
 
 
-<span class="nd">@apischema</span><span class="o">.</span><span class="n">deserializer</span>
+<span class="nd">@apischema</span><span class="o">.</span><span class="n">deserializer</span>  <span class="c1"># could be declared as a staticmethod of RGB class</span>
 <span class="k">def</span> <span class="nf">from_hexa</span><span class="p">(</span><span class="n">hexa</span><span class="p">:</span> <span class="n">HexaRGB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RGB</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">RGB</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="mi">16</span><span class="p">))</span>
 
 
-<span class="nd">@apischema</span><span class="o">.</span><span class="n">serializer</span>  <span class="c1"># could be declared as a method of RGB class</span>
+<span class="nd">@apischema</span><span class="o">.</span><span class="n">serializer</span>  <span class="c1"># could be declared as a method/property of RGB class</span>
 <span class="k">def</span> <span class="nf">to_hexa</span><span class="p">(</span><span class="n">rgb</span><span class="p">:</span> <span class="n">RGB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HexaRGB</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">HexaRGB</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;#</span><span class="si">{</span><span class="n">rgb</span><span class="o">.</span><span class="n">red</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="n">rgb</span><span class="o">.</span><span class="n">green</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="n">rgb</span><span class="o">.</span><span class="n">blue</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
@@ -933,7 +948,7 @@
 </code></pre></div>
 
 <h3 id="apischema-supports-pydantic"><em>Apischema</em> supports <em>pydantic</em><a class="headerlink" href="#apischema-supports-pydantic" title="Permanent link">&para;</a></h3>
-<p>It's not a feature, is just the result of <a href="../examples/pydantic_compatibility/">20 lines of code</a>.</p>
+<p>It's not a feature, is just the result of <a href="../examples/pydantic_support/">20 lines of code</a>.</p>
                 
               
               

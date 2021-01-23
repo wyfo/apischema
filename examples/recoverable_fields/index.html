@@ -315,6 +315,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../graphql/relay/" title="Relay" class="md-nav__link">
+      Relay
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -365,7 +377,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../sqlalchemy/" title="SQLAlchemy support" class="md-nav__link">
+    <a href="../sqlalchemy_support/" title="SQLAlchemy support" class="md-nav__link">
       SQLAlchemy support
     </a>
   </li>
@@ -377,8 +389,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../pydantic_compatibility/" title="Pydantic compatibility" class="md-nav__link">
-      Pydantic compatibility
+    <a href="../pydantic_support/" title="Pydantic support" class="md-nav__link">
+      Pydantic support
     </a>
   </li>
 
@@ -389,8 +401,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../attrs_compatibility/" title="Attrs compatibility" class="md-nav__link">
-      Attrs compatibility
+    <a href="../attrs_support/" title="Attrs support" class="md-nav__link">
+      Attrs support
     </a>
   </li>
 
@@ -516,17 +528,19 @@
 
 
 <span class="k">class</span> <span class="nc">RecoverableRaw</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="n">raw</span>
 
 
-<span class="n">deserializer</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">RecoverableRaw</span><span class="p">)</span>
+<span class="n">deserializer</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">)</span>
 
 <span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">Recoverable</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">RecoverableRaw</span><span class="p">,</span> <span class="n">Skip</span><span class="p">(</span><span class="n">schema_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)]]</span>
+    <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="nd">@property</span>
@@ -540,26 +554,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span>
 
 
-<span class="n">deserializer</span><span class="p">(</span>
-    <span class="n">Recoverable</span><span class="p">,</span>
-    <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">RecoverableRaw</span><span class="p">,</span> <span class="n">Skip</span><span class="p">(</span><span class="n">schema_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)]],</span>
-    <span class="n">Recoverable</span><span class="p">[</span><span class="n">T</span><span class="p">],</span>
-<span class="p">)</span>
-
-
-<span class="nd">@serializer</span>
-<span class="k">def</span> <span class="nf">serialize_recoverable</span><span class="p">(</span><span class="n">recoverable</span><span class="p">:</span> <span class="n">Recoverable</span><span class="p">[</span><span class="n">T</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">recoverable</span><span class="o">.</span><span class="n">value</span>
-
+<span class="n">deserializer</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">)</span>
+<span class="n">serializer</span><span class="p">(</span><span class="n">Recoverable</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="mi">0</span>
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-    <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="s2">&quot;bad&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="s2">&quot;bad&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
 <span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">raw</span> <span class="o">==</span> <span class="s2">&quot;bad&quot;</span>
 
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-    <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">(</span><span class="s2">&quot;bad&quot;</span><span class="p">)))</span>
+    <span class="n">serialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">(</span><span class="s2">&quot;bad&quot;</span><span class="p">)))</span>
 <span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">raw</span> <span class="o">==</span> <span class="s2">&quot;bad&quot;</span>
 
 <span class="k">assert</span> <span class="p">(</span>
