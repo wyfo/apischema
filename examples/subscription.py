@@ -8,9 +8,8 @@ from pytest import raises
 from apischema.graphql import graphql_schema
 
 
-# GraphQL schema requires a non-empty query
-def mandatory_query() -> bool:
-    return True
+def hello() -> str:
+    return "world"
 
 
 async def events() -> AsyncIterable[str]:
@@ -18,10 +17,10 @@ async def events() -> AsyncIterable[str]:
     yield "au revoir"
 
 
-schema = graphql_schema(query=[mandatory_query], subscription=[events])
+schema = graphql_schema(query=[hello], subscription=[events])
 schema_str = """\
 type Query {
-  mandatoryQuery: Boolean!
+  hello: String!
 }
 
 type Subscription {

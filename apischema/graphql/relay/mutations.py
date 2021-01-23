@@ -1,0 +1,139 @@
+from functools import wraps
+from inspect import Parameter, iscoroutinefunction, signature
+from typing import (
+    Awaitable,
+    Callable,
+    Collection,
+    Iterator,
+    List,
+    NewType,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+)
+
+from dataclasses import Field, MISSING, field, make_dataclass
+from graphql.pyutils import camel_to_snake
+
+from apischema import Undefined, alias, schema_ref
+from apischema.graphql import Operation
+from apischema.graphql.resolvers import awaitable_origin
+from apischema.json_schema.schema import Schema
+from apischema.serialization.serialized_methods import ErrorHandler
+from apischema.types import AnyType
+from apischema.typing import get_type_hints
+from apischema.utils import get_origin_or_type, is_union_of
+
+MUTATE = "mutate"
+
+ClientMutationId = NewType("ClientMutationId", str)
+schema_ref(None)(ClientMutationId)
+CLIENT_MUTATION_ID = "client_mutation_id"
+M = TypeVar("M", bound="Mutation")
+
+
+class Mutation:
+    _error_handler: ErrorHandler = Undefined
+    _schema: Optional[Schema] = None
+    _client_mutation_id: Optional[bool] = None
+    _operation: Operation  # set in __init_subclass__
+
+    # Mutate is not defined to prevent Mypy warning about signature of superclass
+    mutate: Callable
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if not hasattr(cls, MUTATE):
+            return
+        mutate = getattr(cls, MUTATE)
+        if not isinstance(cls.__dict__[mutate.__name__], (classmethod, staticmethod)):
+            raise TypeError(f"{cls.__name__}.mutate must be a classmethod/staticmethod")
+        schema_ref(f"{cls.__name__}Payload")(cls)
+        types = get_type_hints(mutate, localns={cls.__name__: cls}, include_extras=True)
+        async_mutate = (
+            iscoroutinefunction(mutate)
+            or get_origin_or_type(types.get("return")) == awaitable_origin
+        )
+        fields: List[Tuple[str, AnyType, Field]] = []
+        cmi_param = None
+        for param_name, param in signature(mutate).parameters.items():
+            if param.kind is Parameter.POSITIONAL_ONLY:
+                raise TypeError("Positional only parameters are not supported")
+            if param.kind in {Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY}:
+                if param_name not in types:
+                    raise TypeError("Mutation parameters must be typed")
+                field_type = types[param_name]
+                field_ = MISSING if param.default is Parameter.empty else param.default
+                if is_union_of(field_type, ClientMutationId):
+                    cmi_param = param_name
+                    if cls._client_mutation_id is False:
+                        if field_ is MISSING:
+                            raise TypeError(
+                                "Cannot have a ClientMutationId parameter"
+                                " when _client_mutation_id = False"
+                            )
+                        continue
+                    elif cls._client_mutation_id is True:
+                        field_ = MISSING
+                    field_ = field(default=field_, metadata=alias(CLIENT_MUTATION_ID))
+                fields.append((param_name, field_type, field_))
+        field_names = [name for (name, _, _) in fields]
+        if cmi_param is None and cls._client_mutation_id is not False:
+            fields.append(
+                (
+                    CLIENT_MUTATION_ID,
+                    ClientMutationId
+                    if cls._client_mutation_id
+                    else Optional[ClientMutationId],
+                    MISSING if cls._client_mutation_id else None,
+                )
+            )
+            cmi_param = CLIENT_MUTATION_ID
+        input_cls = make_dataclass(f"{cls.__name__}Input", fields)
+
+        def wrapper(input):
+            return mutate(**{name: getattr(input, name) for name in field_names})
+
+        wrapper.__annotations__["input"] = input_cls
+        wrapper.__annotations__["return"] = Awaitable[cls] if async_mutate else cls
+        if cls._client_mutation_id is not False:
+            cls.__annotations__[CLIENT_MUTATION_ID] = input_cls.__annotations__[
+                cmi_param
+            ]
+            setattr(cls, CLIENT_MUTATION_ID, field(init=False))
+            wrapped = wrapper
+
+            if async_mutate:
+
+                async def wrapper(input):
+                    result = await wrapped(input)
+                    setattr(result, CLIENT_MUTATION_ID, getattr(input, cmi_param))
+                    return result
+
+            else:
+
+                def wrapper(input):
+                    result = wrapped(input)
+                    setattr(result, CLIENT_MUTATION_ID, getattr(input, cmi_param))
+                    return result
+
+            wrapper = wraps(wrapped)(wrapper)
+
+        cls._operation = Operation(
+            function=wrapper,
+            alias=camel_to_snake(cls.__name__),
+            schema=cls._schema,
+            error_handler=cls._error_handler,
+        )
+
+
+def _mutations(cls: Type[Mutation] = Mutation) -> Iterator[Type[Mutation]]:
+    for base in cls.__subclasses__():
+        if hasattr(base, MUTATE):
+            yield base
+            yield from _mutations(base)
+
+
+def mutations() -> Collection[Operation]:
+    return [mut._operation for mut in _mutations()]

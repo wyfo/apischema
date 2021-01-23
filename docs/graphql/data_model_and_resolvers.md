@@ -89,14 +89,21 @@ Error handler can be synchronous or asynchronous.
 !!! note
     `ID` type could also be identified using `typing.Annotated` and a predicate looking into annotations.
 
+*Apischema* also provides a simple `ID` type with `apischema.graphql.ID`. It is just defined as a `NewType` of string, so you can use it when you want to manipulate raw `ID` strings in your resolvers.
 
-### ID (de)serializer
 
-`ID` (de)serialization can directly be controlled the `id_serializer`/`id_deserializer` parameters of `graphql_schema`. A current practice is to use *base64* encoding for `ID`.
+### ID encoding
+
+`ID` encoding can directly be controlled the `id_encoding` parameters of `graphql_schema`. A current practice is to use *base64* encoding for `ID`.
 
 ```python
 {!id_conversion.py!}
 ```
 
 !!! note
+    You can also use `relay.base64_encoding` (see [next section](relay.md#id-encoding))
+
+!!! note
     `ID` serialization (respectively deserialization) is applied **after** *Apischema* conversions (respectively before *Apischema* conversion): in the example, uuid is already converted into string before being passed to `id_serializer`.
+
+    If you use base64 encodeing and an ID type which is converted by *Apischema* to a base64 str, you will get a double encoded base64 string
