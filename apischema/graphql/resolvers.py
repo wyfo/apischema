@@ -288,7 +288,13 @@ def resolver_resolve(
             info_parameter = param.name
         else:
             parameters.append(
-                (param.name, param_type, is_union_of(param_type, NoneType))
+                (
+                    aliaser(param.name),
+                    param.name,
+                    param_type,
+                    is_union_of(param_type, NoneType),
+                    param.default is Parameter.empty,
+                )
             )
     func, error_handler = resolver.func, resolver.error_handler
 
@@ -321,24 +327,28 @@ def resolver_resolve(
         serialize_error = sync_serialize
 
     def resolve(__self, __info, **kwargs):
+        values = {}
         errors: Dict[str, ValidationError] = {}
-        for param_name, param_type, opt_param in parameters:
+        for alias, param_name, param_type, opt_param, is_required in parameters:
             if param_name in kwargs:
                 if not opt_param and kwargs[param_name] is None:
-                    kwargs.pop(param_name)
+                    assert not is_required
                     continue
                 try:
-                    kwargs[param_name] = deserialize(
+                    values[param_name] = deserialize(
                         param_type, kwargs[param_name], aliaser=aliaser
                     )
                 except ValidationError as err:
                     errors[aliaser(param_name)] = err
+            elif opt_param and is_required:
+                values[param_name] = None
+
         if errors:
             raise TypeError(serialize(ValidationError(children=errors)))
         if info_parameter:
-            kwargs[info_parameter] = __info
+            values[info_parameter] = __info
         try:
-            return serialize_result(func(__self, **kwargs))
+            return serialize_result(func(__self, **values))
         except Exception as error:
             if error_handler is None:
                 raise

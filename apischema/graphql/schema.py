@@ -533,7 +533,6 @@ class OutputSchemaBuilder(
                 def arg_thunk(
                     arg_thunk=self.input_builder.visit(param_type),
                     default=default,
-                    out_name=param.name,
                 ) -> graphql.GraphQLArgument:
                     arg_type = exec_thunk(arg_thunk)
                     if (
@@ -541,7 +540,7 @@ class OutputSchemaBuilder(
                         and default is None
                     ):
                         default = graphql.Undefined
-                    return graphql.GraphQLArgument(arg_type, default, out_name=out_name)
+                    return graphql.GraphQLArgument(arg_type, default)
 
                 args[self.aliaser(param.name)] = arg_thunk
         return self.aliaser(field.alias or field.name), lambda: graphql.GraphQLField(
