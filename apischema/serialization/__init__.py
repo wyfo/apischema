@@ -83,7 +83,7 @@ def serialization_fields(
             aggregate_fields.append((field.name, method))
         else:
             normal_fields.append((field.name, aliaser(get_alias(field)), method))
-    for name, serialized in get_serialized_methods(cls).items():
+    for name, (serialized, _) in get_serialized_methods(cls).items():
 
         def method(
             obj: Any,
@@ -198,7 +198,7 @@ def serialize(
                 attr = getattr(obj, field_name)
                 if attr is not Undefined:
                     result[aliaser(field_name)] = attr
-            for name, serialized in get_serialized_methods(cls).items():
+            for name, (serialized, _) in get_serialized_methods(cls).items():
                 res = serialized.func(obj)
                 if res is not Undefined:
                     result[aliaser(name)] = _serialize(

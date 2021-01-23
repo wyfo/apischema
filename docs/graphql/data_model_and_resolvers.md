@@ -46,6 +46,9 @@ Resolvers parameters are included in the schema with their type, and their defau
 {!resolver.py!}
 ```
 
+!!! note
+    Contrary to [serialized methods](../de_serialization.md#serialized-methodsproperties), resolver cannot return `Undefined`.
+
 ### `GraphQLResolveInfo` parameter
 
 Resolvers can have an additional parameter of type [`graphql.GraphQLResolveInfo`](https://graphql-core-3.readthedocs.io/en/latest/modules/type.html?highlight=GraphQLResolveInfo#graphql.type.GraphQLResolveInfo) (or `Optional[graphql.GraphQLResolveInfo]`), which is automatically injected when the resolver is executed in the context of a *GraphQL* request. This parameter contains the info about the current *GraphQL* request being executed.

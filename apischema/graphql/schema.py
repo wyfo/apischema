@@ -595,13 +595,17 @@ class OutputSchemaBuilder(
             if cls.__name__ not in ("Query", "Mutation", "Subscription"):
                 raise
             name, description = cls.__name__, self._description
-        for resolver_name, resolver in get_resolvers(cls).items():
+        for resolver_name, (resolver, types) in get_resolvers(
+            self._generic or cls
+        ).items():
             resolver_field = ObjectField(
                 resolver_name,
-                resolver.return_type,
+                types["return"],
                 conversions=resolver.conversions,
-                parameters=(resolver.parameters, resolver.types),
-                resolve=self._wrap_resolve(resolver_resolve(resolver, self.aliaser)),
+                parameters=(resolver.parameters, types),
+                resolve=self._wrap_resolve(
+                    resolver_resolve(resolver, types, self.aliaser)
+                ),
             )
             fields_and_resolvers.append(resolver_field)
         visited_fields = dict(map(self._field, fields_and_resolvers))
@@ -766,12 +770,13 @@ def graphql_schema(
     for operations, fields in [(query, query_fields), (mutation, mutation_fields)]:
         for operation in operations:
             name, resolver = operation_resolver(operation)
+            resolver_types = resolver.types()
             fields.append(
                 ObjectField(
                     name,
-                    resolver.return_type,
-                    parameters=(resolver.parameters, resolver.types),
-                    resolve=resolver_resolve(resolver, aliaser),
+                    resolver_types["return"],
+                    parameters=(resolver.parameters, resolver_types),
+                    resolve=resolver_resolve(resolver, resolver_types, aliaser),
                     schema=resolver.schema,
                 )
             )
@@ -782,18 +787,24 @@ def graphql_schema(
             operation = remove_error_handler(operation)
             name, resolver = operation_resolver(event_handler, keep_first_param=True)
             _, subscriber = operation_resolver(operation)
-            subscribe = resolver_resolve(subscriber, aliaser, serialized=False)
-            resolve = resolver_resolve(resolver, aliaser)
-            return_type = resolver.return_type
+            subscribe = resolver_resolve(
+                subscriber, subscriber.types(), aliaser, serialized=False
+            )
+            resolver_types = resolver.types()
+            resolve = resolver_resolve(resolver, resolver_types, aliaser)
+            return_type = resolver_types["return"]
         else:
             operation = remove_error_handler(cast(OpOrFunc, sub_op))
             name, resolver = operation_resolver(sub_op)
-            if get_origin2(resolver.return_type) not in async_iterable_origins:
+            resolver_types = resolver.types()
+            if get_origin2(resolver_types["return"]) not in async_iterable_origins:
                 raise TypeError(
                     "Subscriptions must return an AsyncIterable/AsyncIterator"
                 )
-            return_type = get_args2(resolver.return_type)[0]
-            subscribe = resolver_resolve(resolver, aliaser, serialized=False)
+            return_type = get_args2(resolver_types["return"])[0]
+            subscribe = resolver_resolve(
+                resolver, resolver_types, aliaser, serialized=False
+            )
 
             def resolve(_, *args, **kwargs):
                 return _
@@ -802,7 +813,7 @@ def graphql_schema(
             ObjectField(
                 name,
                 return_type,
-                parameters=(resolver.parameters, resolver.types),
+                parameters=(resolver.parameters, resolver_types),
                 resolve=resolve,
                 subscribe=subscribe,
                 schema=resolver.schema,
