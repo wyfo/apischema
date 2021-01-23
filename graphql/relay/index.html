@@ -389,6 +389,19 @@
     Connections
   </a>
   
+    <nav class="md-nav" aria-label="Connections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-connectionsedges" class="md-nav__link">
+    Custom connections/edges
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -624,6 +637,19 @@
   <a href="#connections" class="md-nav__link">
     Connections
   </a>
+  
+    <nav class="md-nav" aria-label="Connections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-connectionsedges" class="md-nav__link">
+    Custom connections/edges
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -896,6 +922,88 @@
         <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">}</span>
+</code></pre></div>
+
+<h3 id="custom-connectionsedges">Custom connections/edges<a class="headerlink" href="#custom-connectionsedges" title="Permanent link">&para;</a></h3>
+<p>Connections can be customizes by simply subclassing <code>relay.Connection</code> class and adding the additional fields.</p>
+<p>For the edges, <code>relay.Edge</code> can be subclassed too, and the subclass has then to be passed as type argument to the generic connection.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span>
+
+<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+
+<span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">relay</span><span class="p">,</span> <span class="n">resolver</span>
+
+<span class="n">Cursor</span> <span class="o">=</span> <span class="nb">int</span>
+<span class="n">Node</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Node&quot;</span><span class="p">)</span>
+<span class="n">Edge</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Edge&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">relay</span><span class="o">.</span><span class="n">Edge</span><span class="p">)</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">MyConnection</span><span class="p">(</span><span class="n">relay</span><span class="o">.</span><span class="n">Connection</span><span class="p">[</span><span class="n">Node</span><span class="p">,</span> <span class="n">Cursor</span><span class="p">,</span> <span class="n">Edge</span><span class="p">]):</span>
+    <span class="n">connection_field</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">MyEdge</span><span class="p">(</span><span class="n">relay</span><span class="o">.</span><span class="n">Edge</span><span class="p">[</span><span class="n">Node</span><span class="p">,</span> <span class="n">Cursor</span><span class="p">]):</span>
+    <span class="n">edge_field</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">42</span>
+
+
+<span class="n">Connection</span> <span class="o">=</span> <span class="n">MyConnection</span><span class="p">[</span><span class="n">Node</span><span class="p">,</span> <span class="n">MyEdge</span><span class="p">[</span><span class="n">Node</span><span class="p">]]</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Ship</span><span class="p">:</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Faction</span><span class="p">:</span>
+    <span class="nd">@resolver</span>
+    <span class="k">def</span> <span class="nf">ships</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">first</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">after</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Cursor</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Connection</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Ship</span><span class="p">]]]:</span>
+        <span class="o">...</span>
+
+
+<span class="k">def</span> <span class="nf">faction</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Faction</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">Faction</span><span class="p">()</span>
+
+
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">faction</span><span class="p">])</span>
+<span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">type Query {</span>
+<span class="s2">  faction: Faction</span>
+<span class="s2">}</span>
+
+<span class="s2">type Faction {</span>
+<span class="s2">  ships(first: Int, after: Int): ShipConnection</span>
+<span class="s2">}</span>
+
+<span class="s2">type ShipConnection {</span>
+<span class="s2">  edges: [ShipEdge]</span>
+<span class="s2">  connectionField: Boolean!</span>
+<span class="s2">  pageInfo: PageInfo!</span>
+<span class="s2">}</span>
+
+<span class="s2">type ShipEdge {</span>
+<span class="s2">  node: Ship</span>
+<span class="s2">  cursor: Int!</span>
+<span class="s2">  edgeField: Int</span>
+<span class="s2">}</span>
+
+<span class="s2">type Ship {</span>
+<span class="s2">  name: String!</span>
+<span class="s2">}</span>
+
+<span class="s2">type PageInfo {</span>
+<span class="s2">  hasPreviousPage: Boolean!</span>
+<span class="s2">  hasNextPage: Boolean!</span>
+<span class="s2">  startCursor: Int</span>
+<span class="s2">  endCursor: Int</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 
 <h2 id="mutations">Mutations<a class="headerlink" href="#mutations" title="Permanent link">&para;</a></h2>
