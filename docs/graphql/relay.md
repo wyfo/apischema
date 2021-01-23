@@ -71,6 +71,17 @@ Here is an example of `Connection` use:
 {!relay_connection.py!}
 ```
 
+### Custom connections/edges
+
+Connections can be customizes by simply subclassing `relay.Connection` class and adding the additional fields.
+
+For the edges, `relay.Edge` can be subclassed too, and the subclass has then to be passed as type argument to the generic connection.
+
+
+```python
+{!relay_connection_subclass.py!}
+```
+
 ## Mutations
 
 *Relay* compliant mutations can be declared with a dataclass subclassing the `relay.Mutation` class; its fields will be put in the payload type of the mutation.
