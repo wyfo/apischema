@@ -759,8 +759,9 @@ def graphql_schema(
     extensions: Optional[Dict[str, Any]] = None,
     aliaser: Aliaser = to_camel_case,
     id_types: Union[Collection[AnyType], IdPredicate] = None,
-    id_deserializer: Callable[[str], Any] = None,
-    id_serializer: Callable[[Any], str] = None,
+    id_encoding: Tuple[
+        Optional[Callable[[str], Any]], Optional[Callable[[Any], str]]
+    ] = (None, None),
     union_ref: UnionRefFactory = "Or".join,
 ) -> graphql.GraphQLSchema:
 
@@ -821,9 +822,10 @@ def graphql_schema(
         )
 
     is_id = id_types.__contains__ if isinstance(id_types, Collection) else id_types
-    if id_deserializer is None and id_serializer is None:
+    if id_encoding == (None, None):
         id_type: graphql.GraphQLScalarType = graphql.GraphQLID
     else:
+        id_deserializer, id_serializer = id_encoding
         id_type = graphql.GraphQLScalarType(
             name="ID",
             serialize=id_serializer or graphql.GraphQLID.serialize,

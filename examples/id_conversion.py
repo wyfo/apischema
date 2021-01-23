@@ -20,8 +20,10 @@ def foo() -> Optional[Foo]:
 schema = graphql_schema(
     query=[foo],
     id_types={UUID},
-    id_deserializer=lambda s: b64decode(s).decode(),
-    id_serializer=lambda s: b64encode(s.encode()).decode(),
+    id_encoding=(
+        lambda s: b64decode(s).decode(),
+        lambda s: b64encode(s.encode()).decode(),
+    ),
 )
 
 assert graphql_sync(schema, "{foo{id}}").data == {
