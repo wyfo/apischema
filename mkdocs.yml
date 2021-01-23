@@ -20,6 +20,7 @@ nav:
   - Overview: graphql/overview.md
   - graphql/data_model_and_resolvers.md
   - graphql/schema.md
+  - graphql/relay.md
 - Examples:
   - OpenRPC: examples/open_rpc.md
   - examples/sqlalchemy_support.md
