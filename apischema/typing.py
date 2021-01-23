@@ -121,7 +121,10 @@ def generic_mro(tp):
             raise TypeError(f"{tp!r} is not a type or a generic alias")
         return tp.__mro__
     # sentinel value to avoid to subscript Generic and Protocol
-    result = {Generic: Generic, Protocol: Protocol}
+    try:
+        result = {Generic: Generic, Protocol: Protocol}
+    except NameError:
+        result = {Generic: Generic}
     _generic_mro(result, tp)
     cls = origin if origin is not None else tp
     return tuple(result.get(sub_cls, sub_cls) for sub_cls in cls.__mro__)
