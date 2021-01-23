@@ -7,20 +7,20 @@ Below are the results of crude benchmark comparing *apischema* to *pydantic* and
 
 Package | Version | Relative Performance | Mean deserialization time
 --- | --- | --- | ---
-apischema | `0.12.1` |  | 49.7μs
-pydantic | `1.7.3` | 1.5x slower | 75.3μs
-valideer | `0.4.2` | 2.4x slower | 118.4μs
-attrs + cattrs | `20.2.0` | 2.6x slower | 126.8μs
-marshmallow | `3.8.0` | 4.1x slower | 202.1μs
-voluptuous | `0.12.0` | 5.2x slower | 256.6μs
-trafaret | `2.1.0` | 5.7x slower | 282.3μs
-django-rest-framework | `3.12.1` | 20.5x slower | 1019.0μs
-cerberus | `1.3.2` | 41.3x slower | 2051.0μs
+apischema | `0.14.0` |  | 51.6μs
+pydantic | `1.7.3` | 1.5x slower | 77.8μs
+valideer | `0.4.2` | 2.3x slower | 119.4μs
+attrs + cattrs | `20.2.0` | 2.4x slower | 122.2μs
+marshmallow | `3.8.0` | 4.0x slower | 204.7μs
+voluptuous | `0.12.0` | 4.9x slower | 254.9μs
+trafaret | `2.1.0` | 5.5x slower | 281.4μs
+django-rest-framework | `3.12.1` | 19.4x slower | 999.2μs
+cerberus | `1.3.2` | 39.5x slower | 2038.5μs
 
 Package | Version | Relative Performance | Mean serialization time
 --- | --- | --- | ---
-apischema | `0.12.1` |  | 29.4μs
-pydantic | `1.7.3` | 1.6x slower | 47.6μs
+apischema | `0.14.0` |  | 29.5μs
+pydantic | `1.7.3` | 1.6x slower | 48.0μs
 
 Benchmarks were run with Python 3.8 (*CPython*) and the package versions listed above installed via *pypi* on *macOs* 10.15.7
 

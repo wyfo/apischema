@@ -20,7 +20,7 @@ All nodes defined can be retrieved using `relay.nodes`, while the `node` query i
 ```
 
 !!! warning
-    Even if its result is note used, `relay.nodes` must be called
+    For now, even if its result is note used, `relay.nodes` must be called before generating the schema.
 
 ### Global ID
 
