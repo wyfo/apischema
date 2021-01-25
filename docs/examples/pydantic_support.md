@@ -1,6 +1,6 @@
 # Pydantic support
 
-It takes only 20 lines of code to support `pydantic.BaseModel` and all of its subclasses. You could add these lines to your project using *pydantic* and start to benefit of *Apischema* features.
+It takes only 20 lines of code to support `pydantic.BaseModel` and all of its subclasses. You could add these lines to your project using *pydantic* and start to benefit of *apischema* features.
 
 !!! note
     This support unfortunately doesn't include *GraphQL* schema feature.

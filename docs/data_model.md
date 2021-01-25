@@ -1,13 +1,13 @@
 # Data model
 
-*Apischema* handle every classes/types you need.
+*apischema* handle every classes/types you need.
 
 By the way, it's done in an additive way, meaning that it doesn't affect your types.
 
 ### PEP 585
 With Python 3.9 and [PEP 585](https://www.python.org/dev/peps/pep-0585/), typing is substantially shaken up; all collection types of `typing` module are now deprecated.
 
-Apischema fully support 3.9 and PEP 585, as shown in the different examples.
+apischema fully support 3.9 and PEP 585, as shown in the different examples.
 
 ## Dataclasses
 
@@ -23,18 +23,18 @@ With some teasing of features presented later:
 
 
 !!! note
-    Field's metadata are just an ordinary `dict`; *Apischema* provides some functions to enrich these metadata with it's own keys (`alias("foo_bar)` is roughly equivalent to `{"_apischema_alias": "foo_bar"}) and use them when the time comes, but metadata are not reserved to *Apischema* and other keys can be added.
+    Field's metadata are just an ordinary `dict`; *apischema* provides some functions to enrich these metadata with it's own keys (`alias("foo_bar)` is roughly equivalent to `{"_apischema_alias": "foo_bar"}) and use them when the time comes, but metadata are not reserved to *apischema* and other keys can be added.
    
-    Because [PEP 584](https://www.python.org/dev/peps/pep-0584/) is painfully missing before Python 3.9, *Apischema* metadata use their own subclass of `dict` just to add `|` operator for convenience.
+    Because [PEP 584](https://www.python.org/dev/peps/pep-0584/) is painfully missing before Python 3.9, *apischema* metadata use their own subclass of `dict` just to add `|` operator for convenience.
     
 Dataclasses `__post_init__` and `field(init=False)` are fully supported. Implication of this feature usage is documented in the relative sections.
 
 !!! warning
-    Before 3.8, `InitVar` is doing [type erasure](https://bugs.python.org/issue33569), that's why it's not possible for *Apischema* to retrieve type information of init variables. To fix this behavior, a field metadata `init_var` can be used to put back the type of the field (`init_var` also accepts stringified type annotations).
+    Before 3.8, `InitVar` is doing [type erasure](https://bugs.python.org/issue33569), that's why it's not possible for *apischema* to retrieve type information of init variables. To fix this behavior, a field metadata `init_var` can be used to put back the type of the field (`init_var` also accepts stringified type annotations).
 
 ## Standard library types
 
-*Apischema* handle natively most of the types provided by the standard library. They are sorted in the following categories:
+*apischema* handle natively most of the types provided by the standard library. They are sorted in the following categories:
 
 #### Primitive
 `str`, `int`, `float`, `bool`, `None`, subclasses of them
@@ -141,7 +141,7 @@ Here with PEP 563 (requires 3.7+)
 {!recursive_postponned.py!}
 ```
 !!! warning
-    To resolve annotations, *Apischema* uses `typing.get_type_hints`; this doesn't work really well when used on objects defined outside of global scope.
+    To resolve annotations, *apischema* uses `typing.get_type_hints`; this doesn't work really well when used on objects defined outside of global scope.
    
 !!! warning "Warning (minor)"
     Currently, PEP 585 can have surprising behavior when used outside the box, see [bpo-41370](https://bugs.python.org/issue41370)
@@ -151,7 +151,7 @@ Here with PEP 563 (requires 3.7+)
 
 Contrary to Javascript, Python doesn't have an `undefined` equivalent (if we consider `None` to be `null` equivalent). But it can be useful to distinguish (especially when thinkinn about HTTP `PATCH` method) between a `null` field and an `undefined`/absent field.
 
-That's why *Apischema* provides an `Undefined` constant (a single instance of `UndefinedType` class) which can be used as a default value everywhere where this distinction is needed. In fact, default values are used when field are absent, thus a default `Undefined` will *mark* the field as absent. 
+That's why *apischema* provides an `Undefined` constant (a single instance of `UndefinedType` class) which can be used as a default value everywhere where this distinction is needed. In fact, default values are used when field are absent, thus a default `Undefined` will *mark* the field as absent. 
 
 Dataclass/`NamedTuple` fields are ignored by serialization when `Undefined`. 
 
@@ -167,7 +167,7 @@ Dataclass/`NamedTuple` fields are ignored by serialization when `Undefined`.
     
 ## Annotated - PEP 593
 
-[PEP 593](https://www.python.org/dev/peps/pep-0593/) is fully supported; annotations stranger to *Apischema* are simlply ignored.
+[PEP 593](https://www.python.org/dev/peps/pep-0593/) is fully supported; annotations stranger to *apischema* are simlply ignored.
 
 ### Skip `Union` member
 
@@ -184,7 +184,7 @@ Sometimes, one of the `Union` members has not to be taken in account during vali
 
 `Optional` type is not always appropriate, because it allows deserialized value to be `null`, but sometimes, you just want `None` as a default value for unset fields, not an authorized one.
 
-That's why *Apischema* defines a `NotNull` type; in fact, `NotNull = Union[T, Annotated[None, Skip]]`. 
+That's why *apischema* defines a `NotNull` type; in fact, `NotNull = Union[T, Annotated[None, Skip]]`. 
 
 ```python
 {!not_null.py!}
@@ -197,7 +197,7 @@ That's why *Apischema* defines a `NotNull` type; in fact, `NotNull = Union[T, An
     
 ## Skip dataclass field
 
-Dataclass fields can be excluded from *Apischema* processing by using `apischema.metadata.skip` in the field metadata
+Dataclass fields can be excluded from *apischema* processing by using `apischema.metadata.skip` in the field metadata
 
 ```python
 {!skip_field.py!}   
@@ -224,13 +224,13 @@ See [conversion](conversions.md) in order to support every possible types in a f
 
 ## Unsupported types
 
-When *Apischema* encounters a type that it doesn't support, `Unsupported` exception will be raised.
+When *apischema* encounters a type that it doesn't support, `Unsupported` exception will be raised.
 
 ```python
 {!unsupported.py!}
 ```
 
-See [conversion](conversions.md) section to make *Apischema* support all your classes.
+See [conversion](conversions.md) section to make *apischema* support all your classes.
 
 ## FAQ
 
@@ -238,4 +238,4 @@ See [conversion](conversions.md) section to make *Apischema* support all your cl
 Iterable could be handled (actually, it was at the beginning), however, this doesn't really make sense from a data point of view. Iterable are computation objects, they can be infinite, etc. They don't correspond to a serialized data; `Collection` is way more appropriate in this context.
 
 #### What happens if I override dataclass `__init__`?
-*Apischema* always assumes that dataclass `__init__` can be called with with all its fields as kwargs parameters. If that's no more the case after a modification of `__init__` (what means if an exception is thrown when the constructor is called because of bad parameters), *Apischema* treats then the class as [not supported](#unsupported-types).
+*apischema* always assumes that dataclass `__init__` can be called with with all its fields as kwargs parameters. If that's no more the case after a modification of `__init__` (what means if an exception is thrown when the constructor is called because of bad parameters), *apischema* treats then the class as [not supported](#unsupported-types).

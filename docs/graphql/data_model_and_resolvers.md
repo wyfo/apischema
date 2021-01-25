@@ -69,7 +69,7 @@ The resulting serialization type will be a `Union` of the normal type and the er
 
 `error_handler=None` correspond to a default handler which only return `None` — exception is thus discarded and the resolver type becomes `Optional`.
 
-The error handler is only executed by *Apischema* serialization process, it's not added to the function, so this one can be executed normally and raise an exception in the rest of your code.
+The error handler is only executed by *apischema* serialization process, it's not added to the function, so this one can be executed normally and raise an exception in the rest of your code.
 
 Error handler can be synchronous or asynchronous.
 
@@ -89,7 +89,7 @@ Error handler can be synchronous or asynchronous.
 !!! note
     `ID` type could also be identified using `typing.Annotated` and a predicate looking into annotations.
 
-*Apischema* also provides a simple `ID` type with `apischema.graphql.ID`. It is just defined as a `NewType` of string, so you can use it when you want to manipulate raw `ID` strings in your resolvers.
+*apischema* also provides a simple `ID` type with `apischema.graphql.ID`. It is just defined as a `NewType` of string, so you can use it when you want to manipulate raw `ID` strings in your resolvers.
 
 
 ### ID encoding
@@ -104,6 +104,6 @@ Error handler can be synchronous or asynchronous.
     You can also use `relay.base64_encoding` (see [next section](relay.md#id-encoding))
 
 !!! note
-    `ID` serialization (respectively deserialization) is applied **after** *Apischema* conversions (respectively before *Apischema* conversion): in the example, uuid is already converted into string before being passed to `id_serializer`.
+    `ID` serialization (respectively deserialization) is applied **after** *apischema* conversions (respectively before *apischema* conversion): in the example, uuid is already converted into string before being passed to `id_serializer`.
 
-    If you use base64 encodeing and an ID type which is converted by *Apischema* to a base64 str, you will get a double encoded base64 string
+    If you use base64 encodeing and an ID type which is converted by *apischema* to a base64 str, you will get a double encoded base64 string

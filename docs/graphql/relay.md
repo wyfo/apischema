@@ -1,6 +1,6 @@
 # Relay
 
-*Apischema* provides some facilities to implement a *GraphQL* server following [*Relay* *GraphQL* server specification](https://relay.dev/docs/en/graphql-server-specification). They are included in the module `apischema.graphql.relay`.
+*apischema* provides some facilities to implement a *GraphQL* server following [*Relay* *GraphQL* server specification](https://relay.dev/docs/en/graphql-server-specification). They are included in the module `apischema.graphql.relay`.
 
 !!! note
     These facilities are independent of each others — you could keep only mutations part and use your own identification and connection system for example.
@@ -8,7 +8,7 @@
 
 ## (Global) Object Identification
 
-*Apischema* defines a generic `relay.Node[Id]` interface which can be used which can be used as base class of all identified resources. This class contains a unique generic field of type `Id`, which will be automatically converted into an `ID!` in the schema. The `Id` type chosen has to be serializable into a string-convertible value (it can register [conversions](../conversions.md) if needed).
+*apischema* defines a generic `relay.Node[Id]` interface which can be used which can be used as base class of all identified resources. This class contains a unique generic field of type `Id`, which will be automatically converted into an `ID!` in the schema. The `Id` type chosen has to be serializable into a string-convertible value (it can register [conversions](../conversions.md) if needed).
 
 Each node has to implement the `classmethod` `get_by_id(cls: type[T], id: Id, info: graphql.GraphQLResolveInfo=None) -> T`.
 
@@ -24,7 +24,7 @@ All nodes defined can be retrieved using `relay.nodes`, while the `node` query i
 
 ### Global ID
 
-*Apischema* defines a `relay.GlobalId` type with the following signature :
+*apischema* defines a `relay.GlobalId` type with the following signature :
 
 ```python
 @dataclass
@@ -32,7 +32,7 @@ class GlobalId(Generic[Node]):
     id: str
     node_class: type[Node]
 ```
-In fact, it is `GlobalId` type which is serialized and deserialized as an `ID!`, not the `Id` parameter of the `Node` class; *Apischema* automatically add a [field converter](../conversions.md#field-conversions) to make the conversion between the `Id` (for example an `UUID`) of a given node and the corresponding `GlobalId`.
+In fact, it is `GlobalId` type which is serialized and deserialized as an `ID!`, not the `Id` parameter of the `Node` class; *apischema* automatically add a [field converter](../conversions.md#field-conversions) to make the conversion between the `Id` (for example an `UUID`) of a given node and the corresponding `GlobalId`.
 
 Node instance global id can be retrieved with `global_id` property.
 
@@ -42,11 +42,11 @@ Node instance global id can be retrieved with `global_id` property.
 
 ### Id encoding
 
-*Relay* specifications encourage the use of base64 encoding, so *Apischema* defines a `relay.base64_encoding` that you can pass to `graphql_schema` `id_encoding` parameter.
+*Relay* specifications encourage the use of base64 encoding, so *apischema* defines a `relay.base64_encoding` that you can pass to `graphql_schema` `id_encoding` parameter.
 
 ## Connections
 
-*Apischema* provides a generic `relay.Connection[Node, Cursor, Edge]` type, which can be used directly without subclassing it; it's also possible to subclass it to add fields to a given connection (or to all the connection which will subclass the subclass). `relay.Edge[Node, Cursor]` can also be subclassed to add fields to the edges.
+*apischema* provides a generic `relay.Connection[Node, Cursor, Edge]` type, which can be used directly without subclassing it; it's also possible to subclass it to add fields to a given connection (or to all the connection which will subclass the subclass). `relay.Edge[Node, Cursor]` can also be subclassed to add fields to the edges.
 
 `Connection` dataclass has the following declaration:
 ```python

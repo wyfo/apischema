@@ -1,6 +1,6 @@
 # Overview
 
-## Apischema
+## apischema
 
 Makes your life easier when it comes to python API.
 
@@ -27,14 +27,14 @@ This library fulfills the following goals:
 No known alternative achieves all of this. 
 
 !!! note
-    Actually, *Apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code ([pydantic support example](examples/pydantic_support.md) using [conversions feature](conversions.md))  
+    Actually, *apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code ([pydantic support example](examples/pydantic_support.md) using [conversions feature](conversions.md))  
 
 ## Example
 
 ```python
 {!quickstart.py!}
 ```
-*Apischema* works out of the box with you data model.
+*apischema* works out of the box with you data model.
 
 !!! note
     This example and further ones are using pytest stuff because they are in fact run as tests in the library CI
@@ -45,12 +45,12 @@ No known alternative achieves all of this.
 
 ## FAQ
 
-#### What is the difference between *Apischema* and *pydantic*?
+#### What is the difference between *apischema* and *pydantic*?
 
 See the [dedicated section](pydantic_difference.md), there is a lot of difference. 
 
 #### I already have my data model with my *SQLAlchemy*/ORM tables, will I have to duplicate my code, making one dataclass by table?
-Why would you have to duplicate them? *Apischema* can "work with user own types as well as foreign libraries ones". Some teasing of [conversion](conversions.md) feature: you can add default serialization for all your tables, or register different serializer that you can select according to your API endpoint, or both.
+Why would you have to duplicate them? *apischema* can "work with user own types as well as foreign libraries ones". Some teasing of [conversion](conversions.md) feature: you can add default serialization for all your tables, or register different serializer that you can select according to your API endpoint, or both.
 
 #### So *SQLAlchemy* is supported? Does it support other libraries?
 No, in fact, no library are supported, even *SQLAlchemy*; it was a choice made to be as small and generic as possible, and to support only the standard library (with types like `datetime`, `UUID`). However, the library is flexible enough to code yourself the support you need with, I hope, the minimal effort. It's of course not excluded to add support in additional small plugin libraries. Feedbacks are welcome about the best way to do things.
@@ -58,4 +58,4 @@ No, in fact, no library are supported, even *SQLAlchemy*; it was a choice made t
 #### I need more accurate validation than "ensure this is an integer and not a string ", can I do that?
 See the [validation](validation.md) section. You can use standard JSON schema validation (`maxItems`, `pattern`, etc.) that will be embedded in your schema or add custom Python validators for each class/fields/`NewType` you want.
 
-*Let's start the Apischema tour.*
+*Let's start the apischema tour.*

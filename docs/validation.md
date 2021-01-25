@@ -1,6 +1,6 @@
 # Validation
 
-Validation is an important part of deserialization. By default, *Apischema* validate types of data according to typing annotations, and [`schema`](json_schema.md#constraints-validation) constraints. But custom validators can also be add for a more precise validation.
+Validation is an important part of deserialization. By default, *apischema* validate types of data according to typing annotations, and [`schema`](json_schema.md#constraints-validation) constraints. But custom validators can also be add for a more precise validation.
 
 ## Deserialization and validation error
 
@@ -10,7 +10,7 @@ Validation is an important part of deserialization. By default, *Apischema* vali
 {!validation_error.py!}
 ```
 
-As shown in the example, *Apischema* will not stop at the first error met but tries to validate all parts of the data.
+As shown in the example, *apischema* will not stop at the first error met but tries to validate all parts of the data.
 
 ## Dataclass validators
 
@@ -21,14 +21,14 @@ Dataclass validation can be completed by custom validators. These are simple dec
 ```
 
 !!! warning
-    **DO NOT use `assert`** statement to validate external data, never. In fact, this statement is made to be disabled when executed in optimized mode (see [documentation](https://docs.python.org/3/reference/simple_stmts.html#the-assert-statement)), so validation would be disabled too. This warning doesn't concern only *Apischema*; `assert` is only for internal assertion in debug/development environment. That's why *Apischema* will not catch `AssertionError` as a validation error but reraises it, making `deserialize` fail. 
+    **DO NOT use `assert`** statement to validate external data, never. In fact, this statement is made to be disabled when executed in optimized mode (see [documentation](https://docs.python.org/3/reference/simple_stmts.html#the-assert-statement)), so validation would be disabled too. This warning doesn't concern only *apischema*; `assert` is only for internal assertion in debug/development environment. That's why *apischema* will not catch `AssertionError` as a validation error but reraises it, making `deserialize` fail. 
     
 !!! note
     Validators are always executed in order of declaration.
 
 ### Automatic dependency management
 
-It makes no sense to execute a validator using a field that is ill-formed. Hopefully, *Apischema* is able to compute validator dependencies — the fields used in validator; validator is executed only if the all its dependencies are ok.
+It makes no sense to execute a validator using a field that is ill-formed. Hopefully, *apischema* is able to compute validator dependencies — the fields used in validator; validator is executed only if the all its dependencies are ok.
 
 ```python
 {!computed_dependencies.py!}
@@ -41,7 +41,7 @@ It makes no sense to execute a validator using a field that is ill-formed. Hopef
 
 Validation of list field can require to raise several exception, one for each bad elements. With `raise`, this is not possible, because you can raise only once.
 
-However, *Apischema* provides a way or raising as many errors as needed by using `yield`. Moreover, with this syntax, it is possible to add a "path" to the error to precise its location in the validated data. This path will be added to the `loc` key of the error.
+However, *apischema* provides a way or raising as many errors as needed by using `yield`. Moreover, with this syntax, it is possible to add a "path" to the error to precise its location in the validated data. This path will be added to the `loc` key of the error.
 
 ```python
 {!validator_yield.py!}
@@ -132,7 +132,7 @@ Last but not least, validators can be embedded directly into `Annotated` argumen
 `ast.NodeVisitor` and the Python black magic begins...
 
 #### Why only validate at deserialization and not at instantiation?
-*Apischema* uses type annotations, so every objects used can already be statically type-checked (with *Mypy*/*Pycharm*/etc.) at instantiation but also at modification.
+*apischema* uses type annotations, so every objects used can already be statically type-checked (with *Mypy*/*Pycharm*/etc.) at instantiation but also at modification.
 
 #### Why use validators for dataclasses instead of doing validation in `__post_init__`?
 Actually, validation can completly be done in `__post_init__`, there is not problem with that. However, validators offers one thing that cannot be achieved with `__post_init__`: they are run before `__init__`, so they can validate incomplete data. Moreover, they are only run during deserialization, so they don't add overhead to normal class instantiation.

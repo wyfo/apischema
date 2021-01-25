@@ -1,8 +1,8 @@
 # GraphQL Overview
 
-*Apischema* supports *GraphQL* through [*graphql-core*](https://github.com/graphql-python/graphql-core) library.
+*apischema* supports *GraphQL* through [*graphql-core*](https://github.com/graphql-python/graphql-core) library.
 
-You can install this dependency directly with *Apischema* using the following extra requirement:
+You can install this dependency directly with *apischema* using the following extra requirement:
 ```shell
 pip install apischema[graphql]
 ```
@@ -13,9 +13,9 @@ pip install apischema[graphql]
 {!graphql_overview.py!}
 ```
 
-*GraphQL* is fully integrated with the rest of *Apischema* features, especially [conversions](../conversions.md), so it's easy to integrate ORM and other custom types in the generated schema; this concerns query results but also arguments.
+*GraphQL* is fully integrated with the rest of *apischema* features, especially [conversions](../conversions.md), so it's easy to integrate ORM and other custom types in the generated schema; this concerns query results but also arguments.
 
-By the way, while *GraphQL* doesn't support constraints, *Apischema* still offers you all the power of its [validation feature](../validation.md). In fact, *Apischema* deserialize and validate all the arguments passed to resolvers. 
+By the way, while *GraphQL* doesn't support constraints, *apischema* still offers you all the power of its [validation feature](../validation.md). In fact, *apischema* deserialize and validate all the arguments passed to resolvers. 
 
 
 ## FAQ

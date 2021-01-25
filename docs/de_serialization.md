@@ -1,6 +1,6 @@
 # (De)serialization
 
-*Apischema* aims to help API with deserialization/serialization of data, mostly JSON.
+*apischema* aims to help API with deserialization/serialization of data, mostly JSON.
 
 Let start again with the [overview example](index.md#example)
 ```python
@@ -25,7 +25,7 @@ Deserialization performs a validation of data, based on typing annotations and o
 
 #### Coercion
 
-*Apischema* is strict by default. You ask for an integer, you have to receive an integer. 
+*apischema* is strict by default. You ask for an integer, you have to receive an integer. 
 
 However, in some cases, data has to be be coerced, for example when parsing aconfiguration file. That can be done using `coerce` parameter; when set to `True`, all primitive types will be coerce to the expected type of the data model like the following:
 
@@ -64,7 +64,7 @@ However, in some cases, data has to be be coerced, for example when parsing acon
     
 #### Additional properties
 
-*Apischema* is strict too about number of fields received for an *object*. In JSON schema terms, *Apischema* put `"additionalProperties": false` by default (this can be configured by class with [properties field](#additional-and-pattern-properties)). 
+*apischema* is strict too about number of fields received for an *object*. In JSON schema terms, *apischema* put `"additionalProperties": false` by default (this can be configured by class with [properties field](#additional-and-pattern-properties)). 
 
 This behavior can be controlled by `additional_properties` parameter. When set to `True`, it prevents the reject of unexpected properties. 
 
@@ -82,7 +82,7 @@ Validation error can happen when deserializing an ill-formed field. However, if 
 
 #### Strictness configuration
 
-*Apischema* global configuration is managed through `apischema.settings` module.
+*apischema* global configuration is managed through `apischema.settings` module.
 This module has, among other, three global variables `settings.additional_properties`, `settings.coercion` and `settings.default_fallback` whose values are used as default parameter values for the `deserialize` function.
 
 Global coercion function can be set with `settings.coercer` following this example:
@@ -114,7 +114,7 @@ def coercer(cls, data):
 
 Sometimes, it can be useful to know which field has been set by the deserialization, for example in the case of a *PATCH* requests, to know which field has been updated. Moreover, it is also used in serialization to limit the fields serialized (see [next section](#exclude-unset-fields))
 
-Because *Apischema* use vanilla dataclasses, this feature is not enabled by default and must be set explicitly on a per-class basis. *Apischema* provides a simple API to get/set this metadata.  
+Because *apischema* use vanilla dataclasses, this feature is not enabled by default and must be set explicitly on a per-class basis. *apischema* provides a simple API to get/set this metadata.  
 
 ```python
 {!fields_set.py!}
@@ -124,7 +124,7 @@ Because *Apischema* use vanilla dataclasses, this feature is not enabled by defa
     `with_fields_set` decorator MUST be put above `dataclass` one. This is because both of them modify `__init__` method, but only the first is built to take the second in account.
     
 !!! warning
-    `dataclasses.replace` works by setting all the fields of the replaced object. Because of this issue, *Apischema* provides a little wrapper `apischema.dataclasses.replace`.
+    `dataclasses.replace` works by setting all the fields of the replaced object. Because of this issue, *apischema* provides a little wrapper `apischema.dataclasses.replace`.
 
 
 ## Serialization
@@ -140,7 +140,7 @@ There is no validation, objects provided are trusted — they are supposed to be
     
 ### Serialized methods/properties
 
-*Apischema* can execute methods/properties during serialization and add the computed values with the other fields values; just put `apischema.serialized` decorator on top of methods/properties you want to be serialized.
+*apischema* can execute methods/properties during serialization and add the computed values with the other fields values; just put `apischema.serialized` decorator on top of methods/properties you want to be serialized.
 
 The function name is used unless an alias is given in decorator argument.
 
@@ -149,7 +149,7 @@ The function name is used unless an alias is given in decorator argument.
 ```
 
 !!! note
-    Serialized methods must not have parameters without default, as *Apischema* need to execute them without arguments
+    Serialized methods must not have parameters without default, as *apischema* need to execute them without arguments
 
 !!! note
     Overriding of a serialized method in a subclass will also override the serialization of the subclass. 
@@ -162,7 +162,7 @@ The resulting serialization type will be a `Union` of the normal type and the er
 
 `error_handler=None` correspond to a default handler which only return `None` — exception is thus discarded and serialization type becomes `Optional`.
 
-The error handler is only executed by *Apischema* serialization process, it's not added to the function, so this one can be executed normally and raise an exception in the rest of your code.
+The error handler is only executed by *apischema* serialization process, it's not added to the function, so this one can be executed normally and raise an exception in the rest of your code.
 
 ```python
 {!serialized_error.py!}

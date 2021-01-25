@@ -28,7 +28,7 @@ Class-level aliasing can be used to define a *camelCase* API.
 
 ### Dynamic aliasing and default aliaser
 
-*Apischema* operations `deserialize`/`serialize`/`deserialization_schema`/`serialization_schema` provide an `aliaser` parameter which will be applied on every fields being processed in this operation.
+*apischema* operations `deserialize`/`serialize`/`deserialization_schema`/`serialization_schema` provide an `aliaser` parameter which will be applied on every fields being processed in this operation.
 
 Similar to [`strictness configuration`](de_serialization.md#strictness-configuration), this parameter has a default value controlled by `apischema.settings.aliaser`.
 
@@ -51,7 +51,7 @@ settings.aliaser(camel_case=True)
 
 ## Schema annotations
 
-Type annotations are not enough to express a complete schema, but *Apischema* has a function for that; `schema` can be used both as type decorator or field metadata.
+Type annotations are not enough to express a complete schema, but *apischema* has a function for that; `schema` can be used both as type decorator or field metadata.
 
 ```python
 {!schema.py!}
@@ -89,7 +89,7 @@ max_props | maxProperties | `dict`
 Two other arguments enable a finer control of the JSON schema generated : 
 
 - `extra` enable to add arbitrary keys to schema;
-- `override=True` prevents *Apischema* to use the annotated type schema, using only `schema` annotation.  
+- `override=True` prevents *apischema* to use the annotated type schema, using only `schema` annotation.  
 
 ```python
 {!schema_extra.py!}
@@ -97,7 +97,7 @@ Two other arguments enable a finer control of the JSON schema generated :
 
 ### `default` annotation
 
-`default` annotation is not added automatically when a field has a default value (see [FAQ](#why-field-default-value-is-not-used-by-default-to-to-generate-json-schema)); `schema` `default` parameter must be used in order to make it appear in the schema. However `...` can be used as a placeholder to make *Apischema* use field default value; this one will be serialized — if serialization fails, error will be ignored as well as `default` annotation.
+`default` annotation is not added automatically when a field has a default value (see [FAQ](#why-field-default-value-is-not-used-by-default-to-to-generate-json-schema)); `schema` `default` parameter must be used in order to make it appear in the schema. However `...` can be used as a placeholder to make *apischema* use field default value; this one will be serialized — if serialization fails, error will be ignored as well as `default` annotation.
 
 ### Constraints validation
 
@@ -155,7 +155,7 @@ However when the schema of the key has a `pattern`, it will give a `"patternProp
     
 ## Property dependencies
 
-*Apischema* support [property dependencies](https://json schema.org/understanding-json schema/reference/object.html#property-dependencies) for dataclass through a class member. Dependencies are also used in validation.
+*apischema* support [property dependencies](https://json schema.org/understanding-json schema/reference/object.html#property-dependencies) for dataclass through a class member. Dependencies are also used in validation.
 
 !!! note
     JSON schema draft 2019-09 renames properties dependencies `dependentRequired` to disambiguate with schema dependencies
@@ -164,11 +164,11 @@ However when the schema of the key has a `pattern`, it will give a `"patternProp
 {!dependent_required.py!}
 ```
 
-Because bidirectional dependencies are a common idiom, *Apischema* provides a shortcut notation. Its indeed possible to write `DependentRequired([credit_card, billing_adress])`.
+Because bidirectional dependencies are a common idiom, *apischema* provides a shortcut notation. Its indeed possible to write `DependentRequired([credit_card, billing_adress])`.
 
 ## Complex/recursive types - JSON schema definitions/OpenAPI components
 
-For complex schema with type reuse, it's convenient to extract definitions of schema components in order to reuse them; it's even mandatory for recursive types. Then, schema use JSON pointers "$ref" to refer to the definitions. *Apischema* handles this feature natively.
+For complex schema with type reuse, it's convenient to extract definitions of schema components in order to reuse them; it's even mandatory for recursive types. Then, schema use JSON pointers "$ref" to refer to the definitions. *apischema* handles this feature natively.
 
 ```python
 {!complex_schema.py!}
@@ -178,7 +178,7 @@ For complex schema with type reuse, it's convenient to extract definitions of sc
 
 If some types appear only once in the schema, you maybe don't want to use a `$ref` and a definition but inline the type definition directly. It is possible by setting `schema_ref(None)` (see [next section](#customize-ref)) on the the concerned type, but it could affect others schema where this types is reused several time. 
 
-However, *Apischema* provides a parameter `all_ref` for this reason:
+However, *apischema* provides a parameter `all_ref` for this reason:
 - `all_refs=True` -> all types with a reference will be put in the definitions and referenced with `$ref`;
 - `all_refs=False` -> only types which are reused in the schema are put in definitions
 `all_refs` default value depends on the [JSON schema version](#json-schemaopenapi-version): it's `False` for JSON schema drafts but `True` for *OpenAPI*.
@@ -253,7 +253,7 @@ def default_ref(cls):
 
 ## JSON schema / *OpenAPI* version
 
-JSON schema has several versions — *OpenAPI* is treated as a JSON schema version. If *Apischema* natively use the last one: draft 2019-09, it is possible to specify a schema version which will be used for the generation.
+JSON schema has several versions — *OpenAPI* is treated as a JSON schema version. If *apischema* natively use the last one: draft 2019-09, it is possible to specify a schema version which will be used for the generation.
 
 ```python
 {!schema_versions.py!}
