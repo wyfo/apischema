@@ -12,7 +12,7 @@ from _pytest.python_api import raises
 from pytest import mark
 
 from apischema import schema_ref
-from apischema.conversions import Conversion
+from apischema.conversions import Conversion, LazyConversion
 from apischema.json_schema import deserialization_schema, serialization_schema
 from apischema.json_schema.generation.schema import DeserializationSchemaBuilder
 from apischema.json_schema.refs import get_ref
@@ -120,7 +120,7 @@ def rec_converter(rec: RecConv) -> List[RecConv]:
 
 def test_recursive_conversion_without_ref():
     tmp = None
-    conversion = Conversion(rec_converter, lazy_conversions=lambda: tmp)
+    conversion = Conversion(rec_converter, conversions=LazyConversion(lambda: tmp))
     tmp = conversion
     with raises(TypeError, match=r"Recursive type <.*> need a ref"):
         serialization_schema(RecConv, conversions=conversion)

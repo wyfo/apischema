@@ -8,6 +8,7 @@ from typing import (
     Mapping,
     Optional,
     Sequence,
+    Set,
     Tuple,
     Type,
     TypeVar,
@@ -84,7 +85,9 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
         if self._conversions is None:
             return None
         else:
-            return self._dynamic_conversion_resolver(self._conversions).visit(tp)
+            return self._dynamic_conversion_resolver().visit_with_conversions(
+                tp, self._conversions
+            )
 
     def visit_conversion(self, cls: Type, conversion: Conv) -> Return:
         raise NotImplementedError
@@ -199,9 +202,9 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
 
 
 class DynamicConversionResolver(ConversionsVisitor[Conv, Optional[AnyType]]):
-    def __init__(self, conversions: Conversions):
+    def __init__(self):
         super().__init__()
-        self._conversions = to_hashable_conversions(conversions)
+        self._rec_guard: Set[HashableConversions] = set()
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> Optional[AnyType]:
         result = self.visit(tp)
@@ -244,16 +247,23 @@ class DynamicConversionResolver(ConversionsVisitor[Conv, Optional[AnyType]]):
         raise NotImplementedError
 
     def _visit(self, tp: AnyType) -> Optional[AnyType]:
-        if self._conversions is None or not is_convertible(tp):
+        if (
+            self._conversions is None
+            or not is_convertible(tp)
+            or self._conversions in self._rec_guard
+        ):
             return None
         conv = self._get_conversions(tp, self._conversions)
         if conv is None or conv is Undefined:
             return None
+        self._rec_guard.add(self._conversions)
         try:
             result = self.visit_conversion(tp, conv)
             return result if result is not None else self._final_type(conv)
         except Exception:
             return self._final_type(conv)
+        finally:
+            self._rec_guard.remove(self._conversions)
 
     def visit(self, tp: AnyType) -> Optional[AnyType]:
         try:
@@ -268,26 +278,10 @@ class DynamicDeserializationResolver(DynamicConversionResolver, DeserializationV
             tuple(self._replace_generic_args(conv.source) for conv in conversion)
         ]
 
-    def visit_conversion(
-        self, cls: Type, conversion: Deserialization
-    ) -> Optional[AnyType]:
-        if any(conv.lazy for conv in conversion):
-            return None
-        else:
-            return super().visit_conversion(cls, conversion)
-
 
 class DynamicSerializationResolver(DynamicConversionResolver, SerializationVisitor):
     def _final_type(self, conversion: Serialization) -> Optional[AnyType]:
         return self._replace_generic_args(conversion.target)
-
-    def visit_conversion(
-        self, cls: Type, conversion: Serialization
-    ) -> Optional[AnyType]:
-        if conversion.lazy:
-            return None
-        else:
-            return super().visit_conversion(cls, conversion)
 
 
 DeserializationVisitor._dynamic_conversion_resolver = DynamicDeserializationResolver

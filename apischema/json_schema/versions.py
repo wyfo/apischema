@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Callable, ClassVar, Dict, Mapping, Optional
 
-from apischema.conversions import Conversion
+from apischema.conversions import Conversion, LazyConversion
 from apischema.json_schema.types import JsonSchema
 
 RefFactory = Callable[[str], str]
@@ -63,7 +63,9 @@ class JsonSchemaVersion:
         if self.serialization:
             # Recursive conversion pattern
             tmp = None
-            conversion = Conversion(self.serialization, lazy_conversions=lambda: tmp)
+            conversion = Conversion(
+                self.serialization, conversions=LazyConversion(lambda: tmp)
+            )
             tmp = conversion
             return conversion
         else:

@@ -178,6 +178,14 @@ Serialized method can also have dedicated sub-conversions
 {!serialized_conversions.py!}
 ```
 
+## Lazy conversions
+
+Another advanced use, conversions can be defined lazily, i.e. using a function returning `Conversion` (single or a collection of it); this function must be wrap into a `apischema.conversions.LazyConversion` instance.
+
+It allows creating recursive conversions or using a conversion object which can be modified after its definition (for example a conversion for a base class modified by `__init_subclass__`) 
+
+It is used by *apischema* itself for the generated JSON schema. It is indeed a recursive data, and the [different versions](json_schema.md#json-schema--openapi-version) are handled by a conversion with a lazy recursive sub-conversion.
+
 ## Dataclass model - automatic conversion from/to dataclass
 
 Conversions are a powerful tool, which allows to support every type you need. If it is particularly well suited for scalar types (`datetime.datetime`, `bson.ObjectId`, etc.), it may seem a little bit complex for object types. In fact, the conversion would often be a simple mapping of fields between the type and a dataclass.

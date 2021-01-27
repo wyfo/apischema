@@ -2,9 +2,9 @@ from enum import Enum, auto
 
 from apischema.conversions.conversions import (
     ConvOrFunc,
-    Conversion,
     ResolvedConversion,
     handle_serialization_method,
+    to_conversion,
 )
 from apischema.conversions.utils import converter_types
 from apischema.dataclasses import replace
@@ -77,8 +77,7 @@ def handle_generic_field_type(
 def resolve_field_deserialization(
     field_type: AnyType, conversion: ConvOrFunc
 ) -> ResolvedConversion:
-    if not isinstance(conversion, Conversion):
-        conversion = Conversion(conversion)
+    conversion = to_conversion(conversion)
     if isinstance(conversion.converter, property):
         raise TypeError("Field deserialization cannot be a property")
     try:
@@ -104,8 +103,6 @@ def resolve_field_deserialization(
 def resolve_field_serialization(
     field_type: AnyType, conversion: ConvOrFunc
 ) -> ResolvedConversion:
-    if not isinstance(conversion, Conversion):
-        conversion = Conversion(conversion)
     conversion = handle_serialization_method(conversion)
     assert not isinstance(conversion.converter, property)
     try:
