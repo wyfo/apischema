@@ -15,7 +15,7 @@ nav:
 - de_serialization.md
 - json_schema.md
 - validation.md
-- conversions.md
+- Conversions: conversions.md
 - GraphQL:
   - Overview: graphql/overview.md
   - graphql/data_model_and_resolvers.md
