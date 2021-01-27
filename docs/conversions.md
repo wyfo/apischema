@@ -108,6 +108,14 @@ Dynamic conversions are applied before looking for a ref registered with `schema
 {!dynamic_schema_ref.py!}
 ```
 
+### Bypass registered conversion
+
+Dynamic conversions can be used to bypass a registered conversion, i.e. to (de)serialize the given type as it would be without conversion registered. It requires to use a `Conversion` object with an `apischema.conversions.identity` converter, and the same source type as the target type.
+
+```python
+{!bypass_conversions.py!}
+```
+
 ## Generic conversions
 
 `Generic` conversions are supported out of the box.
@@ -160,9 +168,11 @@ Sub-conversions are quite an advanced use; they are [dynamic conversions](#dynam
 {!sub_conversions.py!}
 ```
 
-### Serialized method conversion
+Sub-conversions can also be used to [bypass registered conversions](#bypass-registered-conversion).
 
-Serialized method can also have dedicated conversions
+### Serialized method sub-conversions
+
+Serialized method can also have dedicated sub-conversions
 
 ```python
 {!serialized_conversions.py!}

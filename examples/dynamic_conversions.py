@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from apischema import deserialize, serialize
-from apischema.conversions import Conversion, identity
 
 # Set UTC timezone for example
 os.environ["TZ"] = "UTC"
@@ -35,7 +34,3 @@ class Foo:
 assert serialize(Foo(0, 1)) == {"bar": 0, "baz": 1}
 assert serialize(Foo(0, 1), conversions=Foo.sum) == 1
 assert serialize(Foo(0, 1), conversions=Foo.diff) == -1
-# If a conversion is registered with serializer but you don't want to use it,
-# you can use apischema.conversions.identity with source and target as your type
-raw_foo = Conversion(identity, source=Foo, target=Foo)
-assert serialize(Foo(0, 1), conversions=raw_foo) == {"bar": 0, "baz": 1}
