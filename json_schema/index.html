@@ -487,8 +487,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../conversions/" title="Conversions – (de)serialization customization" class="md-nav__link">
-      Conversions – (de)serialization customization
+    <a href="../conversions/" title="Conversions" class="md-nav__link">
+      Conversions
     </a>
   </li>
 
@@ -1034,7 +1034,7 @@
 
 <p>Class-level aliasing can be used to define a <em>camelCase</em> API.</p>
 <h3 id="dynamic-aliasing-and-default-aliaser">Dynamic aliasing and default aliaser<a class="headerlink" href="#dynamic-aliasing-and-default-aliaser" title="Permanent link">&para;</a></h3>
-<p><em>Apischema</em> operations <code>deserialize</code>/<code>serialize</code>/<code>deserialization_schema</code>/<code>serialization_schema</code> provide an <code>aliaser</code> parameter which will be applied on every fields being processed in this operation.</p>
+<p><em>apischema</em> operations <code>deserialize</code>/<code>serialize</code>/<code>deserialization_schema</code>/<code>serialization_schema</code> provide an <code>aliaser</code> parameter which will be applied on every fields being processed in this operation.</p>
 <p>Similar to <a href="../de_serialization/#strictness-configuration"><code>strictness configuration</code></a>, this parameter has a default value controlled by <code>apischema.settings.aliaser</code>.</p>
 <p>It can be used for example to make all an application use <em>camelCase</em>. Actually, there is a shortcut for that:</p>
 <p>Otherwise, it's used the same way than <a href="../de_serialization/#strictness-configuration"><code>settings.coercer</code></a>.</p>
@@ -1052,7 +1052,7 @@
 <p>Dynamic aliaser ignores <code>override=False</code></p>
 </div>
 <h2 id="schema-annotations">Schema annotations<a class="headerlink" href="#schema-annotations" title="Permanent link">&para;</a></h2>
-<p>Type annotations are not enough to express a complete schema, but <em>Apischema</em> has a function for that; <code>schema</code> can be used both as type decorator or field metadata.</p>
+<p>Type annotations are not enough to express a complete schema, but <em>apischema</em> has a function for that; <code>schema</code> can be used both as type decorator or field metadata.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
 
@@ -1210,7 +1210,7 @@
 <p>Two other arguments enable a finer control of the JSON schema generated : </p>
 <ul>
 <li><code>extra</code> enable to add arbitrary keys to schema;</li>
-<li><code>override=True</code> prevents <em>Apischema</em> to use the annotated type schema, using only <code>schema</code> annotation.  </li>
+<li><code>override=True</code> prevents <em>apischema</em> to use the annotated type schema, using only <code>schema</code> annotation.  </li>
 </ul>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
 
@@ -1244,7 +1244,7 @@
 </code></pre></div>
 
 <h3 id="default-annotation"><code>default</code> annotation<a class="headerlink" href="#default-annotation" title="Permanent link">&para;</a></h3>
-<p><code>default</code> annotation is not added automatically when a field has a default value (see <a href="#why-field-default-value-is-not-used-by-default-to-to-generate-json-schema">FAQ</a>); <code>schema</code> <code>default</code> parameter must be used in order to make it appear in the schema. However <code>...</code> can be used as a placeholder to make <em>Apischema</em> use field default value; this one will be serialized — if serialization fails, error will be ignored as well as <code>default</code> annotation.</p>
+<p><code>default</code> annotation is not added automatically when a field has a default value (see <a href="#why-field-default-value-is-not-used-by-default-to-to-generate-json-schema">FAQ</a>); <code>schema</code> <code>default</code> parameter must be used in order to make it appear in the schema. However <code>...</code> can be used as a placeholder to make <em>apischema</em> use field default value; this one will be serialized — if serialization fails, error will be ignored as well as <code>default</code> annotation.</p>
 <h3 id="constraints-validation">Constraints validation<a class="headerlink" href="#constraints-validation" title="Permanent link">&para;</a></h3>
 <p>JSON schema constrains the data deserialized; this constraints are naturally used for validation.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
@@ -1371,7 +1371,7 @@
 <p>Of course, a dataclass can only have a single <code>properties</code> field without pattern, because it makes no sens to have several <code>additionalProperties</code>.</p>
 </div>
 <h2 id="property-dependencies">Property dependencies<a class="headerlink" href="#property-dependencies" title="Permanent link">&para;</a></h2>
-<p><em>Apischema</em> support <a href="https://json schema.org/understanding-json schema/reference/object.html#property-dependencies">property dependencies</a> for dataclass through a class member. Dependencies are also used in validation.</p>
+<p><em>apischema</em> support <a href="https://json schema.org/understanding-json schema/reference/object.html#property-dependencies">property dependencies</a> for dataclass through a class member. Dependencies are also used in validation.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>JSON schema draft 2019-09 renames properties dependencies <code>dependentRequired</code> to disambiguate with schema dependencies</p>
@@ -1419,9 +1419,9 @@
 <span class="p">]</span>
 </code></pre></div>
 
-<p>Because bidirectional dependencies are a common idiom, <em>Apischema</em> provides a shortcut notation. Its indeed possible to write <code>DependentRequired([credit_card, billing_adress])</code>.</p>
+<p>Because bidirectional dependencies are a common idiom, <em>apischema</em> provides a shortcut notation. Its indeed possible to write <code>DependentRequired([credit_card, billing_adress])</code>.</p>
 <h2 id="complexrecursive-types-json-schema-definitionsopenapi-components">Complex/recursive types - JSON schema definitions/OpenAPI components<a class="headerlink" href="#complexrecursive-types-json-schema-definitionsopenapi-components" title="Permanent link">&para;</a></h2>
-<p>For complex schema with type reuse, it's convenient to extract definitions of schema components in order to reuse them; it's even mandatory for recursive types. Then, schema use JSON pointers "$ref" to refer to the definitions. <em>Apischema</em> handles this feature natively.</p>
+<p>For complex schema with type reuse, it's convenient to extract definitions of schema components in order to reuse them; it's even mandatory for recursive types. Then, schema use JSON pointers "$ref" to refer to the definitions. <em>apischema</em> handles this feature natively.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
@@ -1453,7 +1453,7 @@
 
 <h3 id="use-ref-only-for-reused-types">Use ref only for reused types<a class="headerlink" href="#use-ref-only-for-reused-types" title="Permanent link">&para;</a></h3>
 <p>If some types appear only once in the schema, you maybe don't want to use a <code>$ref</code> and a definition but inline the type definition directly. It is possible by setting <code>schema_ref(None)</code> (see <a href="#customize-ref">next section</a>) on the the concerned type, but it could affect others schema where this types is reused several time. </p>
-<p>However, <em>Apischema</em> provides a parameter <code>all_ref</code> for this reason:
+<p>However, <em>apischema</em> provides a parameter <code>all_ref</code> for this reason:
 - <code>all_refs=True</code> -&gt; all types with a reference will be put in the definitions and referenced with <code>$ref</code>;
 - <code>all_refs=False</code> -&gt; only types which are reused in the schema are put in definitions
 <code>all_refs</code> default value depends on the <a href="#json-schemaopenapi-version">JSON schema version</a>: it's <code>False</code> for JSON schema drafts but <code>True</code> for <em>OpenAPI</em>.</p>
@@ -1642,7 +1642,7 @@
 <p>Passing <code>ref_factory</code> also give a default value of <code>True</code> for <a href="#use-ref-only-for-reused-types"><code>all_refs</code></a> parameters.</p>
 </div>
 <h2 id="json-schema-openapi-version">JSON schema / <em>OpenAPI</em> version<a class="headerlink" href="#json-schema-openapi-version" title="Permanent link">&para;</a></h2>
-<p>JSON schema has several versions — <em>OpenAPI</em> is treated as a JSON schema version. If <em>Apischema</em> natively use the last one: draft 2019-09, it is possible to specify a schema version which will be used for the generation.</p>
+<p>JSON schema has several versions — <em>OpenAPI</em> is treated as a JSON schema version. If <em>apischema</em> natively use the last one: draft 2019-09, it is possible to specify a schema version which will be used for the generation.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 

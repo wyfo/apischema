@@ -455,8 +455,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../conversions/" title="Conversions – (de)serialization customization" class="md-nav__link">
-      Conversions – (de)serialization customization
+    <a href="../conversions/" title="Conversions" class="md-nav__link">
+      Conversions
     </a>
   </li>
 
@@ -895,11 +895,11 @@
                 
                 
                 <h1 id="data-model">Data model<a class="headerlink" href="#data-model" title="Permanent link">&para;</a></h1>
-<p><em>Apischema</em> handle every classes/types you need.</p>
+<p><em>apischema</em> handle every classes/types you need.</p>
 <p>By the way, it's done in an additive way, meaning that it doesn't affect your types.</p>
 <h3 id="pep-585">PEP 585<a class="headerlink" href="#pep-585" title="Permanent link">&para;</a></h3>
 <p>With Python 3.9 and <a href="https://www.python.org/dev/peps/pep-0585/">PEP 585</a>, typing is substantially shaken up; all collection types of <code>typing</code> module are now deprecated.</p>
-<p>Apischema fully support 3.9 and PEP 585, as shown in the different examples.</p>
+<p>apischema fully support 3.9 and PEP 585, as shown in the different examples.</p>
 <h2 id="dataclasses">Dataclasses<a class="headerlink" href="#dataclasses" title="Permanent link">&para;</a></h2>
 <p>Because the library aims to bring the minimum boilerplate, it's build on the top of standard library. <a href="https://docs.python.org/3/library/dataclasses.html">Dataclasses</a> are thus the core structure of the data model.</p>
 <p>Dataclasses bring the possibility of field customization, with more than just a default value.
@@ -921,16 +921,16 @@ In addition to the common parameters of <a href="https://docs.python.org/3/libra
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Field's metadata are just an ordinary <code>dict</code>; <em>Apischema</em> provides some functions to enrich these metadata with it's own keys (<code>alias("foo_bar)</code> is roughly equivalent to `{"_apischema_alias": "foo_bar"}) and use them when the time comes, but metadata are not reserved to <em>Apischema</em> and other keys can be added.</p>
-<p>Because <a href="https://www.python.org/dev/peps/pep-0584/">PEP 584</a> is painfully missing before Python 3.9, <em>Apischema</em> metadata use their own subclass of <code>dict</code> just to add <code>|</code> operator for convenience.</p>
+<p>Field's metadata are just an ordinary <code>dict</code>; <em>apischema</em> provides some functions to enrich these metadata with it's own keys (<code>alias("foo_bar)</code> is roughly equivalent to `{"_apischema_alias": "foo_bar"}) and use them when the time comes, but metadata are not reserved to <em>apischema</em> and other keys can be added.</p>
+<p>Because <a href="https://www.python.org/dev/peps/pep-0584/">PEP 584</a> is painfully missing before Python 3.9, <em>apischema</em> metadata use their own subclass of <code>dict</code> just to add <code>|</code> operator for convenience.</p>
 </div>
 <p>Dataclasses <code>__post_init__</code> and <code>field(init=False)</code> are fully supported. Implication of this feature usage is documented in the relative sections.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Before 3.8, <code>InitVar</code> is doing <a href="https://bugs.python.org/issue33569">type erasure</a>, that's why it's not possible for <em>Apischema</em> to retrieve type information of init variables. To fix this behavior, a field metadata <code>init_var</code> can be used to put back the type of the field (<code>init_var</code> also accepts stringified type annotations).</p>
+<p>Before 3.8, <code>InitVar</code> is doing <a href="https://bugs.python.org/issue33569">type erasure</a>, that's why it's not possible for <em>apischema</em> to retrieve type information of init variables. To fix this behavior, a field metadata <code>init_var</code> can be used to put back the type of the field (<code>init_var</code> also accepts stringified type annotations).</p>
 </div>
 <h2 id="standard-library-types">Standard library types<a class="headerlink" href="#standard-library-types" title="Permanent link">&para;</a></h2>
-<p><em>Apischema</em> handle natively most of the types provided by the standard library. They are sorted in the following categories:</p>
+<p><em>apischema</em> handle natively most of the types provided by the standard library. They are sorted in the following categories:</p>
 <h4 id="primitive">Primitive<a class="headerlink" href="#primitive" title="Permanent link">&para;</a></h4>
 <p><code>str</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>None</code>, subclasses of them</p>
 <p>They correspond to JSON primitive types.</p>
@@ -1084,7 +1084,7 @@ Here with string annotations:</p>
 
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>To resolve annotations, <em>Apischema</em> uses <code>typing.get_type_hints</code>; this doesn't work really well when used on objects defined outside of global scope.</p>
+<p>To resolve annotations, <em>apischema</em> uses <code>typing.get_type_hints</code>; this doesn't work really well when used on objects defined outside of global scope.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning (minor)</p>
@@ -1092,7 +1092,7 @@ Here with string annotations:</p>
 </div>
 <h2 id="null-vs-undefined"><code>null</code> vs <code>undefined</code><a class="headerlink" href="#null-vs-undefined" title="Permanent link">&para;</a></h2>
 <p>Contrary to Javascript, Python doesn't have an <code>undefined</code> equivalent (if we consider <code>None</code> to be <code>null</code> equivalent). But it can be useful to distinguish (especially when thinkinn about HTTP <code>PATCH</code> method) between a <code>null</code> field and an <code>undefined</code>/absent field.</p>
-<p>That's why <em>Apischema</em> provides an <code>Undefined</code> constant (a single instance of <code>UndefinedType</code> class) which can be used as a default value everywhere where this distinction is needed. In fact, default values are used when field are absent, thus a default <code>Undefined</code> will <em>mark</em> the field as absent. </p>
+<p>That's why <em>apischema</em> provides an <code>Undefined</code> constant (a single instance of <code>UndefinedType</code> class) which can be used as a default value everywhere where this distinction is needed. In fact, default values are used when field are absent, thus a default <code>Undefined</code> will <em>mark</em> the field as absent. </p>
 <p>Dataclass/<code>NamedTuple</code> fields are ignored by serialization when <code>Undefined</code>. </p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
@@ -1128,7 +1128,7 @@ Here with string annotations:</p>
 <p><code>Undefined</code> is a falsy constant, i.e. <code>bool(Undefined) is False</code>.</p>
 </div>
 <h2 id="annotated-pep-593">Annotated - PEP 593<a class="headerlink" href="#annotated-pep-593" title="Permanent link">&para;</a></h2>
-<p><a href="https://www.python.org/dev/peps/pep-0593/">PEP 593</a> is fully supported; annotations stranger to <em>Apischema</em> are simlply ignored.</p>
+<p><a href="https://www.python.org/dev/peps/pep-0593/">PEP 593</a> is fully supported; annotations stranger to <em>apischema</em> are simlply ignored.</p>
 <h3 id="skip-union-member">Skip <code>Union</code> member<a class="headerlink" href="#skip-union-member" title="Permanent link">&para;</a></h3>
 <p>Sometimes, one of the <code>Union</code> members has not to be taken in account during validation; it can just be here to match the type of the default value of the field. This member can be marked as to be skipped with <a href="https://www.python.org/dev/peps/pep-0593/">PEP 593</a> <code>Annotated</code> and <code>apischema.skip.Skip</code></p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -1158,7 +1158,7 @@ Here with string annotations:</p>
 </div>
 <h3 id="optional-vs-notnull">Optional vs. NotNull<a class="headerlink" href="#optional-vs-notnull" title="Permanent link">&para;</a></h3>
 <p><code>Optional</code> type is not always appropriate, because it allows deserialized value to be <code>null</code>, but sometimes, you just want <code>None</code> as a default value for unset fields, not an authorized one.</p>
-<p>That's why <em>Apischema</em> defines a <code>NotNull</code> type; in fact, <code>NotNull = Union[T, Annotated[None, Skip]]</code>. </p>
+<p>That's why <em>apischema</em> defines a <code>NotNull</code> type; in fact, <code>NotNull = Union[T, Annotated[None, Skip]]</code>. </p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
@@ -1187,7 +1187,7 @@ Here with string annotations:</p>
 <p><a href="../de_serialization/#fields-set">Fields set feature</a> can be used to avoid unwanted serialization of a <code>None</code> default value of a <code>NotNull</code> field. </p>
 </div>
 <h2 id="skip-dataclass-field">Skip dataclass field<a class="headerlink" href="#skip-dataclass-field" title="Permanent link">&para;</a></h2>
-<p>Dataclass fields can be excluded from <em>Apischema</em> processing by using <code>apischema.metadata.skip</code> in the field metadata</p>
+<p>Dataclass fields can be excluded from <em>apischema</em> processing by using <code>apischema.metadata.skip</code> in the field metadata</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
@@ -1289,7 +1289,7 @@ Here with string annotations:</p>
 <h2 id="custom-types-orm">Custom types / ORM<a class="headerlink" href="#custom-types-orm" title="Permanent link">&para;</a></h2>
 <p>See <a href="../conversions/">conversion</a> in order to support every possible types in a few lines of code.</p>
 <h2 id="unsupported-types">Unsupported types<a class="headerlink" href="#unsupported-types" title="Permanent link">&para;</a></h2>
-<p>When <em>Apischema</em> encounters a type that it doesn't support, <code>Unsupported</code> exception will be raised.</p>
+<p>When <em>apischema</em> encounters a type that it doesn't support, <code>Unsupported</code> exception will be raised.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Unsupported</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
@@ -1305,12 +1305,12 @@ Here with string annotations:</p>
     <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span>
 </code></pre></div>
 
-<p>See <a href="../conversions/">conversion</a> section to make <em>Apischema</em> support all your classes.</p>
+<p>See <a href="../conversions/">conversion</a> section to make <em>apischema</em> support all your classes.</p>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
 <h4 id="why-iterable-is-not-handled-with-other-collection-type">Why <code>Iterable</code> is not handled with other collection type?<a class="headerlink" href="#why-iterable-is-not-handled-with-other-collection-type" title="Permanent link">&para;</a></h4>
 <p>Iterable could be handled (actually, it was at the beginning), however, this doesn't really make sense from a data point of view. Iterable are computation objects, they can be infinite, etc. They don't correspond to a serialized data; <code>Collection</code> is way more appropriate in this context.</p>
 <h4 id="what-happens-if-i-override-dataclass-__init__">What happens if I override dataclass <code>__init__</code>?<a class="headerlink" href="#what-happens-if-i-override-dataclass-__init__" title="Permanent link">&para;</a></h4>
-<p><em>Apischema</em> always assumes that dataclass <code>__init__</code> can be called with with all its fields as kwargs parameters. If that's no more the case after a modification of <code>__init__</code> (what means if an exception is thrown when the constructor is called because of bad parameters), <em>Apischema</em> treats then the class as <a href="#unsupported-types">not supported</a>.</p>
+<p><em>apischema</em> always assumes that dataclass <code>__init__</code> can be called with with all its fields as kwargs parameters. If that's no more the case after a modification of <code>__init__</code> (what means if an exception is thrown when the constructor is called because of bad parameters), <em>apischema</em> treats then the class as <a href="#unsupported-types">not supported</a>.</p>
                 
               
               

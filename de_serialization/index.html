@@ -425,8 +425,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../conversions/" title="Conversions – (de)serialization customization" class="md-nav__link">
-      Conversions – (de)serialization customization
+    <a href="../conversions/" title="Conversions" class="md-nav__link">
+      Conversions
     </a>
   </li>
 
@@ -835,7 +835,7 @@
                 
                 
                 <h1 id="deserialization">(De)serialization<a class="headerlink" href="#deserialization" title="Permanent link">&para;</a></h1>
-<p><em>Apischema</em> aims to help API with deserialization/serialization of data, mostly JSON.</p>
+<p><em>apischema</em> aims to help API with deserialization/serialization of data, mostly JSON.</p>
 <p>Let start again with the <a href="..#example">overview example</a></p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Collection</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
@@ -933,7 +933,7 @@ assert deserialize(Mapping[str, Collection[Foo]], {"key": [{"bar": "42"}]}) == {
 }</p>
 <h3 id="strictness">Strictness<a class="headerlink" href="#strictness" title="Permanent link">&para;</a></h3>
 <h4 id="coercion">Coercion<a class="headerlink" href="#coercion" title="Permanent link">&para;</a></h4>
-<p><em>Apischema</em> is strict by default. You ask for an integer, you have to receive an integer. </p>
+<p><em>apischema</em> is strict by default. You ask for an integer, you have to receive an integer. </p>
 <p>However, in some cases, data has to be be coerced, for example when parsing aconfiguration file. That can be done using <code>coerce</code> parameter; when set to <code>True</code>, all primitive types will be coerce to the expected type of the data model like the following:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
@@ -1022,7 +1022,7 @@ assert deserialize(Mapping[str, Collection[Foo]], {"key": [{"bar": "42"}]}) == {
 <p>Coercer first argument is a primitive json type <code>str</code>/<code>bool</code>/<code>int</code>/<code>float</code>/<code>list</code>/<code>dict</code>/<code>type(None)</code>; it can be <code>type(None)</code>, so returning <code>cls(data)</code> will fail in this case.</p>
 </div>
 <h4 id="additional-properties">Additional properties<a class="headerlink" href="#additional-properties" title="Permanent link">&para;</a></h4>
-<p><em>Apischema</em> is strict too about number of fields received for an <em>object</em>. In JSON schema terms, <em>Apischema</em> put <code>"additionalProperties": false</code> by default (this can be configured by class with <a href="#additional-and-pattern-properties">properties field</a>). </p>
+<p><em>apischema</em> is strict too about number of fields received for an <em>object</em>. In JSON schema terms, <em>apischema</em> put <code>"additionalProperties": false</code> by default (this can be configured by class with <a href="#additional-and-pattern-properties">properties field</a>). </p>
 <p>This behavior can be controlled by <code>additional_properties</code> parameter. When set to <code>True</code>, it prevents the reject of unexpected properties. </p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
@@ -1066,7 +1066,7 @@ assert deserialize(Mapping[str, Collection[Foo]], {"key": [{"bar": "42"}]}) == {
 </code></pre></div>
 
 <h4 id="strictness-configuration">Strictness configuration<a class="headerlink" href="#strictness-configuration" title="Permanent link">&para;</a></h4>
-<p><em>Apischema</em> global configuration is managed through <code>apischema.settings</code> module.
+<p><em>apischema</em> global configuration is managed through <code>apischema.settings</code> module.
 This module has, among other, three global variables <code>settings.additional_properties</code>, <code>settings.coercion</code> and <code>settings.default_fallback</code> whose values are used as default parameter values for the <code>deserialize</code> function.</p>
 <p>Global coercion function can be set with <code>settings.coercer</code> following this example:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">json</span>
@@ -1094,7 +1094,7 @@ This module has, among other, three global variables <code>settings.additional_p
 </div>
 <h2 id="fields-set">Fields set<a class="headerlink" href="#fields-set" title="Permanent link">&para;</a></h2>
 <p>Sometimes, it can be useful to know which field has been set by the deserialization, for example in the case of a <em>PATCH</em> requests, to know which field has been updated. Moreover, it is also used in serialization to limit the fields serialized (see <a href="#exclude-unset-fields">next section</a>)</p>
-<p>Because <em>Apischema</em> use vanilla dataclasses, this feature is not enabled by default and must be set explicitly on a per-class basis. <em>Apischema</em> provides a simple API to get/set this metadata.  </p>
+<p>Because <em>apischema</em> use vanilla dataclasses, this feature is not enabled by default and must be set explicitly on a per-class basis. <em>apischema</em> provides a simple API to get/set this metadata.  </p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
@@ -1145,7 +1145,7 @@ This module has, among other, three global variables <code>settings.additional_p
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p><code>dataclasses.replace</code> works by setting all the fields of the replaced object. Because of this issue, <em>Apischema</em> provides a little wrapper <code>apischema.dataclasses.replace</code>.</p>
+<p><code>dataclasses.replace</code> works by setting all the fields of the replaced object. Because of this issue, <em>apischema</em> provides a little wrapper <code>apischema.dataclasses.replace</code>.</p>
 </div>
 <h2 id="serialization">Serialization<a class="headerlink" href="#serialization" title="Permanent link">&para;</a></h2>
 <p>Serialization is simpler than deserialization; <code>serialize(obj)</code> will generate a JSON-like serialized <code>obj</code>.</p>
@@ -1166,7 +1166,7 @@ This module has, among other, three global variables <code>settings.additional_p
 </code></pre></div>
 
 <h3 id="serialized-methodsproperties">Serialized methods/properties<a class="headerlink" href="#serialized-methodsproperties" title="Permanent link">&para;</a></h3>
-<p><em>Apischema</em> can execute methods/properties during serialization and add the computed values with the other fields values; just put <code>apischema.serialized</code> decorator on top of methods/properties you want to be serialized.</p>
+<p><em>apischema</em> can execute methods/properties during serialization and add the computed values with the other fields values; just put <code>apischema.serialized</code> decorator on top of methods/properties you want to be serialized.</p>
 <p>The function name is used unless an alias is given in decorator argument.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
@@ -1216,7 +1216,7 @@ This module has, among other, three global variables <code>settings.additional_p
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Serialized methods must not have parameters without default, as <em>Apischema</em> need to execute them without arguments</p>
+<p>Serialized methods must not have parameters without default, as <em>apischema</em> need to execute them without arguments</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1226,7 +1226,7 @@ This module has, among other, three global variables <code>settings.additional_p
 <p>Errors occurring in serialized methods can be caught in a dedicated error handler registered with <code>error_handler</code> parameter. This function takes in parameters the exception, the object and the alias of the serialized method; it can return a new value or raise the current or another exception — it can for example be used to log errors without throwing the complete serialization.</p>
 <p>The resulting serialization type will be a <code>Union</code> of the normal type and the error handling type ; if the error handler always raises, use <a href="https://docs.python.org/3/library/typing.html#typing.NoReturn"><code>typing.NoReturn</code></a> annotation. </p>
 <p><code>error_handler=None</code> correspond to a default handler which only return <code>None</code> — exception is thus discarded and serialization type becomes <code>Optional</code>.</p>
-<p>The error handler is only executed by <em>Apischema</em> serialization process, it's not added to the function, so this one can be executed normally and raise an exception in the rest of your code.</p>
+<p>The error handler is only executed by <em>apischema</em> serialization process, it's not added to the function, so this one can be executed normally and raise an exception in the rest of your code.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>

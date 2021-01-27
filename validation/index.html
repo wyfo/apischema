@@ -426,8 +426,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../conversions/" title="Conversions – (de)serialization customization" class="md-nav__link">
-      Conversions – (de)serialization customization
+    <a href="../conversions/" title="Conversions" class="md-nav__link">
+      Conversions
     </a>
   </li>
 
@@ -837,7 +837,7 @@
                 
                 
                 <h1 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h1>
-<p>Validation is an important part of deserialization. By default, <em>Apischema</em> validate types of data according to typing annotations, and <a href="../json_schema/#constraints-validation"><code>schema</code></a> constraints. But custom validators can also be add for a more precise validation.</p>
+<p>Validation is an important part of deserialization. By default, <em>apischema</em> validate types of data according to typing annotations, and <a href="../json_schema/#constraints-validation"><code>schema</code></a> constraints. But custom validators can also be add for a more precise validation.</p>
 <h2 id="deserialization-and-validation-error">Deserialization and validation error<a class="headerlink" href="#deserialization-and-validation-error" title="Permanent link">&para;</a></h2>
 <p><code>ValidationError</code> is raised when validation fails. This exception will contains all the information about the ill-formed part of the data. By the way this exception is also serializable and can be sent back directly to client.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
@@ -876,7 +876,7 @@
 <span class="p">]</span>
 </code></pre></div>
 
-<p>As shown in the example, <em>Apischema</em> will not stop at the first error met but tries to validate all parts of the data.</p>
+<p>As shown in the example, <em>apischema</em> will not stop at the first error met but tries to validate all parts of the data.</p>
 <h2 id="dataclass-validators">Dataclass validators<a class="headerlink" href="#dataclass-validators" title="Permanent link">&para;</a></h2>
 <p>Dataclass validation can be completed by custom validators. These are simple decorated methods which will be executed during validation, after all fields having been deserialized.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -907,14 +907,14 @@
 
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p><strong>DO NOT use <code>assert</code></strong> statement to validate external data, never. In fact, this statement is made to be disabled when executed in optimized mode (see <a href="https://docs.python.org/3/reference/simple_stmts.html#the-assert-statement">documentation</a>), so validation would be disabled too. This warning doesn't concern only <em>Apischema</em>; <code>assert</code> is only for internal assertion in debug/development environment. That's why <em>Apischema</em> will not catch <code>AssertionError</code> as a validation error but reraises it, making <code>deserialize</code> fail. </p>
+<p><strong>DO NOT use <code>assert</code></strong> statement to validate external data, never. In fact, this statement is made to be disabled when executed in optimized mode (see <a href="https://docs.python.org/3/reference/simple_stmts.html#the-assert-statement">documentation</a>), so validation would be disabled too. This warning doesn't concern only <em>apischema</em>; <code>assert</code> is only for internal assertion in debug/development environment. That's why <em>apischema</em> will not catch <code>AssertionError</code> as a validation error but reraises it, making <code>deserialize</code> fail. </p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Validators are always executed in order of declaration.</p>
 </div>
 <h3 id="automatic-dependency-management">Automatic dependency management<a class="headerlink" href="#automatic-dependency-management" title="Permanent link">&para;</a></h3>
-<p>It makes no sense to execute a validator using a field that is ill-formed. Hopefully, <em>Apischema</em> is able to compute validator dependencies — the fields used in validator; validator is executed only if the all its dependencies are ok.</p>
+<p>It makes no sense to execute a validator using a field that is ill-formed. Hopefully, <em>apischema</em> is able to compute validator dependencies — the fields used in validator; validator is executed only if the all its dependencies are ok.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
@@ -947,7 +947,7 @@
 </div>
 <h3 id="raise-more-than-one-error-with-yield">Raise more than one error with <code>yield</code><a class="headerlink" href="#raise-more-than-one-error-with-yield" title="Permanent link">&para;</a></h3>
 <p>Validation of list field can require to raise several exception, one for each bad elements. With <code>raise</code>, this is not possible, because you can raise only once.</p>
-<p>However, <em>Apischema</em> provides a way or raising as many errors as needed by using <code>yield</code>. Moreover, with this syntax, it is possible to add a "path" to the error to precise its location in the validated data. This path will be added to the <code>loc</code> key of the error.</p>
+<p>However, <em>apischema</em> provides a way or raising as many errors as needed by using <code>yield</code>. Moreover, with this syntax, it is possible to add a "path" to the error to precise its location in the validated data. This path will be added to the <code>loc</code> key of the error.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">ipaddress</span> <span class="kn">import</span> <span class="n">IPv4Address</span><span class="p">,</span> <span class="n">IPv4Network</span>
 
@@ -1227,7 +1227,7 @@ lt values, they are not run; make sure your default values make sens.</p>
 <h4 id="how-are-computed-validator-dependencies">How are computed validator dependencies?<a class="headerlink" href="#how-are-computed-validator-dependencies" title="Permanent link">&para;</a></h4>
 <p><code>ast.NodeVisitor</code> and the Python black magic begins...</p>
 <h4 id="why-only-validate-at-deserialization-and-not-at-instantiation">Why only validate at deserialization and not at instantiation?<a class="headerlink" href="#why-only-validate-at-deserialization-and-not-at-instantiation" title="Permanent link">&para;</a></h4>
-<p><em>Apischema</em> uses type annotations, so every objects used can already be statically type-checked (with <em>Mypy</em>/<em>Pycharm</em>/etc.) at instantiation but also at modification.</p>
+<p><em>apischema</em> uses type annotations, so every objects used can already be statically type-checked (with <em>Mypy</em>/<em>Pycharm</em>/etc.) at instantiation but also at modification.</p>
 <h4 id="why-use-validators-for-dataclasses-instead-of-doing-validation-in-__post_init__">Why use validators for dataclasses instead of doing validation in <code>__post_init__</code>?<a class="headerlink" href="#why-use-validators-for-dataclasses-instead-of-doing-validation-in-__post_init__" title="Permanent link">&para;</a></h4>
 <p>Actually, validation can completly be done in <code>__post_init__</code>, there is not problem with that. However, validators offers one thing that cannot be achieved with <code>__post_init__</code>: they are run before <code>__init__</code>, so they can validate incomplete data. Moreover, they are only run during deserialization, so they don't add overhead to normal class instantiation.</p>
                 
@@ -1263,13 +1263,13 @@ lt values, they are not run; make sure your default values make sens.</p>
           </a>
         
         
-          <a href="../conversions/" title="Conversions – (de)serialization customization" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../conversions/" title="Conversions" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Conversions – (de)serialization customization
+                Conversions
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

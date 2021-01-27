@@ -248,8 +248,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../conversions/" title="Conversions – (de)serialization customization" class="md-nav__link">
-      Conversions – (de)serialization customization
+    <a href="../../conversions/" title="Conversions" class="md-nav__link">
+      Conversions
     </a>
   </li>
 
@@ -890,7 +890,7 @@
 <p>Errors occurring in resolvers can be caught in a dedicated error handler registered with <code>error_handler</code> parameter. This function takes in parameters the exception, the object, the <a href="#graphqlresolveinfo-parameter">info</a> and the <em>kwargs</em> of the failing resolver; it can return a new value or raise the current or another exception — it can for example be used to log errors without throwing the complete serialization.</p>
 <p>The resulting serialization type will be a <code>Union</code> of the normal type and the error handling type ; if the error handler always raises, use <a href="https://docs.python.org/3/library/typing.html#typing.NoReturn"><code>typing.NoReturn</code></a> annotation.</p>
 <p><code>error_handler=None</code> correspond to a default handler which only return <code>None</code> — exception is thus discarded and the resolver type becomes <code>Optional</code>.</p>
-<p>The error handler is only executed by <em>Apischema</em> serialization process, it's not added to the function, so this one can be executed normally and raise an exception in the rest of your code.</p>
+<p>The error handler is only executed by <em>apischema</em> serialization process, it's not added to the function, so this one can be executed normally and raise an exception in the rest of your code.</p>
 <p>Error handler can be synchronous or asynchronous.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span>
@@ -986,7 +986,7 @@
 <p class="admonition-title">Note</p>
 <p><code>ID</code> type could also be identified using <code>typing.Annotated</code> and a predicate looking into annotations.</p>
 </div>
-<p><em>Apischema</em> also provides a simple <code>ID</code> type with <code>apischema.graphql.ID</code>. It is just defined as a <code>NewType</code> of string, so you can use it when you want to manipulate raw <code>ID</code> strings in your resolvers.</p>
+<p><em>apischema</em> also provides a simple <code>ID</code> type with <code>apischema.graphql.ID</code>. It is just defined as a <code>NewType</code> of string, so you can use it when you want to manipulate raw <code>ID</code> strings in your resolvers.</p>
 <h3 id="id-encoding">ID encoding<a class="headerlink" href="#id-encoding" title="Permanent link">&para;</a></h3>
 <p><code>ID</code> encoding can directly be controlled the <code>id_encoding</code> parameters of <code>graphql_schema</code>. A current practice is to use <em>base64</em> encoding for <code>ID</code>.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">base64</span> <span class="kn">import</span> <span class="n">b64decode</span><span class="p">,</span> <span class="n">b64encode</span>
@@ -1028,8 +1028,8 @@
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><code>ID</code> serialization (respectively deserialization) is applied <strong>after</strong> <em>Apischema</em> conversions (respectively before <em>Apischema</em> conversion): in the example, uuid is already converted into string before being passed to <code>id_serializer</code>.</p>
-<p>If you use base64 encodeing and an ID type which is converted by <em>Apischema</em> to a base64 str, you will get a double encoded base64 string</p>
+<p><code>ID</code> serialization (respectively deserialization) is applied <strong>after</strong> <em>apischema</em> conversions (respectively before <em>apischema</em> conversion): in the example, uuid is already converted into string before being passed to <code>id_serializer</code>.</p>
+<p>If you use base64 encodeing and an ID type which is converted by <em>apischema</em> to a base64 str, you will get a double encoded base64 string</p>
 </div>
                 
               

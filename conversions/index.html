@@ -15,7 +15,7 @@
     
     
       
-        <title>Conversions – (de)serialization customization - Apischema</title>
+        <title>Conversions - Apischema</title>
       
     
     
@@ -88,7 +88,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              Conversions – (de)serialization customization
+              Conversions
             
           </span>
         </div>
@@ -257,14 +257,14 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="__toc">
-        Conversions – (de)serialization customization
+        Conversions
         <span class="md-nav__icon md-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9h14V7H3v2m0 4h14v-2H3v2m0 4h14v-2H3v2m16 0h2v-2h-2v2m0-10v2h2V7h-2m0 6h2v-2h-2v2z"/></svg>
         </span>
       </label>
     
-    <a href="./" title="Conversions – (de)serialization customization" class="md-nav__link md-nav__link--active">
-      Conversions – (de)serialization customization
+    <a href="./" title="Conversions" class="md-nav__link md-nav__link--active">
+      Conversions
     </a>
     
       
@@ -284,7 +284,7 @@
       
         <li class="md-nav__item">
   <a href="#principle-apischema-conversions" class="md-nav__link">
-    Principle - Apischema conversions
+    Principle - apischema conversions
   </a>
   
 </li>
@@ -695,7 +695,7 @@
       
         <li class="md-nav__item">
   <a href="#principle-apischema-conversions" class="md-nav__link">
-    Principle - Apischema conversions
+    Principle - apischema conversions
   </a>
   
 </li>
@@ -877,13 +877,13 @@
                 
                 
                 <h1 id="conversions-deserialization-customization">Conversions – (de)serialization customization<a class="headerlink" href="#conversions-deserialization-customization" title="Permanent link">&para;</a></h1>
-<p><em>Apischema</em> covers majority of standard data types, but it's of course not enough, that's why it gives you the way to add support for all your classes and the libraries you use.</p>
-<p>Actually, <em>Apischema</em> uses internally its own feature to support standard library data types like UUID/datetime/etc. (see <a href="https://github.com/wyfo/apischema/blob/master/apischema/std_types.py">std_types.py</a>)</p>
+<p><em>apischema</em> covers majority of standard data types, but it's of course not enough, that's why it gives you the way to add support for all your classes and the libraries you use.</p>
+<p>Actually, <em>apischema</em> uses internally its own feature to support standard library data types like UUID/datetime/etc. (see <a href="https://github.com/wyfo/apischema/blob/master/apischema/std_types.py">std_types.py</a>)</p>
 <p>ORM support can easily be achieved with this feature (see <a href="../examples/sqlalchemy_support/">SQLAlchemy example</a>).</p>
 <p>In fact, you can even add support of competitor libraries like <em>Pydantic</em> (see <a href="../examples/pydantic_support/"><em>Pydantic</em> compatibility example</a>)</p>
-<h2 id="principle-apischema-conversions">Principle - <em>Apischema</em> conversions<a class="headerlink" href="#principle-apischema-conversions" title="Permanent link">&para;</a></h2>
-<p>An <em>Apischema</em> conversion is composed of a source type, let's call it <code>Source</code>, a target type <code>Target</code> and a converter function of signature <code>(Source) -&gt; Target</code>.</p>
-<p>When a class (actually, a non-builtin class, so not <code>int</code>/<code>list</code>/etc.) is deserialized, <em>Apischema</em> will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then the converter will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply then converter, and get the target type.</p>
+<h2 id="principle-apischema-conversions">Principle - apischema conversions<a class="headerlink" href="#principle-apischema-conversions" title="Permanent link">&para;</a></h2>
+<p>An <em>apischema</em> conversion is composed of a source type, let's call it <code>Source</code>, a target type <code>Target</code> and a converter function of signature <code>(Source) -&gt; Target</code>.</p>
+<p>When a class (actually, a non-builtin class, so not <code>int</code>/<code>list</code>/etc.) is deserialized, <em>apischema</em> will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then the converter will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply then converter, and get the target type.</p>
 <p>Conversion can only be applied on classes, not other types like <code>NewType</code>, etc. (see <a href="#why-conversion-can-only-be-applied-on-classes-and-not-on-others-types-newtype-etc-">FAQ</a>)</p>
 <p>Conversions are also handled in schema generation: for a deserialization schema, source schema is merged to target schema, while target schema is merged to source schema for a serialization schema.</p>
 <h2 id="register-a-conversion">Register a conversion<a class="headerlink" href="#register-a-conversion" title="Permanent link">&para;</a></h2>
@@ -934,10 +934,10 @@
 
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>(De)serializer methods cannot be used with <code>typing.NamedTuple</code>; in fact, <em>Apischema</em> uses <code>__set_name__</code> magic method but it is not called on <code>NamedTuple</code> subclass fields. </p>
+<p>(De)serializer methods cannot be used with <code>typing.NamedTuple</code>; in fact, <em>apischema</em> uses <code>__set_name__</code> magic method but it is not called on <code>NamedTuple</code> subclass fields. </p>
 </div>
 <h3 id="multiple-deserializers">Multiple deserializers<a class="headerlink" href="#multiple-deserializers" title="Permanent link">&para;</a></h3>
-<p>Sometimes, you want to have several possibilities to deserialize a type. If it's possible to register a deserializer with an <code>Union</code> param, it's not very practical. That's why <em>Apischema</em> make it possible to register several deserializers for the same type. They will be handled with an <code>Union</code> source type (ordered by deserializers registration), with the right serializer selected according to the matching alternative.</p>
+<p>Sometimes, you want to have several possibilities to deserialize a type. If it's possible to register a deserializer with an <code>Union</code> param, it's not very practical. That's why <em>apischema</em> make it possible to register several deserializers for the same type. They will be handled with an <code>Union</code> source type (ordered by deserializers registration), with the right serializer selected according to the matching alternative.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span>
@@ -968,7 +968,7 @@
 </code></pre></div>
 
 <p>On the other hand, serializer registration overwrite the previous registration if any. </p>
-<p><code>apischema.conversions.reset_deserializers</code>/<code>apischema.conversions.reset_serializers</code> can be used to reset (de)serializers (even those of the standard types embedded in <em>Apischema</em>)</p>
+<p><code>apischema.conversions.reset_deserializers</code>/<code>apischema.conversions.reset_serializers</code> can be used to reset (de)serializers (even those of the standard types embedded in <em>apischema</em>)</p>
 <h3 id="inheritance">Inheritance<a class="headerlink" href="#inheritance" title="Permanent link">&para;</a></h3>
 <p>All serializers are naturally inherited. In fact, with a conversion function <code>(Source) -&gt; Target</code>, you can always pass a subtype of <code>Source</code> and get a <code>Target</code> in return.</p>
 <p>Moreover, when serializer is a method/property, overriding this method/property in a subclass will override the inherited serializer.</p>
@@ -1215,7 +1215,7 @@
 <p class="admonition-title">Warning</p>
 </div>
 <p>(De)serializer cannot decorate methods of <code>Generic</code> classes in Python 3.6, it has to be used outside of class.</p>
-<p>However, <em>Apischema</em> doesn't support conversion of specialized generic like <code>Foo[bool] -&gt; int</code> (see <a href="#why-conversion-can-only-be-applied-on-classes-and-not-on-others-types-newtype-fooint-etc">FAQ</a>)</p>
+<p>However, <em>apischema</em> doesn't support conversion of specialized generic like <code>Foo[bool] -&gt; int</code> (see <a href="#why-conversion-can-only-be-applied-on-classes-and-not-on-others-types-newtype-fooint-etc">FAQ</a>)</p>
 <p>By the way, dynamic generic conversions are also supported.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">TypeVar</span>
@@ -1326,7 +1326,7 @@ However, it's possible with <a href="#sub-conversions">sub-conversions</a> to ge
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 </div>
-<p>As shown in the example, <em>Apischema</em> will substitute <code>TypeVar</code>s according to the field type, even if it has itself a generic type. By the way, LSP is taken in account when field has not the same type as the conversion side (here, <code>dict</code> is a subtype of <code>Mapping</code>, so type vars can be substituted in a serialization context)</p>
+<p>As shown in the example, <em>apischema</em> will substitute <code>TypeVar</code>s according to the field type, even if it has itself a generic type. By the way, LSP is taken in account when field has not the same type as the conversion side (here, <code>dict</code> is a subtype of <code>Mapping</code>, so type vars can be substituted in a serialization context)</p>
 <h2 id="sub-conversions">Sub-conversions<a class="headerlink" href="#sub-conversions" title="Permanent link">&para;</a></h2>
 <p>Sub-conversions are quite an advanced use; they are <a href="#dynamic-conversions--select-conversions-at-runtime">dynamic conversions</a> applied after a conversion (or an other computation, like a serialized method).</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -1405,7 +1405,7 @@ However, it's possible with <a href="#sub-conversions">sub-conversions</a> to ge
 
 <h2 id="dataclass-model-automatic-conversion-fromto-dataclass">Dataclass model - automatic conversion from/to dataclass<a class="headerlink" href="#dataclass-model-automatic-conversion-fromto-dataclass" title="Permanent link">&para;</a></h2>
 <p>Conversions are a powerful tool, which allows to support every type you need. If it is particularly well suited for scalar types (<code>datetime.datetime</code>, <code>bson.ObjectId</code>, etc.), it may seem a little bit complex for object types. In fact, the conversion would often be a simple mapping of fields between the type and a dataclass.</p>
-<p>That's why <em>Apischema</em> provides a shortcut for this case: <code>apischema.conversions.dataclass_model</code>; it allows to specify a dataclass which will be used as a typed model for a given class : each field of the dataclass will be mapped on the attributes of the class instances.
+<p>That's why <em>apischema</em> provides a shortcut for this case: <code>apischema.conversions.dataclass_model</code>; it allows to specify a dataclass which will be used as a typed model for a given class : each field of the dataclass will be mapped on the attributes of the class instances.
 The function returns two <code>Conversion</code> object, one for deserialization and the other for serialization. They can then be registered with <code>serializer</code>/<code>deserializer</code>, or be used dynamically.</p>
 <p>Remember that dataclass can also be declared dynamically with <code>dataclasses.make_dataclasses</code>. That's especially useful when it comes to add support for libraries like ORM. The following example show how to add a <a href="../examples/sqlalchemy_support/">basic support for 
 <em>SQLAlchemy</em></a>:</p>
@@ -1508,7 +1508,7 @@ The function returns two <code>Conversion</code> object, one for deserialization
 <li><a href="../de_serialization/#serialized-methodsproperties">Serialized methods/properties</a> of the class are automatically added to the dataclass model (but you can also declare serialized methods in the dataclass model). This behavior can be toggled off using <code>fields_only</code> parameter with a <code>True</code> value. </li>
 </ul>
 <h2 id="default-conversions">Default conversions<a class="headerlink" href="#default-conversions" title="Permanent link">&para;</a></h2>
-<p>As almost every default behavior in <em>Apischema</em>, default conversion can be configured using <code>apischema.settings.deserialization</code>/<code>apischema.settings.serialization</code>. The initial value of these settings are the function which retrieved conversions registered with <code>deserializer</code>/<code>serializer</code>.</p>
+<p>As almost every default behavior in <em>apischema</em>, default conversion can be configured using <code>apischema.settings.deserialization</code>/<code>apischema.settings.serialization</code>. The initial value of these settings are the function which retrieved conversions registered with <code>deserializer</code>/<code>serializer</code>.</p>
 <p>You can for example <a href="../examples/attrs_support/">support <em>attrs</em></a> classes with this feature:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">MISSING</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">make_dataclass</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>

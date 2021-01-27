@@ -248,8 +248,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../conversions/" title="Conversions – (de)serialization customization" class="md-nav__link">
-      Conversions – (de)serialization customization
+    <a href="../../conversions/" title="Conversions" class="md-nav__link">
+      Conversions
     </a>
   </li>
 
@@ -701,13 +701,13 @@
                 
                 
                 <h1 id="relay">Relay<a class="headerlink" href="#relay" title="Permanent link">&para;</a></h1>
-<p><em>Apischema</em> provides some facilities to implement a <em>GraphQL</em> server following <a href="https://relay.dev/docs/en/graphql-server-specification"><em>Relay</em> <em>GraphQL</em> server specification</a>. They are included in the module <code>apischema.graphql.relay</code>.</p>
+<p><em>apischema</em> provides some facilities to implement a <em>GraphQL</em> server following <a href="https://relay.dev/docs/en/graphql-server-specification"><em>Relay</em> <em>GraphQL</em> server specification</a>. They are included in the module <code>apischema.graphql.relay</code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>These facilities are independent of each others — you could keep only mutations part and use your own identification and connection system for example.</p>
 </div>
 <h2 id="global-object-identification">(Global) Object Identification<a class="headerlink" href="#global-object-identification" title="Permanent link">&para;</a></h2>
-<p><em>Apischema</em> defines a generic <code>relay.Node[Id]</code> interface which can be used which can be used as base class of all identified resources. This class contains a unique generic field of type <code>Id</code>, which will be automatically converted into an <code>ID!</code> in the schema. The <code>Id</code> type chosen has to be serializable into a string-convertible value (it can register <a href="../../conversions/">conversions</a> if needed).</p>
+<p><em>apischema</em> defines a generic <code>relay.Node[Id]</code> interface which can be used which can be used as base class of all identified resources. This class contains a unique generic field of type <code>Id</code>, which will be automatically converted into an <code>ID!</code> in the schema. The <code>Id</code> type chosen has to be serializable into a string-convertible value (it can register <a href="../../conversions/">conversions</a> if needed).</p>
 <p>Each node has to implement the <code>classmethod</code> <code>get_by_id(cls: type[T], id: Id, info: graphql.GraphQLResolveInfo=None) -&gt; T</code>.</p>
 <p>All nodes defined can be retrieved using <code>relay.nodes</code>, while the <code>node</code> query is defined as <code>relay.node</code>. <code>relay.nodes()</code> can be passed to <code>graphql_schema</code> <a href="../schema/#additional-types"><code>types</code> parameter</a> in order to add them in the schema even if they don't appear in any resolvers.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
@@ -765,14 +765,14 @@
 <p>For now, even if its result is note used, <code>relay.nodes</code> must be called before generating the schema.</p>
 </div>
 <h3 id="global-id">Global ID<a class="headerlink" href="#global-id" title="Permanent link">&para;</a></h3>
-<p><em>Apischema</em> defines a <code>relay.GlobalId</code> type with the following signature :</p>
+<p><em>apischema</em> defines a <code>relay.GlobalId</code> type with the following signature :</p>
 <div class="codehilite"><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">GlobalId</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">Node</span><span class="p">]):</span>
     <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">node_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">Node</span><span class="p">]</span>
 </code></pre></div>
 
-<p>In fact, it is <code>GlobalId</code> type which is serialized and deserialized as an <code>ID!</code>, not the <code>Id</code> parameter of the <code>Node</code> class; <em>Apischema</em> automatically add a <a href="../../conversions/#field-conversions">field converter</a> to make the conversion between the <code>Id</code> (for example an <code>UUID</code>) of a given node and the corresponding <code>GlobalId</code>.</p>
+<p>In fact, it is <code>GlobalId</code> type which is serialized and deserialized as an <code>ID!</code>, not the <code>Id</code> parameter of the <code>Node</code> class; <em>apischema</em> automatically add a <a href="../../conversions/#field-conversions">field converter</a> to make the conversion between the <code>Id</code> (for example an <code>UUID</code>) of a given node and the corresponding <code>GlobalId</code>.</p>
 <p>Node instance global id can be retrieved with <code>global_id</code> property.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">graphql</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -808,9 +808,9 @@
 </code></pre></div>
 
 <h3 id="id-encoding">Id encoding<a class="headerlink" href="#id-encoding" title="Permanent link">&para;</a></h3>
-<p><em>Relay</em> specifications encourage the use of base64 encoding, so <em>Apischema</em> defines a <code>relay.base64_encoding</code> that you can pass to <code>graphql_schema</code> <code>id_encoding</code> parameter.</p>
+<p><em>Relay</em> specifications encourage the use of base64 encoding, so <em>apischema</em> defines a <code>relay.base64_encoding</code> that you can pass to <code>graphql_schema</code> <code>id_encoding</code> parameter.</p>
 <h2 id="connections">Connections<a class="headerlink" href="#connections" title="Permanent link">&para;</a></h2>
-<p><em>Apischema</em> provides a generic <code>relay.Connection[Node, Cursor, Edge]</code> type, which can be used directly without subclassing it; it's also possible to subclass it to add fields to a given connection (or to all the connection which will subclass the subclass). <code>relay.Edge[Node, Cursor]</code> can also be subclassed to add fields to the edges.</p>
+<p><em>apischema</em> provides a generic <code>relay.Connection[Node, Cursor, Edge]</code> type, which can be used directly without subclassing it; it's also possible to subclass it to add fields to a given connection (or to all the connection which will subclass the subclass). <code>relay.Edge[Node, Cursor]</code> can also be subclassed to add fields to the edges.</p>
 <p><code>Connection</code> dataclass has the following declaration:</p>
 <div class="codehilite"><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Connection</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">Node</span><span class="p">,</span> <span class="n">Cursor</span><span class="p">,</span> <span class="n">Edge</span><span class="p">]):</span>
