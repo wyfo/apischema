@@ -30,7 +30,6 @@ class Conversion:
     source: AnyType = None
     target: AnyType = None
     conversions: Optional["Conversions"] = None
-    lazy_conversions: Optional[Callable[[], Optional["Conversions"]]] = None
     additional_properties: Optional[bool] = None
     coercion: Optional["Coercion"] = None
     default_fallback: Optional[bool] = None
@@ -40,7 +39,12 @@ class Conversion:
         return self.converter(*args, **kwargs)
 
 
-ConvOrFunc = Union[Conversion, Converter, property]
+@dataclass(frozen=True)
+class LazyConversion:
+    get_conversion: Callable[[], Optional["Conversions"]]
+
+
+ConvOrFunc = Union[Conversion, LazyConversion, Converter, property]
 Conversions = Union[ConvOrFunc, Collection[ConvOrFunc]]
 HashableConversions = Union[ConvOrFunc, Tuple[ConvOrFunc, ...]]
 
@@ -51,7 +55,6 @@ class ResolvedConversion:
     source: AnyType
     target: AnyType
     get_conversions: Optional[Callable[[], Optional[Conversions]]]
-    lazy: bool
     additional_properties: Optional[bool]
     coercion: Optional["Coercion"]
     default_fallback: Optional[bool]
@@ -62,20 +65,17 @@ class ResolvedConversion:
         assert not isinstance(conversion.converter, property)
         assert conversion.source is not None and conversion.target is not None
         get_conversions: Optional[Callable[[], Optional[Conversions]]]
-        lazy = False
-        if conversion.conversions is not None:
-            get_conversions = lambda: conversion.conversions  # noqa: E731
-        elif conversion.lazy_conversions is not None:
-            get_conversions = conversion.lazy_conversions
-            lazy = True
-        else:
+        if conversion.conversions is None:
             get_conversions = None
+        elif isinstance(conversion.conversions, LazyConversion):
+            get_conversions = conversion.conversions.get_conversion  # type: ignore
+        else:
+            get_conversions = lambda: conversion.conversions  # noqa: E731
         return ResolvedConversion(
             conversion.converter,
             conversion.source,
             conversion.target,
             get_conversions,
-            lazy,
             conversion.additional_properties,
             conversion.coercion,
             conversion.default_fallback,
@@ -131,10 +131,18 @@ def resolve_conversions(
     return tuple(map(resolver, conversions))
 
 
+def to_conversion(conv: ConvOrFunc) -> Conversion:
+    if isinstance(conv, LazyConversion):
+        return conv.get_conversion()  # type: ignore
+    elif not isinstance(conv, Conversion):
+        return Conversion(conv)
+    else:
+        return conv
+
+
 @cache
 def resolve_deserialization(conversion: ConvOrFunc) -> ResolvedConversion:
-    if not isinstance(conversion, Conversion):
-        conversion = Conversion(conversion)
+    conversion = to_conversion(conversion)
     if isinstance(conversion.converter, property):
         raise TypeError("Properties cannot be used for deserialization conversions")
     source, target = converter_types(
@@ -148,7 +156,8 @@ def resolve_deserialization(conversion: ConvOrFunc) -> ResolvedConversion:
     )
 
 
-def handle_serialization_method(conversion: Conversion) -> Conversion:
+def handle_serialization_method(conversion: ConvOrFunc) -> Conversion:
+    conversion = to_conversion(conversion)
     if is_method(conversion.converter):
         if conversion.source is None:
             conversion = replace(conversion, source=method_class(conversion.converter))
@@ -159,8 +168,6 @@ def handle_serialization_method(conversion: Conversion) -> Conversion:
 
 @cache
 def resolve_serialization(conversion: ConvOrFunc) -> ResolvedConversion:
-    if not isinstance(conversion, Conversion):
-        conversion = Conversion(conversion)
     conversion = handle_serialization_method(conversion)
     assert not isinstance(conversion.converter, property)
     source, target = converter_types(
