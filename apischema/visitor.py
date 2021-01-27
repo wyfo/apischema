@@ -126,7 +126,7 @@ class Visitor(Generic[Return]):
         return self._union_result(map(self.visit, alternatives))
 
     def unsupported(self, tp: AnyType) -> Return:
-        raise Unsupported(tp) from None
+        raise Unsupported(tp)
 
     def _visit_generic(self, tp: AnyType) -> Return:
         origin, args = get_origin(tp), get_args(tp)
