@@ -178,4 +178,4 @@ def get_field_conversion(
         conversion = resolve_field_serialization(field_type, conversions.serialization)
         return conversion.target, conversion
     else:
-        return field, None
+        return field_type, None
