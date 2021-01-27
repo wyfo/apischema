@@ -1,5 +1,4 @@
 import warnings
-from contextlib import suppress
 from dataclasses import Field, InitVar, dataclass, field as field_
 from enum import Enum
 from inspect import Parameter, iscoroutinefunction
@@ -122,19 +121,17 @@ class ObjectField:
     name: str
     type: AnyType
     alias: Optional[str] = None
+    converter: Converter = identity
     conversions: Optional[Conversions] = None
     default: Any = graphql.Undefined
     parameters: Optional[Tuple[Collection[Parameter], Mapping[str, AnyType]]] = None
-    required: InitVar[bool] = False
     resolve: Optional[Callable] = None
     schema: InitVar[Optional[Schema]] = None
     subscribe: Optional[Callable] = None
     deprecated: Optional[str] = field_(init=False, default=None)
     description: Optional[str] = field_(init=False, default=None)
 
-    def __post_init__(self, required: bool, schema: Optional[Schema]):
-        if required:
-            object.__setattr__(self, "default", graphql.Undefined)
+    def __post_init__(self, schema: Optional[Schema]):
         if schema is not None and schema.annotations is not None:
             object.__setattr__(self, "description", schema.annotations.description)
             if schema.annotations.deprecated is True:
@@ -143,7 +140,7 @@ class ObjectField:
                 )
             elif isinstance(schema.annotations.deprecated, str):
                 object.__setattr__(self, "deprecated", schema.annotations.deprecated)
-            if schema.annotations.default is not Undefined and not required:
+            if schema.annotations.default is not Undefined:
                 object.__setattr__(self, "default", schema.annotations.default)
 
 
@@ -208,31 +205,17 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     def _object_field(self, field: Field, field_type: AnyType) -> ObjectField:
         field_name = field.name
         field_type, conversion = get_field_conversion(field, field_type, self.operation)
-        conversions: Optional[Conversions] = None
-        resolve: Optional[Callable] = None
+        converter, conversions = identity, None
         if conversion is not None:
-            converter, conversions = conversion.converter, conversion.conversions
-            aliaser = self.aliaser
-
-            def resolve(obj, info):
-                return partial_serialize(
-                    converter(getattr(obj, field_name)),
-                    conversions=conversions,
-                    aliaser=aliaser,
-                )
-
-        default: Any = graphql.Undefined
-        if not is_required(field):
-            with suppress(Exception):
-                default = serialize(get_default(field), conversions=conversions)
+            converter = conversion.converter  # type: ignore
+            conversions = conversion.conversions
         return ObjectField(
             field_name,
             field_type,
             alias=get_alias(field),
+            converter=converter,
             conversions=conversions,
-            default=default,
-            required=is_required(field),
-            resolve=resolve,
+            default=graphql.Undefined if is_required(field) else get_default(field),
             schema=field.metadata.get(SCHEMA_METADATA),
         )
 
@@ -294,20 +277,14 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         types: Mapping[str, AnyType],
         defaults: Mapping[str, Any],
     ) -> Thunk[graphql.GraphQLType]:
-        fields = []
-        for field_name, field_type in types.items():
-            default = graphql.Undefined
-            if field_name in defaults:
-                with suppress(Exception):
-                    default = serialize(defaults[field_name])
-            fields.append(
-                ObjectField(
-                    field_name,
-                    field_type,
-                    default=default,
-                    required=field_name in defaults,
-                )
+        fields = [
+            ObjectField(
+                field_name,
+                field_type,
+                default=defaults.get(field_name, graphql.Undefined),
             )
+            for field_name, field_type in types.items()
+        ]
         return self.object(cls, fields)
 
     def new_type(self, tp: Type, super_type: AnyType) -> Thunk[graphql.GraphQLType]:
@@ -423,19 +400,27 @@ class InputSchemaBuilder(
     SchemaBuilder[Deserialization],
 ):
     def _field(self, field: ObjectField) -> Tuple[str, Lazy[graphql.GraphQLInputField]]:
-        type_thunk = self.visit_with_conversions(field.type, field.conversions)
+        field_type = field.type
+        default: Any = graphql.Undefined
+        if field.default in {None, Undefined}:
+            field_type = Optional[field_type]
+        elif field.default is not graphql.Undefined:
+            try:
+                default = serialize(
+                    field.converter(field.default),
+                    conversions=field.conversions,
+                    aliaser=self.aliaser,
+                )
+            except Exception:
+                field_type = Optional[field_type]
+
+        type_thunk = self.visit_with_conversions(field_type, field.conversions)
 
         def field_thunk():
-            field_type = exec_thunk(type_thunk)
-            if (
-                not isinstance(field_type, graphql.GraphQLNonNull)
-                and field.default is None
-            ):
-                default = graphql.Undefined
-            else:
-                default = field.default
             return graphql.GraphQLInputField(
-                field_type, default_value=default, description=field.description
+                exec_thunk(type_thunk),
+                default_value=default,
+                description=field.description,
             )
 
         return self.aliaser(field.alias or field.name), field_thunk
@@ -502,11 +487,14 @@ class OutputSchemaBuilder(
         if field.resolve is not None:
             resolve = field.resolve
         else:
-            field_name, conv, aliaser = field.name, field.conversions, self.aliaser
+            field_name, aliaser = field.name, self.aliaser
+            converter, conversions = field.converter, field.conversions
 
             def resolve(obj, _):
                 return partial_serialize(
-                    getattr(obj, field_name), conversions=conv, aliaser=aliaser
+                    converter(getattr(obj, field_name)),
+                    conversions=conversions,
+                    aliaser=aliaser,
                 )
 
         resolve = self._wrap_resolve(resolve)
@@ -522,9 +510,12 @@ class OutputSchemaBuilder(
                 if is_union_of(param_type, graphql.GraphQLResolveInfo):
                     break
                 # None because of https://github.com/python/typing/issues/775
-                if param.default in {None, Undefined, graphql.Undefined}:
+                if param.default in {None, Undefined}:
                     param_type = Optional[param_type]
-                if param.default != Parameter.empty:
+                    default = graphql.Undefined
+                # param.default == graphql.Undefined means the parameter is required
+                # even if it has a default
+                elif param.default not in {Parameter.empty, graphql.Undefined}:
                     try:
                         default = serialize(param.default)
                     except Exception:
@@ -534,13 +525,7 @@ class OutputSchemaBuilder(
                     arg_thunk=self.input_builder.visit(param_type),
                     default=default,
                 ) -> graphql.GraphQLArgument:
-                    arg_type = exec_thunk(arg_thunk)
-                    if (
-                        not isinstance(arg_type, graphql.GraphQLNonNull)
-                        and default is None
-                    ):
-                        default = graphql.Undefined
-                    return graphql.GraphQLArgument(arg_type, default)
+                    return graphql.GraphQLArgument(exec_thunk(arg_thunk), default)
 
                 args[self.aliaser(param.name)] = arg_thunk
         return self.aliaser(field.alias or field.name), lambda: graphql.GraphQLField(
