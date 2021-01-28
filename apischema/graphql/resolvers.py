@@ -45,7 +45,6 @@ from apischema.typing import get_origin, get_type_hints
 from apischema.utils import (
     MethodOrProperty,
     Undefined,
-    UndefinedType,
     get_args2,
     get_origin_or_type,
     is_method,
@@ -58,18 +57,16 @@ from apischema.visitor import Unsupported
 
 
 def partial_serialize(
-    obj: Any,
-    *,
-    conversions: Conversions = None,
-    aliaser: Aliaser = None,
+    obj: Any, *, aliaser: Aliaser, conversions: Conversions = None
 ) -> Any:
-    assert aliaser is not None
+    if obj is Undefined:
+        return None
     cls = obj.__class__
     if cls in PRIMITIVE_TYPES_SET:
         return obj
     if cls in COLLECTION_TYPE_SET:
         return [
-            partial_serialize(elt, conversions=conversions, aliaser=aliaser)
+            partial_serialize(elt, aliaser=aliaser, conversions=conversions)
             for elt in obj
         ]
     if cls in MAPPING_TYPE_SET:
@@ -82,8 +79,8 @@ def partial_serialize(
             return obj
         return partial_serialize(
             conversion.converter(obj),  # type: ignore
-            conversions=conversion.conversions,
             aliaser=aliaser,
+            conversions=conversion.conversions,
         )
     if is_dataclass(cls):
         return obj
@@ -123,12 +120,6 @@ class Resolver(Serialized):
 
     def return_type(self, return_type: AnyType) -> AnyType:
         return super().return_type(unwrap_awaitable(return_type))
-
-    def types(self, owner: AnyType = None) -> Mapping[str, AnyType]:
-        types = super().types(owner)
-        if is_union_of(types["return"], UndefinedType):
-            raise TypeError("Resolver cannot return Undefined")
-        return types
 
 
 _resolvers: Dict[Type, Dict[str, Resolver]] = defaultdict(dict)
@@ -303,12 +294,12 @@ def resolver_resolve(
 
     async def async_serialize(result: Awaitable):
         return partial_serialize(
-            await result, conversions=resolver.conversions, aliaser=aliaser
+            await result, aliaser=aliaser, conversions=resolver.conversions
         )
 
     def sync_serialize(result):
         return partial_serialize(
-            result, conversions=resolver.conversions, aliaser=aliaser
+            result, aliaser=aliaser, conversions=resolver.conversions
         )
 
     serialize_result: Callable[[Any], Any]

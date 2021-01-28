@@ -24,6 +24,12 @@ Types are assumed to be non-null by default, as in Python typing. Nullable types
 !!! note
     There is one exception, when resolver parameter default value is not serializable (and thus cannot be included in the schema), parameter type is then set as nullable to make the parameter non-required. For example parameters not `Optional` but with `Undefined` default value will be marked as nullable. This is only for the schema, default value is still used at execution.
 
+## Undefined
+
+In output, `Undefined` is converted to `None`; so in the schema, `Union[T, UndefinedType]` will be nullable.
+
+In input, fields become nullable when `Undefined` is their default value.
+
 ## Interfaces
 
 Interfaces are simply classes marked with `apischema.graphql.interface` decorator. An object type implements an interface when its class inherits of interface-marked class, or when it has [merged fields](../data_model.md#composed-dataclasses-merging) of interface-marked dataclass.
@@ -46,9 +52,6 @@ Resolvers parameters are included in the schema with their type, and their defau
 {!resolver.py!}
 ```
 
-!!! note
-    Contrary to [serialized methods](../de_serialization.md#serialized-methodsproperties), resolver cannot return `Undefined`.
-
 ### `GraphQLResolveInfo` parameter
 
 Resolvers can have an additional parameter of type [`graphql.GraphQLResolveInfo`](https://graphql-core-3.readthedocs.io/en/latest/modules/type.html?highlight=GraphQLResolveInfo#graphql.type.GraphQLResolveInfo) (or `Optional[graphql.GraphQLResolveInfo]`), which is automatically injected when the resolver is executed in the context of a *GraphQL* request. This parameter contains the info about the current *GraphQL* request being executed.
@@ -61,7 +64,7 @@ Resolvers can have an additional parameter of type [`graphql.GraphQLResolveInfo`
 {!undefined_default.py!}
 ```
 
-#### Error handling
+### Error handling
 
 Errors occurring in resolvers can be caught in a dedicated error handler registered with `error_handler` parameter. This function takes in parameters the exception, the object, the [info](#graphqlresolveinfo-parameter) and the *kwargs* of the failing resolver; it can return a new value or raise the current or another exception — it can for example be used to log errors without throwing the complete serialization.
 
