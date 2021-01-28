@@ -500,9 +500,10 @@ class OutputSchemaBuilder(
 
         resolve = self._wrap_resolve(resolve)
 
-        field_type = self.visit_with_conversions(field.type, field.conversions)
+        field_type = field.type
         if is_union_of(field_type, UndefinedType):
             field_type = Optional[field_type]
+        type_thunk = self.visit_with_conversions(field_type, field.conversions)
         args = None
         if field.parameters is not None:
             parameters, types = field.parameters
@@ -532,7 +533,7 @@ class OutputSchemaBuilder(
 
                 args[self.aliaser(param.name)] = arg_thunk
         return self.aliaser(field.alias or field.name), lambda: graphql.GraphQLField(
-            exec_thunk(field_type),
+            exec_thunk(type_thunk),
             {name: arg() for name, arg in args.items()} if args else None,
             resolve,
             field.subscribe,
