@@ -8,7 +8,7 @@ from typing import (
     Callable,
     Collection,
     Dict,
-    Iterable,
+    Iterator,
     Mapping,
     Optional,
     Sequence,
@@ -137,7 +137,7 @@ def none_error_handler(
 
 def resolver_parameters(
     resolver: Callable, *, check_first: bool
-) -> Iterable[Parameter]:
+) -> Iterator[Parameter]:
     first = True
     for param in signature(resolver).parameters.values():
         if param.kind is Parameter.POSITIONAL_ONLY:

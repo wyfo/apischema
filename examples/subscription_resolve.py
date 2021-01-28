@@ -4,9 +4,8 @@ from typing import AsyncIterable
 
 import graphql
 from graphql import print_schema
-from pytest import raises
 
-from apischema.graphql import graphql_schema
+from apischema.graphql import Subscription, graphql_schema
 
 
 def hello() -> str:
@@ -24,14 +23,17 @@ class Message:
 
 
 # Message can also be used directly as a function
-schema = graphql_schema(query=[hello], subscription=[(events, Message)])
+schema = graphql_schema(
+    query=[hello],
+    subscription=[Subscription(events, alias="messageReceived", resolver=Message)],
+)
 schema_str = """\
 type Query {
   hello: String!
 }
 
 type Subscription {
-  message: Message!
+  messageReceived: Message!
 }
 
 type Message {
@@ -43,12 +45,12 @@ assert print_schema(schema) == schema_str
 
 async def test():
     subscription = await graphql.subscribe(
-        schema, graphql.parse("subscription {message {body}}")
+        schema, graphql.parse("subscription {messageReceived {body}}")
     )
-    assert (await subscription.__anext__()).data == {"message": {"body": "bonjour"}}
-    assert (await subscription.__anext__()).data == {"message": {"body": "au revoir"}}
-    with raises(StopAsyncIteration):
-        await subscription.__anext__()
+    assert [event.data async for event in subscription] == [
+        {"messageReceived": {"body": "bonjour"}},
+        {"messageReceived": {"body": "au revoir"}},
+    ]
 
 
 asyncio.run(test())

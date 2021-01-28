@@ -1,8 +1,17 @@
-__all__ = ["ID", "Operation", "graphql_schema", "interface", "relay", "resolver"]
+__all__ = [
+    "ID",
+    "Mutation",
+    "Query",
+    "Subscription",
+    "graphql_schema",
+    "interface",
+    "relay",
+    "resolver",
+]
 
 
 try:
-    from .schema import ID, Operation, graphql_schema
+    from .schema import ID, Query, Mutation, Subscription, graphql_schema
     from .interfaces import interface
     from .resolvers import resolver
     from . import relay

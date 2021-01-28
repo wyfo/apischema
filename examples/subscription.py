@@ -3,7 +3,6 @@ from typing import AsyncIterable
 
 import graphql
 from graphql import print_schema
-from pytest import raises
 
 from apischema.graphql import graphql_schema
 
@@ -34,10 +33,10 @@ async def test():
     subscription = await graphql.subscribe(
         schema, graphql.parse("subscription {events}")
     )
-    assert (await subscription.__anext__()).data == {"events": "bonjour"}
-    assert (await subscription.__anext__()).data == {"events": "au revoir"}
-    with raises(StopAsyncIteration):
-        await subscription.__anext__()
+    assert [event.data async for event in subscription] == [
+        {"events": "bonjour"},
+        {"events": "au revoir"},
+    ]
 
 
 asyncio.run(test())

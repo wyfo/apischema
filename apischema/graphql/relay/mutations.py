@@ -16,16 +16,16 @@ from typing import (
 from dataclasses import Field, MISSING, field, make_dataclass
 from graphql.pyutils import camel_to_snake
 
-from apischema import Undefined, alias, schema_ref
-from apischema.graphql import Operation
+from apischema.aliases import alias
+from apischema.json_schema.refs import schema_ref
+from apischema.utils import Undefined
+from apischema.graphql.schema import Mutation as Mutation_
 from apischema.graphql.resolvers import awaitable_origin
 from apischema.json_schema.schema import Schema
 from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.types import AnyType
 from apischema.typing import get_type_hints
 from apischema.utils import get_origin_or_type, is_union_of
-
-MUTATE = "mutate"
 
 ClientMutationId = NewType("ClientMutationId", str)
 schema_ref(None)(ClientMutationId)
@@ -37,18 +37,18 @@ class Mutation:
     _error_handler: ErrorHandler = Undefined
     _schema: Optional[Schema] = None
     _client_mutation_id: Optional[bool] = None
-    _operation: Operation  # set in __init_subclass__
+    _mutation: Mutation_  # set in __init_subclass__
 
     # Mutate is not defined to prevent Mypy warning about signature of superclass
     mutate: Callable
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        if not hasattr(cls, MUTATE):
+        if not hasattr(cls, "mutate"):
             return
-        mutate = getattr(cls, MUTATE)
-        if not isinstance(cls.__dict__[mutate.__name__], (classmethod, staticmethod)):
+        if not isinstance(cls.__dict__["mutate"], (classmethod, staticmethod)):
             raise TypeError(f"{cls.__name__}.mutate must be a classmethod/staticmethod")
+        mutate = getattr(cls, "mutate")
         schema_ref(f"{cls.__name__}Payload")(cls)
         types = get_type_hints(mutate, localns={cls.__name__: cls}, include_extras=True)
         async_mutate = (
@@ -120,7 +120,7 @@ class Mutation:
 
             wrapper = wraps(wrapped)(wrapper)
 
-        cls._operation = Operation(
+        cls._mutation = Mutation_(
             function=wrapper,
             alias=camel_to_snake(cls.__name__),
             schema=cls._schema,
@@ -130,10 +130,10 @@ class Mutation:
 
 def _mutations(cls: Type[Mutation] = Mutation) -> Iterator[Type[Mutation]]:
     for base in cls.__subclasses__():
-        if hasattr(base, MUTATE):
+        if hasattr(base, "_mutation"):
             yield base
             yield from _mutations(base)
 
 
-def mutations() -> Collection[Operation]:
-    return [mut._operation for mut in _mutations()]
+def mutations() -> Collection[Mutation_]:
+    return [mut._mutation for mut in _mutations()]
