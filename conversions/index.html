@@ -405,6 +405,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#lazy-conversions" class="md-nav__link">
+    Lazy conversions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#dataclass-model-automatic-conversion-fromto-dataclass" class="md-nav__link">
     Dataclass model - automatic conversion from/to dataclass
   </a>
@@ -819,6 +826,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lazy-conversions" class="md-nav__link">
+    Lazy conversions
+  </a>
   
 </li>
       
@@ -1440,6 +1454,10 @@ However, it's possible with <a href="#sub-conversions">sub-conversions</a> to ge
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;some_date&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
 </code></pre></div>
 
+<h2 id="lazy-conversions">Lazy conversions<a class="headerlink" href="#lazy-conversions" title="Permanent link">&para;</a></h2>
+<p>Another advanced use, conversions can be defined lazily, i.e. using a function returning <code>Conversion</code> (single or a collection of it); this function must be wrap into a <code>apischema.conversions.LazyConversion</code> instance.</p>
+<p>It allows creating recursive conversions or using a conversion object which can be modified after its definition (for example a conversion for a base class modified by <code>__init_subclass__</code>) </p>
+<p>It is used by <em>apischema</em> itself for the generated JSON schema. It is indeed a recursive data, and the <a href="../json_schema/#json-schema--openapi-version">different versions</a> are handled by a conversion with a lazy recursive sub-conversion.</p>
 <h2 id="dataclass-model-automatic-conversion-fromto-dataclass">Dataclass model - automatic conversion from/to dataclass<a class="headerlink" href="#dataclass-model-automatic-conversion-fromto-dataclass" title="Permanent link">&para;</a></h2>
 <p>Conversions are a powerful tool, which allows to support every type you need. If it is particularly well suited for scalar types (<code>datetime.datetime</code>, <code>bson.ObjectId</code>, etc.), it may seem a little bit complex for object types. In fact, the conversion would often be a simple mapping of fields between the type and a dataclass.</p>
 <p>That's why <em>apischema</em> provides a shortcut for this case: <code>apischema.conversions.dataclass_model</code>; it allows to specify a dataclass which will be used as a typed model for a given class : each field of the dataclass will be mapped on the attributes of the class instances.

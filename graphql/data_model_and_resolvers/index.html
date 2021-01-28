@@ -368,6 +368,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#undefined" class="md-nav__link">
+    Undefined
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#interfaces" class="md-nav__link">
     Interfaces
   </a>
@@ -394,18 +401,12 @@
     Undefined parameter default — null vs. undefined
   </a>
   
-    <nav class="md-nav" aria-label="Undefined parameter default — null vs. undefined">
-      <ul class="md-nav__list">
+</li>
         
           <li class="md-nav__item">
   <a href="#error-handling" class="md-nav__link">
     Error handling
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -668,6 +669,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#undefined" class="md-nav__link">
+    Undefined
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#interfaces" class="md-nav__link">
     Interfaces
   </a>
@@ -694,18 +702,12 @@
     Undefined parameter default — null vs. undefined
   </a>
   
-    <nav class="md-nav" aria-label="Undefined parameter default — null vs. undefined">
-      <ul class="md-nav__list">
+</li>
         
           <li class="md-nav__item">
   <a href="#error-handling" class="md-nav__link">
     Error handling
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -772,6 +774,9 @@
 <p class="admonition-title">Note</p>
 <p>There is one exception, when resolver parameter default value is not serializable (and thus cannot be included in the schema), parameter type is then set as nullable to make the parameter non-required. For example parameters not <code>Optional</code> but with <code>Undefined</code> default value will be marked as nullable. This is only for the schema, default value is still used at execution.</p>
 </div>
+<h2 id="undefined">Undefined<a class="headerlink" href="#undefined" title="Permanent link">&para;</a></h2>
+<p>In output, <code>Undefined</code> is converted to <code>None</code>; so in the schema, <code>Union[T, UndefinedType]</code> will be nullable.</p>
+<p>In input, fields become nullable when <code>Undefined</code> is their default value.</p>
 <h2 id="interfaces">Interfaces<a class="headerlink" href="#interfaces" title="Permanent link">&para;</a></h2>
 <p>Interfaces are simply classes marked with <code>apischema.graphql.interface</code> decorator. An object type implements an interface when its class inherits of interface-marked class, or when it has <a href="../../data_model/#composed-dataclasses-merging">merged fields</a> of interface-marked dataclass.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -861,10 +866,6 @@
 <span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Contrary to <a href="../../de_serialization/#serialized-methodsproperties">serialized methods</a>, resolver cannot return <code>Undefined</code>.</p>
-</div>
 <h3 id="graphqlresolveinfo-parameter"><code>GraphQLResolveInfo</code> parameter<a class="headerlink" href="#graphqlresolveinfo-parameter" title="Permanent link">&para;</a></h3>
 <p>Resolvers can have an additional parameter of type <a href="https://graphql-core-3.readthedocs.io/en/latest/modules/type.html?highlight=GraphQLResolveInfo#graphql.type.GraphQLResolveInfo"><code>graphql.GraphQLResolveInfo</code></a> (or <code>Optional[graphql.GraphQLResolveInfo]</code>), which is automatically injected when the resolver is executed in the context of a <em>GraphQL</em> request. This parameter contains the info about the current <em>GraphQL</em> request being executed.</p>
 <h3 id="undefined-parameter-default-null-vs-undefined">Undefined parameter default — <code>null</code> vs. <code>undefined</code><a class="headerlink" href="#undefined-parameter-default-null-vs-undefined" title="Permanent link">&para;</a></h3>
@@ -886,7 +887,7 @@
 <span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{argIsAbsent}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;argIsAbsent&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
 </code></pre></div>
 
-<h4 id="error-handling">Error handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h4>
+<h3 id="error-handling">Error handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h3>
 <p>Errors occurring in resolvers can be caught in a dedicated error handler registered with <code>error_handler</code> parameter. This function takes in parameters the exception, the object, the <a href="#graphqlresolveinfo-parameter">info</a> and the <em>kwargs</em> of the failing resolver; it can return a new value or raise the current or another exception — it can for example be used to log errors without throwing the complete serialization.</p>
 <p>The resulting serialization type will be a <code>Union</code> of the normal type and the error handling type ; if the error handler always raises, use <a href="https://docs.python.org/3/library/typing.html#typing.NoReturn"><code>typing.NoReturn</code></a> annotation.</p>
 <p><code>error_handler=None</code> correspond to a default handler which only return <code>None</code> — exception is thus discarded and the resolver type becomes <code>Optional</code>.</p>
