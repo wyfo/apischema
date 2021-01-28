@@ -760,6 +760,7 @@ def graphql_schema(
                 ObjectField(
                     name,
                     resolver_types["return"],
+                    conversions=resolver.conversions,
                     parameters=(resolver.parameters, resolver_types),
                     resolve=resolver_resolve(resolver, resolver_types, aliaser),
                     schema=resolver.schema,
@@ -798,6 +799,7 @@ def graphql_schema(
             ObjectField(
                 name,
                 return_type,
+                conversions=resolver.conversions,
                 parameters=(resolver.parameters, resolver_types),
                 resolve=resolve,
                 subscribe=subscribe,
