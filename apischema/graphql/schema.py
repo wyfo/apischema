@@ -25,7 +25,7 @@ from typing import (
 
 import graphql
 
-from apischema import serialize
+from apischema import UndefinedType, serialize
 from apischema.aliases import Aliaser
 from apischema.conversions import identity
 from apischema.conversions.conversions import Conversions
@@ -402,7 +402,7 @@ class InputSchemaBuilder(
     def _field(self, field: ObjectField) -> Tuple[str, Lazy[graphql.GraphQLInputField]]:
         field_type = field.type
         default: Any = graphql.Undefined
-        if field.default in {None, Undefined}:
+        if field.default is Undefined:
             field_type = Optional[field_type]
         elif field.default is not graphql.Undefined:
             try:
@@ -493,13 +493,15 @@ class OutputSchemaBuilder(
             def resolve(obj, _):
                 return partial_serialize(
                     converter(getattr(obj, field_name)),
-                    conversions=conversions,
                     aliaser=aliaser,
+                    conversions=conversions,
                 )
 
         resolve = self._wrap_resolve(resolve)
 
         field_type = self.visit_with_conversions(field.type, field.conversions)
+        if is_union_of(field_type, UndefinedType):
+            field_type = Optional[field_type]
         args = None
         if field.parameters is not None:
             parameters, types = field.parameters
@@ -552,8 +554,8 @@ class OutputSchemaBuilder(
         def get_merge(obj):
             return partial_serialize(
                 converter(getattr(get_prev_merged(obj), field_name)),
-                conversions=conversions,
                 aliaser=aliaser,
+                conversions=conversions,
             )
 
         merged_save = self._get_merged
