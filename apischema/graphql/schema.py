@@ -402,7 +402,8 @@ class InputSchemaBuilder(
     def _field(self, field: ObjectField) -> Tuple[str, Lazy[graphql.GraphQLInputField]]:
         field_type = field.type
         default: Any = graphql.Undefined
-        if field.default is Undefined:
+        # Don't put `null` default + handle Undefined as None
+        if field.default in {None, Undefined}:
             field_type = Optional[field_type]
         elif field.default is not graphql.Undefined:
             try:
@@ -511,10 +512,10 @@ class OutputSchemaBuilder(
                 param_type = types[param.name]
                 if is_union_of(param_type, graphql.GraphQLResolveInfo):
                     break
-                # None because of https://github.com/python/typing/issues/775
+                # Don't put `null` default + handle Undefined as None
+                # also https://github.com/python/typing/issues/775
                 if param.default in {None, Undefined}:
                     param_type = Optional[param_type]
-                    default = graphql.Undefined
                 # param.default == graphql.Undefined means the parameter is required
                 # even if it has a default
                 elif param.default not in {Parameter.empty, graphql.Undefined}:
