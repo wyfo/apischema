@@ -1,4 +1,3 @@
-import warnings
 from dataclasses import Field, InitVar, dataclass, field as field_
 from enum import Enum
 from inspect import Parameter, iscoroutinefunction
@@ -679,14 +678,27 @@ class Operation(Generic[T]):
     error_handler: ErrorHandler = Undefined
 
 
-OpOrFunc = Union[Callable[..., T], Operation[T]]
+class Query(Operation):
+    pass
+
+
+class Mutation(Operation):
+    pass
+
+
+@dataclass(frozen=True)
+class Subscription(Operation[AsyncIterable]):
+    resolver: Optional[Callable] = None
+
+
+Op = TypeVar("Op", bound=Operation)
 
 
 def operation_resolver(
-    operation: OpOrFunc, *, keep_first_param=False
+    operation: Union[Callable, Op], op_class: Type[Op]
 ) -> Tuple[str, Resolver]:
-    if not isinstance(operation, Operation):
-        operation = Operation(operation)
+    if not isinstance(operation, op_class):
+        operation = op_class(operation)  # type: ignore
     error_handler: Optional[Callable]
     if operation.error_handler is Undefined:
         error_handler = None
@@ -694,53 +706,30 @@ def operation_resolver(
         error_handler = none_error_handler
     else:
         error_handler = operation.error_handler
-    if keep_first_param:
-        wrapper = operation.function
+    op = operation.function
+    if iscoroutinefunction(op):
+
+        async def wrapper(_, *args, **kwargs):
+            return await op(*args, **kwargs)
+
     else:
-        op = operation.function
-        if iscoroutinefunction(op):
 
-            async def wrapper(_, *args, **kwargs):
-                return await op(*args, **kwargs)
+        def wrapper(_, *args, **kwargs):
+            return op(*args, **kwargs)
 
-        else:
+    wrapper.__annotations__ = op.__annotations__
 
-            def wrapper(_, *args, **kwargs):
-                return op(*args, **kwargs)
-
-        wrapper.__annotations__ = op.__annotations__
-
-    (*parameters,) = resolver_parameters(
-        operation.function, check_first=not keep_first_param
-    )
-    if keep_first_param:
-        parameters = parameters[1:]
+    (*parameters,) = resolver_parameters(operation.function, check_first=True)
     return operation.alias or operation.function.__name__, Resolver(
         wrapper, operation.conversions, operation.schema, error_handler, parameters
     )
 
 
-def remove_error_handler(subscription: OpOrFunc) -> OpOrFunc:
-    if (
-        isinstance(subscription, Operation)
-        and subscription.error_handler is not Undefined
-    ):
-        warnings.warn("Subscriber error_handler is ignored")
-        return replace(subscription, error_handler=Undefined)
-    else:
-        return subscription
-
-
 def graphql_schema(
     *,
-    query: Iterable[OpOrFunc] = (),
-    mutation: Iterable[OpOrFunc] = (),
-    subscription: Iterable[
-        Union[
-            OpOrFunc[AsyncIterable],
-            Tuple[Callable[..., AsyncIterable], OpOrFunc],
-        ]
-    ] = (),
+    query: Iterable[Union[Callable, Query]] = (),
+    mutation: Iterable[Union[Callable, Mutation]] = (),
+    subscription: Iterable[Union[Callable[..., AsyncIterable], Subscription]] = (),
     types: Iterable[Type] = (),
     directives: Optional[Collection[graphql.GraphQLDirective]] = None,
     description: Optional[str] = None,
@@ -756,9 +745,12 @@ def graphql_schema(
     query_fields: List[ObjectField] = []
     mutation_fields: List[ObjectField] = []
     subscription_fields: List[ObjectField] = []
-    for operations, fields in [(query, query_fields), (mutation, mutation_fields)]:
-        for operation in operations:
-            name, resolver = operation_resolver(operation)
+    for operations, op_class, fields in [
+        (query, Query, query_fields),
+        (mutation, Mutation, mutation_fields),
+    ]:
+        for operation in operations:  # type: ignore
+            name, resolver = operation_resolver(operation, op_class)
             resolver_types = resolver.types()
             fields.append(
                 ObjectField(
@@ -771,43 +763,59 @@ def graphql_schema(
                 )
             )
     for sub_op in subscription:  # type: ignore
-        resolve: Callable
-        if isinstance(sub_op, tuple):
-            operation, event_handler = cast(Tuple[Callable, OpOrFunc], sub_op)
-            operation = remove_error_handler(operation)
-            name, resolver = operation_resolver(event_handler, keep_first_param=True)
-            _, subscriber = operation_resolver(operation)
+        if not isinstance(sub_op, Subscription):
+            sub_op = Subscription(sub_op)  # type: ignore
+        sub_parameters: Sequence[Parameter]
+        if sub_op.resolver is not None:
+            name = sub_op.alias or sub_op.resolver.__name__
+            _, subscriber2 = operation_resolver(sub_op, Subscription)
+            _, *sub_parameters = resolver_parameters(sub_op.resolver, check_first=False)
+            resolver = Resolver(
+                sub_op.resolver,
+                sub_op.conversions,
+                sub_op.schema,
+                subscriber2.error_handler,
+                sub_parameters,
+            )
+            sub_types = resolver.types()
+            sub_return = sub_types["return"]
+            resolve = resolver_resolve(resolver, sub_types, aliaser)
+            subscriber = replace(subscriber2, error_handler=None)
             subscribe = resolver_resolve(
                 subscriber, subscriber.types(), aliaser, serialized=False
             )
-            resolver_types = resolver.types()
-            resolve = resolver_resolve(resolver, resolver_types, aliaser)
-            return_type = resolver_types["return"]
         else:
-            operation = remove_error_handler(cast(OpOrFunc, sub_op))
-            name, resolver = operation_resolver(sub_op)
-            resolver_types = resolver.types()
-            if get_origin2(resolver_types["return"]) not in async_iterable_origins:
+            name, subscriber2 = operation_resolver(sub_op, Subscription)
+            resolver = Resolver(
+                lambda _: _,
+                sub_op.conversions,
+                sub_op.schema,
+                subscriber2.error_handler,
+                (),
+            )
+            resolve = resolver_resolve(resolver, {}, aliaser)
+            subscriber = replace(subscriber2, error_handler=None)
+            sub_parameters = subscriber.parameters
+            sub_types = subscriber.types()
+            if get_origin2(sub_types["return"]) not in async_iterable_origins:
                 raise TypeError(
                     "Subscriptions must return an AsyncIterable/AsyncIterator"
                 )
-            return_type = get_args2(resolver_types["return"])[0]
+            event_type = get_args2(sub_types["return"])[0]
             subscribe = resolver_resolve(
-                resolver, resolver_types, aliaser, serialized=False
+                subscriber, sub_types, aliaser, serialized=False
             )
-
-            def resolve(_, *args, **kwargs):
-                return _
+            sub_return = resolver.return_type(event_type)
 
         subscription_fields.append(
             ObjectField(
                 name,
-                return_type,
-                conversions=resolver.conversions,
-                parameters=(resolver.parameters, resolver_types),
+                sub_return,
+                conversions=sub_op.conversions,
+                parameters=(sub_parameters, sub_types),
                 resolve=resolve,
                 subscribe=subscribe,
-                schema=resolver.schema,
+                schema=sub_op.schema,
             )
         )
 

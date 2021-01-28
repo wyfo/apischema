@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from graphql import print_schema
 
-from apischema.graphql import Operation, graphql_schema, resolver
+from apischema.graphql import Query, graphql_schema, resolver
 
 
 @dataclass
@@ -16,7 +16,7 @@ async def get_foo() -> Foo:
     ...
 
 
-schema = graphql_schema(query=[Operation(get_foo, alias="foo", error_handler=None)])
+schema = graphql_schema(query=[Query(get_foo, alias="foo", error_handler=None)])
 schema_str = """\
 type Query {
   foo: Foo

@@ -6,9 +6,14 @@ Functions parameters and return types are then processed by *apischema* to gener
 
 In fact, `graphql_schema` is just a wrapper around `graphql.GraphQLSchema` (same parameters plus a few extras); it just uses *apischema* abstraction to build `GraphQL` object types directly from your code. 
 
-## Operations
+## Operations metadata
 
-*GraphQL* operations can be passed to `graphql_schema` either using simple functions or using `apischema.graphql.Operation`. This wrapper has the same interface as `apischema.graphql.resolver` (alias, error handler, etc.)
+*GraphQL* operations can be passed to `graphql_schema` either using simple functions or wrapping it into `apischema.graphql.Query`/`apischema.graphql.Mutation`/`apischema.graphql.Subscription`. These wrappers have the same parameters as `apischema.graphql.resolver`: `alias`, `conversions`, `error_handler` and `schema` (`Subscription` has an [additional parameter](#subscriptions)).
+
+```python
+{!operation.py!}
+```
+
 
 ## *camelCase*
 
@@ -48,11 +53,11 @@ Subscriptions are particular operations which must return an `AsyncIterable`; th
 ```
 
 !!! note
-`Operation` can be used instead of a raw function, but error_handler will be ignored for subscription.
+    Because there is no post-processing of generated event in a dedicated resolver, `error_handler` cannot be called, but it will still modify the type of the event. 
 
 ### Event generator + resolver
 
-A resolver can be added by passing a tuple `(event_generator, resolver)`.  In this case, *apischema* will map subscription name, parameters and return type on the resolver instead of the event generator.
+A resolver can be added by using the `resolver` parameter of `Subscription`.  In this case, *apischema* will map subscription name, parameters and return type on the resolver instead of the event generator. It allows using the same event generator with several resolvers to create different subscriptions.
 
 The first resolver argument will be the event yielded by the event generator.
 
@@ -60,5 +65,3 @@ The first resolver argument will be the event yielded by the event generator.
 {!subscription_resolve.py!}
 ```
 
-!!! note
-    Because this is the resolver who carries additional information, `Operation` has to be used on it and not on the event generator 

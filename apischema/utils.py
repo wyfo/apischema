@@ -1,4 +1,5 @@
 import collections.abc
+import re
 from enum import Enum, auto
 from functools import wraps
 from types import FunctionType
@@ -68,9 +69,11 @@ def to_hashable(data: Union[None, int, float, str, bool, list, dict]) -> Hashabl
     return data  # type: ignore
 
 
+SNAKE_CASE_REGEX = re.compile(r"_([a-z\d])")
+
+
 def to_camel_case(s: str):
-    pascal_case = "".join(map(str.capitalize, s.split("_")))
-    return pascal_case[0].lower() + pascal_case[1:]
+    return SNAKE_CASE_REGEX.sub(lambda m: m.group(1).upper(), s)
 
 
 def type_name(tp: AnyType) -> str:
