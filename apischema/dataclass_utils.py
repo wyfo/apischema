@@ -31,7 +31,14 @@ from apischema.dependent_required import (
     Requirements,
 )
 from apischema.metadata.implem import ConversionMetadata
-from apischema.metadata.keys import CONVERSIONS_METADATA
+from apischema.metadata.keys import (
+    ALIAS_METADATA,
+    ALIAS_NO_OVERRIDE_METADATA,
+    CONVERSIONS_METADATA,
+    DEFAULT_AS_SET,
+    DEFAULT_FALLBACK_METADATA,
+    REQUIRED_METADATA,
+)
 from apischema.types import AnyType
 from apischema.typing import get_args, get_origin, get_type_hints, get_type_hints2
 from apischema.utils import (
@@ -164,16 +171,9 @@ def get_field_conversion(
         resolve_field_serialization,
     )
 
-    conversions: Optional[ConversionMetadata] = None
-    if CONVERSIONS_METADATA in field.metadata:
-        conversions = field.metadata[CONVERSIONS_METADATA]
-    elif get_origin(field_type) == Annotated:
-        for annotation in reversed(get_args(field_type)):
-            if isinstance(annotation, Mapping) and CONVERSIONS_METADATA in annotation:
-                conversions = annotation[CONVERSIONS_METADATA]
-                break
-    if conversions is None:
+    if CONVERSIONS_METADATA not in field.metadata:
         return field_type, None
+    conversions: ConversionMetadata = field.metadata[CONVERSIONS_METADATA]
     if (
         operation == OperationKind.DESERIALIZATION
         and conversions.deserialization is not None
@@ -190,3 +190,28 @@ def get_field_conversion(
         return conversion.target, conversion
     else:
         return field_type, None
+
+
+FIELDS_METADATA = {
+    ALIAS_METADATA,
+    ALIAS_NO_OVERRIDE_METADATA,
+    CONVERSIONS_METADATA,
+    DEFAULT_AS_SET,
+    DEFAULT_FALLBACK_METADATA,
+    REQUIRED_METADATA,
+}
+
+
+def get_annotated_metadata(tp: AnyType, metadata: Mapping = None) -> Mapping:
+    result = {}
+    if get_origin(tp) == Annotated:
+        for annotation in get_args(tp)[1:]:
+            if isinstance(annotation, Mapping):
+                for key in FIELDS_METADATA:
+                    if key in annotation:
+                        result[key] = annotation[key]
+    if metadata:
+        for key, value in metadata.items():
+            if key in FIELDS_METADATA:
+                result[key] = value
+    return result

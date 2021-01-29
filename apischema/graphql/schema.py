@@ -228,7 +228,6 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         fields: Sequence[Field],
         init_vars: Sequence[Field],
     ) -> Thunk[graphql.GraphQLType]:
-        types = dict(types)
         object_fields: List[ObjectField] = []
         merged_types: Dict[str, Thunk[graphql.GraphQLType]] = {}
         for field in get_fields(fields, init_vars, self.operation):

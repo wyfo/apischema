@@ -211,6 +211,19 @@ dataclass_model(cls)(lambda: make_dataclass(cls.__name__, fields))
 
 - [Serialized methods/properties](de_serialization.md#serialized-methodsproperties) of the class are automatically added to the dataclass model (but you can also declare serialized methods in the dataclass model). This behavior can be toggled off using `fields_only` parameter with a `True` value. 
 
+## Function parameters as dataclass
+
+`apischema.conversions.dataclass_input_wrapper` can convert a function into a new function taking a unique parameter, a dataclass whose fields are mapped from the original function parameters.
+
+It can be used for example to build a deserialization conversion from an alternative constructor.
+
+```python
+{!examples/dataclass_input_wrapper.py!}
+```
+
+!!! note
+    Metadata can also be passed with `parameters_metadata` parameter; it takes a mapping of parameter names as key and mapped metadata as value.
+
 ## Default conversions
 
 As almost every default behavior in *apischema*, default conversion can be configured using `apischema.settings.deserialization`/`apischema.settings.serialization`. The initial value of these settings are the function which retrieved conversions registered with `deserializer`/`serializer`.
