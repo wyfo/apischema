@@ -15,8 +15,8 @@ from typing import (
 
 from apischema.dataclass_utils import is_dataclass
 from apischema.types import AnyType
-from apischema.typing import _TypedDictMeta, get_origin
-from apischema.utils import has_type_vars, is_type_var, replace_builtins, type_name
+from apischema.typing import _GenericAlias, _TypedDictMeta, get_origin
+from apischema.utils import contains, has_type_vars, is_type_var, replace_builtins
 from apischema.visitor import Unsupported, Visitor
 
 Ref = Union[str, "ellipsis", None]  # noqa: F821
@@ -43,8 +43,15 @@ def _default_ref(tp: AnyType) -> Ref:
 
 def get_ref(tp: AnyType) -> Optional[str]:
     tp = replace_builtins(tp)
-    ref = _refs[tp] if tp in _refs else _default_ref(tp)
-    return cast(Optional[str], type_name(tp) if ref is ... else ref)
+    ref = _refs[tp] if contains(_refs, tp) else _default_ref(tp)
+    if ref is not ...:
+        return cast(Optional[str], ref)
+    elif hasattr(tp, "__name__"):
+        return tp.__name__
+    elif isinstance(tp, _GenericAlias):
+        return tp._name
+    else:
+        return None
 
 
 T = TypeVar("T")

@@ -72,7 +72,6 @@ from apischema.utils import (
     get_origin2,
     is_union_of,
     to_camel_case,
-    type_name,
 )
 
 JsonScalar = graphql.GraphQLScalarType(
@@ -95,10 +94,6 @@ class MissingRef(Exception):
 
 class Nullable(Exception):
     pass
-
-
-def ref_or_name(tp: AnyType) -> str:
-    return get_ref(tp) or type_name(tp)
 
 
 T = TypeVar("T")
@@ -188,8 +183,8 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
                 if not isinstance(ref, str):
                     raise ValueError("Annotated schema_ref can only be str")
                 self._ref = self._ref or ref
-            if isinstance(annotation, Schema):
-                self._schema = merge_schema(annotation, self._schema)
+            if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
+                self._schema = merge_schema(annotation[SCHEMA_METADATA], self._schema)
         return self.visit_with_schema(tp, self._ref, self._schema)
 
     def any(self) -> Thunk[graphql.GraphQLType]:

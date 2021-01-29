@@ -33,7 +33,7 @@ from apischema.dependent_required import (
 from apischema.metadata.implem import ConversionMetadata
 from apischema.metadata.keys import CONVERSIONS_METADATA
 from apischema.types import AnyType
-from apischema.typing import get_type_hints, get_type_hints2
+from apischema.typing import get_args, get_origin, get_type_hints, get_type_hints2
 from apischema.utils import (
     OperationKind,
     PREFIX,
@@ -44,6 +44,11 @@ from apischema.utils import (
 
 if TYPE_CHECKING:
     from apischema.conversions.conversions import ResolvedConversion
+
+try:
+    from apischema.typing import Annotated
+except ImportError:
+    Annotated = ...  # type: ignore
 
 if sys.version_info <= (3, 7):  # pragma: no cover
     is_dataclass_ = is_dataclass
@@ -159,10 +164,16 @@ def get_field_conversion(
         resolve_field_serialization,
     )
 
-    if CONVERSIONS_METADATA not in field.metadata:
+    conversions: Optional[ConversionMetadata] = None
+    if CONVERSIONS_METADATA in field.metadata:
+        conversions = field.metadata[CONVERSIONS_METADATA]
+    elif get_origin(field_type) == Annotated:
+        for annotation in reversed(get_args(field_type)):
+            if isinstance(annotation, Mapping) and CONVERSIONS_METADATA in annotation:
+                conversions = annotation[CONVERSIONS_METADATA]
+                break
+    if conversions is None:
         return field_type, None
-    conversions = field.metadata[CONVERSIONS_METADATA]
-    assert isinstance(conversions, ConversionMetadata)
     if (
         operation == OperationKind.DESERIALIZATION
         and conversions.deserialization is not None

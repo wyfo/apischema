@@ -298,11 +298,13 @@ class DeserializationMethodVisitor(
     ) -> DeserializationMethodFactory:
         factory = self.visit(tp)
         for annotation in reversed(annotations):
-            if isinstance(annotation, Schema):
-                factory = factory.merge(constraints=annotation.constraints)
-            if isinstance(annotation, ValidatorsMetadata):
-                factory = factory.merge(validators=annotation.validators)
-
+            if isinstance(annotation, Mapping):
+                if SCHEMA_METADATA in annotation:
+                    schema: Schema = annotation[SCHEMA_METADATA]
+                    factory = factory.merge(constraints=schema.constraints)
+                if VALIDATORS_METADATA in annotation:
+                    validators: ValidatorsMetadata = annotation[VALIDATORS_METADATA]
+                    factory = factory.merge(validators=validators.validators)
         return factory
 
     def any(self) -> DeserializationMethodFactory:

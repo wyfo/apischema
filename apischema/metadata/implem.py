@@ -25,7 +25,7 @@ def simple_metadata(key: str) -> Metadata:
     return MappingWithUnion({key: ...})
 
 
-@dataclass
+@dataclass(frozen=True)
 class ConversionMetadata(MetadataMixin):
     key = CONVERSIONS_METADATA
     deserialization: Optional["ConvOrFunc"] = None
