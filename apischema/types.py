@@ -122,4 +122,5 @@ if sys.version_info >= (3, 9):  # pragma: no cover
 else:  # pragma: no cover
 
     class MappingWithUnion(dict, MetadataUnion):
-        pass
+        def __hash__(self):  # py36 Annotated args needs to be hashable
+            return hash(tuple(sorted(self.items())))
