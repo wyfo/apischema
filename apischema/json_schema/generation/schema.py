@@ -141,8 +141,8 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
                 ref = annotation.ref
                 if not isinstance(ref, str):
                     raise ValueError("Annotated schema_ref can only be str")
-            if isinstance(annotation, Schema):
-                self._merge_schema(annotation)
+            if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
+                self._merge_schema(annotation[SCHEMA_METADATA])
         return self.visit_with_schema(tp, self._schema)
 
     @with_schema

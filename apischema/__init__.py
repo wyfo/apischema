@@ -4,14 +4,9 @@ __all__ = [
     "Unsupported",
     "ValidationError",
     "alias",
-    "conversions",
-    "dataclasses",
     "deserialization",
     "deserialize",
     "deserializer",
-    "fields",
-    "json_schema",
-    "metadata",
     "properties",
     "reset_cache",
     "schema",
@@ -19,14 +14,11 @@ __all__ = [
     "serialize",
     "serialized",
     "serializer",
-    "settings",
-    "skip",
-    "validation",
     "validator",
 ]
 
 
-from . import (
+from . import (  # noqa: F401
     conversions,
     dataclasses,
     fields,
@@ -34,6 +26,7 @@ from . import (
     metadata,
     settings,
     skip,
+    tagged_unions,
     validation,
 )
 from .aliases import alias

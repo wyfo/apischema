@@ -3,7 +3,7 @@ from typing import Any, Callable, Dict, Generic, Optional, Tuple, Type, TypeVar,
 
 from apischema.types import AnyType, COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES
 from apischema.typing import get_args, get_origin, get_type_hints
-from apischema.utils import get_parameters, is_type_var, substitute_type_vars, type_name
+from apischema.utils import get_parameters, is_type_var, substitute_type_vars
 
 try:
     from apischema.typing import Annotated
@@ -88,10 +88,7 @@ def get_conversion_type(base: AnyType, other: AnyType) -> Tuple[AnyType, AnyType
         return base, other
     args = get_args(base)
     if not all(map(is_type_var, args)):
-        raise TypeError(
-            f"Generic conversion doesn't support specialization,"
-            f" aka {type_name(base)}[{','.join(map(type_name, args))}]"
-        )
+        raise TypeError("Generic conversion doesn't support specialization")
     return origin, substitute_type_vars(other, dict(zip(args, get_parameters(origin))))
 
 

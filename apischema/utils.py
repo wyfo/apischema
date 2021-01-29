@@ -6,6 +6,7 @@ from types import FunctionType
 from typing import (
     Any,
     Callable,
+    Collection,
     Dict,
     Generic,
     Hashable,
@@ -69,20 +70,18 @@ def to_hashable(data: Union[None, int, float, str, bool, list, dict]) -> Hashabl
     return data  # type: ignore
 
 
+def contains(collection: Collection[T], obj: T) -> bool:
+    try:
+        return obj in collection
+    except TypeError:
+        return False
+
+
 SNAKE_CASE_REGEX = re.compile(r"_([a-z\d])")
 
 
 def to_camel_case(s: str):
     return SNAKE_CASE_REGEX.sub(lambda m: m.group(1).upper(), s)
-
-
-def type_name(tp: AnyType) -> str:
-    if hasattr(tp, "__name__"):
-        return tp.__name__
-    elif isinstance(tp, _GenericAlias):
-        return tp._name
-    else:
-        raise NotImplementedError
 
 
 MakeDataclassField = Union[Tuple[str, AnyType], Tuple[str, AnyType, Any]]
@@ -162,7 +161,9 @@ def get_args2(tp: AnyType) -> Tuple[AnyType, ...]:
 
 
 def get_origin_or_type(tp: AnyType) -> Type:
-    origin = get_origin2(tp)
+    origin = get_origin(tp)
+    if origin is Annotated:
+        return get_origin_or_type(get_args(tp)[0])
     return origin if origin is not None else tp
 
 

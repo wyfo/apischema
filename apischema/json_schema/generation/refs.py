@@ -18,6 +18,7 @@ from apischema.dataclass_utils import get_field_conversion, get_fields
 from apischema.json_schema.refs import get_ref, schema_ref
 from apischema.skip import filter_skipped
 from apischema.types import AnyType
+from apischema.utils import contains
 
 try:
     from apischema.typing import Annotated
@@ -44,7 +45,7 @@ class RefsExtractor(ConversionsVisitor):
             ref_cls, count = self.refs.get(ref, (tp, 0))
             if ref_cls != tp:
                 raise ValueError(
-                    f"Types {tp} and {self.refs[ref]} share same reference '{ref}'"
+                    f"Types {tp} and {self.refs[ref][0]} share same reference '{ref}'"
                 )
             self.refs[ref] = (ref_cls, count + 1)
             return count > 0
@@ -130,10 +131,8 @@ class RefsExtractor(ConversionsVisitor):
     def visit(self, tp: AnyType):
         dynamic = self._apply_dynamic_conversions(tp)
         ref_tp = dynamic if dynamic is not None else tp
-        with suppress(TypeError):
-            recursion = ref_tp in self._rec_guard
         if not self._incr_ref(get_ref(ref_tp), ref_tp):
-            if recursion:
+            if contains(self._rec_guard, ref_tp):
                 raise TypeError(f"Recursive type {tp} need a ref")
             with suppress(TypeError):
                 self._rec_guard.add(ref_tp)
