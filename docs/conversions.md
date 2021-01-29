@@ -14,7 +14,7 @@ An *apischema* conversion is composed of a source type, let's call it `Source`, 
 
 When a class (actually, a non-builtin class, so not `int`/`list`/etc.) is deserialized, *apischema* will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then the converter will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply then converter, and get the target type.
 
-Conversion can only be applied on classes, not other types like `NewType`, etc. (see [FAQ](#why-conversion-can-only-be-applied-on-classes-and-not-on-others-types-newtype-etc-))
+Conversion can only be applied on classes, not other types like `NewType`, etc. (see [FAQ](#why-conversion-can-only-be-applied-on-classes-and-not-on-others-types-newtype-fooint-etc))
 
 Conversions are also handled in schema generation: for a deserialization schema, source schema is merged to target schema, while target schema is merged to source schema for a serialization schema.
 
