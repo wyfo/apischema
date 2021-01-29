@@ -26,7 +26,6 @@ from . import (  # noqa: F401
     metadata,
     settings,
     skip,
-    tagged_unions,
     validation,
 )
 from .aliases import alias
