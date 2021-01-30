@@ -254,6 +254,42 @@ class MethodWrapper(Generic[T]):
     def __set_name__(self, owner, name):
         setattr(owner, name, self._method)
 
+    def __call__(self, *args, **kwargs):
+        raise RuntimeError("Method __set_name__ has not been called")
+
+
+def method_registerer(
+    arg: Union[Callable, str, None],
+    owner: Optional[Type],
+    register: Callable[[Callable, Optional[Type], str], None],
+):
+    alias = None
+
+    def decorator(method: MethodOrProperty):
+        if owner is None and is_method(method) and method_class(method) is None:
+
+            class ResolverDescriptor(MethodWrapper[MethodOrProperty]):
+                def __set_name__(self, owner, name):
+                    super().__set_name__(owner, name)
+                    register(method_wrapper(method), owner, alias or name)
+
+            return ResolverDescriptor(method)
+        else:
+            owner2 = owner
+            if is_method(method):
+                if owner2 is None:
+                    owner2 = method_class(method)
+                method = method_wrapper(method)
+            assert not isinstance(method, property)
+            register(cast(Callable, method), owner2, alias or method.__name__)
+            return method
+
+    if isinstance(arg, str) or arg is None:
+        alias = arg
+        return decorator
+    else:
+        return decorator(arg)
+
 
 def replace_builtins(tp: AnyType) -> AnyType:
     origin = get_origin_or_type(tp)

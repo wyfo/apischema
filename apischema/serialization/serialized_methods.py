@@ -13,7 +13,6 @@ from typing import (
     Type,
     TypeVar,
     Union,
-    cast,
     overload,
 )
 
@@ -23,17 +22,13 @@ from apischema.json_schema.schema import Schema
 from apischema.types import AnyType
 from apischema.typing import generic_mro, get_args, get_type_hints
 from apischema.utils import (
-    MethodOrProperty,
-    MethodWrapper,
     Undefined,
     UndefinedType,
     get_args2,
     get_origin2,
     get_origin_or_type,
     get_parameters,
-    is_method,
-    method_class,
-    method_wrapper,
+    method_registerer,
     substitute_type_vars,
 )
 
@@ -112,77 +107,6 @@ def none_error_handler(error: Exception, obj: Any, alias: str) -> None:
     return None
 
 
-def register_serialized(
-    func: Callable,
-    alias: str,
-    conversions: Optional[Conversions],
-    schema: Optional[Schema],
-    error_handler: ErrorHandler,
-    owner: Type = None,
-):
-    parameters = list(signature(func).parameters.values())
-    for param in parameters[1:]:
-        if (
-            param.kind not in {Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD}
-            and param.default is Parameter.empty
-        ):
-            raise TypeError("Serialized method cannot have parameter without default")
-    if error_handler is None:
-        error_handler = none_error_handler
-    if error_handler is Undefined:
-        error_handler = None
-    else:
-        wrapped = func
-
-        @wraps(wrapped)
-        def func(self):
-            try:
-                return wrapped(self)
-            except Exception as error:
-                return error_handler(error, self, alias)
-
-    assert not isinstance(error_handler, UndefinedType)
-    serialized = Serialized(func, conversions, schema, error_handler)
-    if owner is None:
-        try:
-            owner = get_origin_or_type(get_type_hints(func)[parameters[0].name])
-        except KeyError:
-            raise TypeError(
-                "First parameter of serialized method must be typed"
-            ) from None
-    _serialized_methods[owner][alias] = serialized
-
-
-class SerializedDescriptor(MethodWrapper[MethodOrProperty]):
-    def __init__(
-        self,
-        method: MethodOrProperty,
-        alias: Optional[str],
-        conversions: Optional[Conversions],
-        schema: Optional[Schema],
-        error_handler: ErrorHandler,
-    ):
-        super().__init__(method)
-        self._alias = alias
-        self._conversions = conversions
-        self._schema = schema
-        self._error_handler = error_handler
-
-    def __set_name__(self, owner, name):
-        super().__set_name__(owner, name)
-        register_serialized(
-            method_wrapper(self._method, name),
-            self._alias or name,
-            self._conversions,
-            self._schema,
-            self._error_handler,
-            owner,
-        )
-
-    def __call__(self, *args, **kwargs):
-        raise RuntimeError("Method __set_name__ has not been called")
-
-
 MethodOrProp = TypeVar("MethodOrProp", Callable, property)
 
 
@@ -212,30 +136,39 @@ def serialized(
     error_handler: ErrorHandler = Undefined,
     owner: Type = None,
 ):
-    def decorator(method: MethodOrProperty):
-        nonlocal owner
-        if is_method(method) and method_class(method) is None:
-            return SerializedDescriptor(
-                method, alias, conversions, schema, error_handler
-            )
+    def register(func: Callable, owner: Optional[Type], alias2: str):
+        alias2 = alias or alias2
+        parameters = list(signature(func).parameters.values())
+        for param in parameters[1:]:
+            if (
+                param.kind not in {Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD}
+                and param.default is Parameter.empty
+            ):
+                raise TypeError("Serialized method cannot have required parameter")
+        error_handler2 = error_handler
+        if error_handler is None:
+            error_handler2 = none_error_handler
+        if error_handler2 is Undefined:
+            error_handler2 = None
         else:
-            if is_method(method):
-                if owner is None:
-                    owner = method_class(method)
-                method = method_wrapper(method)
-            assert not isinstance(method, property)
-            register_serialized(
-                cast(Callable, method),
-                alias or method.__name__,
-                conversions,
-                schema,
-                error_handler,
-                owner,
-            )
-            return method
+            wrapped = func
 
-    if isinstance(__arg, str) or __arg is None:
-        alias = alias or __arg
-        return decorator
-    else:
-        return decorator(__arg)
+            @wraps(wrapped)
+            def func(self):
+                try:
+                    return wrapped(self)
+                except Exception as error:
+                    return error_handler(error, self, alias2)
+
+        assert not isinstance(error_handler2, UndefinedType)
+        serialized = Serialized(func, conversions, schema, error_handler2)
+        if owner is None:
+            try:
+                owner = get_origin_or_type(get_type_hints(func)[parameters[0].name])
+            except KeyError:
+                raise TypeError(
+                    "First parameter of serialized method must be typed"
+                ) from None
+        _serialized_methods[owner][alias2] = serialized
+
+    return method_registerer(__arg, owner, register)

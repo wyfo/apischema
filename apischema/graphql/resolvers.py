@@ -15,7 +15,6 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    cast,
     overload,
 )
 
@@ -36,21 +35,17 @@ from apischema.serialization import (
 from apischema.serialization.serialized_methods import (
     ErrorHandler,
     Serialized,
-    SerializedDescriptor,
     _get_methods,
-    register_serialized,
+    serialized as register_serialized,
 )
 from apischema.types import AnyType, NoneType, PRIMITIVE_TYPES
 from apischema.typing import get_origin, get_type_hints
 from apischema.utils import (
-    MethodOrProperty,
     Undefined,
     get_args2,
     get_origin_or_type,
-    is_method,
     is_union_of,
-    method_class,
-    method_wrapper,
+    method_registerer,
 )
 from apischema.validation.errors import ValidationError
 from apischema.visitor import Unsupported
@@ -149,62 +144,6 @@ def resolver_parameters(
         first = False
 
 
-def register_resolver(
-    func: Callable,
-    alias: str,
-    conversions: Optional[Conversions],
-    schema: Optional[Schema],
-    error_handler: ErrorHandler,
-    serialized: bool,
-    owner: Type = None,
-):
-    first_param, *parameters = resolver_parameters(func, check_first=owner is None)
-    if error_handler is None:
-        error_handler = none_error_handler
-    elif error_handler is Undefined:
-        error_handler = None
-    resolver = Resolver(func, conversions, schema, error_handler, parameters)
-    if owner is None:
-        try:
-            owner = get_origin_or_type(get_type_hints(func)[first_param.name])
-        except KeyError:
-            raise TypeError("First parameter of resolver must be typed") from None
-    _resolvers[owner][alias] = resolver
-    if serialized:
-        if is_async(func):
-            raise TypeError("Async resolver cannot be used as a serialized method")
-        try:
-            register_serialized(func, alias, conversions, schema, error_handler, owner)
-        except Exception:
-            raise TypeError("Resolver cannot be used as a serialized method")
-
-
-class ResolverDescriptor(SerializedDescriptor):
-    def __init__(
-        self,
-        method: MethodOrProperty,
-        alias: Optional[str],
-        conversions: Optional[Conversions],
-        schema: Optional[Schema],
-        error_handler: ErrorHandler,
-        serialized: bool,
-    ):
-        super().__init__(method, alias, conversions, schema, error_handler)
-        self.serialized = serialized
-
-    def __set_name__(self, owner, name):
-        register_resolver(
-            method_wrapper(self._method),
-            self._alias or name,
-            self._conversions,
-            self._schema,
-            self._error_handler,
-            self.serialized,
-            owner,
-        )
-        setattr(owner, name, self._method)
-
-
 MethodOrProp = TypeVar("MethodOrProp", Callable, property)
 
 
@@ -236,34 +175,42 @@ def resolver(
     serialized: bool = False,
     owner: Type = None,
 ):
-    def decorator(method: MethodOrProperty):
-        nonlocal owner
-        if is_method(method) and method_class(method) is None:
-            return ResolverDescriptor(
-                method, alias, conversions, schema, error_handler, serialized
-            )
-        else:
-            if is_method(method):
-                if owner is None:
-                    owner = method_class(method)
-                method = method_wrapper(method)
-            assert not isinstance(method, property)
-            register_resolver(
-                cast(Callable, method),
-                alias or method.__name__,
-                conversions,
-                schema,
-                error_handler,
-                serialized,
-                owner,
-            )
-            return method
+    def register(func: Callable, owner: Optional[Type], alias2: str):
+        alias2 = alias or alias2
+        first_param, *parameters = resolver_parameters(func, check_first=owner is None)
+        error_handler2 = error_handler
+        if error_handler2 is None:
+            error_handler2 = none_error_handler
+        elif error_handler2 is Undefined:
+            error_handler2 = None
+        resolver = Resolver(
+            func,
+            conversions,
+            schema,
+            error_handler2,
+            parameters,
+        )
+        if owner is None:
+            try:
+                owner = get_origin_or_type(get_type_hints(func)[first_param.name])
+            except KeyError:
+                raise TypeError("First parameter of resolver must be typed") from None
+        _resolvers[owner][alias2] = resolver
+        if serialized:
+            if is_async(func):
+                raise TypeError("Async resolver cannot be used as a serialized method")
+            try:
+                register_serialized(
+                    alias=alias2,
+                    conversions=conversions,
+                    schema=schema,
+                    error_handler=error_handler,
+                    owner=owner,
+                )(func)
+            except Exception:
+                raise TypeError("Resolver cannot be used as a serialized method")
 
-    if isinstance(__arg, str) or __arg is None:
-        alias = alias or __arg
-        return decorator
-    else:
-        return decorator(__arg)
+    return method_registerer(__arg, owner, register)
 
 
 def resolver_resolve(
