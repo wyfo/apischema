@@ -14,7 +14,7 @@ from apischema.metadata.keys import (
     SKIP_METADATA,
     VALIDATORS_METADATA,
 )
-from apischema.types import AnyType, MappingWithUnion, Metadata, MetadataMixin
+from apischema.types import AnyType, MetadataImplem, Metadata, MetadataMixin
 
 if TYPE_CHECKING:
     from apischema.conversions.conversions import ConvOrFunc
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 def simple_metadata(key: str) -> Metadata:
-    return MappingWithUnion({key: ...})
+    return MetadataImplem({key: ...})
 
 
 @dataclass(frozen=True)
@@ -51,7 +51,7 @@ default_fallback = simple_metadata(DEFAULT_FALLBACK_METADATA)
 
 
 def init_var(tp: AnyType) -> Metadata:
-    return MappingWithUnion({INIT_VAR_METADATA: tp})
+    return MetadataImplem({INIT_VAR_METADATA: tp})
 
 
 merged = simple_metadata(MERGED_METADATA)
@@ -59,7 +59,7 @@ merged = simple_metadata(MERGED_METADATA)
 post_init = simple_metadata(POST_INIT_METADATA)
 
 
-class PropertiesMetadata(dict, Metadata):
+class PropertiesMetadata(dict, Metadata):  # type: ignore
     def __init__(self):
         super().__init__({PROPERTIES_METADATA: None})
 
@@ -68,7 +68,7 @@ class PropertiesMetadata(dict, Metadata):
     ) -> Metadata:
         if pattern is not ...:
             pattern = re.compile(pattern)
-        return MappingWithUnion({PROPERTIES_METADATA: pattern})
+        return MetadataImplem({PROPERTIES_METADATA: pattern})
 
 
 properties = PropertiesMetadata()

@@ -1,6 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass, is_dataclass
 from enum import Enum
+from functools import partial
 from inspect import Parameter, iscoroutinefunction, signature
 from typing import (
     Any,
@@ -25,6 +26,14 @@ from apischema.conversions.conversions import Conversions, to_hashable_conversio
 from apischema.conversions.dataclass_models import DataclassModel
 from apischema.deserialization import deserialize
 from apischema.json_schema.schema import Schema
+from apischema.metadata.implem import ConversionMetadata
+from apischema.metadata.keys import (
+    ALIAS_METADATA,
+    CONVERSIONS_METADATA,
+    DEFAULT_FALLBACK_METADATA,
+    REQUIRED_METADATA,
+    get_annotated_metadata,
+)
 from apischema.serialization import (
     COLLECTION_TYPE_SET,
     MAPPING_TYPE_SET,
@@ -109,6 +118,7 @@ def unwrap_awaitable(tp: AnyType) -> AnyType:
 @dataclass(frozen=True)
 class Resolver(Serialized):
     parameters: Sequence[Parameter]
+    parameters_metadata: Mapping[str, Mapping]
 
     def error_type(self) -> AnyType:
         return unwrap_awaitable(super().error_type())
@@ -159,6 +169,7 @@ def resolver(
     conversions: Conversions = None,
     schema: Schema = None,
     error_handler: ErrorHandler = Undefined,
+    parameters_metadata: Mapping[str, Mapping] = None,
     serialized: bool = False,
     owner: Type = None,
 ) -> Callable[[MethodOrProp], MethodOrProp]:
@@ -172,6 +183,7 @@ def resolver(
     conversions: Conversions = None,
     schema: Schema = None,
     error_handler: ErrorHandler = Undefined,
+    parameters_metadata: Mapping[str, Mapping] = None,
     serialized: bool = False,
     owner: Type = None,
 ):
@@ -189,6 +201,7 @@ def resolver(
             schema,
             error_handler2,
             parameters,
+            parameters_metadata or {},
         )
         if owner is None:
             try:
@@ -225,14 +238,23 @@ def resolver_resolve(
         if is_union_of(param_type, graphql.GraphQLResolveInfo):
             info_parameter = param.name
         else:
+            metadata = get_annotated_metadata(param_type)
+            if param.name in resolver.parameters_metadata:
+                metadata = {**metadata, **resolver.parameters_metadata[param.name]}
+            alias = metadata.get(ALIAS_METADATA, param.name)
+            deserializer = partial(
+                deserialize,
+                param_type,
+                conversions=metadata.get(
+                    CONVERSIONS_METADATA, ConversionMetadata()
+                ).deserialization,
+                aliaser=aliaser,
+                default_fallback=DEFAULT_FALLBACK_METADATA in metadata or None,
+            )
+            required = REQUIRED_METADATA in metadata or param.default is Parameter.empty
+            opt_param = is_union_of(param_type, NoneType)
             parameters.append(
-                (
-                    aliaser(param.name),
-                    param.name,
-                    param_type,
-                    is_union_of(param_type, NoneType),
-                    param.default is Parameter.empty,
-                )
+                (aliaser(alias), param.name, deserializer, opt_param, required)
             )
     func, error_handler = resolver.func, resolver.error_handler
 
@@ -267,18 +289,16 @@ def resolver_resolve(
     def resolve(__self, __info, **kwargs):
         values = {}
         errors: Dict[str, ValidationError] = {}
-        for alias, param_name, param_type, opt_param, is_required in parameters:
-            if param_name in kwargs:
+        for alias, param_name, deserializer, opt_param, required in parameters:
+            if alias in kwargs:
                 if not opt_param and kwargs[param_name] is None:
-                    assert not is_required
+                    assert not required
                     continue
                 try:
-                    values[param_name] = deserialize(
-                        param_type, kwargs[param_name], aliaser=aliaser
-                    )
+                    values[param_name] = deserializer(kwargs[alias])
                 except ValidationError as err:
                     errors[aliaser(param_name)] = err
-            elif opt_param and is_required:
+            elif opt_param and required:
                 values[param_name] = None
 
         if errors:

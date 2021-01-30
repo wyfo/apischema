@@ -2,10 +2,27 @@ from dataclasses import MISSING, field as field_, make_dataclass
 from inspect import Parameter, iscoroutinefunction, signature
 from typing import Any, Callable, Mapping, Tuple, Type
 
-from apischema.dataclass_utils import get_annotated_metadata
 from apischema.metadata import properties
+from apischema.metadata.keys import (
+    ALIAS_METADATA,
+    ALIAS_NO_OVERRIDE_METADATA,
+    CONVERSIONS_METADATA,
+    DEFAULT_AS_SET,
+    DEFAULT_FALLBACK_METADATA,
+    REQUIRED_METADATA,
+    get_annotated_metadata,
+)
 from apischema.typing import get_type_hints
 from apischema.utils import to_camel_case
+
+FIELDS_METADATA = {
+    ALIAS_METADATA,
+    ALIAS_NO_OVERRIDE_METADATA,
+    CONVERSIONS_METADATA,
+    DEFAULT_AS_SET,
+    DEFAULT_FALLBACK_METADATA,
+    REQUIRED_METADATA,
+}
 
 
 def dataclass_input_wrapper(
@@ -20,12 +37,12 @@ def dataclass_input_wrapper(
             raise TypeError("Positional only parameters are not supported")
         field_type = types.get(param_name, Any)
         if param.kind in {Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY}:
-            field = field_(
-                default=MISSING if param.default is Parameter.empty else param.default,
-                metadata=get_annotated_metadata(
-                    field_type, parameters_metadata.get(param_name)
-                ),
-            )
+            metadata = get_annotated_metadata(field_type)
+            if param_name in parameters_metadata:
+                metadata = {**metadata, **parameters_metadata[param_name]}
+            metadata = {k: v for k, v in metadata.items() if k in FIELDS_METADATA}
+            default = MISSING if param.default is Parameter.empty else param.default
+            field = field_(default=default, metadata=metadata)
             fields.append((param_name, field_type, field))
             params.append(param_name)
         if param.kind == Parameter.VAR_KEYWORD:

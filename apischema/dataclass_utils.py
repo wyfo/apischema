@@ -31,16 +31,9 @@ from apischema.dependent_required import (
     Requirements,
 )
 from apischema.metadata.implem import ConversionMetadata
-from apischema.metadata.keys import (
-    ALIAS_METADATA,
-    ALIAS_NO_OVERRIDE_METADATA,
-    CONVERSIONS_METADATA,
-    DEFAULT_AS_SET,
-    DEFAULT_FALLBACK_METADATA,
-    REQUIRED_METADATA,
-)
+from apischema.metadata.keys import ALIAS_METADATA, CONVERSIONS_METADATA
 from apischema.types import AnyType
-from apischema.typing import get_args, get_origin, get_type_hints, get_type_hints2
+from apischema.typing import get_type_hints, get_type_hints2
 from apischema.utils import (
     OperationKind,
     PREFIX,
@@ -129,8 +122,6 @@ def get_default(field: Field) -> Any:
 
 
 def get_alias(field: Field) -> str:
-    from apischema.metadata.keys import ALIAS_METADATA
-
     return field.metadata.get(ALIAS_METADATA, field.name)
 
 
@@ -190,28 +181,3 @@ def get_field_conversion(
         return conversion.target, conversion
     else:
         return field_type, None
-
-
-FIELDS_METADATA = {
-    ALIAS_METADATA,
-    ALIAS_NO_OVERRIDE_METADATA,
-    CONVERSIONS_METADATA,
-    DEFAULT_AS_SET,
-    DEFAULT_FALLBACK_METADATA,
-    REQUIRED_METADATA,
-}
-
-
-def get_annotated_metadata(tp: AnyType, metadata: Mapping = None) -> Mapping:
-    result = {}
-    if get_origin(tp) == Annotated:
-        for annotation in get_args(tp)[1:]:
-            if isinstance(annotation, Mapping):
-                for key in FIELDS_METADATA:
-                    if key in annotation:
-                        result[key] = annotation[key]
-    if metadata:
-        for key, value in metadata.items():
-            if key in FIELDS_METADATA:
-                result[key] = value
-    return result
