@@ -17,9 +17,7 @@ class InitMergedAliasVisitor(DeserializationVisitor[Iterator[str]]):
         fields: Sequence[Field],
         init_vars: Sequence[Field],
     ) -> Iterator[str]:
-        for field in get_fields(
-            fields, init_vars, operation=OperationKind.DESERIALIZATION
-        ):
+        for field in get_fields(fields, init_vars, operation=self.operation):
             if MERGED_METADATA in field.metadata:
                 yield from get_init_merged_alias(cls, field, types[field.name])
             else:
