@@ -72,7 +72,7 @@ from apischema.types import (
     OrderedDict,
 )
 from apischema.typing import get_origin
-from apischema.utils import OperationKind, opt_or
+from apischema.utils import opt_or
 from apischema.validation.errors import (
     ErrorKey,
     ValidationError,
@@ -369,11 +369,9 @@ class DeserializationMethodVisitor(
         }
         defaults: Dict[str, Callable[[], Any]] = {}
         required_by = get_requirements(
-            cls, DependentRequired.required_by, OperationKind.DESERIALIZATION
+            cls, DependentRequired.required_by, self.operation
         )
-        for field in get_fields(  # noqa: F402
-            fields, init_vars, OperationKind.DESERIALIZATION
-        ):
+        for field in get_fields(fields, init_vars, self.operation):  # noqa: F402
             metadata = check_metadata(field)
             if SKIP_METADATA in metadata or not field.init:
                 continue
@@ -381,7 +379,7 @@ class DeserializationMethodVisitor(
                 defaults[field.name] = lambda: get_default(field)
             field_type = types[field.name]
             field_type, conversion = get_field_conversion(
-                field, field_type, OperationKind.DESERIALIZATION
+                field, field_type, self.operation
             )
             if conversion is not None:
                 field_factory = self.visit_conversion(field_type, [conversion])
