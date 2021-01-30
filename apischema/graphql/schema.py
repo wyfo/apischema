@@ -56,11 +56,15 @@ from apischema.graphql.resolvers import (
 )
 from apischema.json_schema.refs import get_ref, schema_ref
 from apischema.json_schema.schema import Schema, get_schema, merge_schema
+from apischema.metadata.implem import ConversionMetadata
 from apischema.metadata.keys import (
+    CONVERSIONS_METADATA,
     MERGED_METADATA,
     PROPERTIES_METADATA,
+    REQUIRED_METADATA,
     SCHEMA_METADATA,
     check_metadata,
+    get_annotated_metadata,
 )
 from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.skip import filter_skipped
@@ -118,7 +122,9 @@ class ObjectField:
     converter: Converter = identity
     conversions: Optional[Conversions] = None
     default: Any = graphql.Undefined
-    parameters: Optional[Tuple[Collection[Parameter], Mapping[str, AnyType]]] = None
+    parameters: Optional[
+        Tuple[Collection[Parameter], Mapping[str, AnyType], Mapping[str, Mapping]]
+    ] = None
     resolve: Optional[Callable] = None
     schema: InitVar[Optional[Schema]] = None
     subscribe: Optional[Callable] = None
@@ -499,16 +505,21 @@ class OutputSchemaBuilder(
         type_thunk = self.visit_with_conversions(field_type, field.conversions)
         args = None
         if field.parameters is not None:
-            parameters, types = field.parameters
+            parameters, types, params_metadata = field.parameters
             args = {}
             for param in parameters:
                 default: Any = graphql.Undefined
                 param_type = types[param.name]
                 if is_union_of(param_type, graphql.GraphQLResolveInfo):
                     break
+                metadata = get_annotated_metadata(param_type)
+                if param.name in params_metadata:
+                    metadata = {**metadata, **params_metadata[param.name]}
+                if REQUIRED_METADATA in metadata:
+                    pass
                 # Don't put `null` default + handle Undefined as None
                 # also https://github.com/python/typing/issues/775
-                if param.default in {None, Undefined}:
+                elif param.default in {None, Undefined}:
                     param_type = Optional[param_type]
                 # param.default == graphql.Undefined means the parameter is required
                 # even if it has a default
@@ -517,12 +528,24 @@ class OutputSchemaBuilder(
                         default = serialize(param.default)
                     except Exception:
                         param_type = Optional[param_type]
+                conversions = metadata.get(
+                    CONVERSIONS_METADATA, ConversionMetadata()
+                ).deserialization
+                arg_type = self.input_builder.visit_with_conversions(
+                    param_type, conversions
+                )
+                description = None
+                if SCHEMA_METADATA in metadata:
+                    schema: Schema = metadata[SCHEMA_METADATA]
+                    if schema.annotations is not None:
+                        description = schema.annotations.description
 
                 def arg_thunk(
-                    arg_thunk=self.input_builder.visit(param_type),
-                    default=default,
+                    arg_type=arg_type, default=default, description=description
                 ) -> graphql.GraphQLArgument:
-                    return graphql.GraphQLArgument(exec_thunk(arg_thunk), default)
+                    return graphql.GraphQLArgument(
+                        exec_thunk(arg_type), default, description
+                    )
 
                 args[self.aliaser(param.name)] = arg_thunk
         return self.aliaser(field.alias or field.name), lambda: graphql.GraphQLField(
@@ -583,7 +606,7 @@ class OutputSchemaBuilder(
                 resolver_name,
                 types["return"],
                 conversions=resolver.conversions,
-                parameters=(resolver.parameters, types),
+                parameters=(resolver.parameters, types, resolver.parameters_metadata),
                 resolve=self._wrap_resolve(
                     resolver_resolve(resolver, types, self.aliaser)
                 ),
@@ -670,6 +693,7 @@ class Operation(Generic[T]):
     conversions: Optional[Conversions] = None
     schema: Optional[Schema] = None
     error_handler: ErrorHandler = Undefined
+    parameters_metadata: Mapping[str, Mapping] = field_(default_factory=dict)
 
 
 class Query(Operation):
@@ -715,7 +739,12 @@ def operation_resolver(
 
     (*parameters,) = resolver_parameters(operation.function, check_first=True)
     return operation.alias or operation.function.__name__, Resolver(
-        wrapper, operation.conversions, operation.schema, error_handler, parameters
+        wrapper,
+        operation.conversions,
+        operation.schema,
+        error_handler,
+        parameters,
+        operation.parameters_metadata,
     )
 
 
@@ -751,7 +780,11 @@ def graphql_schema(
                     name,
                     resolver_types["return"],
                     conversions=resolver.conversions,
-                    parameters=(resolver.parameters, resolver_types),
+                    parameters=(
+                        resolver.parameters,
+                        resolver_types,
+                        resolver.parameters_metadata,
+                    ),
                     resolve=resolver_resolve(resolver, resolver_types, aliaser),
                     schema=resolver.schema,
                 )
@@ -770,6 +803,7 @@ def graphql_schema(
                 sub_op.schema,
                 subscriber2.error_handler,
                 sub_parameters,
+                sub_op.parameters_metadata,
             )
             sub_types = resolver.types()
             sub_return = sub_types["return"]
@@ -786,6 +820,7 @@ def graphql_schema(
                 sub_op.schema,
                 subscriber2.error_handler,
                 (),
+                {},
             )
             resolve = resolver_resolve(resolver, {}, aliaser)
             subscriber = replace(subscriber2, error_handler=None)
@@ -806,7 +841,7 @@ def graphql_schema(
                 name,
                 sub_return,
                 conversions=sub_op.conversions,
-                parameters=(sub_parameters, sub_types),
+                parameters=(sub_parameters, sub_types, sub_op.parameters_metadata),
                 resolve=resolve,
                 subscribe=subscribe,
                 schema=sub_op.schema,

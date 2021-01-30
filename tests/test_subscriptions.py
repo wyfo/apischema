@@ -57,7 +57,9 @@ async def test_subscription(alias, conversions, error_handler, resolver):
     if (alias, conversions, error_handler, resolver) == (None, None, Undefined, None):
         sub_op = events
     else:
-        sub_op = Subscription(events, alias, conversions, None, error_handler, resolver)
+        sub_op = Subscription(
+            events, alias, conversions, None, error_handler, resolver=resolver
+        )
     schema = graphql_schema(query=[hello], subscription=[sub_op], types=[Event])
     sub_field = sub_name
     if resolver is not None:

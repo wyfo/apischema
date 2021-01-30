@@ -2,7 +2,7 @@ from collections import ChainMap
 from dataclasses import fields
 from typing import Callable, TypeVar, overload
 
-from apischema.types import MappingWithUnion, Metadata
+from apischema.types import MetadataImplem, Metadata
 
 Aliaser = Callable[[str], str]
 Cls = TypeVar("Cls")
@@ -56,7 +56,7 @@ def alias(arg=None, *, override: bool = True):  # type: ignore
         metadata[ALIAS_NO_OVERRIDE_METADATA] = True
     if not metadata:  # pragma: no cover
         raise ValueError("Alias must be called with arguments")
-    return MappingWithUnion(metadata)
+    return MetadataImplem(metadata)
 
 
 def _global_aliaser(s: str) -> str:

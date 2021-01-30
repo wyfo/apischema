@@ -3,12 +3,12 @@ from typing import AbstractSet, Dict, List, Mapping, Set
 
 from pytest import mark
 
-from apischema.types import MappingWithUnion, MetadataMixin, subscriptable_origin
+from apischema.types import MetadataImplem, MetadataMixin, subscriptable_origin
 from apischema.utils import replace_builtins
 
 
 def test_metadata():
-    metadata = MappingWithUnion({"a": 0, "b": 1})
+    metadata = MetadataImplem({"a": 0, "b": 1})
     assert metadata | {"b": 2} == {"a": 0, "b": 2}
     assert {"b": 2} | metadata == metadata
 

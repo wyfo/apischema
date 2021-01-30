@@ -1,7 +1,14 @@
 from dataclasses import Field
 from typing import Mapping
 
+from apischema.types import AnyType, ChainMap
+from apischema.typing import get_args, get_origin
 from apischema.utils import PREFIX
+
+try:
+    from apischema.typing import Annotated
+except ImportError:
+    Annotated = ...  # type: ignore
 
 ALIAS_METADATA = f"{PREFIX}alias"
 ALIAS_NO_OVERRIDE_METADATA = f"{PREFIX}alias_no_override"
@@ -40,3 +47,10 @@ def check_metadata(field: Field) -> Mapping:
         if forbidden:
             raise TypeError(f"{forbidden} metadata are not allowed in aggregate field")
     return field.metadata
+
+
+def get_annotated_metadata(tp: AnyType) -> Mapping:
+    if get_origin(tp) == Annotated:
+        return ChainMap(*(arg for arg in get_args(tp)[1:] if isinstance(arg, Mapping)))
+    else:
+        return {}

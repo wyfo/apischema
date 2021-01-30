@@ -80,6 +80,18 @@ Error handler can be synchronous or asynchronous.
 {!resolver_error.py!}
 ```
 
+### Parameters metadata
+
+Resolvers parameters can have metadata like dataclass fields. They can be passed using `typing.Annotated`.
+
+```python
+{!resolver_metadata.py!}
+```
+
+!!! note
+Metadata can also be passed with `parameters_metadata` parameter; it takes a mapping of parameter names as key and mapped metadata as value.
+
+
 ## ID type
 *GraphQL* `ID` has no precise specification and is defined according API needs; it can be a UUID or and ObjectId, etc.
 

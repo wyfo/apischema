@@ -87,22 +87,15 @@ else:  # pragma: no cover
             return iter({k: None for k in chain.from_iterable(reversed(self.maps))})
 
 
-class MetadataUnion(Mapping[str, Any]):
+class Metadata(Mapping[str, Any]):
     def __or__(self, other: Mapping[str, Any]) -> "Metadata":
-        return MappingWithUnion({**self, **other})
+        return MetadataImplem({**self, **other})
 
     def __ror__(self, other: Mapping[str, Any]) -> "Metadata":
-        return MappingWithUnion({**other, **self})
+        return MetadataImplem({**other, **self})
 
 
-# Kind of hack to benefit of PEP 584
-if sys.version_info >= (3, 9):  # pragma: no cover
-    Metadata = Mapping[str, Any]
-else:  # pragma: no cover
-    Metadata = MetadataUnion
-
-
-class MetadataMixin(MetadataUnion):
+class MetadataMixin(Metadata):
     key: str
 
     def __getitem__(self, key):
@@ -117,10 +110,6 @@ class MetadataMixin(MetadataUnion):
         return 1
 
 
-if sys.version_info >= (3, 9):  # pragma: no cover
-    MappingWithUnion = MappingProxyType
-else:  # pragma: no cover
-
-    class MappingWithUnion(dict, MetadataUnion):
-        def __hash__(self):  # py36 Annotated args needs to be hashable
-            return hash(tuple(sorted(self.items())))
+class MetadataImplem(dict, Metadata):  # type: ignore
+    def __hash__(self):
+        return hash(tuple(sorted(self.items())))
