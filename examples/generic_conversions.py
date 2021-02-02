@@ -18,6 +18,7 @@ class Wrapper(Generic[T]):
         return self.wrapped
 
 
+# Wrapper constructor can be used as a function too
 deserializer(Wrapper)
 serializer(Wrapper.unwrap)
 

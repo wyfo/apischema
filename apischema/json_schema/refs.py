@@ -13,6 +13,7 @@ from typing import (
     cast,
 )
 
+from apischema.conversions.visitor import SELF_CONVERSION_ATTR
 from apischema.dataclass_utils import is_dataclass
 from apischema.types import AnyType
 from apischema.typing import _GenericAlias, _TypedDictMeta, get_origin
@@ -24,17 +25,21 @@ _refs: Dict[AnyType, Optional[Ref]] = {}
 
 
 def _default_ref(tp: AnyType) -> Ref:
-    if not has_type_vars(tp) and (
-        (
-            isinstance(tp, type)
-            and (
-                is_dataclass(tp)
-                or (issubclass(tp, tuple) and hasattr(tp, "_fields"))
-                or issubclass(tp, Enum)
+    if (
+        not has_type_vars(tp)
+        and not hasattr(tp, SELF_CONVERSION_ATTR)
+        and (
+            (
+                isinstance(tp, type)
+                and (
+                    is_dataclass(tp)
+                    or (issubclass(tp, tuple) and hasattr(tp, "_fields"))
+                    or issubclass(tp, Enum)
+                )
             )
+            or (hasattr(tp, "__supertype__") and is_builtin(tp))
+            or isinstance(tp, _TypedDictMeta)
         )
-        or (hasattr(tp, "__supertype__") and is_builtin(tp))
-        or isinstance(tp, _TypedDictMeta)
     ):
         return ...
     else:

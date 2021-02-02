@@ -12,12 +12,12 @@ Edge = TypeVar("Edge", bound=relay.Edge)
 
 @dataclass
 class MyConnection(relay.Connection[Node, Cursor, Edge]):
-    connection_field: bool = True
+    connection_field: bool
 
 
 @dataclass
 class MyEdge(relay.Edge[Node, Cursor]):
-    edge_field: Optional[int] = 42
+    edge_field: Optional[int]
 
 
 Connection = MyConnection[Node, MyEdge[Node]]
@@ -53,8 +53,8 @@ type Faction {
 
 type ShipConnection {
   edges: [ShipEdge]
-  connectionField: Boolean!
   pageInfo: PageInfo!
+  connectionField: Boolean!
 }
 
 type ShipEdge {

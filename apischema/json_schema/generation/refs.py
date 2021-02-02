@@ -14,7 +14,7 @@ from typing import (  # type: ignore
 )
 
 from apischema.conversions.visitor import ConversionsVisitor
-from apischema.dataclass_utils import get_field_conversion, get_fields
+from apischema.dataclass_utils import get_field_conversions, get_fields
 from apischema.json_schema.refs import get_ref, schema_ref
 from apischema.skip import filter_skipped
 from apischema.types import AnyType
@@ -76,12 +76,8 @@ class RefsExtractor(ConversionsVisitor):
         init_vars: Sequence[Field],
     ):
         for field in get_fields(fields, init_vars, self.operation):
-            field_type, conversion = get_field_conversion(
-                field, types[field.name], self.operation
-            )
             self.visit_with_conversions(
-                field_type,
-                conversion.conversions if conversion is not None else None,
+                types[field.name], get_field_conversions(field, self.operation)
             )
 
     def enum(self, cls: Type[Enum]):

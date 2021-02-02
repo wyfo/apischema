@@ -1,7 +1,6 @@
-from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from operator import itemgetter
-from typing import Generic, TypeVar
+from typing import Dict, Generic, Mapping, Sequence, TypeVar
 
 from apischema import alias, serialize
 from apischema.json_schema import serialization_schema
@@ -20,7 +19,7 @@ assert sort_by_priority({1: "a", 0: "b"}) == ["b", "a"]
 
 @dataclass
 class Foo(Generic[V]):
-    values_with_priority: dict[int, V] = field(
+    values_with_priority: Dict[int, V] = field(
         metadata=alias("values") | conversion(serialization=sort_by_priority)
     )
 

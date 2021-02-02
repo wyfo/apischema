@@ -1,14 +1,25 @@
 from inspect import Parameter, isclass, signature
-from typing import Any, Callable, Dict, Generic, Optional, Tuple, Type, TypeVar, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    NoReturn,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
-from apischema.types import AnyType, COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES
-from apischema.typing import get_args, get_origin, get_type_hints
-from apischema.utils import get_parameters, is_type_var, substitute_type_vars
+from apischema.types import AnyType
+from apischema.typing import get_type_hints
 
 try:
-    from apischema.typing import Annotated
+    from apischema.typing import Annotated, Literal
 except ImportError:
-    Annotated = ...  # type: ignore
+    Annotated, Literal = ..., ...  # type: ignore
 
 Converter = Callable[[Any], Any]
 
@@ -71,33 +82,7 @@ def converter_types(
     return source, target
 
 
-def get_conversion_type(base: AnyType, other: AnyType) -> Tuple[AnyType, AnyType]:
-    """
-    Args:
-        base: (generic) type on the registered side the conversion
-        other: other side of the conversion
-
-    Returns:
-        The type on which is registered conversion (its origin when generic) and the
-        other side of the conversion with its original parameters
-    """
-    origin = get_origin(base)
-    if origin is Annotated:
-        raise TypeError("Annotated types cannot have conversions")
-    if origin is None:
-        return base, other
-    args = get_args(base)
-    if not all(map(is_type_var, args)):
-        raise TypeError("Generic conversion doesn't support specialization")
-    return origin, substitute_type_vars(other, dict(zip(args, get_parameters(origin))))
-
-
-BUILTIN_TYPES = {*PRIMITIVE_TYPES, *COLLECTION_TYPES, *MAPPING_TYPES}
-
-
-def is_convertible(tp: AnyType) -> bool:
-    return isinstance(tp, type) and tp not in BUILTIN_TYPES
-
+INVALID_CONVERSION_TYPES = (Union, Annotated, Literal, NoReturn)
 
 T = TypeVar("T")
 

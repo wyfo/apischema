@@ -1,8 +1,8 @@
 from dataclasses import Field
-from typing import Any, Iterator, Mapping, Sequence, Tuple, Type
+from typing import Any, Iterable, Iterator, Mapping, Sequence, Tuple, Type
 
-from apischema.conversions.visitor import Deserialization, DeserializationVisitor
-from apischema.dataclass_utils import get_alias, get_field_conversion, get_fields
+from apischema.conversions.visitor import DeserializationVisitor
+from apischema.dataclass_utils import get_alias, get_field_conversions, get_fields
 from apischema.metadata.keys import MERGED_METADATA
 from apischema.types import AnyType
 from apischema.utils import OperationKind
@@ -41,22 +41,19 @@ class InitMergedAliasVisitor(DeserializationVisitor[Iterator[str]]):
     ) -> Iterator[str]:
         yield from keys
 
-    def visit_conversion(self, cls: Type, conversion: Deserialization) -> Iterator[str]:
-        if len(conversion) != 1:
+    def _union_result(self, results: Iterable[Iterator[str]]) -> Iterator[str]:
+        results = list(results)
+        if len(results) != 1:
             raise NotImplementedError
-        conv = conversion[0]
-        return self.visit_with_conversions(conv.source, conv.conversions)
+        return results[0]
 
 
 def get_init_merged_alias(
     cls: Type, field: Field, field_type: AnyType
 ) -> Iterator[str]:
-    field_type, conversion = get_field_conversion(
-        field, field_type, OperationKind.DESERIALIZATION
-    )
     try:
         yield from InitMergedAliasVisitor().visit_with_conversions(
-            field_type, conversion.conversions if conversion is not None else None
+            field_type, get_field_conversions(field, OperationKind.DESERIALIZATION)
         )
     except (NotImplementedError, Unsupported):
         raise TypeError(

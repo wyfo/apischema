@@ -43,7 +43,7 @@ from apischema.utils import (
 )
 
 if TYPE_CHECKING:
-    from apischema.conversions.conversions import ResolvedConversion
+    from apischema.conversions.conversions import Conversions
 
 try:
     from apischema.typing import Annotated
@@ -154,30 +154,15 @@ def check_merged_class(merged_cls: AnyType) -> Type:
     return origin
 
 
-def get_field_conversion(
-    field: Field, field_type: AnyType, operation: OperationKind
-) -> Tuple[AnyType, Optional["ResolvedConversion"]]:
-    from apischema.conversions.fields import (
-        resolve_field_deserialization,
-        resolve_field_serialization,
-    )
+def get_field_conversions(
+    field: Field, operation: OperationKind
+) -> Optional["Conversions"]:
 
     if CONVERSIONS_METADATA not in field.metadata:
-        return field_type, None
-    conversions: ConversionMetadata = field.metadata[CONVERSIONS_METADATA]
-    if (
-        operation == OperationKind.DESERIALIZATION
-        and conversions.deserialization is not None
-    ):
-        conversion = resolve_field_deserialization(
-            field_type, conversions.deserialization
-        )
-        return conversion.source, conversion
-    elif (
-        operation == OperationKind.SERIALIZATION
-        and conversions.serialization is not None
-    ):
-        conversion = resolve_field_serialization(field_type, conversions.serialization)
-        return conversion.target, conversion
+        return None
     else:
-        return field_type, None
+        conversions: ConversionMetadata = field.metadata[CONVERSIONS_METADATA]
+        return {
+            OperationKind.DESERIALIZATION: conversions.deserialization,
+            OperationKind.SERIALIZATION: conversions.serialization,
+        }[operation]

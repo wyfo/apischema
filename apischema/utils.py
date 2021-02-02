@@ -2,6 +2,7 @@ import collections.abc
 import re
 from enum import Enum, auto
 from functools import wraps
+from inspect import signature
 from types import FunctionType
 from typing import (
     Any,
@@ -204,6 +205,7 @@ def is_method(method: MethodOrProperty) -> bool:
         isinstance(method, FunctionType)
         and method.__name__ != method.__qualname__
         and isinstance(_method_location(method), (type, type(None)))
+        and next(iter(signature(method).parameters), None) == "self"
     )
 
 

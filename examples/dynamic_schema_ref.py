@@ -24,7 +24,7 @@ assert serialization_schema(list[Foo], all_refs=True, conversions=foo_to_bar) ==
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "$ref": "#/$defs/Bars",
     "$defs": {
-        # Bars is present as `list[Foo]` is dynamically converted to `list[Bar]`
+        # Bars is present because `list[Foo]` is dynamically converted to `list[Bar]`
         "Bars": {"type": "array", "items": {"$ref": "#/$defs/Bar"}},
         "Bar": {"type": "object", "additionalProperties": False},
     },

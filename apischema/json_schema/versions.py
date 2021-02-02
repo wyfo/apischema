@@ -64,7 +64,7 @@ class JsonSchemaVersion:
             # Recursive conversion pattern
             tmp = None
             conversion = Conversion(
-                self.serialization, conversions=LazyConversion(lambda: tmp)
+                self.serialization, sub_conversions=LazyConversion(lambda: tmp)
             )
             tmp = conversion
             return conversion

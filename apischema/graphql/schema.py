@@ -28,7 +28,6 @@ from apischema import UndefinedType, serialize
 from apischema.aliases import Aliaser
 from apischema.conversions import identity
 from apischema.conversions.conversions import Conversions
-from apischema.conversions.utils import Converter
 from apischema.conversions.visitor import (
     Conv,
     ConversionsVisitor,
@@ -40,7 +39,7 @@ from apischema.conversions.visitor import (
 from apischema.dataclass_utils import (
     get_alias,
     get_default,
-    get_field_conversion,
+    get_field_conversions,
     get_fields,
     is_required,
 )
@@ -120,7 +119,6 @@ class ObjectField:
     name: str
     type: AnyType
     alias: Optional[str] = None
-    converter: Converter = identity
     conversions: Optional[Conversions] = None
     default: Any = graphql.Undefined
     parameters: Optional[
@@ -205,17 +203,11 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
 
     def _object_field(self, field: Field, field_type: AnyType) -> ObjectField:
         field_name = field.name
-        field_type, conversion = get_field_conversion(field, field_type, self.operation)
-        converter, conversions = identity, None
-        if conversion is not None:
-            converter = conversion.converter  # type: ignore
-            conversions = conversion.conversions
         return ObjectField(
             field_name,
             field_type,
             alias=get_alias(field),
-            converter=converter,
-            conversions=conversions,
+            conversions=get_field_conversions(field, self.operation),
             default=graphql.Undefined if is_required(field) else get_default(field),
             schema=field.metadata.get(SCHEMA_METADATA),
         )
@@ -223,9 +215,8 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     def _visit_merged(
         self, field: Field, field_type: AnyType
     ) -> Thunk[graphql.GraphQLType]:
-        field_type, conversion = get_field_conversion(field, field_type, self.operation)
         return self.visit_with_conversions(
-            field_type, conversion.conversions if conversion is not None else None
+            field_type, get_field_conversions(field, self.operation)
         )
 
     def dataclass(
@@ -408,9 +399,7 @@ class InputSchemaBuilder(
         elif field.default is not graphql.Undefined:
             try:
                 default = serialize(
-                    field.converter(field.default),
-                    conversions=field.conversions,
-                    aliaser=self.aliaser,
+                    field.default, conversions=field.conversions, aliaser=self.aliaser
                 )
             except Exception:
                 field_type = Optional[field_type]
@@ -489,13 +478,11 @@ class OutputSchemaBuilder(
             resolve = field.resolve
         else:
             field_name, aliaser = field.name, self.aliaser
-            converter, conversions = field.converter, field.conversions
+            conversions = field.conversions
 
             def resolve(obj, _):
                 return partial_serialize(
-                    converter(getattr(obj, field_name)),
-                    aliaser=aliaser,
-                    conversions=conversions,
+                    getattr(obj, field_name), aliaser=aliaser, conversions=conversions
                 )
 
         resolve = self._wrap_resolve(resolve)
@@ -561,18 +548,13 @@ class OutputSchemaBuilder(
     def _visit_merged(
         self, field: Field, field_type: AnyType
     ) -> Thunk[graphql.GraphQLType]:
-        field_type, conversion = get_field_conversion(field, field_type, self.operation)
+        conversions = get_field_conversions(field, self.operation)
         field_name, aliaser = field.name, self.aliaser
-        converter: Converter = identity
-        conversions: Optional[Conversions] = None
-        if conversion is not None:
-            converter = conversion.converter  # type: ignore
-            conversions = conversion.conversions
         get_prev_merged = self._get_merged if self._get_merged is not None else identity
 
         def get_merge(obj):
             return partial_serialize(
-                converter(getattr(get_prev_merged(obj), field_name)),
+                getattr(get_prev_merged(obj), field_name),
                 aliaser=aliaser,
                 conversions=conversions,
             )
@@ -580,10 +562,7 @@ class OutputSchemaBuilder(
         merged_save = self._get_merged
         self._get_merged = get_merge
         try:
-            return self.visit_with_conversions(
-                field_type,
-                conversion.conversions if conversion is not None else None,
-            )
+            return self.visit_with_conversions(field_type, conversions)
         finally:
             self._get_merged = merged_save
 

@@ -1,22 +1,21 @@
-from dataclasses import dataclass
-from typing import Generic, TypeVar
+from collections.abc import Mapping, Sequence
+from operator import itemgetter
+from typing import TypeVar
 
 from apischema import serialize
+from apischema.json_schema import serialization_schema
 
 T = TypeVar("T")
+Priority = int
 
 
-@dataclass
-class Foo(Generic[T]):
-    bar: T
+def sort_by_priority(values_with_priority: Mapping[T, Priority]) -> Sequence[T]:
+    return [k for k, _ in sorted(values_with_priority.items(), key=itemgetter(1))]
 
 
-U = TypeVar("U")
-
-
-def to_bar(foo: Foo[U]) -> U:
-    return foo.bar
-
-
-assert serialize(Foo(0)) == {"bar": 0}
-assert serialize(Foo(0), conversions=to_bar) == 0
+assert serialize({"a": 1, "b": 0}, conversions=sort_by_priority) == ["b", "a"]
+assert serialization_schema(dict[str, Priority], conversions=sort_by_priority) == {
+    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "type": "array",
+    "items": {"type": "string"},
+}

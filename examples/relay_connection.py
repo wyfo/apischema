@@ -23,9 +23,8 @@ class Faction:
     def ships(
         self, first: Optional[int], after: Optional[Cursor]
     ) -> Optional[Connection[Optional[Ship]]]:
-        return Connection(
-            [relay.Edge(Ship("X-Wing"), 0), relay.Edge(Ship("B-Wing"), 1)]
-        )
+        edges = [relay.Edge(Ship("X-Wing"), 0), relay.Edge(Ship("B-Wing"), 1)]
+        return Connection(edges, relay.PageInfo.from_edges(edges))
 
 
 def faction() -> Optional[Faction]:
