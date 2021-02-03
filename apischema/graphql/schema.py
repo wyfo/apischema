@@ -75,6 +75,7 @@ from apischema.utils import (
     get_args2,
     get_origin2,
     is_union_of,
+    sort_by_annotations_position,
     to_camel_case,
 )
 
@@ -599,12 +600,13 @@ class OutputSchemaBuilder(
             if cls.__name__ not in ("Query", "Mutation", "Subscription"):
                 raise
             name, description = cls.__name__, self._description
-        for resolver_name, (resolver, types) in get_resolvers(
+        for resolver_alias, (resolver, types) in get_resolvers(
             self._generic or cls
         ).items():
             resolver_field = ObjectField(
-                resolver_name,
+                resolver.func.__name__,
                 types["return"],
+                alias=resolver_alias,
                 conversions=resolver.conversions,
                 parameters=(resolver.parameters, types, resolver.parameters_metadata),
                 resolve=self._wrap_resolve(
@@ -612,6 +614,9 @@ class OutputSchemaBuilder(
                 ),
             )
             fields_and_resolvers.append(resolver_field)
+        fields_and_resolvers = sort_by_annotations_position(
+            cls, fields_and_resolvers, lambda f: f.name
+        )
         visited_fields = dict(map(self._field, fields_and_resolvers))
 
         def field_thunk() -> graphql.GraphQLFieldMap:
