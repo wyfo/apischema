@@ -1327,8 +1327,8 @@ This module has, among other, three global variables <code>settings.additional_p
 
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-</div>
 <p><code>serialized</code> cannot decorate methods of <code>Generic</code> classes in Python 3.6, it has to be used outside of class.</p>
+</div>
 <h3 id="exclude-unset-fields">Exclude unset fields<a class="headerlink" href="#exclude-unset-fields" title="Permanent link">&para;</a></h3>
 <p>When a class has a lot of optional fields, it can be convenient to not include all of them, to avoid a bunch of useless fields in your serialized data.
 Using the previous feature of <a href="#fields-set">fields set tracking</a>, <code>serialize</code> can exclude unset fields using its <code>exclude_unset</code> parameter or <code>settings.exclude_unset</code> (default is <code>True</code>).</p>

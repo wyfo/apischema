@@ -410,6 +410,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#parameters-metadata" class="md-nav__link">
+    Parameters metadata
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -426,6 +433,33 @@
           <li class="md-nav__item">
   <a href="#id-encoding" class="md-nav__link">
     ID encoding
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tagged-unions" class="md-nav__link">
+    Tagged unions
+  </a>
+  
+    <nav class="md-nav" aria-label="Tagged unions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#json-schema" class="md-nav__link">
+    JSON schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphql-schema" class="md-nav__link">
+    GraphQL schema
   </a>
   
 </li>
@@ -711,6 +745,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#parameters-metadata" class="md-nav__link">
+    Parameters metadata
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -727,6 +768,33 @@
           <li class="md-nav__item">
   <a href="#id-encoding" class="md-nav__link">
     ID encoding
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tagged-unions" class="md-nav__link">
+    Tagged unions
+  </a>
+  
+    <nav class="md-nav" aria-label="Tagged unions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#json-schema" class="md-nav__link">
+    JSON schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphql-schema" class="md-nav__link">
+    GraphQL schema
   </a>
   
 </li>
@@ -948,6 +1016,51 @@
 <span class="k">assert</span> <span class="n">graphql</span><span class="o">.</span><span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;{foo</span><span class="si">{baz}</span><span class="s2">}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">errors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span> <span class="o">==</span> <span class="s2">&quot;Baz error&quot;</span>
 </code></pre></div>
 
+<h3 id="parameters-metadata">Parameters metadata<a class="headerlink" href="#parameters-metadata" title="Permanent link">&para;</a></h3>
+<p>Resolvers parameters can have metadata like dataclass fields. They can be passed using <code>typing.Annotated</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span>
+
+<span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">alias</span><span class="p">,</span> <span class="n">schema</span>
+<span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">resolver</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="nd">@resolver</span>
+    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">alias</span><span class="p">(</span><span class="s2">&quot;arg&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;argument&quot;</span><span class="p">)]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">param</span>
+
+
+<span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">Foo</span><span class="p">()</span>
+
+
+<span class="n">schema_</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
+<span class="c1"># Notice that bar is Int while baz is Int!</span>
+<span class="n">schema_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span><span class="se">\</span>
+<span class="s1">type Query {</span>
+<span class="s1">  foo: Foo!</span>
+<span class="s1">}</span>
+
+<span class="s1">type Foo {</span>
+<span class="s1">  bar(</span>
+<span class="s1">    &quot;&quot;&quot;argument&quot;&quot;&quot;</span>
+<span class="s1">    param: Int!</span>
+<span class="s1">  ): Int!</span>
+<span class="s1">}</span>
+<span class="s1">&#39;&#39;&#39;</span>
+<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema_</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+</code></pre></div>
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+</div>
+<p>Metadata can also be passed with <code>parameters_metadata</code> parameter; it takes a mapping of parameter names as key and mapped metadata as value.</p>
 <h2 id="id-type">ID type<a class="headerlink" href="#id-type" title="Permanent link">&para;</a></h2>
 <p><em>GraphQL</em> <code>ID</code> has no precise specification and is defined according API needs; it can be a UUID or and ObjectId, etc.</p>
 <p><code>apischema.graphql_schema</code> has a parameter <code>id_types</code> which can be used to define which types will be marked as <code>ID</code> in the generated schema. Parameter value can be either a collection of types (each type will then be mapped to <code>ID</code> scalar), or a predicate returning if the given type must be marked as <code>ID</code>.</p>
@@ -1032,6 +1145,174 @@
 <p><code>ID</code> serialization (respectively deserialization) is applied <strong>after</strong> <em>apischema</em> conversions (respectively before <em>apischema</em> conversion): in the example, uuid is already converted into string before being passed to <code>id_serializer</code>.</p>
 <p>If you use base64 encodeing and an ID type which is converted by <em>apischema</em> to a base64 str, you will get a double encoded base64 string</p>
 </div>
+<h2 id="tagged-unions">Tagged unions<a class="headerlink" href="#tagged-unions" title="Permanent link">&para;</a></h2>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>This feature has a provisional status, as the concerned <a href="https://github.com/graphql/graphql-spec/pull/733"><em>GraphQL</em> RFC</a> is not finalized.</p>
+</div>
+<p><em>apischema</em> provides a <code>apischema.tagged_unions.TaggedUnion</code> base class which helps to implement the <em>tagged union</em> pattern.
+It's fields <strong>must</strong> be typed using <code>apischema.tagged_unions.Tagged</code> generic type.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.tagged_unions</span> <span class="kn">import</span> <span class="n">Tagged</span><span class="p">,</span> <span class="n">TaggedUnion</span><span class="p">,</span> <span class="n">get_tagged</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span>
+
+
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">TaggedUnion</span><span class="p">):</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">Bar</span><span class="p">]</span>
+    <span class="c1"># Tagged parameters can be used to customize the field like a dataclass one</span>
+    <span class="n">baz</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">(</span>
+        <span class="n">alias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deserialization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">serialization</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span>
+
+
+<span class="c1"># Instantiate using class fields</span>
+<span class="n">tagged_bar</span> <span class="o">=</span> <span class="n">Foo</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">Bar</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">))</span>
+<span class="c1"># you can also use default constructor, but it&#39;s not typed-checked</span>
+<span class="k">assert</span> <span class="n">tagged_bar</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="n">bar</span><span class="o">=</span><span class="n">Bar</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">))</span>
+
+<span class="c1"># All fields that are not tagged are Undefined</span>
+<span class="k">assert</span> <span class="n">tagged_bar</span><span class="o">.</span><span class="n">bar</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Undefined</span> <span class="ow">and</span> <span class="n">tagged_bar</span><span class="o">.</span><span class="n">baz</span> <span class="ow">is</span> <span class="n">Undefined</span>
+<span class="c1"># get_tagged allows to retrieve the tag and it&#39;s value</span>
+<span class="c1"># (but the value is not typed-checked)</span>
+<span class="k">assert</span> <span class="n">get_tagged</span><span class="p">(</span><span class="n">tagged_bar</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="n">Bar</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">))</span>
+
+<span class="c1"># (De)serialization works as expected</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}})</span> <span class="o">==</span> <span class="n">tagged_bar</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">tagged_bar</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}}</span>
+
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;unknown&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">})</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;unknown&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;unexpected property&quot;</span><span class="p">]}]</span>
+
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">},</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;tagged union must have one and only one tag set, found [&#39;bar&#39;, &#39;baz&#39;]&quot;</span>
+        <span class="p">],</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<h3 id="json-schema">JSON schema<a class="headerlink" href="#json-schema" title="Permanent link">&para;</a></h3>
+<p>Tagged unions JSON schema use <code>oneOf</code> as expected.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span><span class="p">,</span> <span class="n">serialization_schema</span>
+<span class="kn">from</span> <span class="nn">apischema.tagged_unions</span> <span class="kn">import</span> <span class="n">Tagged</span><span class="p">,</span> <span class="n">TaggedUnion</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span>
+
+
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">TaggedUnion</span><span class="p">):</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">Bar</span><span class="p">]</span>
+    <span class="n">baz</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+
+
+<span class="k">assert</span> <span class="p">(</span>
+    <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
+    <span class="o">==</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
+    <span class="o">==</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;oneOf&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
+                        <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field&quot;</span><span class="p">],</span>
+                        <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="p">{</span><span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}}},</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h3 id="graphql-schema">GraphQL schema<a class="headerlink" href="#graphql-schema" title="Permanent link">&para;</a></h3>
+<p>As tagged union are not (yet?) part of the <em>GraphQL</em> spec, so they are just implemented as normal (input) object type with nullable fields. An error is raised if several tags are passed in input.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">graphql_sync</span>
+<span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
+
+<span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+<span class="kn">from</span> <span class="nn">apischema.tagged_unions</span> <span class="kn">import</span> <span class="n">Tagged</span><span class="p">,</span> <span class="n">TaggedUnion</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span>
+
+
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">TaggedUnion</span><span class="p">):</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">Bar</span><span class="p">]</span>
+    <span class="n">baz</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="n">foo</span><span class="p">:</span> <span class="n">Foo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">foo</span>
+
+
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">query</span><span class="p">])</span>
+<span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">type Query {</span>
+<span class="s2">  query(foo: FooInput!): Foo!</span>
+<span class="s2">}</span>
+
+<span class="s2">type Foo {</span>
+<span class="s2">  bar: Bar</span>
+<span class="s2">  baz: Int</span>
+<span class="s2">}</span>
+
+<span class="s2">type Bar {</span>
+<span class="s2">  field: String!</span>
+<span class="s2">}</span>
+
+<span class="s2">input FooInput {</span>
+<span class="s2">  bar: BarInput</span>
+<span class="s2">  baz: Int</span>
+<span class="s2">}</span>
+
+<span class="s2">input BarInput {</span>
+<span class="s2">  field: String!</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+
+<span class="n">query_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">{</span>
+<span class="s2">    query(foo: {bar: {field: &quot;value&quot;}}) {</span>
+<span class="s2">        bar {</span>
+<span class="s2">            field</span>
+<span class="s2">        }</span>
+<span class="s2">        baz</span>
+<span class="s2">    }</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">query_str</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
                 
               
               

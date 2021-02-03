@@ -852,9 +852,8 @@
     <span class="k">def</span> <span class="nf">ships</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">first</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">after</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Cursor</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Connection</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Ship</span><span class="p">]]]:</span>
-        <span class="k">return</span> <span class="n">Connection</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">relay</span><span class="o">.</span><span class="n">Edge</span><span class="p">(</span><span class="n">Ship</span><span class="p">(</span><span class="s2">&quot;X-Wing&quot;</span><span class="p">),</span> <span class="mi">0</span><span class="p">),</span> <span class="n">relay</span><span class="o">.</span><span class="n">Edge</span><span class="p">(</span><span class="n">Ship</span><span class="p">(</span><span class="s2">&quot;B-Wing&quot;</span><span class="p">),</span> <span class="mi">1</span><span class="p">)]</span>
-        <span class="p">)</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="p">[</span><span class="n">relay</span><span class="o">.</span><span class="n">Edge</span><span class="p">(</span><span class="n">Ship</span><span class="p">(</span><span class="s2">&quot;X-Wing&quot;</span><span class="p">),</span> <span class="mi">0</span><span class="p">),</span> <span class="n">relay</span><span class="o">.</span><span class="n">Edge</span><span class="p">(</span><span class="n">Ship</span><span class="p">(</span><span class="s2">&quot;B-Wing&quot;</span><span class="p">),</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">Connection</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">relay</span><span class="o">.</span><span class="n">PageInfo</span><span class="o">.</span><span class="n">from_edges</span><span class="p">(</span><span class="n">edges</span><span class="p">))</span>
 
 
 <span class="k">def</span> <span class="nf">faction</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Faction</span><span class="p">]:</span>
@@ -941,12 +940,12 @@
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">MyConnection</span><span class="p">(</span><span class="n">relay</span><span class="o">.</span><span class="n">Connection</span><span class="p">[</span><span class="n">Node</span><span class="p">,</span> <span class="n">Cursor</span><span class="p">,</span> <span class="n">Edge</span><span class="p">]):</span>
-    <span class="n">connection_field</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">connection_field</span><span class="p">:</span> <span class="nb">bool</span>
 
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">MyEdge</span><span class="p">(</span><span class="n">relay</span><span class="o">.</span><span class="n">Edge</span><span class="p">[</span><span class="n">Node</span><span class="p">,</span> <span class="n">Cursor</span><span class="p">]):</span>
-    <span class="n">edge_field</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">42</span>
+    <span class="n">edge_field</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 
 
 <span class="n">Connection</span> <span class="o">=</span> <span class="n">MyConnection</span><span class="p">[</span><span class="n">Node</span><span class="p">,</span> <span class="n">MyEdge</span><span class="p">[</span><span class="n">Node</span><span class="p">]]</span>
@@ -982,8 +981,8 @@
 
 <span class="s2">type ShipConnection {</span>
 <span class="s2">  edges: [ShipEdge]</span>
-<span class="s2">  connectionField: Boolean!</span>
 <span class="s2">  pageInfo: PageInfo!</span>
+<span class="s2">  connectionField: Boolean!</span>
 <span class="s2">}</span>
 
 <span class="s2">type ShipEdge {</span>
