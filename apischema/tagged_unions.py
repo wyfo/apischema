@@ -16,7 +16,7 @@ from apischema.aliases import alias
 from apischema.conversions.conversions import ConvOrFunc
 from apischema.json_schema.schema import Schema
 from apischema.metadata import conversion
-from apischema.types import MappingWithUnion, Metadata
+from apischema.types import Metadata, MetadataImplem
 from apischema.typing import get_type_hints
 from apischema.utils import PREFIX, Undefined, UndefinedType, get_args2, get_origin2
 
@@ -47,7 +47,7 @@ class Tagged(Generic[V]):
 
     @property
     def metadata(self) -> Metadata:
-        metadata: Metadata = MappingWithUnion()
+        metadata: Metadata = MetadataImplem()
         if self.alias is not None:
             metadata |= alias(self.alias)
         if self.schema is not None:
