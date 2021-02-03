@@ -223,6 +223,9 @@ def resolver(
             except Exception:
                 raise TypeError("Resolver cannot be used as a serialized method")
 
+    if isinstance(__arg, str):
+        alias = __arg
+        __arg = None
     return method_registerer(__arg, owner, register)
 
 

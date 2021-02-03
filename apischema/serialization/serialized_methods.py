@@ -171,4 +171,7 @@ def serialized(
                 ) from None
         _serialized_methods[owner][alias2] = serialized
 
+    if isinstance(__arg, str):
+        alias = __arg
+        __arg = None
     return method_registerer(__arg, owner, register)

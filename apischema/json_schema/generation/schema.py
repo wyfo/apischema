@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from dataclasses import Field
+from dataclasses import Field, dataclass
 from enum import Enum
 from functools import wraps
 from itertools import chain
@@ -68,7 +68,7 @@ from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, OrderedDict
 from apischema.typing import get_origin
-from apischema.utils import OperationKind, UndefinedType, is_union_of
+from apischema.utils import UndefinedType, is_union_of, sort_by_annotations_position
 
 constraint_by_type = {
     int: NumberConstraints,
@@ -91,6 +91,14 @@ def with_schema(method: Method) -> Method:
             return JsonSchema(method(self, *args, **kwargs), **self._schema.as_dict())
 
     return cast(Method, wrapper)
+
+
+@dataclass(frozen=True)
+class ObjectField:
+    name: str
+    alias: str
+    required: bool
+    schema: JsonSchema
 
 
 class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
@@ -218,6 +226,17 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
     ):
         pass
 
+    def _properties(
+        self, cls: Type, fields: Collection[ObjectField]
+    ) -> Tuple[Mapping[str, JsonSchema], Sequence[str]]:
+        properties, required = {}, []
+        for field in fields:
+            alias = field.alias or self.aliaser(field.name)
+            properties[alias] = field.schema
+            if field.required and alias not in required:
+                required.append(alias)
+        return properties, required
+
     @with_schema
     def dataclass(
         self,
@@ -228,11 +247,10 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
     ) -> JsonSchema:
         assert is_dataclass(cls)
         self._check_constraints(ObjectConstraints)
-        properties = {}
-        required: List[str] = []
         merged_schemas: List[JsonSchema] = []
         pattern_properties = {}
         additional_properties: Union[bool, JsonSchema] = settings.additional_properties
+        object_fields: List[ObjectField] = []
         for field in get_fields(fields, init_vars, self.operation):
             metadata = check_metadata(field)
             field_type = types[field.name]
@@ -250,14 +268,16 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
                     pattern_properties[pattern] = properties_schema
             else:
                 alias = self.aliaser(get_alias(field))
-                properties[alias] = json_schema(
+                field_schema = json_schema(
                     readOnly=not field.init,
                     writeOnly=field in init_vars,
                     **self.visit_field(field, field_type),
                 )
-                if is_required(field):
-                    required.append(alias)
-        self._update_properties(cls, properties, required)
+                object_field = ObjectField(
+                    field.name, alias, is_required(field), field_schema
+                )
+                object_fields.append(object_field)
+        properties, required = self._properties(cls, object_fields)
         dependent_required = {
             self.aliaser(get_alias(field)): sorted(
                 self.aliaser(get_alias(req)) for req in required_by
@@ -465,22 +485,24 @@ class SerializationSchemaBuilder(SerializationVisitor, SchemaBuilder):
     class RefsExtractor(SerializationVisitor, RefsExtractor):  # type: ignore
         pass
 
-    def _update_properties(
-        self, cls: Type, properties: Dict[str, JsonSchema], required: List[str]
-    ) -> Tuple[Mapping[str, JsonSchema], Collection[str]]:
-        if self.operation == OperationKind.SERIALIZATION:
-            for name, (serialized, types) in get_serialized_methods(
-                self._generic or cls
-            ).items():
-                alias = self.aliaser(name)
-                ret = types["return"]
-                with self._replace_conversions(serialized.conversions):
-                    properties[alias] = json_schema(
-                        readOnly=True, **self.visit_with_schema(ret, serialized.schema)
-                    )
-                if not is_union_of(ret, UndefinedType) and alias not in required:
-                    required.append(alias)
-        return properties, required
+    def _properties(
+        self, cls: Type, fields: Collection[ObjectField]
+    ) -> Tuple[Mapping[str, JsonSchema], Sequence[str]]:
+        all_fields = list(fields)
+        for name, (serialized, types) in get_serialized_methods(
+            self._generic or cls
+        ).items():
+            ret = types["return"]
+            with self._replace_conversions(serialized.conversions):
+                schema = json_schema(
+                    readOnly=True, **self.visit_with_schema(ret, serialized.schema)
+                )
+            required = not is_union_of(ret, UndefinedType)
+            all_fields.append(
+                ObjectField(serialized.func.__name__, name, required, schema)
+            )
+        all_fields = sort_by_annotations_position(cls, all_fields, lambda f: f.name)
+        return super()._properties(cls, all_fields)
 
     visit_conversion = with_schema(SerializationVisitor.visit_conversion)  # type: ignore # noqa: E501
 

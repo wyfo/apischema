@@ -26,6 +26,7 @@ from apischema.types import (
     AnyType,
     COLLECTION_TYPES,
     MAPPING_TYPES,
+    OrderedDict,
     subscriptable_origin,
 )
 from apischema.typing import _GenericAlias, _collect_type_vars, get_args, get_origin
@@ -259,19 +260,17 @@ class MethodWrapper(Generic[T]):
 
 
 def method_registerer(
-    arg: Union[Callable, str, None],
+    arg: Optional[Callable],
     owner: Optional[Type],
     register: Callable[[Callable, Optional[Type], str], None],
 ):
-    alias = None
-
     def decorator(method: MethodOrProperty):
         if owner is None and is_method(method) and method_class(method) is None:
 
             class ResolverDescriptor(MethodWrapper[MethodOrProperty]):
                 def __set_name__(self, owner, name):
                     super().__set_name__(owner, name)
-                    register(method_wrapper(method), owner, alias or name)
+                    register(method_wrapper(method), owner, name)
 
             return ResolverDescriptor(method)
         else:
@@ -281,14 +280,10 @@ def method_registerer(
                     owner2 = method_class(method)
                 method = method_wrapper(method)
             assert not isinstance(method, property)
-            register(cast(Callable, method), owner2, alias or method.__name__)
+            register(cast(Callable, method), owner2, method.__name__)
             return method
 
-    if isinstance(arg, str) or arg is None:
-        alias = arg
-        return decorator
-    else:
-        return decorator(arg)
+    return decorator if arg is None else decorator(arg)
 
 
 def replace_builtins(tp: AnyType) -> AnyType:
@@ -305,6 +300,16 @@ def replace_builtins(tp: AnyType) -> AnyType:
         replacement = origin
     res = replacement[args] if args else replacement
     return Annotated[(res, *get_args(tp)[1:])] if get_origin(tp) == Annotated else res
+
+
+def sort_by_annotations_position(
+    cls: Type, elts: Collection[T], key: Callable[[T], str]
+) -> List[T]:
+    annotations: Dict[str, Any] = OrderedDict()
+    for base in reversed(cls.__mro__):
+        annotations.update(getattr(base, "__annotations__", ()))
+    positions = {key: i for i, key in enumerate(annotations)}
+    return sorted(elts, key=lambda elt: positions.get(key(elt), len(positions)))
 
 
 try:
