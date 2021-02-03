@@ -134,7 +134,7 @@ Dynamic conversions can be used to bypass a registered conversion, i.e. to (de)s
 LSP is taken in account when applying dynamic conversion: serializer source can be a subclass of the actual class and deserializer target can be a superclass of the actual class.
 
 ```python
-{!dynamic_generic_lsp.py!}
+{!dynamic_conversions_lsp.py!}
 ```
 
 ### Generic dynamic conversions
@@ -197,7 +197,7 @@ dataclass_model(cls)(lambda: make_dataclass(cls.__name__, fields))
 It can be used for example to build a deserialization conversion from an alternative constructor.
 
 ```python
-{!examples/dataclass_input_wrapper.py!}
+{!dataclass_input_wrapper.py!}
 ```
 
 !!! note
