@@ -1,17 +1,7 @@
 from contextlib import suppress
 from dataclasses import Field
 from enum import Enum
-from typing import (  # type: ignore
-    Any,
-    Dict,
-    Iterable,
-    Mapping,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Type,
-)
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple, Type
 
 from apischema.conversions.visitor import ConversionsVisitor
 from apischema.dataclass_utils import get_field_conversions, get_fields
@@ -36,7 +26,7 @@ class RefsExtractor(ConversionsVisitor):
     def __init__(self, refs: Refs):
         super().__init__()
         self.refs = refs
-        self._rec_guard: Set[AnyType] = set()
+        self._rec_guard: Dict[AnyType, bool] = {}
 
     def _incr_ref(self, ref: Optional[str], tp: AnyType) -> bool:
         if ref is None:
@@ -128,12 +118,15 @@ class RefsExtractor(ConversionsVisitor):
         dynamic = self._apply_dynamic_conversions(tp)
         ref_tp = dynamic if dynamic is not None else tp
         if not self._incr_ref(get_ref(ref_tp), ref_tp):
-            if contains(self._rec_guard, ref_tp):
+            if contains(self._rec_guard, ref_tp) and self._rec_guard[ref_tp]:
                 raise TypeError(f"Recursive type {tp} need a ref")
             with suppress(TypeError):
-                self._rec_guard.add(ref_tp)
+                self._rec_guard[ref_tp] = ref_tp in self._rec_guard
             try:
                 super().visit(ref_tp)
             finally:
                 with suppress(TypeError):
-                    self._rec_guard.discard(ref_tp)
+                    if self._rec_guard[ref_tp]:
+                        self._rec_guard[ref_tp] = False
+                    else:
+                        del self._rec_guard[ref_tp]
