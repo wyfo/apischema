@@ -68,7 +68,7 @@ from apischema.metadata.keys import (
 from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.skip import filter_skipped
 from apischema.types import AnyType, NoneType
-from apischema.typing import get_origin
+from apischema.typing import get_args, get_origin
 from apischema.utils import (
     Undefined,
     get_args2,
@@ -77,6 +77,11 @@ from apischema.utils import (
     sort_by_annotations_position,
     to_camel_case,
 )
+
+try:
+    from apischema.typing import Annotated
+except ImportError:
+    Annotated = ...  # type: ignore
 
 JsonScalar = graphql.GraphQLScalarType(
     "JSON",
@@ -147,6 +152,15 @@ IdPredicate = Callable[[AnyType], bool]
 UnionRefFactory = Callable[[Sequence[str]], str]
 
 
+def annotated_schema(tp: AnyType) -> Optional[Schema]:
+    schema = None
+    if get_origin(tp) == Annotated:
+        for annotation in get_args(tp)[1:]:
+            if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
+                schema = merge_schema(annotation[SCHEMA_METADATA], schema)
+    return schema
+
+
 class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     def __init__(
         self,
@@ -202,14 +216,15 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         return lambda: graphql.GraphQLList(exec_thunk(value_thunk))
 
     def _object_field(self, field: Field, field_type: AnyType) -> ObjectField:
-        field_name = field.name
         return ObjectField(
-            field_name,
+            field.name,
             field_type,
             alias=get_alias(field),
             conversions=get_field_conversions(field, self.operation),
             default=graphql.Undefined if is_required(field) else get_default(field),
-            schema=field.metadata.get(SCHEMA_METADATA),
+            schema=merge_schema(
+                annotated_schema(field_type), field.metadata.get(SCHEMA_METADATA)
+            ),
         )
 
     def _visit_merged(
@@ -273,6 +288,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
                 field_name,
                 field_type,
                 default=defaults.get(field_name, graphql.Undefined),
+                schema=annotated_schema(field_type),
             )
             for field_name, field_type in types.items()
         ]
@@ -433,9 +449,11 @@ class InputSchemaBuilder(
     def typed_dict(
         self, cls: Type, keys: Mapping[str, AnyType], total: bool
     ) -> Thunk[graphql.GraphQLType]:
-        return self.object(
-            cls, [ObjectField(name, type) for name, type in keys.items()]
-        )
+        fields = [
+            ObjectField(name, type, schema=annotated_schema(type))
+            for name, type in keys.items()
+        ]
+        return self.object(cls, fields)
 
     def _union_result(
         self, results: Iterable[Thunk[graphql.GraphQLType]]
