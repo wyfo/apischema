@@ -14,7 +14,7 @@ An *apischema* conversion is composed of a source type, let's call it `Source`, 
 
 When a class (actually, a non-builtin class, so not `int`/`list`/etc.) is deserialized, *apischema* will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then the converter will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply then converter, and get the target type.
 
-Conversion can only be applied on classes, not other types like `NewType`, etc. (see [FAQ](#why-conversion-can-only-be-applied-on-classes-and-not-on-others-types-newtype-fooint-etc))
+Conversion can only be applied on classes, not other types like `NewType`, etc. (see [FAQ](#why-dynamic-conversion-cannot-apply-on-the-whole-data-model))
 
 Conversions are also handled in schema generation: for a deserialization schema, source schema is merged to target schema, while target schema is merged to source schema for a serialization schema.
 
@@ -67,10 +67,23 @@ However, there is one way to do it by using a `classmethod` and the special deco
 !!! note
     An "other" way to achieve that would be to use `__init_subclass__` method in order to add a deserializer to each subclass. In fact, that's what `inherited_deserializer` is doing behind the scene.
 
+## Generic conversions
+
+`Generic` conversions are supported out of the box.
+
+```python
+{!generic_conversions.py!}
+```
+
+!!! warning
+    (De)serializer cannot decorate methods of `Generic` classes in Python 3.6, it has to be used outside of class.
+
+However, it's not allowed to register a conversion of a specialized generic type, like `Foo[int]`(see [FAQ](#why-conversion-can-only-be-applied-on-classes-and-not-on-others-types-newtype-fooint-etc)).
+
 ## Conversion object
 
 In previous example, conversions where registered using only converter functions. However, everywhere you can pass a converter, you can also pass a `apischema.conversions.Conversion` instance.
-`Conversion` allows to add additional metadata to conversion than a function can do ; it can also be used to precise converter source/target when annotations are not available.
+`Conversion` allows adding additional metadata to conversion than a function can do ; it can also be used to precise converter source/target when annotations are not available.
 
 ```python
 {!conversion_object.py!}
@@ -94,7 +107,7 @@ No matter if a conversion is registered or not for a given type, conversions can
 
 Dynamic conversions are discarded after having been applied (or after class without conversion having been encountered). For example, you can't apply directly a dynamic conversion to a dataclass field when calling  `serialize` on an instance of this dataclass. Reasons of this design are detailed in the [FAQ](#why-dynamic-conversion-cannot-apply-on-the-whole-data-model). 
 
-By the way, builtin classes are not affected by conversions, this is especially true for containers like `list` or `dict`. Dynamic conversions can thus be used to modify a type inside it's container.
+However, there is an exception for containers like `Collection`, `list`, `dict`, etc. and `Union`, and types with a registered conversion from/to a container: dynamic conversions are not discarded and can be used by their elements 
 
 ```python
 {!local_conversions.py!}
@@ -116,20 +129,17 @@ Dynamic conversions can be used to bypass a registered conversion, i.e. to (de)s
 {!bypass_conversions.py!}
 ```
 
-## Generic conversions
+### Liskov substitution principle
 
-`Generic` conversions are supported out of the box.
+LSP is taken in account when applying dynamic conversion: serializer source can be a subclass of the actual class and deserializer target can be a superclass of the actual class.
 
 ```python
-{!generic_conversions.py!}
+{!dynamic_generic_lsp.py!}
 ```
 
-!!! warning
-(De)serializer cannot decorate methods of `Generic` classes in Python 3.6, it has to be used outside of class.
+### Generic dynamic conversions
 
-However, *apischema* doesn't support conversion of specialized generic like `Foo[bool] -> int` (see [FAQ](#why-conversion-can-only-be-applied-on-classes-and-not-on-others-types-newtype-fooint-etc))
-
-By the way, dynamic generic conversions are also supported.
+`Generic` dynamic conversions are supported out of the box. Also, contrary to registered conversions, partially specialized generics are allowed. 
 
 ```python
 {!dynamic_generic_conversions.py!}
@@ -146,45 +156,14 @@ It is possible to register a conversion for a particular dataclass field using `
 !!! note
     It's possible to pass a conversion only for deserialization or only for serialization
 
-Fields conversions are different of other conversion by the fact they apply directly on the field type and not on a particular class: if field type is a list of `Foo`, the converter will have to take a list in parameter.
-However, it's possible with [sub-conversions](#sub-conversions) to get a similar behaviour to normal conversions.
+## Serialized method conversions
 
-### Generic field conversions
-
-Generic field conversions are again handled naturally out-of-the-box
-
-```python
-{!field_generic_conversion.py!}
-```
-
-!!! note
-As shown in the example, *apischema* will substitute `TypeVar`s according to the field type, even if it has itself a generic type. By the way, LSP is taken in account when field has not the same type as the conversion side (here, `dict` is a subtype of `Mapping`, so type vars can be substituted in a serialization context)
-
-## Sub-conversions
-
-Sub-conversions are quite an advanced use; they are [dynamic conversions](#dynamic-conversions--select-conversions-at-runtime) applied after a conversion (or an other computation, like a serialized method).
-
-```python
-{!sub_conversions.py!}
-```
-
-Sub-conversions can also be used to [bypass registered conversions](#bypass-registered-conversion).
-
-### Serialized method sub-conversions
-
-Serialized method can also have dedicated sub-conversions
+Serialized method can also have dedicated conversions
 
 ```python
 {!serialized_conversions.py!}
 ```
 
-## Lazy conversions
-
-Another advanced use, conversions can be defined lazily, i.e. using a function returning `Conversion` (single or a collection of it); this function must be wrap into a `apischema.conversions.LazyConversion` instance.
-
-It allows creating recursive conversions or using a conversion object which can be modified after its definition (for example a conversion for a base class modified by `__init_subclass__`) 
-
-It is used by *apischema* itself for the generated JSON schema. It is indeed a recursive data, and the [different versions](json_schema.md#json-schema--openapi-version) are handled by a conversion with a lazy recursive sub-conversion.
 
 ## Dataclass model - automatic conversion from/to dataclass
 
@@ -230,28 +209,47 @@ As almost every default behavior in *apischema*, default conversion can be confi
 
 You can for example [support *attrs*](examples/attrs_support.md) classes with this feature:
 
-
 ```python
 {!examples/attrs_support.py!}
 ```
 
+## Sub-conversions
+
+Sub-conversions are [dynamic conversions](#dynamic-conversions--select-conversions-at-runtime) applied on the result of a conversion.
+
+```python
+{!sub_conversions.py!}
+```
+
+Sub-conversions can also be used to [bypass registered conversions](#bypass-registered-conversion) or to define [recursive conversions](#lazyrecursive-conversions).
+
+## Lazy/recursive conversions
+
+Conversions can be defined lazily, i.e. using a function returning `Conversion` (single, or a collection of it); this function must be wrap into a `apischema.conversions.LazyConversion` instance.
+
+It allows creating recursive conversions or using a conversion object which can be modified after its definition (for example a conversion for a base class modified by `__init_subclass__`)
+
+It is used by *apischema* itself for the generated JSON schema. It is indeed a recursive data, and the [different versions](json_schema.md#json-schema--openapi-version) are handled by a conversion with a lazy recursive sub-conversion.
+
+```python
+{!recursive_conversions.py!}
+```
+
 ## FAQ
 
-#### Why conversion can only be applied on classes and not on others types (`NewType`, `Foo[int]`, etc.)?
+#### Why conversion can only be applied on classes?
 
-Serialization doesn't have access to annotations (it's way less performant to use model annotations, and things like `Union` are useless in a serialization point of view), it uses instead the class of the object serialized; so `NewType` and other things that don't exist at runtime are simply unavailable. (As a side effect, serialization conversions applied to a `NewType` super-type will be applied to objects even if they are annotated with `NewType`, but it's a corner case as `NewType` is mainly used with builtin types `int`, `str`, etc.)
+Serialization doesn't have access to annotations (it's way less performant to use model annotations, and things like `Union` are useless in a serialization point of view), it uses instead the class of the object serialized; so `NewType` and other things that don't exist at runtime are simply unavailable.
 
-Serialization conversions with specialized generic like `Foo[int]` are impossible too, because the generic argument of `Foo` cannot be retrieved. 
+Also, generic specialization like `Foo[int]` cannot be retrieved by serialization, that's why their registration is not allowed. 
 
 On the other hand, deserialization use annotations, so it could indeed apply conversions to other types (and it was in fact the case in the firsts versions).
 
 However, it has been judged better to get the same restriction on both operation for simplicity and because the main need of deserialization customization is validation, which can already be registered for `NewType` or embedded in `Annotated`, etc.
 
-#### Why conversion cannot be applied on primitive type?
-
-It's not a technical issue (it was a performance isssue in the first versions), but rather a design choice to keep things simple.
-
 #### Why dynamic conversion cannot apply on the whole data model?
 
-Actually, it would be to implement global dynamic conversions for (de)serialization. However, when it comes to JSON schema generation, things would get completely messy. In fact, it would break the concept of `$ref`, because the content of a `$ref` would be changed between two endpoints with different global conversions, as conversions could change the fields in one and not in the other. 
+To keep `$ref` referencing the same schema between to endpoints with different dynamic conversions. If the conversion was global, one field of a class could be changed in a schema and not in the other, which would break the `$ref` principle.
+
+Because it would break the concept of `$ref`, because the content of a `$ref` would be changed between two endpoints with different global conversions, as conversions could change the fields in one and not in the other. 
 

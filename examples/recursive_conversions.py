@@ -16,7 +16,7 @@ def foo_elements(foo: Foo) -> list[Union[int, Foo]]:
 
 # Recursive conversion pattern
 tmp = None
-conversion = Conversion(foo_elements, conversions=LazyConversion(lambda: tmp))
+conversion = Conversion(foo_elements, sub_conversions=LazyConversion(lambda: tmp))
 tmp = conversion
 
 assert serialize(Foo([0, Foo([1])]), conversions=conversion) == [0, [1]]

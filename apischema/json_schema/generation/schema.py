@@ -35,7 +35,7 @@ from apischema.conversions.visitor import (
 from apischema.dataclass_utils import (
     get_alias,
     get_default,
-    get_field_conversion,
+    get_field_conversions,
     get_fields,
     get_requirements,
     has_default,
@@ -162,12 +162,8 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
         )
 
     def visit_field(self, field: Field, field_type: AnyType):
-        field_type, conversion = get_field_conversion(field, field_type, self.operation)
+        conversions = get_field_conversions(field, self.operation)
         converter: Converter = identity
-        sub_conversions: Optional[Conversions] = None
-        if conversion is not None:
-            converter = conversion.converter  # type: ignore
-            sub_conversions = conversion.conversions
         schema: Optional[Schema] = None
         if SCHEMA_METADATA in field.metadata:
             schema = cast(Schema, field.metadata[SCHEMA_METADATA])
@@ -176,14 +172,14 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
                     raise TypeError("Invalid ... without field default")
                 try:
                     default = serialize(
-                        converter(get_default(field)), conversions=sub_conversions
+                        converter(get_default(field)), conversions=conversions
                     )
                 except Exception:
                     pass
                 else:
                     annotations = replace(schema.annotations, default=default)
                     schema = replace(schema, annotations=annotations)
-        with self._replace_conversions(sub_conversions):
+        with self._replace_conversions(conversions):
             return self.visit_with_schema(field_type, schema)
 
     def _properties_schema(self, field: Field, field_type: AnyType) -> JsonSchema:

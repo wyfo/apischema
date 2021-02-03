@@ -14,13 +14,18 @@ from typing import (
 from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.cache import cache
-from apischema.conversions.conversions import Conversions, to_hashable_conversions
+from apischema.conversions.conversions import (
+    Conversions,
+    ResolvedConversion,
+    handle_container_conversions,
+    resolve_conversions,
+)
 from apischema.conversions.dataclass_models import DataclassModel
 from apischema.conversions.visitor import SerializationVisitor
 from apischema.dataclass_utils import (
     dataclass_types_and_fields,
     get_alias,
-    get_field_conversion,
+    get_field_conversions,
 )
 from apischema.fields import FIELDS_SET_ATTR, fields_set
 from apischema.metadata.keys import SKIP_METADATA, check_metadata, is_aggregate_field
@@ -33,16 +38,14 @@ PRIMITIVE_TYPES_SET = set(PRIMITIVE_TYPES)
 COLLECTION_TYPE_SET = set(COLLECTION_TYPES)
 MAPPING_TYPE_SET = set(MAPPING_TYPES)
 
-SerializationMethod = Callable[[Any, bool, Callable], Any]
-
 
 @cache
 def serialization_fields(
     cls: Type, aliaser: Aliaser
 ) -> Tuple[
-    Sequence[Tuple[str, str, SerializationMethod]],
-    Sequence[Tuple[str, SerializationMethod]],
-    Sequence[Tuple[str, SerializationMethod]],
+    Sequence[Tuple[str, str, Optional[Conversions]]],
+    Sequence[Tuple[str, Optional[Conversions]]],
+    Sequence[Tuple[Callable[[Any], Any], str, Optional[Conversions]]],
 ]:
     types, fields, _ = dataclass_types_and_fields(cls)  # type: ignore
     normal_fields, aggregate_fields, serialized_fields = [], [], []
@@ -50,61 +53,24 @@ def serialization_fields(
         if SKIP_METADATA in field.metadata:
             continue
         check_metadata(field)
-        field_type, conversion = get_field_conversion(
-            field, types[field.name], OperationKind.SERIALIZATION
-        )
-        method: Callable
-        if conversion is not None:
-            # method could be optimized when identity is used, but it's a lot more lines
-            # for an unnecessary thing
-            def method(
-                obj: Any,
-                exc_unset: bool,
-                _serialize: Callable,
-                conversions=conversion.conversions,  # type: ignore
-                converter=conversion.converter,  # type: ignore
-                exclude_unset=conversion.exclude_unset,  # type: ignore
-            ) -> Any:
-                if exclude_unset is not None:
-                    exc_unset = exclude_unset
-                return _serialize(converter(obj), exc_unset, conversions=conversions)
-
-        elif field_type in PRIMITIVE_TYPES_SET:
-
-            def method(obj: Any, exc_unset: bool, _serialize: Callable):
-                return obj
-
-        else:
-
-            def method(obj: Any, exc_unset: bool, _serialize: Callable):
-                return _serialize(obj, exc_unset)
-
+        conversions = get_field_conversions(field, OperationKind.SERIALIZATION)
         if is_aggregate_field(field):
-            aggregate_fields.append((field.name, method))
+            aggregate_fields.append((field.name, conversions))
         else:
-            normal_fields.append((field.name, aliaser(get_alias(field)), method))
+            normal_fields.append((field.name, aliaser(get_alias(field)), conversions))
     for name, (serialized, _) in get_serialized_methods(cls).items():
-
-        def method(
-            obj: Any,
-            exc_unset: bool,
-            _serialize: Callable,
-            func=serialized.func,
-            conversions=serialized.conversions,
-        ) -> Any:
-            res = func(obj)
-            return (
-                res
-                if res is Undefined
-                else _serialize(res, exc_unset, conversions=conversions)
-            )
-
-        serialized_fields.append((aliaser(name), method))
+        serialized_fields.append(
+            (serialized.func, aliaser(name), serialized.conversions)
+        )
 
     return normal_fields, aggregate_fields, serialized_fields
 
 
-get_conversions = cache(SerializationVisitor.get_conversions)
+@cache
+def get_conversions(
+    tp: Type, conversions: Optional[Conversions]
+) -> Tuple[Optional[ResolvedConversion], bool]:
+    return SerializationVisitor.get_conversions(tp, resolve_conversions(conversions))
 
 
 def serialize(
@@ -118,28 +84,15 @@ def serialize(
         aliaser = settings.aliaser()
     if exclude_unset is None:
         exclude_unset = settings.exclude_unset
-    conversions = to_hashable_conversions(conversions)
 
     def _serialize(
         obj: Any,
         exc_unset: bool,
-        *,
-        conversions: Optional[Conversions] = None,
+        conversions: Conversions = None,
     ) -> Any:
         assert aliaser is not None
         cls = obj.__class__
-        if cls in PRIMITIVE_TYPES_SET:
-            return obj
-        if cls in COLLECTION_TYPE_SET:
-            return [_serialize(elt, exc_unset, conversions=conversions) for elt in obj]
-        if cls in MAPPING_TYPE_SET:
-            return {
-                _serialize(key, exc_unset, conversions=conversions): _serialize(
-                    value, exc_unset, conversions=conversions
-                )
-                for key, value in obj.items()
-            }
-        conversion = get_conversions(cls, conversions)
+        conversion, dynamic = get_conversions(cls, conversions)
         if conversion is not None:
             if conversion.exclude_unset is not None:
                 exc_unset = conversion.exclude_unset
@@ -149,8 +102,24 @@ def serialize(
                 return _serialize(
                     conversion.converter(obj),  # type: ignore
                     exc_unset,
-                    conversions=conversion.conversions,
+                    handle_container_conversions(
+                        conversion.target,
+                        conversion.sub_conversions,
+                        conversions,
+                        dynamic,
+                    ),
                 )
+        if cls in PRIMITIVE_TYPES_SET:
+            return obj
+        if cls in COLLECTION_TYPE_SET:
+            return [_serialize(elt, exc_unset, conversions) for elt in obj]
+        if cls in MAPPING_TYPE_SET:
+            return {
+                _serialize(key, exc_unset, conversions): _serialize(
+                    value, exc_unset, conversions
+                )
+                for key, value in obj.items()
+            }
         if is_dataclass(cls):
             fields, aggregate_fields, serialized_fields = serialization_fields(
                 cls, aliaser
@@ -169,17 +138,16 @@ def serialize(
                 ]
             result = {}
             # properties before normal fields to avoid overloading a field with property
-            for name, method in aggregate_fields:
-                attr = getattr(obj, name)
-                result.update(method(attr, exc_unset, _serialize))  # type: ignore
-            for name, alias, method in fields:
+            for name, conv in aggregate_fields:
+                result.update(_serialize(getattr(obj, name), exc_unset, conv))
+            for name, alias, conv in fields:
                 attr = getattr(obj, name)
                 if attr is not Undefined:
-                    result[alias] = method(attr, exc_unset, _serialize)  # type: ignore
-            for alias, method in serialized_fields:
-                res = method(obj, exc_unset, _serialize)
+                    result[alias] = _serialize(attr, exc_unset, conv)
+            for func, alias, conv in serialized_fields:
+                res = func(obj)
                 if res is not Undefined:
-                    result[alias] = res
+                    result[alias] = _serialize(res, exc_unset, conv)
             return result
         if obj is Undefined:
             raise Unsupported(cls)
@@ -189,7 +157,9 @@ def serialize(
             return obj
         if isinstance(obj, Mapping):
             return {
-                _serialize(key, exc_unset): _serialize(value, exc_unset)
+                _serialize(key, exc_unset, conversions): _serialize(
+                    value, exc_unset, conversions
+                )
                 for key, value in obj.items()
             }
         if issubclass(cls, tuple) and hasattr(cls, "_fields"):
@@ -202,11 +172,11 @@ def serialize(
                 res = serialized.func(obj)
                 if res is not Undefined:
                     result[aliaser(name)] = _serialize(
-                        res, exc_unset, conversions=serialized.conversions
+                        res, exc_unset, serialized.conversions
                     )
             return result
         if isinstance(obj, Collection):
-            return [_serialize(elt, exc_unset) for elt in obj]
+            return [_serialize(elt, exc_unset, conversions) for elt in obj]
         raise Unsupported(cls)
 
-    return _serialize(obj, exclude_unset, conversions=conversions)
+    return _serialize(obj, exclude_unset, conversions)

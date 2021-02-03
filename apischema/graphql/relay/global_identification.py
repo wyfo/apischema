@@ -1,5 +1,6 @@
 import sys
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from typing import (
     Awaitable,
     ClassVar,
@@ -14,18 +15,15 @@ from typing import (
 )
 
 import graphql
-from dataclasses import Field, _FIELDS, dataclass, field  # type: ignore
 
 from apischema import deserialize, deserializer, serialize, serializer
-from apischema.graphql import interface
-from apischema.graphql.schema import ID
+from apischema.graphql import ID, interface, resolver
 from apischema.json_schema.refs import get_ref
-from apischema.metadata import conversion
-from apischema.types import AnyType
+from apischema.metadata import skip
 from apischema.typing import generic_mro, get_args, get_origin
-from apischema.utils import has_type_vars
+from apischema.utils import PREFIX, has_type_vars
 
-Id = TypeVar("Id")
+ID_TYPE_ATTR = f"{PREFIX}id_type"
 
 
 class InvalidGlobalId(Exception):
@@ -33,15 +31,15 @@ class InvalidGlobalId(Exception):
         self.value = value
 
     def __str__(self):
-        return f"{self.value} is not a valid id"
+        return f"{self.value} is not a valid global id"
 
 
 class NotANode(Exception):
-    def __init__(self, node_class: str):
-        self.node_class = node_class
+    def __init__(self, node_type: str):
+        self.node_type = node_type
 
     def __str__(self):
-        return f"{self.node_class} is not a Node"
+        return f"{self.node_type} is not a Node"
 
 
 Node_ = TypeVar("Node_", bound="Node")
@@ -50,68 +48,59 @@ Node_ = TypeVar("Node_", bound="Node")
 @dataclass
 class GlobalId(Generic[Node_]):
     id: str
-    node_class: Type[Node_]
-
-    @staticmethod
-    def deserialize(global_id: ID) -> "GlobalId":
-        try:
-            node_class, id = global_id.split(":")
-        except ValueError:
-            raise InvalidGlobalId(global_id)
-        if node_class not in _nodes:
-            raise NotANode(node_class)
-        return GlobalId(id, _nodes[node_class])
-
-    def serialize(self) -> ID:
-        return ID(f"{self.node_class._node_key()}:{self.id}")
+    node_type: Type[Node_]
 
 
-deserializer(GlobalId.deserialize)
-serializer(GlobalId.serialize)
+@deserializer
+def deserialize_global_id(global_id: ID) -> GlobalId:
+    try:
+        node_key, id = global_id.split(":")
+    except ValueError:
+        raise InvalidGlobalId(global_id) from None
+    try:
+        return GlobalId(id, _nodes[node_key])
+    except KeyError:
+        raise NotANode(node_key) from None
 
 
-# Use fake conversion to give the id field an ID type for Node (unspecialized) class
-def _fake_serializer(_) -> GlobalId:
-    raise NotImplementedError
+@serializer
+def serialize_global_id(global_id: GlobalId) -> ID:
+    return ID(f"{global_id.node_type._node_key()}:{global_id.id}")
 
 
-N = TypeVar("N", bound="Node")
+Id = TypeVar("Id")
 
 
 @interface
 @dataclass  # type: ignore
 class Node(Generic[Id], ABC):
-    _id_type: ClassVar[AnyType]  # set in __init_subclass__
-    id: Id = field(metadata=conversion(serialization=_fake_serializer))
+    id: Id = field(metadata=skip)
+    global_id: ClassVar[property]
 
-    @classmethod
-    def id_from_global(cls: Type[N], global_id: GlobalId[N]) -> Id:
-        # Use coercion to handle integer id
-        return cast(Id, deserialize(cls._id_type, global_id.id, coercion=True))
-
-    @classmethod
-    def id_to_global(cls: Type[N], id: Id) -> GlobalId[N]:
-        return GlobalId(str(serialize(id)), cls)
-
-    @property
-    def global_id(self: N) -> GlobalId[N]:
+    @property  # type: ignore
+    def global_id(self: Node_) -> GlobalId[Node_]:
         return self.id_to_global(self.id)
 
     @classmethod
-    def get_by_global_id(
-        cls: Type[N], global_id: GlobalId, info: graphql.GraphQLResolveInfo = None
-    ) -> Union[N, Awaitable[N]]:
-        if global_id.node_class != cls:
+    def id_from_global(cls: Type[Node_], global_id: GlobalId[Node_]) -> Id:
+        if global_id.node_type != cls:
             raise ValueError(
-                f"Expected {cls.__name__} id, found {global_id.node_class.__name__} id"
+                f"Expected {cls.__name__} global id,"
+                f" found {global_id.node_type.__name__} global id"
             )
-        return cls.get_by_id(cls.id_from_global(global_id), info)
+        id_type = getattr(cls, ID_TYPE_ATTR)
+        # Use coercion to handle integer id
+        return cast(Id, deserialize(id_type, global_id.id, coercion=True))
+
+    @classmethod
+    def id_to_global(cls: Type[Node_], id: Id) -> GlobalId[Node_]:
+        return GlobalId(str(serialize(id)), cls)
 
     @classmethod
     @abstractmethod
     def get_by_id(
-        cls: Type[N], id: Id, info: graphql.GraphQLResolveInfo = None
-    ) -> Union[N, Awaitable[N]]:
+        cls: Type[Node_], id: Id, info: graphql.GraphQLResolveInfo = None
+    ) -> Union[Node_, Awaitable[Node_]]:
         raise NotImplementedError
 
     @classmethod
@@ -121,82 +110,49 @@ class Node(Generic[Id], ABC):
             raise TypeError(f"Node {cls} has no schema_ref registered")
         return node_name
 
-    def __init_subclass__(cls, abstract: bool = False, **kwargs):
+    def __init_subclass__(cls, not_a_node: bool = False, **kwargs):
         super().__init_subclass__(**kwargs)  # type: ignore
-        if abstract:
+        if sys.version_info < (3, 7) and cls.__origin__ == Node:
             return
-        if sys.version_info >= (3, 7):
-            if not has_type_vars(cls) and cls.get_by_id is not Node.get_by_id:
-                _set_id_type(cls)
-                _tmp_nodes.append(cls)
-        else:
-            if cls not in _tmp_nodes:
-                _tmp_nodes.append(cls)
+        if not not_a_node:
+            _tmp_nodes.append(cls)
 
 
-def _set_id_type(cls):
-    for base in cls.__mro__:
-        if base != Node and Node.get_by_id.__name__ in base.__dict__:
-            if not isinstance(
-                base.__dict__[base.get_by_id.__name__], (classmethod, staticmethod)
-            ):
-                raise TypeError(
-                    f"{cls.__name__}.get_by_id must be a classmethod/staticmethod"
-                )
-            break
-    else:
-        raise TypeError(f"{cls.__name__}.{Node.get_by_id.__name__} must be defined")
-    for base in generic_mro(cls):
-        if get_origin(base) == Node:
-            (_id_type,) = get_args(base)
-            break
-    else:
-        raise NotImplementedError
+resolver(alias="id")(Node.global_id)  # cannot directly decorate property because py36
 
-    def serialize_id(id) -> GlobalId:
-        return GlobalId(serialize(id), cls)
-
-    id_field = cast(Field, getattr(cls, _FIELDS)["id"])
-    cls.id = Field(  # type: ignore
-        id_field.default,
-        id_field.default_factory,  # type: ignore
-        id_field.init,
-        id_field.repr,
-        id_field.hash,
-        id_field.compare,
-        id_field.metadata | conversion(serialization=serialize_id),
-    )
-    cls.__annotations__["id"] = _id_type
-    cls._id_type = _id_type
-
-
-# Use dict instead of set in order to keep order (because 3.6 generate duplicates)
 _tmp_nodes: List[Type[Node]] = []
 _nodes: Dict[str, Type[Node]] = {}
 
 
-if sys.version_info < (3, 7):
-
-    def nodes() -> Collection[Type[Node]]:
-        for node_cls in _tmp_nodes:
-            if (
-                has_type_vars(node_cls)
-                or get_args(node_cls)
-                or node_cls.get_by_id is Node.get_by_id
+def process_node(node_cls: Type[Node]):
+    if has_type_vars(node_cls) or node_cls.get_by_id is Node.get_by_id:
+        return
+    for base in node_cls.__mro__:
+        if base != Node and Node.get_by_id.__name__ in base.__dict__:
+            if not isinstance(
+                base.__dict__[Node.get_by_id.__name__], (classmethod, staticmethod)
             ):
-                continue
-            _set_id_type(node_cls)
-            _nodes[node_cls._node_key()] = dataclass(node_cls)
-        return list(_nodes.values())
-
-
-else:
-
-    def nodes() -> Collection[Type[Node]]:
-        for node_cls in _tmp_nodes:
+                raise TypeError(
+                    f"{node_cls.__name__}.get_by_id must be a"
+                    f" classmethod/staticmethod"
+                )
+            break
+    for base in generic_mro(node_cls):
+        if get_origin(base) == Node:
+            setattr(node_cls, ID_TYPE_ATTR, get_args(base)[0])
             _nodes[node_cls._node_key()] = node_cls
-        return list(_nodes.values())
+            break
+    else:
+        raise TypeError("Node type parameter Id must be specialized")
 
 
-def node(id: GlobalId, info: graphql.GraphQLResolveInfo = None) -> Node:
-    return id.node_class.get_by_global_id(id, info)
+def nodes() -> Collection[Type[Node]]:
+    for node_cls in _tmp_nodes:
+        process_node(node_cls)
+    return list(_nodes.values())
+
+
+def node(id: ID, info: graphql.GraphQLResolveInfo = None) -> Node:
+    global_id = deserialize_global_id(id)
+    node_type = global_id.node_type
+    return node_type.get_by_id(node_type.id_from_global(global_id), info)

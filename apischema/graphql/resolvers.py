@@ -22,7 +22,7 @@ from typing import (
 import graphql
 
 from apischema.aliases import Aliaser
-from apischema.conversions.conversions import Conversions, to_hashable_conversions
+from apischema.conversions.conversions import Conversions, handle_container_conversions
 from apischema.conversions.dataclass_models import DataclassModel
 from apischema.deserialization import deserialize
 from apischema.json_schema.schema import Schema
@@ -77,14 +77,19 @@ def partial_serialize(
         return serialize(
             obj, conversions=conversions, aliaser=aliaser, exclude_unset=False
         )
-    conversion = get_conversions(cls, to_hashable_conversions(conversions))
+    conversion, dynamic = get_conversions(cls, conversions)
     if conversion is not None:
         if isinstance(conversion.target, DataclassModel):
             return obj
         return partial_serialize(
             conversion.converter(obj),  # type: ignore
             aliaser=aliaser,
-            conversions=conversion.conversions,
+            conversions=handle_container_conversions(
+                conversion.target,
+                conversion.sub_conversions,
+                conversions,
+                dynamic,
+            ),
         )
     if is_dataclass(cls):
         return obj

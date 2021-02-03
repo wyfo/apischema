@@ -6,6 +6,7 @@ from typing import (
     AbstractSet,
     Any,
     Callable,
+    Collection,
     Dict,
     Iterable,
     List,
@@ -26,15 +27,17 @@ from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import (
     Conversions,
-    HashableConversions,
-    to_hashable_conversions,
+    handle_container_conversions,
 )
-from apischema.conversions.utils import Converter, identity
+from apischema.conversions.utils import (
+    Converter,
+    identity,
+)
 from apischema.conversions.visitor import Deserialization, DeserializationVisitor
 from apischema.dataclass_utils import (
     get_alias,
     get_default,
-    get_field_conversion,
+    get_field_conversions,
     get_fields,
     get_requirements,
     has_default,
@@ -72,7 +75,7 @@ from apischema.types import (
     OrderedDict,
 )
 from apischema.typing import get_origin
-from apischema.utils import opt_or
+from apischema.utils import get_origin_or_type, opt_or
 from apischema.validation.errors import (
     ErrorKey,
     ValidationError,
@@ -378,13 +381,9 @@ class DeserializationMethodVisitor(
             if has_default(field):
                 defaults[field.name] = lambda: get_default(field)
             field_type = types[field.name]
-            field_type, conversion = get_field_conversion(
-                field, field_type, self.operation
+            field_factory = self.visit_with_conversions(
+                field_type, get_field_conversions(field, self.operation)
             )
-            if conversion is not None:
-                field_factory = self.visit_conversion(field_type, [conversion])
-            else:
-                field_factory = self.visit(field_type)
             if SCHEMA_METADATA in metadata:
                 field_factory = field_factory.merge(
                     constraints=metadata[SCHEMA_METADATA].constraints
@@ -790,13 +789,17 @@ class DeserializationMethodVisitor(
         return factory
 
     def visit_conversion(
-        self, cls: Type, conversion: Deserialization
+        self, tp: AnyType, conversion: Deserialization, dynamic: bool
     ) -> DeserializationMethodFactory:
         assert conversion
+        cls = get_origin_or_type(tp)
         factories = [
             (
                 self.visit_with_conversions(
-                    self._replace_generic_args(conv.source), conv.conversions
+                    self._update_generic_args(tp, conv),
+                    handle_container_conversions(
+                        conv.source, conv.sub_conversions, self._conversions, dynamic
+                    ),
                 ),
                 cast(Converter, conv.converter),
                 (conv.additional_properties, conv.coercion, conv.default_fallback),
@@ -855,7 +858,7 @@ class DeserializationMethodVisitor(
 
 @cache
 def get_method(
-    tp: AnyType, conversions: Optional[HashableConversions], aliaser: Aliaser
+    tp: AnyType, conversions: Optional[Conversions], aliaser: Aliaser
 ) -> DeserializationMethod:
     factory = DeserializationMethodVisitor(aliaser).visit_with_conversions(
         tp, conversions
@@ -910,4 +913,6 @@ def deserialize(
     if aliaser is None:
         aliaser = settings.aliaser()
     ctx = DeserializationContext(additional_properties, coercion, default_fallback)
-    return get_method(tp, to_hashable_conversions(conversions), aliaser)(ctx, data)
+    if isinstance(conversions, Collection):
+        conversions = tuple(conversions)  # Make it hashable
+    return get_method(tp, conversions, aliaser)(ctx, data)

@@ -7,20 +7,25 @@ from typing import (
     TYPE_CHECKING,
     Type,
     TypeVar,
+    Union,
     overload,
 )
 
 from apischema.conversions.conversions import (
+    ConvOrFunc,
     Conversion,
     Conversions,
-    resolve_deserialization,
-    resolve_serialization,
+    resolve_conversion,
 )
-from apischema.conversions.utils import converter_types
+from apischema.conversions.utils import Converter, INVALID_CONVERSION_TYPES
+from apischema.types import AnyType
 from apischema.utils import (
     MethodOrProperty,
     MethodWrapper,
+    get_args2,
+    get_origin_or_type,
     is_method,
+    is_type_var,
     method_class,
     method_wrapper,
 )
@@ -29,10 +34,27 @@ if TYPE_CHECKING:
     from apischema.deserialization.coercion import Coercion
 
 
-_deserializers: Dict[Type, List[Conversion]] = defaultdict(list)
-_serializers: Dict[Type, Conversion] = {}
+_deserializers: Dict[Type, List[ConvOrFunc]] = defaultdict(list)
+_serializers: Dict[Type, ConvOrFunc] = {}
 Deserializer = TypeVar("Deserializer", Callable, Conversion, staticmethod, type)
 Serializer = TypeVar("Serializer", Callable, Conversion, property, type)
+
+
+def check_converter_type(tp: AnyType, side: str) -> Type:
+    if not all(map(is_type_var, get_args2(tp))):
+        raise TypeError("Generic conversion doesn't support specialization")
+    origin = get_origin_or_type(tp)
+    if not isinstance(origin, type) or origin in INVALID_CONVERSION_TYPES:
+        raise TypeError(f"{side.capitalize()} must be a class")
+    return origin
+
+
+def _add_deserializer(conversion: Union[Converter, Conversion], owner: Type = None):
+    namespace = {owner.__name__: owner} if owner is not None else None
+    resolved = resolve_conversion(conversion, namespace)
+    target = check_converter_type(resolved.target, "deserializer target")
+    if conversion not in _deserializers[target]:
+        _deserializers[target].append(conversion)
 
 
 class DeserializerDescriptor(MethodWrapper[staticmethod]):
@@ -42,12 +64,9 @@ class DeserializerDescriptor(MethodWrapper[staticmethod]):
 
     def __set_name__(self, owner, name):
         super().__set_name__(owner, name)
-        method = self._method.__get__(None, object)
-        source, target = converter_types(method, namespace={owner.__name__: owner})
-        conversion = Conversion(method, source=source, target=target, **self._kwargs)
-        resolved = resolve_deserialization(conversion)
-        if resolved not in _deserializers[resolved.source]:
-            _deserializers[resolved.target] = conversion
+        _add_deserializer(
+            Conversion(self._method.__get__(None, object), **self._kwargs), owner
+        )
 
 
 @overload
@@ -72,11 +91,17 @@ def deserializer(arg=None, **kwargs):
     if isinstance(arg, staticmethod):
         return DeserializerDescriptor(arg, **kwargs)
     if kwargs and not isinstance(arg, Conversion):
-        arg = Conversion(arg, **kwargs)
-    resolved = resolve_deserialization(arg)
-    if resolved not in _deserializers[resolved.target]:
-        _deserializers[resolved.target].append(arg)
+        _add_deserializer(Conversion(arg, **kwargs))
+    else:
+        _add_deserializer(arg)
     return arg
+
+
+def _add_serializer(conversion: Union[Converter, Conversion], owner: Type = None):
+    namespace = {owner.__name__: owner} if owner is not None else None
+    resolved = resolve_conversion(conversion, namespace)
+    source = check_converter_type(resolved.source, "serializer source")
+    _serializers[source] = conversion
 
 
 class SerializerDescriptor(MethodWrapper[MethodOrProperty]):
@@ -86,12 +111,7 @@ class SerializerDescriptor(MethodWrapper[MethodOrProperty]):
 
     def __set_name__(self, owner, name):
         super().__set_name__(owner, name)
-        method = method_wrapper(self._method, name)
-        source, target = converter_types(
-            method, source=owner, namespace={owner.__name__: owner}
-        )
-        conversion = Conversion(method, source=source, target=target, **self._kwargs)
-        _serializers[resolve_serialization(conversion).source] = conversion
+        _add_serializer(Conversion(self._method, source=owner, **self._kwargs), owner)
 
 
 @overload
@@ -117,8 +137,9 @@ def serializer(arg=None, **kwargs):
         else:
             arg = method_wrapper(arg)
     if kwargs and not isinstance(arg, Conversion):
-        arg = Conversion(arg, **kwargs)
-    _serializers[resolve_serialization(arg).source] = arg
+        _add_serializer(Conversion(arg, **kwargs))
+    else:
+        _add_serializer(arg)
     return arg
 
 

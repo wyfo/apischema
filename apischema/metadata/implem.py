@@ -17,7 +17,7 @@ from apischema.metadata.keys import (
 from apischema.types import AnyType, MetadataImplem, Metadata, MetadataMixin
 
 if TYPE_CHECKING:
-    from apischema.conversions.conversions import ConvOrFunc
+    from apischema.conversions.conversions import Conversions
     from apischema.validation.validator import Validator
 
 
@@ -28,15 +28,15 @@ def simple_metadata(key: str) -> Metadata:
 @dataclass(frozen=True)
 class ConversionMetadata(MetadataMixin):
     key = CONVERSIONS_METADATA
-    deserialization: Optional["ConvOrFunc"] = None
-    serialization: Optional["ConvOrFunc"] = None
+    deserialization: Optional["Conversions"] = None
+    serialization: Optional["Conversions"] = None
 
 
 if False:  # For Pycharm
 
     def conversion(
-        deserialization: "ConvOrFunc" = None,
-        serialization: "ConvOrFunc" = None,
+        deserialization: "Conversions" = None,
+        serialization: "Conversions" = None,
     ) -> ConversionMetadata:
         ...
 
