@@ -86,10 +86,10 @@ def with_schema(method: Method) -> Method:
     def wrapper(self: "SchemaBuilder", *args, **kwargs):
         if self._schema is None:
             return method(self, *args, **kwargs)
-        elif self._schema.override:
-            return JsonSchema(**self._schema.as_dict())
-        else:
-            return JsonSchema(method(self, *args, **kwargs), **self._schema.as_dict())
+        schema = self._schema.as_dict()
+        if not self._schema.override:
+            schema = {**method(self, *args, **kwargs), **schema}
+        return JsonSchema(schema)
 
     return cast(Method, wrapper)
 
