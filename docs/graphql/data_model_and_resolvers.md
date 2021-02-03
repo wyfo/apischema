@@ -122,3 +122,32 @@ Metadata can also be passed with `parameters_metadata` parameter; it takes a map
     `ID` serialization (respectively deserialization) is applied **after** *apischema* conversions (respectively before *apischema* conversion): in the example, uuid is already converted into string before being passed to `id_serializer`.
 
     If you use base64 encodeing and an ID type which is converted by *apischema* to a base64 str, you will get a double encoded base64 string
+
+## Tagged unions
+
+!!! important
+    This feature has a provisional status, as the concerned [*GraphQL* RFC](https://github.com/graphql/graphql-spec/pull/733) is not finalized.
+
+*apischema* provides a `apischema.tagged_unions.TaggedUnion` base class which helps to implement the *tagged union* pattern.
+It's fields **must** be typed using `apischema.tagged_unions.Tagged` generic type.
+
+```python
+{!tagged_union.py!}
+```
+
+### JSON schema
+
+Tagged unions JSON schema use `oneOf` as expected.
+
+```python
+{!tagged_union_json_schema.py!}
+```
+
+### GraphQL schema
+
+As tagged union are not (yet?) part of the *GraphQL* spec, so they are just implemented as normal (input) object type with nullable fields. An error is raised if several tags are passed in input.
+
+```python
+{!tagged_union_graphql_schema.py!}
+```
+

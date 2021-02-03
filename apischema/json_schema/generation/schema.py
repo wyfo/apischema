@@ -66,6 +66,7 @@ from apischema.metadata.keys import (
 from apischema.serialization import serialize
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.skip import filter_skipped
+from apischema.tagged_unions import TAGS_ATTR
 from apischema.types import AnyType, OrderedDict
 from apischema.typing import get_origin
 from apischema.utils import UndefinedType, is_union_of, sort_by_annotations_position
@@ -282,6 +283,14 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
                 cls, DependentRequired.requiring, self.operation
             ).items()
         }
+        if hasattr(cls, TAGS_ATTR):
+            return json_schema(
+                type=JsonType.OBJECT,
+                oneOf=[
+                    json_schema(properties={prop: value})
+                    for prop, value in properties.items()
+                ],
+            )
         result = json_schema(
             type=JsonType.OBJECT,
             properties=properties,
