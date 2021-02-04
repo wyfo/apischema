@@ -136,6 +136,10 @@ class ObjectField:
     description: Optional[str] = field_(init=False, default=None)
 
     def __post_init__(self, schema: Optional[Schema]):
+        if get_origin(self.type) == Annotated:
+            for annotation in reversed(get_args(self.type)[1:]):
+                if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
+                    schema = merge_schema(annotation[SCHEMA_METADATA], schema)
         if schema is not None and schema.annotations is not None:
             object.__setattr__(self, "description", schema.annotations.description)
             if schema.annotations.deprecated is True:
@@ -203,7 +207,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
                     raise ValueError("Annotated schema_ref can only be str")
                 self._ref = self._ref or ref
             if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
-                self._schema = merge_schema(annotation[SCHEMA_METADATA], self._schema)
+                self._schema = merge_schema(self._schema, annotation[SCHEMA_METADATA])
         return self.visit_with_schema(tp, self._ref, self._schema)
 
     def any(self) -> Thunk[graphql.GraphQLType]:
@@ -222,9 +226,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
             alias=get_alias(field),
             conversions=get_field_conversions(field, self.operation),
             default=graphql.Undefined if is_required(field) else get_default(field),
-            schema=merge_schema(
-                annotated_schema(field_type), field.metadata.get(SCHEMA_METADATA)
-            ),
+            schema=field.metadata.get(SCHEMA_METADATA),
         )
 
     def _visit_merged(
@@ -288,7 +290,6 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
                 field_name,
                 field_type,
                 default=defaults.get(field_name, graphql.Undefined),
-                schema=annotated_schema(field_type),
             )
             for field_name, field_type in types.items()
         ]
@@ -449,11 +450,9 @@ class InputSchemaBuilder(
     def typed_dict(
         self, cls: Type, keys: Mapping[str, AnyType], total: bool
     ) -> Thunk[graphql.GraphQLType]:
-        fields = [
-            ObjectField(name, type, schema=annotated_schema(type))
-            for name, type in keys.items()
-        ]
-        return self.object(cls, fields)
+        return self.object(
+            cls, [ObjectField(name, type) for name, type in keys.items()]
+        )
 
     def _union_result(
         self, results: Iterable[Thunk[graphql.GraphQLType]]
