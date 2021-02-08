@@ -53,7 +53,7 @@ from apischema.json_schema.constraints import (
 )
 from apischema.json_schema.generation.refs import Refs, RefsExtractor
 from apischema.json_schema.patterns import infer_pattern
-from apischema.json_schema.refs import get_ref, schema_ref
+from apischema.json_schema.refs import check_ref_type, get_ref, schema_ref
 from apischema.json_schema.schema import Schema, get_schema, merge_schema
 from apischema.json_schema.types import JsonSchema, JsonType, json_schema
 from apischema.json_schema.versions import JsonSchemaVersion, RefFactory
@@ -135,7 +135,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> JsonSchema:
         for annotation in reversed(annotations):
             if isinstance(annotation, schema_ref):
-                annotation.check_type(tp)
+                check_ref_type(tp)
                 if annotation.ref in self.refs:
                     if self._ignore_first_ref:
                         self._ignore_first_ref = False
@@ -566,8 +566,6 @@ def _schema(
     with_schema: bool,
 ) -> Mapping[str, Any]:
     add_defs = ref_factory is None
-    if ref_factory is not None and all_refs is None:
-        all_refs = True
     if aliaser is None:
         aliaser = settings.aliaser()
     version, ref_factory, all_refs = _default_version(version, ref_factory, all_refs)

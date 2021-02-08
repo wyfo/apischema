@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple, Type
 
 from apischema.conversions.visitor import ConversionsVisitor
 from apischema.dataclass_utils import get_field_conversions, get_fields
-from apischema.json_schema.refs import get_ref, schema_ref
+from apischema.json_schema.refs import check_ref_type, get_ref, schema_ref
 from apischema.skip import filter_skipped
 from apischema.types import AnyType
 from apischema.utils import contains
@@ -43,7 +43,7 @@ class RefsExtractor(ConversionsVisitor):
     def annotated(self, tp: AnyType, annotations: Sequence[Any]):
         for annotation in reversed(annotations):
             if isinstance(annotation, schema_ref):
-                annotation.check_type(tp)
+                check_ref_type(tp)
                 ref = annotation.ref
                 if not isinstance(ref, str):
                     raise ValueError("Annotated schema_ref can only be str")

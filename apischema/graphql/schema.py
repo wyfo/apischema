@@ -53,7 +53,7 @@ from apischema.graphql.resolvers import (
     resolver_parameters,
     resolver_resolve,
 )
-from apischema.json_schema.refs import get_ref, schema_ref
+from apischema.json_schema.refs import check_ref_type, get_ref, schema_ref
 from apischema.json_schema.schema import Schema, get_schema, merge_schema
 from apischema.metadata.implem import ConversionMetadata
 from apischema.metadata.keys import (
@@ -201,7 +201,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     ) -> Thunk[graphql.GraphQLType]:
         for annotation in annotations:
             if isinstance(annotation, schema_ref):
-                annotation.check_type(tp)
+                check_ref_type(tp)
                 ref = annotation.ref
                 if not isinstance(ref, str):
                     raise ValueError("Annotated schema_ref can only be str")
