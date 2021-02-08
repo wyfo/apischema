@@ -4,7 +4,7 @@
 
 Makes your life easier when it comes to python API.
 
-JSON (de)serialization + *GraphQL* and JSON schema generation through python typing, with a spoonful of sugar.
+JSON (de)serialization, *GraphQL* and JSON schema generation through python typing, with a spoonful of sugar.
 
 ## Install
 ```shell
@@ -19,10 +19,10 @@ It requires only Python 3.6+ (and dataclasses [official backport](https://pypi.o
 This library fulfills the following goals:
 
 - stay as close as possible to the standard library (dataclasses, typing, etc.) — as a consequence do not need plugins for editors/linters/etc.;
-- be additive and tunable, be able to work with user own types (ORM, etc.) as well as foreign libraries ones; do not need a PR for handling new types like `bson.ObjectId` or `collection.deque`;
+- be adaptable, provide tools to support any types (ORM, etc.);
 - avoid dynamic things like using string for attribute name;
 - support *GraphQL*;
-- (*Bonus*) be the fastest.
+- (*bonus*) be faster than alternatives.
 
 No known alternative achieves all of this. 
 
@@ -51,9 +51,6 @@ See the [dedicated section](pydantic_difference.md), there is a lot of differenc
 
 #### I already have my data model with my *SQLAlchemy*/ORM tables, will I have to duplicate my code, making one dataclass by table?
 Why would you have to duplicate them? *apischema* can "work with user own types as well as foreign libraries ones". Some teasing of [conversion](conversions.md) feature: you can add default serialization for all your tables, or register different serializer that you can select according to your API endpoint, or both.
-
-#### So *SQLAlchemy* is supported? Does it support other libraries?
-No, in fact, no library are supported, even *SQLAlchemy*; it was a choice made to be as small and generic as possible, and to support only the standard library (with types like `datetime`, `UUID`). However, the library is flexible enough to code yourself the support you need with, I hope, the minimal effort. It's of course not excluded to add support in additional small plugin libraries. Feedbacks are welcome about the best way to do things.
 
 #### I need more accurate validation than "ensure this is an integer and not a string ", can I do that?
 See the [validation](validation.md) section. You can use standard JSON schema validation (`maxItems`, `pattern`, etc.) that will be embedded in your schema or add custom Python validators for each class/fields/`NewType` you want.

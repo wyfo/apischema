@@ -2,7 +2,7 @@
 
 Makes your life easier when it comes to python API.
 
-JSON (de)serialization + *GraphQL* and JSON schema generation through python typing, with a spoonful of sugar.
+JSON (de)serialization, *GraphQL* and JSON schema generation through python typing, with a spoonful of sugar.
 
 ## Documentation
 
@@ -23,10 +23,10 @@ It requires only Python 3.6+ (and dataclasses [official backport](https://pypi.o
 This library fulfills the following goals:
 
 - stay as close as possible to the standard library (dataclasses, typing, etc.) — as a consequence do not need plugins for editors/linters/etc.;
-- be additive and tunable, be able to work with user own types as well as foreign libraries ones; do not need a PR for handling new types like `bson.ObjectId` or `collection.deque`;
+- be adaptable, provide tools to support any types (ORM, etc.);
 - avoid dynamic things like using string for attribute name;
 - support *GraphQL*;
-- (*Bonus*) be the fastest.
+- (*bonus*) be faster than alternatives.
 
 No known alternative achieves all of this.
 
