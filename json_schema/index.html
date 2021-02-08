@@ -368,57 +368,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#complexrecursive-types-json-schema-definitionsopenapi-components" class="md-nav__link">
-    Complex/recursive types - JSON schema definitions/OpenAPI components
+  <a href="#json-schema-reference" class="md-nav__link">
+    JSON schema reference
   </a>
   
-    <nav class="md-nav" aria-label="Complex/recursive types - JSON schema definitions/OpenAPI components">
+    <nav class="md-nav" aria-label="JSON schema reference">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#use-ref-only-for-reused-types" class="md-nav__link">
-    Use ref only for reused types
+  <a href="#use-reference-only-for-reused-types" class="md-nav__link">
+    Use reference only for reused types
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#definitions-schema-only" class="md-nav__link">
-    Definitions schema only
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#customize-ref" class="md-nav__link">
-    Customize $ref
-  </a>
-  
-    <nav class="md-nav" aria-label="Customize $ref">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#add-ref-to-every-types" class="md-nav__link">
-    Add $ref to every types
+  <a href="#assign-a-reference-to-a-type" class="md-nav__link">
+    Assign a reference to a type
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#default-ref" class="md-nav__link">
-    Default $ref
+  <a href="#reference-factory" class="md-nav__link">
+    Reference factory
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#ref-factory" class="md-nav__link">
-    Ref factory
+  <a href="#definitions-schema" class="md-nav__link">
+    Definitions schema
   </a>
   
 </li>
@@ -451,8 +431,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#why-field-default-value-is-not-used-by-default-to-to-generate-json-schema" class="md-nav__link">
-    Why field default value is not used by default to to generate JSON schema?
+  <a href="#why-field-default-value-is-not-used-by-default-to-generate-json-schema" class="md-nav__link">
+    Why field default value is not used by default to generate JSON schema?
   </a>
   
 </li>
@@ -844,57 +824,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#complexrecursive-types-json-schema-definitionsopenapi-components" class="md-nav__link">
-    Complex/recursive types - JSON schema definitions/OpenAPI components
+  <a href="#json-schema-reference" class="md-nav__link">
+    JSON schema reference
   </a>
   
-    <nav class="md-nav" aria-label="Complex/recursive types - JSON schema definitions/OpenAPI components">
+    <nav class="md-nav" aria-label="JSON schema reference">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#use-ref-only-for-reused-types" class="md-nav__link">
-    Use ref only for reused types
+  <a href="#use-reference-only-for-reused-types" class="md-nav__link">
+    Use reference only for reused types
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#definitions-schema-only" class="md-nav__link">
-    Definitions schema only
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#customize-ref" class="md-nav__link">
-    Customize $ref
-  </a>
-  
-    <nav class="md-nav" aria-label="Customize $ref">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#add-ref-to-every-types" class="md-nav__link">
-    Add $ref to every types
+  <a href="#assign-a-reference-to-a-type" class="md-nav__link">
+    Assign a reference to a type
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#default-ref" class="md-nav__link">
-    Default $ref
+  <a href="#reference-factory" class="md-nav__link">
+    Reference factory
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#ref-factory" class="md-nav__link">
-    Ref factory
+  <a href="#definitions-schema" class="md-nav__link">
+    Definitions schema
   </a>
   
 </li>
@@ -927,8 +887,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#why-field-default-value-is-not-used-by-default-to-to-generate-json-schema" class="md-nav__link">
-    Why field default value is not used by default to to generate JSON schema?
+  <a href="#why-field-default-value-is-not-used-by-default-to-generate-json-schema" class="md-nav__link">
+    Why field default value is not used by default to generate JSON schema?
   </a>
   
 </li>
@@ -1420,7 +1380,7 @@
 </code></pre></div>
 
 <p>Because bidirectional dependencies are a common idiom, <em>apischema</em> provides a shortcut notation. Its indeed possible to write <code>DependentRequired([credit_card, billing_adress])</code>.</p>
-<h2 id="complexrecursive-types-json-schema-definitionsopenapi-components">Complex/recursive types - JSON schema definitions/OpenAPI components<a class="headerlink" href="#complexrecursive-types-json-schema-definitionsopenapi-components" title="Permanent link">&para;</a></h2>
+<h2 id="json-schema-reference">JSON schema reference<a class="headerlink" href="#json-schema-reference" title="Permanent link">&para;</a></h2>
 <p>For complex schema with type reuse, it's convenient to extract definitions of schema components in order to reuse them; it's even mandatory for recursive types. Then, schema use JSON pointers "$ref" to refer to the definitions. <em>apischema</em> handles this feature natively.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
@@ -1451,12 +1411,13 @@
 <span class="p">}</span>
 </code></pre></div>
 
-<h3 id="use-ref-only-for-reused-types">Use ref only for reused types<a class="headerlink" href="#use-ref-only-for-reused-types" title="Permanent link">&para;</a></h3>
-<p>If some types appear only once in the schema, you maybe don't want to use a <code>$ref</code> and a definition but inline the type definition directly. It is possible by setting <code>schema_ref(None)</code> (see <a href="#customize-ref">next section</a>) on the the concerned type, but it could affect others schema where this types is reused several time. </p>
-<p>However, <em>apischema</em> provides a parameter <code>all_ref</code> for this reason:
-- <code>all_refs=True</code> -&gt; all types with a reference will be put in the definitions and referenced with <code>$ref</code>;
-- <code>all_refs=False</code> -&gt; only types which are reused in the schema are put in definitions
-<code>all_refs</code> default value depends on the <a href="#json-schemaopenapi-version">JSON schema version</a>: it's <code>False</code> for JSON schema drafts but <code>True</code> for <em>OpenAPI</em>.</p>
+<h3 id="use-reference-only-for-reused-types">Use reference only for reused types<a class="headerlink" href="#use-reference-only-for-reused-types" title="Permanent link">&para;</a></h3>
+<p><em>apischema</em> can control the reference use through the boolean <code>all_ref</code> parameter of <code>deserialization_schema</code>/<code>serialization_schema</code>: </p>
+<ul>
+<li><code>all_refs=True</code> -&gt; all types with a reference will be put in the definitions and referenced with <code>$ref</code>;</li>
+<li><code>all_refs=False</code> -&gt; only types which are reused in the schema are put in definitions</li>
+</ul>
+<p><code>all_refs</code> default value depends on the <a href="#json-schemaopenapi-version">JSON schema version</a>: it's <code>False</code> for JSON schema drafts but <code>True</code> for <em>OpenAPI</em>.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
@@ -1511,8 +1472,91 @@
 <span class="p">}</span>
 </code></pre></div>
 
-<h3 id="definitions-schema-only">Definitions schema only<a class="headerlink" href="#definitions-schema-only" title="Permanent link">&para;</a></h3>
-<p>Sometimes you need to extract only the definitions in a separate schema (especially OpenAPI components). That's done with the <code>definitions_schema</code> function. It takes two lists <code>deserializations</code> and <code>serializations</code> of schema (or schema + <a href="../conversions/">conversions</a>) and combines the definitions of all the schema that would have been generated with types given in the list of schema.</p>
+<h3 id="assign-a-reference-to-a-type">Assign a reference to a type<a class="headerlink" href="#assign-a-reference-to-a-type" title="Permanent link">&para;</a></h3>
+<p>It's possible to assign a reference name to every type using <code>apischema.schema_ref</code>, this name being then used in the schema. It can also be used to remove the reference of a type, by passing <code>None</code> instead of a string, so the type can no more be referenced as a separate definition in the schema.</p>
+<p>Generic aliases can have a ref, but they need to be specialized; <code>Foo[T, int]</code> cannot have a ref but <code>Foo[str, int]</code> can.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema_ref</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+
+
+<span class="c1"># Schema ref can be added as a decorator</span>
+<span class="nd">@schema_ref</span><span class="p">(</span><span class="s2">&quot;Resource&quot;</span><span class="p">)</span>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">BaseResource</span><span class="p">:</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="c1"># or using typing.Annotated</span>
+    <span class="n">tags</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">schema_ref</span><span class="p">(</span><span class="s2">&quot;ResourceTags&quot;</span><span class="p">)]</span>
+
+
+<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">BaseResource</span><span class="p">,</span> <span class="n">all_refs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;$defs&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;Resource&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
+                <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/ResourceTags&quot;</span><span class="p">},</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;tags&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;ResourceTags&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;uniqueItems&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Resource&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Builtin collections are interchangeable when a ref is registered. For example, if a ref is registered for <code>list[Foo]</code>, this ref will also be used for <code>Sequence[Foo]</code> or <code>Collection[Foo]</code>.</p>
+</div>
+<p>By default, <code>dataclass</code>, <code>NewType</code>, <code>TypedDict</code> and <code>NamedTuple</code> will use their type name as reference (but it can be overridden). This default behavior can be customized using <code>apischema.settings.default_ref</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="nd">@settings</span><span class="o">.</span><span class="n">default_ref</span>
+<span class="k">def</span> <span class="nf">default_ref</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="o">...</span>
+</code></pre></div>
+
+<h3 id="reference-factory">Reference factory<a class="headerlink" href="#reference-factory" title="Permanent link">&para;</a></h3>
+<p><code>schema_ref</code> is used to set the reference name, like the name of a class, but in schema, <code>$ref</code> looks like <code>#/$defs/Foo</code>. In fact, schema generation use the ref given by <code>schema_ref</code> and pass it to a <code>ref_factory</code> function (a parameter of schema generation functions) which will convert it to its final form. <a href="#json-schemaopenapi-version">JSON schema version</a> comes with its default <code>ref_factory</code>, for draft 2019-09, it prefixes the ref with <code>#/$defs/</code>, while it prefixes with <code>#/components/schema</code> in case of <em>OpenAPI</em>.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
+
+
+<span class="k">def</span> <span class="nf">ref_factory</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;http://some-domain.org/path/to/</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">.json#&quot;</span>
+
+
+<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">ref_factory</span><span class="o">=</span><span class="n">ref_factory</span><span class="p">,</span> <span class="n">all_refs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;http://some-domain.org/path/to/Foo.json#&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When <code>ref_factory</code> is passed in arguments, definitions are not added to the generated schema. That's because <code>ref_factory</code> would surely change definitions location, so there would be no interest to add them with a wrong location. These definitions can of course be generated separately with <code>definitions_schema</code>.</p>
+</div>
+<h3 id="definitions-schema">Definitions schema<a class="headerlink" href="#definitions-schema" title="Permanent link">&para;</a></h3>
+<p>Definitions schemas can also be extracted using <code>apischema.json_schema.definitions_schema</code>. It takes two lists <code>deserialization</code>/<code>serialization</code> of types (or tuple of type + <a href="../conversions/">dynamic conversion</a>) and returns a dictionary of all referenced schemas.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is especially useful when it comes to <em>OpenAPI</em> schema to generate the components section.</p>
+</div>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">definitions_schema</span>
@@ -1543,104 +1587,6 @@
 <span class="p">}</span>
 </code></pre></div>
 
-<h2 id="customize-ref">Customize <code>$ref</code><a class="headerlink" href="#customize-ref" title="Permanent link">&para;</a></h2>
-<h3 id="add-ref-to-every-types">Add <code>$ref</code> to every types<a class="headerlink" href="#add-ref-to-every-types" title="Permanent link">&para;</a></h3>
-<p>In the previous example, only dataclasses has a <code>$ref</code>, but it can be fully customized. You can use <code>apischema.schema_ref</code> on almost any types. <code>schema_ref</code> argument can be:
-- <code>str</code> -&gt; this string will be used directly in schema generation
-- <code>...</code> -&gt; schema generation will use the name of the type (it's not supported for generic aliases)
-- <code>None</code> -&gt; this type will have no <code>$ref</code> in schema</p>
-<p>Generic types can have a ref, but they need to be specialized; <code>Foo[T, int]</code> cannot have a ref but <code>Foo[str, int]</code> can.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Set</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
-
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema_ref</span>
-<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
-
-<span class="n">Tags</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Tags&quot;</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span>
-<span class="n">schema_ref</span><span class="p">(</span><span class="s2">&quot;ResourceTags&quot;</span><span class="p">)(</span><span class="n">Tags</span><span class="p">)</span>
-
-
-<span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Resource</span><span class="p">:</span>
-    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">tags</span><span class="p">:</span> <span class="n">Tags</span>
-
-
-<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Resource</span><span class="p">,</span> <span class="n">all_refs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
-    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;$defs&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;Resource&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
-                <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/ResourceTags&quot;</span><span class="p">},</span>
-            <span class="p">},</span>
-            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;tags&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="p">},</span>
-        <span class="s2">&quot;ResourceTags&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
-            <span class="s2">&quot;uniqueItems&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="p">},</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Resource&quot;</span><span class="p">,</span>
-<span class="p">}</span>
-</code></pre></div>
-
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Builtin collections are interchangeable when a ref is registered. For example, if a ref is registered for <code>list[Foo]</code>, this ref will also be used for <code>Sequence[Foo]</code> or <code>Collection[Foo]</code>.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Actually, there is a small restriction with <code>NewType</code>: you cannot put a <code>schema_ref</code> if the super type is not a builtin type (<code>list[...]</code>/<code>int</code>/etc.). </p>
-<p>In fact, <code>NewType</code> super type serialization could be affected by different conversions and a same <code>$ref</code> would embed different schema.</p>
-</div>
-<h3 id="default-ref">Default <code>$ref</code><a class="headerlink" href="#default-ref" title="Permanent link">&para;</a></h3>
-<p>There is a default <code>schema_ref</code> for each type; following types get a <code>...</code> ref (which means a ref with their name):</p>
-<ul>
-<li><code>dataclass</code></li>
-<li><code>NewType</code></li>
-<li><code>TypedDict</code></li>
-<li><code>NamedTuple</code></li>
-<li>every types decorated with <code>schema</code></li>
-</ul>
-<p>This default behavior is customizable by setting <code>settings.default_ref</code> function like this</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">settings</span>
-<span class="nd">@settings</span><span class="o">.</span><span class="n">default_ref</span>
-<span class="k">def</span> <span class="nf">default_ref</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-    <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># This example remove default ref for every types</span>
-</code></pre></div>
-
-<h3 id="ref-factory">Ref factory<a class="headerlink" href="#ref-factory" title="Permanent link">&para;</a></h3>
-<p><code>schema_ref</code> is used to set a short ref, like the name of a class, but in schema, <code>$ref</code> looks like <code>#/$defs/Foo</code>. In fact, schema generation use the ref given by <code>schema_ref</code> and pass it to a <code>ref_factory</code> function (a parameter of schema generation functions) which will convert it to its final form. <a href="#json-schemaopenapi-version">JSON schema version</a> comes with its default <code>ref_factory</code>, for draft 2019-09, it prefixes the ref with <code>#/$defs/</code>, while it prefixes with <code>#/components/schema</code> in case of <em>OpenAPI</em>.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-
-<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
-
-
-<span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
-
-
-<span class="k">def</span> <span class="nf">ref_factory</span><span class="p">(</span><span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;http://some-domain.org/path/to/</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">.json#&quot;</span>
-
-
-<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">ref_factory</span><span class="o">=</span><span class="n">ref_factory</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
-    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;http://some-domain.org/path/to/Foo.json#&quot;</span><span class="p">,</span>
-<span class="p">}</span>
-</code></pre></div>
-
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>When <code>ref_factory</code> is passed in arguments, definitions are not added to the generated schema. That's because <code>ref_factory</code> would surely change definitions location, so there would be no interest to add them with a wrong location. This definitions can of course be generated separately with <code>definitions_schema</code>.</p>
-<p>Passing <code>ref_factory</code> also give a default value of <code>True</code> for <a href="#use-ref-only-for-reused-types"><code>all_refs</code></a> parameters.</p>
-</div>
 <h2 id="json-schema-openapi-version">JSON schema / <em>OpenAPI</em> version<a class="headerlink" href="#json-schema-openapi-version" title="Permanent link">&para;</a></h2>
 <p>JSON schema has several versions — <em>OpenAPI</em> is treated as a JSON schema version. If <em>apischema</em> natively use the last one: draft 2019-09, it is possible to specify a schema version which will be used for the generation.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -1727,9 +1673,9 @@
 
 <h2 id="readonly-writeonly"><code>readOnly</code> / <code>writeOnly</code><a class="headerlink" href="#readonly-writeonly" title="Permanent link">&para;</a></h2>
 <p>Dataclasses <code>InitVar</code> and <code>field(init=False)</code> fields will be flagged respectively with <code>"writeOnly": true</code> and <code>"readOnly": true</code> in the generated schema.</p>
-<p>If deserialization and serialization schemas both appears in <code>definition_schema</code>, properties are merged and the resulting schema contains then <code>readOnly</code> and <code>writeOnly</code> properties. By the way, the <code>required</code> is not merged because it can't (it would mess up validation if some not-init field was required), so deserialization <code>required</code> is kept because it's more important as it can be used in validation (<em>OpenAPI</em> 3.0 semantic which allows the merge <a href="https://www.openapis.org/blog/2020/06/18/openapi-3-1-0-rc0-its-here">has been dropped</a> in 3.1, so it has not been judged useful to be supported)</p>
+<p>In <a href="#definitions-schema">definitions schema</a>, if a type appears both in deserialization and serialization,  properties are merged and the resulting schema contains then <code>readOnly</code> and <code>writeOnly</code> properties. By the way, the <code>required</code> is not merged because it can't (it would mess up validation if some not-init field was required), so deserialization <code>required</code> is kept because it's more important as it can be used in validation (<em>OpenAPI</em> 3.0 semantic which allows the merge <a href="https://www.openapis.org/blog/2020/06/18/openapi-3-1-0-rc0-its-here">has been dropped</a> in 3.1, so it has not been judged useful to be supported)</p>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
-<h4 id="why-field-default-value-is-not-used-by-default-to-to-generate-json-schema">Why field default value is not used by default to to generate JSON schema?<a class="headerlink" href="#why-field-default-value-is-not-used-by-default-to-to-generate-json-schema" title="Permanent link">&para;</a></h4>
+<h4 id="why-field-default-value-is-not-used-by-default-to-generate-json-schema">Why field default value is not used by default to generate JSON schema?<a class="headerlink" href="#why-field-default-value-is-not-used-by-default-to-generate-json-schema" title="Permanent link">&para;</a></h4>
 <p>Actually, default value is not always the usable in the schema, for example <code>NotNull</code> fields with a <code>None</code> default value. Because <code>default</code> keyword is kind of facultative in the schema, it has been decided to not put it by default in order to not put wrong default by accident.</p>
                 
               
