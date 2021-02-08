@@ -280,13 +280,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#so-sqlalchemy-is-supported-does-it-support-other-libraries" class="md-nav__link">
-    So SQLAlchemy is supported? Does it support other libraries?
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-not-a-string-can-i-do-that" class="md-nav__link">
     I need more accurate validation than "ensure this is an integer and not a string ", can I do that?
   </a>
@@ -664,13 +657,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#so-sqlalchemy-is-supported-does-it-support-other-libraries" class="md-nav__link">
-    So SQLAlchemy is supported? Does it support other libraries?
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-not-a-string-can-i-do-that" class="md-nav__link">
     I need more accurate validation than "ensure this is an integer and not a string ", can I do that?
   </a>
@@ -705,7 +691,7 @@
                 <h1 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h1>
 <h2 id="apischema">apischema<a class="headerlink" href="#apischema" title="Permanent link">&para;</a></h2>
 <p>Makes your life easier when it comes to python API.</p>
-<p>JSON (de)serialization + <em>GraphQL</em> and JSON schema generation through python typing, with a spoonful of sugar.</p>
+<p>JSON (de)serialization, <em>GraphQL</em> and JSON schema generation through python typing, with a spoonful of sugar.</p>
 <h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
 <div class="codehilite"><pre><span></span><code>pip install apischema
 </code></pre></div>
@@ -716,10 +702,10 @@
 <p>This library fulfills the following goals:</p>
 <ul>
 <li>stay as close as possible to the standard library (dataclasses, typing, etc.) — as a consequence do not need plugins for editors/linters/etc.;</li>
-<li>be additive and tunable, be able to work with user own types (ORM, etc.) as well as foreign libraries ones; do not need a PR for handling new types like <code>bson.ObjectId</code> or <code>collection.deque</code>;</li>
+<li>be adaptable, provide tools to support any types (ORM, etc.);</li>
 <li>avoid dynamic things like using string for attribute name;</li>
 <li>support <em>GraphQL</em>;</li>
-<li>(<em>Bonus</em>) be the fastest.</li>
+<li>(<em>bonus</em>) be faster than alternatives.</li>
 </ul>
 <p>No known alternative achieves all of this. </p>
 <div class="admonition note">
@@ -809,8 +795,6 @@
 <p>See the <a href="pydantic_difference/">dedicated section</a>, there is a lot of difference. </p>
 <h4 id="i-already-have-my-data-model-with-my-sqlalchemyorm-tables-will-i-have-to-duplicate-my-code-making-one-dataclass-by-table">I already have my data model with my <em>SQLAlchemy</em>/ORM tables, will I have to duplicate my code, making one dataclass by table?<a class="headerlink" href="#i-already-have-my-data-model-with-my-sqlalchemyorm-tables-will-i-have-to-duplicate-my-code-making-one-dataclass-by-table" title="Permanent link">&para;</a></h4>
 <p>Why would you have to duplicate them? <em>apischema</em> can "work with user own types as well as foreign libraries ones". Some teasing of <a href="conversions/">conversion</a> feature: you can add default serialization for all your tables, or register different serializer that you can select according to your API endpoint, or both.</p>
-<h4 id="so-sqlalchemy-is-supported-does-it-support-other-libraries">So <em>SQLAlchemy</em> is supported? Does it support other libraries?<a class="headerlink" href="#so-sqlalchemy-is-supported-does-it-support-other-libraries" title="Permanent link">&para;</a></h4>
-<p>No, in fact, no library are supported, even <em>SQLAlchemy</em>; it was a choice made to be as small and generic as possible, and to support only the standard library (with types like <code>datetime</code>, <code>UUID</code>). However, the library is flexible enough to code yourself the support you need with, I hope, the minimal effort. It's of course not excluded to add support in additional small plugin libraries. Feedbacks are welcome about the best way to do things.</p>
 <h4 id="i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-not-a-string-can-i-do-that">I need more accurate validation than "ensure this is an integer and not a string ", can I do that?<a class="headerlink" href="#i-need-more-accurate-validation-than-ensure-this-is-an-integer-and-not-a-string-can-i-do-that" title="Permanent link">&para;</a></h4>
 <p>See the <a href="validation/">validation</a> section. You can use standard JSON schema validation (<code>maxItems</code>, <code>pattern</code>, etc.) that will be embedded in your schema or add custom Python validators for each class/fields/<code>NewType</code> you want.</p>
 <p><em>Let's start the apischema tour.</em></p>
