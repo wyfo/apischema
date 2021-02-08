@@ -41,7 +41,8 @@ from uuid import UUID, uuid4
 from graphql import print_schema
 from pytest import raises
 
-from apischema import ValidationError, deserialize, serialize, graphql_schema
+from apischema import ValidationError, deserialize, serialize
+from apischema.graphql import graphql_schema
 from apischema.json_schema import deserialization_schema
 
 
@@ -62,7 +63,7 @@ assert resource == Resource(uuid, "wyfo", {"some_tag"})
 # Serialize objects
 assert serialize(resource) == data
 # Validate during deserialization
-with raises(ValidationError) as err:  # pytest check exception is raised
+with raises(ValidationError) as err:  # pytest checks exception is raised
     deserialize(Resource, {"id": "42", "name": "wyfo"})
 assert serialize(err.value) == [  # ValidationError is serializable
     {"loc": ["id"], "err": ["badly formed hexadecimal UUID string"]}
