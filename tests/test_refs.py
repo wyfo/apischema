@@ -69,14 +69,13 @@ class DataGeneric(Generic[T]):
 schema_ref("StrData")(DataGeneric[str])
 
 
-@mark.parametrize("cls", [DataGeneric, DataGeneric[U], DataGeneric[int]])
+@mark.parametrize("cls", [DataGeneric, DataGeneric[U]])
 def test_generic_ref_error(cls):
     with raises(TypeError):
-        schema_ref(...)(cls)
+        schema_ref("Data")(cls)
 
 
 def test_generic_schema():
-    schema_ref("StrData")(DataGeneric[str])
     assert deserialization_schema(DataGeneric, all_refs=True) == {
         "$schema": "http://json-schema.org/draft/2019-09/schema#",
         "type": "object",

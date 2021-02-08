@@ -1,21 +1,20 @@
-from collections.abc import Set
 from dataclasses import dataclass
-from typing import NewType
+from typing import Annotated
 
 from apischema import schema_ref
 from apischema.json_schema import deserialization_schema
 
-Tags = NewType("Tags", Set[str])
-schema_ref("ResourceTags")(Tags)
 
-
+# Schema ref can be added as a decorator
+@schema_ref("Resource")
 @dataclass
-class Resource:
+class BaseResource:
     id: int
-    tags: Tags
+    # or using typing.Annotated
+    tags: Annotated[set[str], schema_ref("ResourceTags")]
 
 
-assert deserialization_schema(Resource, all_refs=True) == {
+assert deserialization_schema(BaseResource, all_refs=True) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "$defs": {
         "Resource": {

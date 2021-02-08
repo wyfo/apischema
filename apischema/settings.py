@@ -122,7 +122,7 @@ def aliaser(func=None, *, camel_case: bool = None):
     return func
 
 
-RefFunc = Callable[[AnyType], refs.Ref]
+RefFunc = Callable[[AnyType], Optional[str]]
 
 
 @overload
