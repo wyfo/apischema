@@ -98,7 +98,7 @@ Using regular methods allows benefiting of type checking of fields, where *pydan
 
 *apischema* validators also have automatic dependency management. And *apischema* directly supports JSON schema [property dependencies](json_schema.md#property-dependencies).
 
-Comparison is simple with an example:
+Comparison is simple with an example (validator is taken from [*pydantic* documentation](https://pydantic-docs.helpmanual.io/usage/validators/#root-validators):
 
 ```python
 {!pydantic_validator.py!}
