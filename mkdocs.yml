@@ -29,7 +29,7 @@ nav:
   - examples/subclasses_union.md
   - examples/recoverable_fields.md
 - benchmark.md
-- pydantic_difference.md
+- difference_with_pydantic.md
 - Releases: https://github.com/wyfo/apischema/releases
 
 

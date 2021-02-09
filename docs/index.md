@@ -47,7 +47,7 @@ No known alternative achieves all of this.
 
 #### What is the difference between *apischema* and *pydantic*?
 
-See the [dedicated section](pydantic_difference.md), there is a lot of difference. 
+See the [dedicated section](difference_with_pydantic.md), there is a lot of difference. 
 
 #### I already have my data model with my *SQLAlchemy*/ORM tables, will I have to duplicate my code, making one dataclass by table?
 Why would you have to duplicate them? *apischema* can "work with user own types as well as foreign libraries ones". Some teasing of [conversion](conversions.md) feature: you can add default serialization for all your tables, or register different serializer that you can select according to your API endpoint, or both.
