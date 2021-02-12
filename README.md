@@ -24,11 +24,11 @@ This library fulfills the following goals:
 
 - stay as close as possible to the standard library (dataclasses, typing, etc.) — as a consequence do not need plugins for editors/linters/etc.;
 - be adaptable, provide tools to support any types (ORM, etc.);
-- avoid dynamic things like using string for attribute name;
-- support *GraphQL*;
-- (*bonus*) be faster than alternatives.
+- avoid dynamic things like using raw strings for attributes name - play nicely with your IDE.
 
-No known alternative achieves all of this.
+No known alternative achieves all of this, and apischema is also [faster](https://wyfo.github.io/apischema/benchmark) than all of them.
+
+On top of that, because APIs are not only JSON, *apischema* is also a complete *GraphQL* library.
 
 ## Example
 

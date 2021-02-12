@@ -20,11 +20,11 @@ This library fulfills the following goals:
 
 - stay as close as possible to the standard library (dataclasses, typing, etc.) — as a consequence do not need plugins for editors/linters/etc.;
 - be adaptable, provide tools to support any types (ORM, etc.);
-- avoid dynamic things like using string for attribute name;
-- support *GraphQL*;
-- (*bonus*) be faster than alternatives.
+- avoid dynamic things like using raw strings for attributes name - play nicely with your IDE.
 
-No known alternative achieves all of this. 
+No known alternative achieves all of this, and apischema is also [faster](benchmark.md) than all of them.
+
+On top of that, because APIs are not only JSON, *apischema* is also a complete *GraphQL* library
 
 !!! note
     Actually, *apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code ([pydantic support example](examples/pydantic_support.md) using [conversions feature](conversions.md))  
