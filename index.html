@@ -703,11 +703,10 @@
 <ul>
 <li>stay as close as possible to the standard library (dataclasses, typing, etc.) — as a consequence do not need plugins for editors/linters/etc.;</li>
 <li>be adaptable, provide tools to support any types (ORM, etc.);</li>
-<li>avoid dynamic things like using string for attribute name;</li>
-<li>support <em>GraphQL</em>;</li>
-<li>(<em>bonus</em>) be faster than alternatives.</li>
+<li>avoid dynamic things like using raw strings for attributes name - play nicely with your IDE.</li>
 </ul>
-<p>No known alternative achieves all of this. </p>
+<p>No known alternative achieves all of this, and apischema is also <a href="benchmark/">faster</a> than all of them.</p>
+<p>On top of that, because APIs are not only JSON, <em>apischema</em> is also a complete <em>GraphQL</em> library</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Actually, <em>apischema</em> is even adaptable enough to enable support of competitor libraries in a few dozens of line of code (<a href="examples/pydantic_support/">pydantic support example</a> using <a href="conversions/">conversions feature</a>)  </p>

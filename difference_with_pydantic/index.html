@@ -911,7 +911,7 @@
 <h3 id="apischema-validators-are-regular-methods-with-automatic-dependencies-management"><em>apischema</em> validators are regular methods with <a href="../validation/#automatic-dependency-management">automatic dependencies management</a><a class="headerlink" href="#apischema-validators-are-regular-methods-with-automatic-dependencies-management" title="Permanent link">&para;</a></h3>
 <p>Using regular methods allows benefiting of type checking of fields, where <em>pydantic</em> validators use dynamic stuffs (name of the fields as strings) and are not type-checked or have to get redundant type annotations.</p>
 <p><em>apischema</em> validators also have automatic dependency management. And <em>apischema</em> directly supports JSON schema <a href="../json_schema/#property-dependencies">property dependencies</a>.</p>
-<p>Comparison is simple with an example:</p>
+<p>Comparison is simple with an example (validator is taken from <a href="https://pydantic-docs.helpmanual.io/usage/validators/#root-validators"><em>pydantic</em> documentation</a>:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">import</span> <span class="nn">apischema</span>
@@ -925,6 +925,7 @@
 
     <span class="nd">@pydantic</span><span class="o">.</span><span class="n">root_validator</span>
     <span class="k">def</span> <span class="nf">check_passwords_match</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="c1"># This is a classmethod (it needs a plugin to not raise a warning in your IDE)</span>
         <span class="c1"># What is the type of of values? of values[&#39;password1&#39;]?</span>
         <span class="c1"># If you rename password1 field, validator will hardly be updated</span>
         <span class="c1"># You also have to test yourself that values are provided</span>
@@ -942,7 +943,8 @@
 
     <span class="nd">@apischema</span><span class="o">.</span><span class="n">validator</span>
     <span class="k">def</span> <span class="nf">check_password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Typed checked, simpler, and not executed if error on password1 or password2</span>
+        <span class="c1"># Typed checked, simpler, and not executed if password1 or password2</span>
+        <span class="c1"># are missing/invalid</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password1</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">password2</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;passwords do not match&quot;</span><span class="p">)</span>
 </code></pre></div>
