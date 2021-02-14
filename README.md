@@ -1,4 +1,4 @@
-# Apischema
+# apischema
 
 Makes your life easier when it comes to python API.
 
@@ -101,9 +101,9 @@ type Resource {
 """
 assert print_schema(schema) == schema_str
 ```
-*Apischema* works out of the box with your data model.
+*apischema* works out of the box with your data model.
 
-[*Let's start the Apischema tour.*](https://wyfo.github.io/apischema/)
+[*Let's start the apischema tour.*](https://wyfo.github.io/apischema/)
 
 ## Changelog
 

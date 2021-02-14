@@ -17,7 +17,16 @@ setup(
     long_description_content_type="text/markdown",
     python_requires=">=3.6",
     install_requires=["dataclasses==0.7;python_version<'3.7'"],
-    extras_require={"graphql": ["graphql-core>=3.1.2"]},
+    extras_require={
+        "graphql": ["graphql-core>=3.1.2"],
+        "examples": [
+            "graphql-core>=3.1.2",
+            "pytest>=6.2.2",
+            "pydantic>=1.7.3",
+            "attrs>=20.3.0",
+            "sqlalchemy>=1.3.23",
+        ],
+    },
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",

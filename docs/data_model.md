@@ -5,9 +5,9 @@
 By the way, it's done in an additive way, meaning that it doesn't affect your types.
 
 ### PEP 585
-With Python 3.9 and [PEP 585](https://www.python.org/dev/peps/pep-0585/), typing is substantially shaken up; all collection types of `typing` module are now deprecated.
+With Python 3.9 and [PEP 585](https://www.python.org/dev/peps/pep-0585/), typing is substantially shaken up; all container types of `typing` module are now deprecated.
 
-apischema fully support 3.9 and PEP 585, as shown in the different examples.
+apischema fully support 3.9 and PEP 585, as shown in the different examples. However, `typing` containers can still be used, especially/necessarily when using an older version.  
 
 ## Dataclasses
 

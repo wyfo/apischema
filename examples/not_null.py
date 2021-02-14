@@ -9,7 +9,7 @@ from apischema.skip import NotNull
 @dataclass
 class Foo:
     # NotNull is exactly like Optional for type checkers,
-    # it's only interpreted differently by Apischema
+    # it's only interpreted differently by apischema
     bar: NotNull[int] = None
 
 

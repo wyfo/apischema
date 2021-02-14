@@ -37,11 +37,23 @@ On top of that, because APIs are not only JSON, *apischema* is also a complete *
 *apischema* works out of the box with you data model.
 
 !!! note
-    This example and further ones are using pytest stuff because they are in fact run as tests in the library CI
-    
-## *GraphQL*
+    This example and further ones are using *pytest* API because they are in fact run as tests in the library CI
 
-*GraphQL* integration is detailed [further in the documentation](graphql/overview.md).
+### Run the documentation examples
+
+All documentation examples are written using the last Python minor — currently 3.9 — in order to provide an up-to-date documentation. Because Python 3.9 specificities (like [PEP 585](https://www.python.org/dev/peps/pep-0585/)) are used, this version is "mandatory" to execute the examples as-is.
+
+Also, as stated above, examples are using `pytest.raises` as it is the most convenient way to test an exception is raised — and because it's simpler for the CI wrapping.
+
+Moreover, *apischema* has a *graphql-core* dependency when it comes to example involving *GraphQL*.
+
+At last, some examples of the [Examples](examples) section are using third-party libraries: *SQLAlchemy*, *attrs* and *pydantic*.
+
+All of these dependencies can be downloaded using the `examples` dependencies with 
+```shell
+pip install apischema[examples]
+```
+
 
 ## FAQ
 
