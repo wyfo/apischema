@@ -53,7 +53,7 @@ else:  # pragma: no cover
                     return origin[tuple(map(_assemble_tree, args))]
 
         def get_origin(tp):  # type: ignore
-            # In Python 3.6: List[Collection[T]][int]._args__ == int != Collection[int]
+            # In Python 3.6: List[Collection[T]][int].__args__ == int != Collection[int]
             if hasattr(tp, "_subs_tree"):
                 tp = _assemble_tree(tp._subs_tree())
             if isinstance(tp, _AnnotatedAlias):
@@ -63,7 +63,7 @@ else:  # pragma: no cover
             return getattr(tp, "__origin__", None)
 
         def get_args(tp):  # type: ignore
-            # In Python 3.6: List[Collection[T]][int]._args__ == int != Collection[int]
+            # In Python 3.6: List[Collection[T]][int].__args__ == int != Collection[int]
             if hasattr(tp, "_subs_tree"):
                 tp = _assemble_tree(tp._subs_tree())
             if isinstance(tp, _AnnotatedAlias):

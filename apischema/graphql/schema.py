@@ -264,7 +264,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
 
     def literal(self, values: Sequence[Any]) -> Thunk[graphql.GraphQLType]:
         if not all(isinstance(v, str) for v in values):
-            raise TypeError("Apischema GraphQL only support Enum/Literal of strings")
+            raise TypeError("apischema GraphQL only support Enum/Literal of strings")
         name, description = self._ref_and_desc
         return graphql.GraphQLEnumType(
             name, dict(zip(values, values)), description=description
