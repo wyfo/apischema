@@ -15,7 +15,7 @@
     
     
       
-        <title>Apischema</title>
+        <title>apischema</title>
       
     
     
@@ -71,7 +71,7 @@
     
       <header class="md-header" data-md-component="header">
   <nav class="md-header-nav md-grid" aria-label="Header">
-    <a href="." title="Apischema" class="md-header-nav__button md-logo" aria-label="Apischema">
+    <a href="." title="apischema" class="md-header-nav__button md-logo" aria-label="apischema">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
@@ -84,7 +84,7 @@
       
         <div class="md-header-nav__ellipsis">
           <span class="md-header-nav__topic md-ellipsis">
-            Apischema
+            apischema
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
@@ -158,13 +158,13 @@
                   <div class="md-sidebar__inner">
                     <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="Apischema" class="md-nav__button md-logo" aria-label="Apischema">
+    <a href="." title="apischema" class="md-nav__button md-logo" aria-label="apischema">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
 
     </a>
-    Apischema
+    apischema
   </label>
   
     <div class="md-nav__source">
@@ -248,12 +248,18 @@
     Example
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#graphql" class="md-nav__link">
-    GraphQL
+    <nav class="md-nav" aria-label="Example">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run-the-documentation-examples" class="md-nav__link">
+    Run the documentation examples
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -625,12 +631,18 @@
     Example
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#graphql" class="md-nav__link">
-    GraphQL
+    <nav class="md-nav" aria-label="Example">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run-the-documentation-examples" class="md-nav__link">
+    Run the documentation examples
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -785,10 +797,18 @@
 <p><em>apischema</em> works out of the box with you data model.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This example and further ones are using pytest stuff because they are in fact run as tests in the library CI</p>
+<p>This example and further ones are using <em>pytest</em> API because they are in fact run as tests in the library CI</p>
 </div>
-<h2 id="graphql"><em>GraphQL</em><a class="headerlink" href="#graphql" title="Permanent link">&para;</a></h2>
-<p><em>GraphQL</em> integration is detailed <a href="graphql/overview/">further in the documentation</a>.</p>
+<h3 id="run-the-documentation-examples">Run the documentation examples<a class="headerlink" href="#run-the-documentation-examples" title="Permanent link">&para;</a></h3>
+<p>All documentation examples are written using the last Python minor — currently 3.9 — in order to provide an up-to-date documentation. Because Python 3.9 specificities (like <a href="https://www.python.org/dev/peps/pep-0585/">PEP 585</a>) are used, this version is "mandatory" to execute the examples as-is.</p>
+<p>Also, as stated above, examples are using <code>pytest.raises</code> as it is the most convenient way to test an exception is raised — and because it's simpler for the CI wrapping.</p>
+<p>Moreover, <em>apischema</em> has a <em>graphql-core</em> dependency when it comes to example involving <em>GraphQL</em>.</p>
+<p>At last, some examples of the <a href="examples">Examples</a> section are using third-party libraries: <em>SQLAlchemy</em>, <em>attrs</em> and <em>pydantic</em>.</p>
+<p>All of these dependencies can be downloaded using the <code>examples</code> dependencies with </p>
+<div class="codehilite"><pre><span></span><code>pip install apischema<span class="o">[</span>examples<span class="o">]</span>
+</code></pre></div>
+
+<p>Once dependencies are installed, you can simply copy-paste examples and execute them, using the proper Python version. </p>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
 <h4 id="what-is-the-difference-between-apischema-and-pydantic">What is the difference between <em>apischema</em> and <em>pydantic</em>?<a class="headerlink" href="#what-is-the-difference-between-apischema-and-pydantic" title="Permanent link">&para;</a></h4>
 <p>See the <a href="difference_with_pydantic/">dedicated section</a>, there is a lot of difference. </p>
