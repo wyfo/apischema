@@ -54,6 +54,7 @@ All of these dependencies can be downloaded using the `examples` dependencies wi
 pip install apischema[examples]
 ```
 
+Once dependencies are installed, you can simply copy-paste examples and execute them, using the proper Python version. 
 
 ## FAQ
 
