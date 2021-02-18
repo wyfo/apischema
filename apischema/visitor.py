@@ -30,6 +30,7 @@ from apischema.typing import (
     get_args,
     get_origin,
     get_type_hints2,
+    required_keys,
 )
 from apischema.utils import is_type_var
 
@@ -116,7 +117,9 @@ class Visitor(Generic[Return]):
     def tuple(self, types: Sequence[AnyType]) -> Return:
         raise NotImplementedError
 
-    def typed_dict(self, cls: Type, keys: Mapping[str, AnyType], total: bool) -> Return:
+    def typed_dict(
+        self, cls: Type, keys: Mapping[str, AnyType], required_keys: Collection[str]
+    ) -> Return:
         raise NotImplementedError
 
     def _union_result(self, results: Iterable[Return]) -> Return:
@@ -184,9 +187,9 @@ class Visitor(Generic[Return]):
             return self.literal(tp.__values__)  # type: ignore
         # cannot use issubclass(..., TypedDict)
         if isinstance(tp, _TypedDictMeta):
-            total = tp.__total__  # type: ignore
-            assert isinstance(tp, type)
-            return self.typed_dict(tp, type_hints_cache(self._generic or tp), total)
+            return self.typed_dict(
+                tp, type_hints_cache(self._generic or tp), required_keys(tp)
+            )
         return self.unsupported(tp)
 
     def visit(self, tp: AnyType) -> Return:

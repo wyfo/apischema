@@ -88,7 +88,7 @@ For `Enum`, this is the value and not the attribute name that is serialized
 
 - `typing.TypedDict`, `typing.NamedTuple`
 
-: Kind of discount dataclass without field customization
+: Handled like a simple dataclass without all dataclass customizations
 
 - `typing.Any`
 

@@ -3,7 +3,17 @@ __all__ = ["_LiteralMeta", "_TypedDictMeta", "get_args", "get_origin", "get_type
 
 import sys
 from types import ModuleType
-from typing import Any, Callable, Generic, Tuple, TypeVar, _eval_type  # type: ignore
+from typing import (  # type: ignore
+    Any,
+    Callable,
+    Collection,
+    Generic,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    _eval_type,
+)
 
 
 class _FakeType:
@@ -11,12 +21,13 @@ class _FakeType:
 
 
 if sys.version_info >= (3, 9):  # pragma: no cover
-    from typing import Annotated, get_type_hints, get_origin, get_args
+    from typing import Annotated, TypedDict, get_type_hints, get_origin, get_args
 else:  # pragma: no cover
     try:
-        from typing_extensions import Annotated
+        from typing_extensions import Annotated, TypedDict
     except ImportError:
-        pass
+        if sys.version_info >= (3, 8):
+            from typing import TypedDict
     try:
         from typing_extensions import get_type_hints as gth
     except ImportError:
@@ -75,6 +86,14 @@ else:  # pragma: no cover
             return res
 
 
+if sys.version_info >= (3, 8):  # pragma: no cover
+    from typing import Literal, Protocol  # noqa: F401
+else:  # pragma: no cover
+    try:
+        from typing_extensions import Literal, Protocol  # noqa: F401
+    except ImportError:
+        pass
+
 if sys.version_info >= (3, 7):
     from typing import _collect_type_vars, ForwardRef  # type: ignore
 else:
@@ -114,17 +133,20 @@ def _generic_mro(result, tp):
             _generic_mro(result, base)
 
 
+# sentinel value to avoid to subscript Generic and Protocol
+try:
+    BASE_GENERIC_MRO = {Generic: Generic, Protocol: Protocol}
+except NameError:
+    BASE_GENERIC_MRO = {Generic: Generic}
+
+
 def generic_mro(tp):
     origin = get_origin(tp)
     if origin is None and not hasattr(tp, "__orig_bases__"):
         if not isinstance(tp, type):
             raise TypeError(f"{tp!r} is not a type or a generic alias")
         return tp.__mro__
-    # sentinel value to avoid to subscript Generic and Protocol
-    try:
-        result = {Generic: Generic, Protocol: Protocol}
-    except NameError:
-        result = {Generic: Generic}
+    result = BASE_GENERIC_MRO.copy()
     _generic_mro(result, tp)
     cls = origin if origin is not None else tp
     return tuple(result.get(sub_cls, sub_cls) for sub_cls in cls.__mro__)
@@ -170,15 +192,6 @@ def get_type_hints2(obj, globalns=None, localns=None):  # type: ignore
         return get_type_hints(obj, globalns, localns, include_extras=True)
 
 
-if sys.version_info >= (3, 8):  # pragma: no cover
-    from typing import Literal, TypedDict, Protocol  # noqa: F401
-else:  # pragma: no cover
-    try:
-        from typing_extensions import Literal, TypedDict, Protocol  # noqa: F401
-    except ImportError:
-        pass
-
-
 _T = TypeVar("_T")
 _GenericAlias: Any = type(Generic[_T])
 try:
@@ -194,3 +207,21 @@ try:
     _TypedDictMeta: Any = type(_TypedDictImplem)
 except NameError:
     _LiteralMeta, _TypedDictMeta = _FakeType, _FakeType  # type: ignore
+
+
+# Don't use sys.version_info because it can also depend of typing_extensions version
+def required_keys(typed_dict: Type) -> Collection[str]:
+    assert isinstance(typed_dict, _TypedDictMeta)
+    if hasattr(typed_dict, "__required_keys__"):
+        return typed_dict.__required_keys__
+    else:
+        required: Set[str] = set()
+        bases_annotations: Set = set()
+        for base in typed_dict.__bases__:
+            if not isinstance(base, _TypedDictMeta):
+                continue
+            bases_annotations.update(base.__annotations__)
+            required.update(required_keys(base))
+        if typed_dict.__total__:  # type: ignore
+            required.update(typed_dict.__annotations__.keys() - bases_annotations)
+        return required
