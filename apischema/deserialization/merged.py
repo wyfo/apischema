@@ -1,5 +1,5 @@
 from dataclasses import Field
-from typing import Any, Iterable, Iterator, Mapping, Sequence, Tuple, Type
+from typing import Any, Collection, Iterable, Iterator, Mapping, Sequence, Tuple, Type
 
 from apischema.conversions.visitor import DeserializationVisitor
 from apischema.dataclass_utils import get_alias, get_field_conversions, get_fields
@@ -37,7 +37,7 @@ class InitMergedAliasVisitor(DeserializationVisitor[Iterator[str]]):
         yield from types
 
     def typed_dict(
-        self, cls: Type, keys: Mapping[str, AnyType], total: bool
+        self, cls: Type, keys: Mapping[str, AnyType], required_keys: Collection[str]
     ) -> Iterator[str]:
         yield from keys
 

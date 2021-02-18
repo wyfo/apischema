@@ -720,9 +720,12 @@ class DeserializationMethodVisitor(
         return factory
 
     def typed_dict(
-        self, cls: Type, keys: Mapping[str, AnyType], total: bool
+        self, cls: Type, keys: Mapping[str, AnyType], required_keys: Collection[str]
     ) -> DeserializationMethodFactory:
-        items_deserializers = {key: self.method(tp) for key, tp in keys.items()}
+        items_deserializers = {
+            self.aliaser(key): (key, self.method(tp)) for key, tp in keys.items()
+        }
+        required_aliases = {self.aliaser(key) for key in required_keys}
 
         @DeserializationMethodFactory.from_type(cls)
         def factory(
@@ -732,21 +735,18 @@ class DeserializationMethodVisitor(
             def method(ctx: DeserializationContext, data: Any) -> Any:
                 data = ctx.coercer(dict, data)
                 items: Dict[str, Any] = {}
-                key_count = 0
                 item_errors: Dict[ErrorKey, ValidationError] = {}
-                for key, value in data.items():
-                    if key in items_deserializers:
-                        key_count += 1
+                for alias, value in data.items():
+                    if alias in items_deserializers:
+                        key, deserializer = items_deserializers[alias]
                         try:
-                            items[key] = items_deserializers[key](ctx, value)
+                            items[key] = deserializer(ctx, value)
                         except ValidationError as err:
-                            item_errors[key] = err
+                            item_errors[alias] = err
                     else:
-                        items[key] = value
-                if total and key_count != len(keys):
-                    for key in keys:
-                        if key not in data:
-                            item_errors[key] = MISSING_PROPERTY
+                        items[alias] = value
+                for missing in required_aliases - data.keys():
+                    item_errors[missing] = MISSING_PROPERTY
                 errors = () if constraints is None else constraints.errors(data)
                 if item_errors or errors:
                     raise ValidationError(errors, item_errors)

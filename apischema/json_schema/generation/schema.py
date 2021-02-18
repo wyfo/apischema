@@ -402,13 +402,13 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
 
     @with_schema
     def typed_dict(
-        self, cls: Type, keys: Mapping[str, AnyType], total: bool
+        self, cls: Type, keys: Mapping[str, AnyType], required_keys: Collection[str]
     ) -> JsonSchema:
         self._check_constraints(ObjectConstraints)
         return json_schema(
             type=JsonType.OBJECT,
             properties={key: self.visit(tp) for key, tp in keys.items()},
-            required=list(keys) if total else [],
+            required=[key for key in keys if key in required_keys],  # preserve order
         )
 
     def _union_result(self, results: Iterable[JsonSchema]) -> JsonSchema:

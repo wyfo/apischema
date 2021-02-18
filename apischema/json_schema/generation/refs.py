@@ -1,7 +1,17 @@
 from contextlib import suppress
 from dataclasses import Field
 from enum import Enum
-from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple, Type
+from typing import (
+    Any,
+    Collection,
+    Dict,
+    Iterable,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+)
 
 from apischema.conversions.visitor import ConversionsVisitor
 from apischema.dataclass_utils import get_field_conversions, get_fields
@@ -102,7 +112,9 @@ class RefsExtractor(ConversionsVisitor):
         for cls in types:
             self.visit(cls)
 
-    def typed_dict(self, cls: Type, keys: Mapping[str, AnyType], total: bool):
+    def typed_dict(
+        self, cls: Type, keys: Mapping[str, AnyType], required_keys: Collection[str]
+    ):
         for cls in keys.values():
             self.visit(cls)
 
