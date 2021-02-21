@@ -30,7 +30,7 @@ class Foo:
         raise RuntimeError("Baz error")
 
 
-def foo() -> Foo:
+def foo(info: graphql.GraphQLResolveInfo) -> Foo:
     return Foo()
 
 

@@ -32,7 +32,8 @@ def test_typed_dict():
             "$schema": "http://json-schema.org/draft/2019-09/schema#",
         }
     )
-    assert deserialize(TD3, {"Key2": 0, "Key3": True}, aliaser=str.capitalize) == {
+    # No aliaser for TypedDict
+    assert deserialize(TD3, {"key2": 0, "key3": True}, aliaser=str.capitalize) == {
         "key2": 0,
         "key3": True,
     }

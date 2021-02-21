@@ -722,10 +722,9 @@ class DeserializationMethodVisitor(
     def typed_dict(
         self, cls: Type, keys: Mapping[str, AnyType], required_keys: Collection[str]
     ) -> DeserializationMethodFactory:
-        items_deserializers = {
-            self.aliaser(key): (key, self.method(tp)) for key, tp in keys.items()
-        }
-        required_aliases = {self.aliaser(key) for key in required_keys}
+        # TypedDict doesn't use aliaser, because it cannot be used in serialization
+        items_deserializers = {key: self.method(tp) for key, tp in keys.items()}
+        required_keys = set(required_keys)
 
         @DeserializationMethodFactory.from_type(cls)
         def factory(
@@ -736,16 +735,15 @@ class DeserializationMethodVisitor(
                 data = ctx.coercer(dict, data)
                 items: Dict[str, Any] = {}
                 item_errors: Dict[ErrorKey, ValidationError] = {}
-                for alias, value in data.items():
-                    if alias in items_deserializers:
-                        key, deserializer = items_deserializers[alias]
+                for key, value in data.items():
+                    if key in items_deserializers:
                         try:
-                            items[key] = deserializer(ctx, value)
+                            items[key] = items_deserializers[key](ctx, value)
                         except ValidationError as err:
-                            item_errors[alias] = err
+                            item_errors[key] = err
                     else:
-                        items[alias] = value
-                for missing in required_aliases - data.keys():
+                        items[key] = value
+                for missing in required_keys - data.keys():
                     item_errors[missing] = MISSING_PROPERTY
                 errors = () if constraints is None else constraints.errors(data)
                 if item_errors or errors:

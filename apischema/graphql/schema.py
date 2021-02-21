@@ -223,7 +223,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         return ObjectField(
             field.name,
             field_type,
-            alias=get_alias(field),
+            alias=self.aliaser(get_alias(field)),
             conversions=get_field_conversions(field, self.operation),
             default=graphql.Undefined if is_required(field) else get_default(field),
             schema=field.metadata.get(SCHEMA_METADATA),
@@ -430,7 +430,7 @@ class InputSchemaBuilder(
                 description=field.description,
             )
 
-        return self.aliaser(field.alias or field.name), field_thunk
+        return field.alias or self.aliaser(field.name), field_thunk
 
     def object(
         self,
@@ -457,6 +457,7 @@ class InputSchemaBuilder(
                     key,
                     type,
                     default=Undefined if key in required_keys else graphql.Undefined,
+                    alias=key,
                 )
                 for key, type in keys.items()
             ],
@@ -561,7 +562,7 @@ class OutputSchemaBuilder(
                     )
 
                 args[self.aliaser(param.name)] = arg_thunk
-        return self.aliaser(field.alias or field.name), lambda: graphql.GraphQLField(
+        return field.alias or self.aliaser(field.name), lambda: graphql.GraphQLField(
             exec_thunk(type_thunk),
             {name: arg() for name, arg in args.items()} if args else None,
             resolve,
@@ -610,7 +611,7 @@ class OutputSchemaBuilder(
             resolver_field = ObjectField(
                 resolver.func.__name__,
                 types["return"],
-                alias=resolver_alias,
+                alias=self.aliaser(resolver_alias),
                 conversions=resolver.conversions,
                 parameters=(resolver.parameters, types, resolver.parameters_metadata),
                 resolve=self._wrap_resolve(
