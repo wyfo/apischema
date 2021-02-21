@@ -43,7 +43,7 @@ settings.aliaser(camel_case=True)
 ```
 
 !!! note
-    `NamedTuple` fields are also alias, but not TypedDict ones; in fact, TypedDict is not a true class so it cannot be identified to apply aliaser during serialization. 
+    `NamedTuple` fields are also aliased, but not TypedDict ones; in fact, TypedDict is not a true class, so it is never encountered in serialization, then aliaser cannot be applied to its fields. 
 
 !!! note
     Dynamic aliaser ignores `override=False`
