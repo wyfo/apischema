@@ -614,9 +614,7 @@ class OutputSchemaBuilder(
                 alias=self.aliaser(resolver_alias),
                 conversions=resolver.conversions,
                 parameters=(resolver.parameters, types, resolver.parameters_metadata),
-                resolve=self._wrap_resolve(
-                    resolver_resolve(resolver, types, self.aliaser)
-                ),
+                resolve=resolver_resolve(resolver, types, self.aliaser),
             )
             fields_and_resolvers.append(resolver_field)
         fields_and_resolvers = sort_by_annotations_position(
