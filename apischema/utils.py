@@ -162,7 +162,7 @@ def get_args2(tp: AnyType) -> Tuple[AnyType, ...]:
     return get_args(get_args(tp)[0]) if origin is Annotated else get_args(tp)
 
 
-def get_origin_or_type(tp: AnyType) -> Type:
+def get_origin_or_type(tp: AnyType) -> AnyType:
     origin = get_origin(tp)
     if origin is Annotated:
         return get_origin_or_type(get_args(tp)[0])

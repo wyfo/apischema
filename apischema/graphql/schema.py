@@ -486,7 +486,7 @@ class OutputSchemaBuilder(
         self.input_builder = InputSchemaBuilder(
             aliaser, id_type, is_id, union_ref_factory
         )
-        self._get_merged: Optional[Callable] = None
+        self._get_merged: Optional[Callable[[Any], Any]] = None
 
     def _wrap_resolve(self, resolve: Callable):
         if self._get_merged is None:
@@ -599,12 +599,7 @@ class OutputSchemaBuilder(
         merged_types: Mapping[str, Thunk[graphql.GraphQLType]] = None,
     ) -> Thunk[graphql.GraphQLType]:
         fields_and_resolvers = list(fields)
-        try:
-            name, description = self._ref_and_desc
-        except MissingRef:
-            if cls.__name__ not in ("Query", "Mutation", "Subscription"):
-                raise
-            name, description = cls.__name__, self._description
+        name, description = self._ref_and_desc
         for resolver_alias, (resolver, types) in get_resolvers(
             self._generic or cls
         ).items():
@@ -873,8 +868,9 @@ def graphql_schema(
     def root_type(
         name: str, fields: Collection[ObjectField]
     ) -> Optional[graphql.GraphQLObjectType]:
-        if not fields and name != "Query":
+        if not fields:
             return None
+        builder._ref = name
         return exec_thunk(builder.object(type(name, (), {}), fields), non_null=False)
 
     return graphql.GraphQLSchema(

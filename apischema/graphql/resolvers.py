@@ -117,7 +117,12 @@ def is_async(func: Callable) -> bool:
 
 
 def unwrap_awaitable(tp: AnyType) -> AnyType:
-    return get_args2(tp)[0] if get_origin_or_type(tp) == awaitable_origin else tp
+    if get_origin_or_type(tp) != awaitable_origin:
+        return tp
+    try:
+        return get_args2(tp)[0]
+    except IndexError:
+        return Any
 
 
 @dataclass(frozen=True)
