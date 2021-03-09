@@ -249,7 +249,5 @@ However, it has been judged better to get the same restriction on both operation
 
 #### Why dynamic conversion cannot apply on the whole data model?
 
-To keep `$ref` referencing the same schema between to endpoints with different dynamic conversions. If the conversion was global, one field of a class could be changed in a schema and not in the other, which would break the `$ref` principle.
-
-Because it would break the concept of `$ref`, because the content of a `$ref` would be changed between two endpoints with different global conversions, as conversions could change the fields in one and not in the other. 
-
+To ensure consistency and reuse of subschemas with a `$ref`. Indeed, if dynamic conversions were global,
+different endpoints with or without conversions could have different result for nested classes (because one of its field could be impacted), so these classes could not be referenced consistently with their `$ref`.
