@@ -1005,7 +1005,7 @@
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><code>NamedTuple</code> fields are also alias, but not TypedDict ones; in fact, TypedDict is not a true class so it cannot be identified to apply aliaser during serialization. </p>
+<p><code>NamedTuple</code> fields are also aliased, but not TypedDict ones; in fact, TypedDict is not a true class, so it is never encountered in serialization, then aliaser cannot be applied to its fields. </p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>

@@ -1678,8 +1678,8 @@ The function returns two <code>Conversion</code> object, one for deserialization
 <p>On the other hand, deserialization use annotations, so it could indeed apply conversions to other types (and it was in fact the case in the firsts versions).</p>
 <p>However, it has been judged better to get the same restriction on both operation for simplicity and because the main need of deserialization customization is validation, which can already be registered for <code>NewType</code> or embedded in <code>Annotated</code>, etc.</p>
 <h4 id="why-dynamic-conversion-cannot-apply-on-the-whole-data-model">Why dynamic conversion cannot apply on the whole data model?<a class="headerlink" href="#why-dynamic-conversion-cannot-apply-on-the-whole-data-model" title="Permanent link">&para;</a></h4>
-<p>To keep <code>$ref</code> referencing the same schema between to endpoints with different dynamic conversions. If the conversion was global, one field of a class could be changed in a schema and not in the other, which would break the <code>$ref</code> principle.</p>
-<p>Because it would break the concept of <code>$ref</code>, because the content of a <code>$ref</code> would be changed between two endpoints with different global conversions, as conversions could change the fields in one and not in the other. </p>
+<p>To ensure consistency and reuse of subschemas with a <code>$ref</code>. Indeed, if dynamic conversions were global,
+different endpoints with or without conversions could have different result for nested classes (because one of its field could be impacted), so these classes could not be referenced consistently with their <code>$ref</code>.</p>
                 
               
               
