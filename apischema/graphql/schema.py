@@ -317,7 +317,28 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     def tuple(self, types: Sequence[AnyType]) -> Thunk[graphql.GraphQLType]:
         raise TypeError("Tuple are not supported")
 
-    def union(self, alternatives: Sequence[AnyType]) -> Thunk[graphql.GraphQLType]:
+    def _use_cache(
+        self, tp: AnyType, thunk: Lazy[Thunk[graphql.GraphQLType]]
+    ) -> Thunk[graphql.GraphQLType]:
+        key = self._generic or tp, self._ref, self._schema, self._conversions
+        if key in self._cache:
+            return self._cache[key]
+        cache = None
+
+        def rec_sentinel() -> graphql.GraphQLType:
+            assert cache is not None
+            return cache
+
+        self._cache[key] = rec_sentinel
+        try:
+            cache = exec_thunk(thunk())
+        except Exception:
+            del self._cache[key]
+            raise
+        else:
+            return cache
+
+    def _union(self, alternatives: Sequence[AnyType]) -> Thunk[graphql.GraphQLType]:
         alternatives = list(filter_skipped(alternatives, schema_only=True))
         results = []
         for alt in alternatives:
@@ -328,6 +349,10 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         if not results:
             raise TypeError("Empty union")
         return self._union_result(results)
+
+    def union(self, alternatives: Sequence[AnyType]) -> Thunk[graphql.GraphQLType]:
+        # Union must be cached too because they can be recursive
+        return self._use_cache(Union[alternatives], lambda: self._union(alternatives))
 
     def visit_with_schema(
         self, tp: AnyType, ref: Optional[str], schema: Optional[Schema]
@@ -349,23 +374,8 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
             self._non_null = non_null_save
 
     def _visit(self, tp: AnyType) -> Thunk[graphql.GraphQLType]:
-        key = self._generic or tp, self._ref, self._schema, self._conversions
-        if key in self._cache:
-            return self._cache[key]
-        cache = None
-
-        def rec_sentinel() -> graphql.GraphQLType:
-            assert cache is not None
-            return cache
-
-        self._cache[key] = rec_sentinel
-        try:
-            cache = exec_thunk(super()._visit(tp))
-        except Exception:
-            del self._cache[key]
-            raise
-        else:
-            return cache
+        _visit = super()._visit
+        return self._use_cache(tp, lambda: _visit(tp))
 
     def visit(self, tp: AnyType) -> Thunk[graphql.GraphQLType]:
         return self.visit_with_schema(tp, None, None)
