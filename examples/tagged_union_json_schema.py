@@ -18,20 +18,19 @@ assert (
     deserialization_schema(Foo)
     == serialization_schema(Foo)
     == {
-        "type": "object",
-        "oneOf": [
-            {
-                "properties": {
-                    "bar": {
-                        "type": "object",
-                        "properties": {"field": {"type": "string"}},
-                        "required": ["field"],
-                        "additionalProperties": False,
-                    }
-                }
-            },
-            {"properties": {"baz": {"type": "integer"}}},
-        ],
         "$schema": "http://json-schema.org/draft/2019-09/schema#",
+        "type": "object",
+        "properties": {
+            "bar": {
+                "type": "object",
+                "properties": {"field": {"type": "string"}},
+                "required": ["field"],
+                "additionalProperties": False,
+            },
+            "baz": {"type": "integer"},
+        },
+        "additionalProperties": False,
+        "minProperties": 1,
+        "maxProperties": 1,
     }
 )

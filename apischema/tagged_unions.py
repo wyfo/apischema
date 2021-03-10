@@ -14,7 +14,7 @@ from typing import (
 
 from apischema.aliases import alias
 from apischema.conversions.conversions import ConvOrFunc
-from apischema.json_schema.schema import Schema
+from apischema.json_schema.schema import Schema, schema
 from apischema.metadata import conversion
 from apischema.types import Metadata, MetadataImplem
 from apischema.typing import get_type_hints
@@ -71,10 +71,7 @@ class Tagged(Generic[V]):
 class TaggedUnion:
     def __init__(self, **kwargs):
         if len(kwargs) != 1:
-            raise ValueError(
-                f"tagged union must have one and only one tag set,"
-                f" found {list(kwargs)}"
-            )
+            raise ValueError("TaggedUnion constructor expects only one field")
         tags = getattr(self, TAGS_ATTR)
         for tag in tags:
             setattr(self, tag, Undefined)
@@ -103,7 +100,7 @@ class TaggedUnion:
             elif tag not in tags and get_origin2(tp) != ClassVar:
                 cls.__annotations__[tag] = ClassVar[tp]
         setattr(cls, TAGS_ATTR, tags)
-        dataclass(init=False, repr=False)(cls)
+        schema(min_props=1, max_props=1)(dataclass(init=False, repr=False)(cls))
         for tag in tags:
             setattr(cls, tag, Tag(tag, cls))
 
