@@ -31,6 +31,7 @@ class Conversion:
     coercion: Optional["Coercion"] = None
     default_fallback: Optional[bool] = None
     exclude_unset: Optional[bool] = None
+    inherited: Optional[bool] = None
 
     def __call__(self, *args, **kwargs):
         return self.converter(*args, **kwargs)

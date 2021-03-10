@@ -56,6 +56,9 @@ Moreover, when serializer is a method/property, overriding this method/property 
 {!serializer_inheritance.py!}
 ```
 
+!!! note
+Inheritance can also be toggled off in specific cases, like in the [Class as union of its subclasses](examples/subclasses_union.md) example
+
 On the other hand, deserializers cannot be inherited, because the same `Source` passed to a conversion function `(Source) -> Target` will always give the same `Target` (not ensured to be the desired subtype).
 
 However, there is one way to do it by using a `classmethod` and the special decorator `apischema.conversions.inherited_deserializer`; the class parameter of the method is then assumed to be used to instantiate the return.  

@@ -18,6 +18,7 @@ from typing import (
 )
 
 from apischema.conversions.conversions import (
+    Conversion,
     Conversions,
     ResolvedConversion,
     ResolvedConversions,
@@ -246,7 +247,14 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
     def _default_conversions(tp: Type) -> Optional[Conversions]:
         for sub_cls in tp.__mro__:
             if sub_cls in _serializers:
-                return _serializers[sub_cls]
+                conversion = _serializers[sub_cls]
+                if (
+                    sub_cls == tp
+                    or not isinstance(conversion, Conversion)
+                    or conversion.inherited is None
+                    or conversion.inherited
+                ):
+                    return conversion
         else:
             return None
 
