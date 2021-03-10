@@ -306,8 +306,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
         raise NotImplementedError
 
     def primitive(self, cls: Type) -> Thunk[graphql.GraphQLType]:
-        if cls is NoneType:
-            raise Nullable
+        assert cls is not NoneType
         try:
             name, description = self._ref_and_desc
             return graphql.GraphQLScalarType(name, description=description)
@@ -317,17 +316,42 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     def tuple(self, types: Sequence[AnyType]) -> Thunk[graphql.GraphQLType]:
         raise TypeError("Tuple are not supported")
 
+    def _use_cache(
+        self, key: Any, thunk: Lazy[Thunk[graphql.GraphQLType]]
+    ) -> Thunk[graphql.GraphQLType]:
+        full_key = key, self._ref, self._schema, self._conversions
+        if full_key not in self._cache:
+            cache = None
+
+            def rec_sentinel() -> graphql.GraphQLType:
+                nonlocal cache
+                assert cache is not None
+                if not isinstance(cache, graphql.GraphQLType):
+                    cache = exec_thunk(cache)
+                return cache
+
+            self._cache[full_key] = rec_sentinel
+            cache = thunk()
+
+        return self._cache[full_key]
+
     def union(self, alternatives: Sequence[AnyType]) -> Thunk[graphql.GraphQLType]:
         alternatives = list(filter_skipped(alternatives, schema_only=True))
         results = []
+        non_null_alternatives = []
         for alt in alternatives:
             try:
                 results.append(self.visit(alt))
+                non_null_alternatives.append(alt)
             except Nullable:
                 self._non_null = False
         if not results:
             raise TypeError("Empty union")
-        return self._union_result(results)
+        if len(results) == 1:
+            return results[0]
+        return self._use_cache(
+            tuple(non_null_alternatives), lambda: self._union_result(results)
+        )
 
     def visit_with_schema(
         self, tp: AnyType, ref: Optional[str], schema: Optional[Schema]
@@ -348,28 +372,9 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
             self._ref, self._schema = ref_save, schema_save
             self._non_null = non_null_save
 
-    def _use_cache(
-        self, key: Any, thunk: Lazy[Thunk[graphql.GraphQLType]]
-    ) -> Thunk[graphql.GraphQLType]:
-        full_key = key, self._ref, self._schema, self._conversions
-        if full_key in self._cache:
-            return self._cache[full_key]
-        cache = None
-
-        def rec_sentinel() -> graphql.GraphQLType:
-            assert cache is not None
-            return cache
-
-        self._cache[full_key] = rec_sentinel
-        try:
-            cache = exec_thunk(thunk())
-        except Exception:
-            del self._cache[full_key]
-            raise
-        else:
-            return cache
-
     def _visit(self, tp: AnyType) -> Thunk[graphql.GraphQLType]:
+        if tp is NoneType:
+            raise Nullable
         _visit = super()._visit
         return self._use_cache(self._generic or tp, lambda: _visit(tp))
 
@@ -476,10 +481,12 @@ class InputSchemaBuilder(
     def _union_result(
         self, results: Iterable[Thunk[graphql.GraphQLType]]
     ) -> Thunk[graphql.GraphQLType]:
-        results = list(results)  # Execute the iteration
+        results = list(results)
+        # Check must be done here too because _union_result is used by visit_conversion
         if len(results) == 1:
             return results[0]
-        raise TypeError("Union are not supported for input")
+        else:
+            raise TypeError("Union are not supported for input")
 
 
 class OutputSchemaBuilder(
@@ -671,14 +678,17 @@ class OutputSchemaBuilder(
     ) -> Thunk[graphql.GraphQLType]:
         raise TypeError("TyedDict are not supported in output schema")
 
-    def _union(
+    def _union_result(
         self, results: Iterable[Thunk[graphql.GraphQLType]]
     ) -> Thunk[graphql.GraphQLType]:
+        results = list(results)  # Execute the iteration (tuple to be hashable)
         name, description = self._ref, self._description
         if name is None and self.union_ref_factory is None:
             raise MissingRef
 
         def thunk() -> graphql.GraphQLUnionType:
+            # No need to use a thunk here because union can only have class members,
+            # which use already thunks.
             types = [exec_thunk(res, non_null=False) for res in results]
             if name is None:
                 assert self.union_ref_factory is not None
@@ -690,15 +700,6 @@ class OutputSchemaBuilder(
             )
 
         return thunk
-
-    def _union_result(
-        self, results: Iterable[Thunk[graphql.GraphQLType]]
-    ) -> Thunk[graphql.GraphQLType]:
-        results = tuple(results)  # Execute the iteration (tuple to be hashable)
-        if len(results) == 1:
-            return results[0]
-        # Union must be cached too because they can be recursive
-        return self._use_cache(results, lambda: self._union(results))
 
 
 async_iterable_origins = set(map(get_origin, (AsyncIterable[Any], AsyncIterator[Any])))
