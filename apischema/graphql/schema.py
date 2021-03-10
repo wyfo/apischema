@@ -348,24 +348,30 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
             self._ref, self._schema = ref_save, schema_save
             self._non_null = non_null_save
 
-    def _visit(self, tp: AnyType) -> Thunk[graphql.GraphQLType]:
-        key = self._generic or tp, self._ref, self._schema, self._conversions
-        if key in self._cache:
-            return self._cache[key]
+    def _use_cache(
+        self, key: Any, thunk: Lazy[Thunk[graphql.GraphQLType]]
+    ) -> Thunk[graphql.GraphQLType]:
+        full_key = key, self._ref, self._schema, self._conversions
+        if full_key in self._cache:
+            return self._cache[full_key]
         cache = None
 
         def rec_sentinel() -> graphql.GraphQLType:
             assert cache is not None
             return cache
 
-        self._cache[key] = rec_sentinel
+        self._cache[full_key] = rec_sentinel
         try:
-            cache = exec_thunk(super()._visit(tp))
+            cache = exec_thunk(thunk())
         except Exception:
-            del self._cache[key]
+            del self._cache[full_key]
             raise
         else:
             return cache
+
+    def _visit(self, tp: AnyType) -> Thunk[graphql.GraphQLType]:
+        _visit = super()._visit
+        return self._use_cache(self._generic or tp, lambda: _visit(tp))
 
     def visit(self, tp: AnyType) -> Thunk[graphql.GraphQLType]:
         return self.visit_with_schema(tp, None, None)
@@ -665,12 +671,9 @@ class OutputSchemaBuilder(
     ) -> Thunk[graphql.GraphQLType]:
         raise TypeError("TyedDict are not supported in output schema")
 
-    def _union_result(
+    def _union(
         self, results: Iterable[Thunk[graphql.GraphQLType]]
     ) -> Thunk[graphql.GraphQLType]:
-        results = list(results)  # Execute the iteration
-        if len(results) == 1:
-            return results[0]
         name, description = self._ref, self._description
         if name is None and self.union_ref_factory is None:
             raise MissingRef
@@ -687,6 +690,15 @@ class OutputSchemaBuilder(
             )
 
         return thunk
+
+    def _union_result(
+        self, results: Iterable[Thunk[graphql.GraphQLType]]
+    ) -> Thunk[graphql.GraphQLType]:
+        results = tuple(results)  # Execute the iteration (tuple to be hashable)
+        if len(results) == 1:
+            return results[0]
+        # Union must be cached too because they can be recursive
+        return self._use_cache(results, lambda: self._union(results))
 
 
 async_iterable_origins = set(map(get_origin, (AsyncIterable[Any], AsyncIterator[Any])))
