@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from pytest import raises
 
-from apischema import Undefined, ValidationError, deserialize, serialize
+from apischema import Undefined, ValidationError, alias, deserialize, schema, serialize
 from apischema.tagged_unions import Tagged, TaggedUnion, get_tagged
 
 
@@ -13,10 +13,8 @@ class Bar:
 
 class Foo(TaggedUnion):
     bar: Tagged[Bar]
-    # Tagged parameters can be used to customize the field like a dataclass one
-    baz: Tagged[int] = Tagged(
-        alias=None, schema=None, deserialization=None, serialization=None
-    )
+    # Tagged can have metadata like a dataclass fields
+    i: Tagged[int] = Tagged(alias("baz") | schema(min=0))
 
 
 # Instantiate using class fields
@@ -25,7 +23,7 @@ tagged_bar = Foo.bar(Bar("value"))
 assert tagged_bar == Foo(bar=Bar("value"))
 
 # All fields that are not tagged are Undefined
-assert tagged_bar.bar is not Undefined and tagged_bar.baz is Undefined
+assert tagged_bar.bar is not Undefined and tagged_bar.i is Undefined
 # get_tagged allows to retrieve the tag and it's value
 # (but the value is not typed-checked)
 assert get_tagged(tagged_bar) == ("bar", Bar("value"))
@@ -43,8 +41,6 @@ with raises(ValidationError) as err:
 assert serialize(err.value) == [
     {
         "loc": [],
-        "err": [
-            "tagged union must have one and only one tag set, found ['bar', 'baz']"
-        ],
+        "err": ["size greater than 1 (maxProperties)"],
     }
 ]

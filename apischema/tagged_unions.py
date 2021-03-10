@@ -1,5 +1,7 @@
 __all__ = ["Tagged", "TaggedUnion", "get_tagged"]
-from dataclasses import dataclass, field
+
+import warnings
+from dataclasses import InitVar, dataclass, field
 from typing import (
     Any,
     ClassVar,
@@ -12,10 +14,20 @@ from typing import (
     overload,
 )
 
-from apischema.aliases import alias
+from apischema.aliases import alias as alias_metadata
 from apischema.conversions.conversions import ConvOrFunc
 from apischema.json_schema.schema import Schema, schema
 from apischema.metadata import conversion
+from apischema.metadata.keys import (
+    DEFAULT_AS_SET,
+    DEFAULT_FALLBACK_METADATA,
+    INIT_VAR_METADATA,
+    MERGED_METADATA,
+    POST_INIT_METADATA,
+    PROPERTIES_METADATA,
+    REQUIRED_METADATA,
+    SKIP_METADATA,
+)
 from apischema.types import Metadata, MetadataImplem
 from apischema.typing import get_type_hints
 from apischema.utils import PREFIX, Undefined, UndefinedType, get_args2, get_origin2
@@ -38,23 +50,50 @@ class Tag(str, Generic[T, V]):
         return self.type(**{self: value})  # type: ignore
 
 
+INVALID_METADATA = {
+    DEFAULT_AS_SET,
+    DEFAULT_FALLBACK_METADATA,
+    INIT_VAR_METADATA,
+    MERGED_METADATA,
+    POST_INIT_METADATA,
+    PROPERTIES_METADATA,
+    REQUIRED_METADATA,
+    SKIP_METADATA,
+}
+
+
 @dataclass(frozen=True)
 class Tagged(Generic[V]):
-    alias: Optional[str] = None
-    schema: Optional[Schema] = None
-    deserialization: Optional[ConvOrFunc] = None
-    serialization: Optional[ConvOrFunc] = None
+    metadata: Metadata = field(default_factory=MetadataImplem)
+    alias: InitVar[Optional[str]] = None
+    schema: InitVar[Optional[Schema]] = None
+    deserialization: InitVar[Optional[ConvOrFunc]] = None
+    serialization: InitVar[Optional[ConvOrFunc]] = None
 
-    @property
-    def metadata(self) -> Metadata:
-        metadata: Metadata = MetadataImplem()
-        if self.alias is not None:
-            metadata |= alias(self.alias)
-        if self.schema is not None:
-            metadata |= self.schema
-        if self.deserialization is not None or self.serialization is not None:
-            metadata |= conversion(self.deserialization, self.serialization)
-        return metadata
+    def __post_init__(
+        self,
+        alias: Optional[str],
+        schema: Optional[Schema],
+        deserialization: Optional[ConvOrFunc],
+        serialization: Optional[ConvOrFunc],
+    ):
+        # TODO Remove deprecated part
+        if any(m is not None for m in (alias, schema, deserialization, serialization)):
+            metadata = self.metadata
+            warnings.warn(
+                "Tagged keyword parameters are deprecated,"
+                " use metadata parameter instead",
+                DeprecationWarning,
+            )
+            if alias is not None:
+                metadata |= alias_metadata(alias)
+            if schema is not None:
+                metadata |= schema
+            if deserialization is not None or serialization is not None:
+                metadata |= conversion(deserialization, serialization)
+            object.__setattr__(self, "metadata", metadata)
+        if self.metadata.keys() & INVALID_METADATA:
+            raise TypeError("Invalid metadata in a TaggedUnion field")
 
     @overload
     def __get__(self, instance: None, owner: Type[T]) -> Tag[T, V]:
