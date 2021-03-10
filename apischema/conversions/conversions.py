@@ -12,7 +12,12 @@ from typing import (
     Union,
 )
 
-from apischema.conversions.utils import Converter, converter_types, identity
+from apischema.conversions.utils import (
+    Converter,
+    T as IdentityT,
+    converter_types,
+    identity,
+)
 from apischema.dataclasses import replace
 from apischema.types import AnyType
 from apischema.utils import get_origin_or_type, is_method, method_class, method_wrapper
@@ -80,7 +85,7 @@ def resolve_conversions(conversions: Optional[Conversions]) -> ResolvedConversio
 def is_identity(conversion: ResolvedConversion) -> bool:
     return (
         conversion.converter == identity
-        and conversion.source == conversion.target
+        and conversion.source == conversion.target == IdentityT
         and conversion.sub_conversions is None
         and conversion.additional_properties is None
         and conversion.coercion is None

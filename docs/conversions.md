@@ -126,7 +126,7 @@ Dynamic conversions are applied before looking for a ref registered with `schema
 
 ### Bypass registered conversion
 
-Dynamic conversions can be used to bypass a registered conversion, i.e. to (de)serialize the given type as it would be without conversion registered. It requires to use a `Conversion` object with an `apischema.conversions.identity` converter, and the same source type as the target type.
+Using `apischema.conversion.identity` as a dynamic conversion allows to bypass a registered conversion, i.e. to (de)serialize the given type as it would be without conversion registered.
 
 ```python
 {!bypass_conversions.py!}
