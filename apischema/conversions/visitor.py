@@ -145,29 +145,28 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
         tp: Type, conversions: ResolvedConversions
     ) -> Union[Deserialization, None, UndefinedType]:
         origin = get_origin_or_type(tp)
-        result = [
-            conv
-            for conv in conversions
-            if issubclass(get_origin_or_type(conv.target), origin)
-        ]
-        for i, conv in enumerate(result):
+        identity_conv = False
+        result = []
+        for conv in conversions:
             if is_identity(conv):
-                if len(result) == 1:
-                    return Undefined
-                else:
-                    namespace = {
-                        "__new__": lambda _, *args, **kwargs: origin(*args, **kwargs),
-                        SELF_CONVERSION_ATTR: True,
-                    }
-                    wrapper = new_class(
-                        f"{origin.__name__}SelfDeserializer",
-                        (tp,),
-                        exec_body=lambda ns: ns.update(namespace),
-                    )
-                    result[i] = ResolvedConversion(
+                identity_conv = True
+                namespace = {
+                    "__new__": lambda _, *args, **kwargs: origin(*args, **kwargs),
+                    SELF_CONVERSION_ATTR: True,
+                }
+                wrapper = new_class(
+                    f"{origin.__name__}SelfDeserializer",
+                    (tp,),
+                    exec_body=lambda ns: ns.update(namespace),
+                )
+                result.append(
+                    ResolvedConversion(
                         replace(conv, source=wrapper, target=conv.target)
                     )
-        return result or None
+                )
+            elif issubclass(get_origin_or_type(conv.target), origin):
+                result.append(conv)
+        return Undefined if identity_conv and len(result) == 1 else result or None
 
     _default_conversions = staticmethod(_deserializers.get)  # type: ignore
 
@@ -237,8 +236,10 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
     ) -> Union[Serialization, None, UndefinedType]:
         origin = get_origin_or_type(tp)
         for conv in conversions:
-            if issubclass(origin, get_origin_or_type(conv.source)):
-                return Undefined if is_identity(conv) else conv
+            if is_identity(conv):
+                return Undefined
+            elif issubclass(origin, get_origin_or_type(conv.source)):
+                return conv
         else:
             return None
 
