@@ -137,7 +137,7 @@ It's fields **must** be typed using `apischema.tagged_unions.Tagged` generic typ
 
 ### JSON schema
 
-Tagged unions JSON schema use `oneOf` as expected.
+Tagged unions JSON schema uses `minProperties: 1` and `maxProperties: 1`.
 
 ```python
 {!tagged_union_json_schema.py!}
