@@ -89,16 +89,19 @@ class TaggedUnion:
         types = get_type_hints(cls, include_extras=True)
         for tag, tp in types.items():
             if get_origin2(tp) == Tagged:
-                if tag in tags:
-                    raise TypeError(f"Cannot redefine tag {tag} in {cls}")
                 tagged = cls.__dict__.get(tag, Tagged())
                 setattr(cls, tag, field(default=Undefined, metadata=tagged.metadata))
                 cls.__annotations__[tag] = Union[
                     get_args2(types[tag])[0], UndefinedType
                 ]
                 tags.add(tag)
-            elif tag not in tags and get_origin2(tp) != ClassVar:
-                cls.__annotations__[tag] = ClassVar[tp]
+            elif tag not in tags:
+                if get_origin2(tp) != ClassVar:
+                    cls.__annotations__[tag] = ClassVar[tp]
+                else:
+                    raise TypeError(
+                        "Only Tagged or ClassVar fields are allowed in TaggedUnion"
+                    )
         setattr(cls, TAGS_ATTR, tags)
         schema(min_props=1, max_props=1)(dataclass(init=False, repr=False)(cls))
         for tag in tags:
