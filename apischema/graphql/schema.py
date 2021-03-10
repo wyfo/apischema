@@ -232,9 +232,8 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
     def _visit_merged(
         self, field: Field, field_type: AnyType
     ) -> Thunk[graphql.GraphQLType]:
-        return self.visit_with_conversions(
-            field_type, get_field_conversions(field, self.operation)
-        )
+        with self._replace_conversions(get_field_conversions(field, self.operation)):
+            return self.visit(field_type)
 
     def dataclass(
         self,
@@ -337,8 +336,6 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
             return graphql.GraphQLNonNull(self.id_type)
         if self._apply_dynamic_conversions(tp) is None:
             ref, schema = ref or get_ref(tp), merge_schema(get_schema(tp), schema)
-        else:
-            ref, schema = None, None
         ref_save, schema_save, non_null_save = self._ref, self._schema, self._non_null
         self._ref, self._schema, self._non_null = ref, schema, True
         try:
@@ -372,6 +369,12 @@ class SchemaBuilder(ConversionsVisitor[Conv, Thunk[graphql.GraphQLType]]):
 
     def visit(self, tp: AnyType) -> Thunk[graphql.GraphQLType]:
         return self.visit_with_schema(tp, None, None)
+
+    def visit_with_conversions(
+        self, tp: AnyType, conversions: Optional[Conversions]
+    ) -> Thunk[graphql.GraphQLType]:
+        with self._replace_conversions(conversions):
+            return self.visit_with_schema(tp, self._ref, self._schema)
 
 
 FieldType = TypeVar("FieldType", graphql.GraphQLInputField, graphql.GraphQLField)
@@ -421,7 +424,8 @@ class InputSchemaBuilder(
             except Exception:
                 field_type = Optional[field_type]
 
-        type_thunk = self.visit_with_conversions(field_type, field.conversions)
+        with self._replace_conversions(field.conversions):
+            type_thunk = self.visit(field_type)
 
         def field_thunk():
             return graphql.GraphQLInputField(
@@ -516,7 +520,8 @@ class OutputSchemaBuilder(
         field_type = field.type
         if is_union_of(field_type, UndefinedType):
             field_type = Optional[field_type]
-        type_thunk = self.visit_with_conversions(field_type, field.conversions)
+        with self._replace_conversions(field.conversions):
+            type_thunk = self.visit(field_type)
         args = None
         if field.parameters is not None:
             parameters, types, params_metadata = field.parameters
@@ -545,9 +550,8 @@ class OutputSchemaBuilder(
                 conversions = metadata.get(
                     CONVERSIONS_METADATA, ConversionMetadata()
                 ).deserialization
-                arg_type = self.input_builder.visit_with_conversions(
-                    param_type, conversions
-                )
+                with self._replace_conversions(conversions):
+                    arg_type = self.input_builder.visit(param_type)
                 description = None
                 if SCHEMA_METADATA in metadata:
                     schema: Schema = metadata[SCHEMA_METADATA]
@@ -588,7 +592,8 @@ class OutputSchemaBuilder(
         merged_save = self._get_merged
         self._get_merged = get_merge
         try:
-            return self.visit_with_conversions(field_type, conversions)
+            with self._replace_conversions(conversions):
+                return self.visit(field_type)
         finally:
             self._get_merged = merged_save
 
