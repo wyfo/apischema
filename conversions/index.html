@@ -443,6 +443,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#why-annotated-cannot-be-used-to-specified-conversions" class="md-nav__link">
+    Why Annotated cannot be used to specified conversions?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#why-dynamic-conversion-cannot-apply-on-the-whole-data-model" class="md-nav__link">
     Why dynamic conversion cannot apply on the whole data model?
   </a>
@@ -863,6 +870,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#why-annotated-cannot-be-used-to-specified-conversions" class="md-nav__link">
+    Why Annotated cannot be used to specified conversions?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#why-dynamic-conversion-cannot-apply-on-the-whole-data-model" class="md-nav__link">
     Why dynamic conversion cannot apply on the whole data model?
   </a>
@@ -1025,6 +1039,10 @@
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Bar</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">!=</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Bar2</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span>
 </code></pre></div>
 
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+</div>
+<p>Inheritance can also be toggled off in specific cases, like in the <a href="../examples/subclasses_union/">Class as union of its subclasses</a> example</p>
 <p>On the other hand, deserializers cannot be inherited, because the same <code>Source</code> passed to a conversion function <code>(Source) -&gt; Target</code> will always give the same <code>Target</code> (not ensured to be the desired subtype).</p>
 <p>However, there is one way to do it by using a <code>classmethod</code> and the special decorator <code>apischema.conversions.inherited_deserializer</code>; the class parameter of the method is then assumed to be used to instantiate the return.  </p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span>
@@ -1231,11 +1249,11 @@
 </code></pre></div>
 
 <h3 id="bypass-registered-conversion">Bypass registered conversion<a class="headerlink" href="#bypass-registered-conversion" title="Permanent link">&para;</a></h3>
-<p>Dynamic conversions can be used to bypass a registered conversion, i.e. to (de)serialize the given type as it would be without conversion registered. It requires to use a <code>Conversion</code> object with an <code>apischema.conversions.identity</code> converter, and the same source type as the target type.</p>
+<p>Using <code>apischema.conversion.identity</code> as a dynamic conversion allows to bypass a registered conversion, i.e. to (de)serialize the given type as it would be without conversion registered.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
-<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">Conversion</span><span class="p">,</span> <span class="n">identity</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">identity</span>
 
 
 <span class="nd">@dataclass</span>
@@ -1252,9 +1270,11 @@
 
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;#000000&quot;</span>
 <span class="c1"># dynamic conversion used to bypass the registered one</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span>
-    <span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">conversions</span><span class="o">=</span><span class="n">Conversion</span><span class="p">(</span><span class="n">identity</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">RGB</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">RGB</span><span class="p">)</span>
-<span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;red&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;blue&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">conversions</span><span class="o">=</span><span class="n">identity</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;red&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;green&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;blue&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">}</span>
 </code></pre></div>
 
 <h3 id="liskov-substitution-principle">Liskov substitution principle<a class="headerlink" href="#liskov-substitution-principle" title="Permanent link">&para;</a></h3>
@@ -1677,9 +1697,13 @@ The function returns two <code>Conversion</code> object, one for deserialization
 <p>Also, generic specialization like <code>Foo[int]</code> cannot be retrieved by serialization, that's why their registration is not allowed. </p>
 <p>On the other hand, deserialization use annotations, so it could indeed apply conversions to other types (and it was in fact the case in the firsts versions).</p>
 <p>However, it has been judged better to get the same restriction on both operation for simplicity and because the main need of deserialization customization is validation, which can already be registered for <code>NewType</code> or embedded in <code>Annotated</code>, etc.</p>
+<h4 id="why-annotated-cannot-be-used-to-specified-conversions">Why <code>Annotated</code> cannot be used to specified conversions?<a class="headerlink" href="#why-annotated-cannot-be-used-to-specified-conversions" title="Permanent link">&para;</a></h4>
+<p>Same reason than above, because serialization doesn't use type annotations, so conversions would be lost.</p>
+<p>Actually, for dataclasses/namedtuples fields, as well as serialized methods return, it would be possible to use read an annotated conversion, even during serialization. 
+However, this behavior could be confusing, because <code>Annotated[MyType, conversion(...)]</code> would be allowed as a dataclass fields, but <code>list[Annotated[Mytype, conversions(...)]]</code> will not work as expected. </p>
+<p>That's why it has been decided that conversions should not be embedded in <code>Annotated</code>, to keep things simple.</p>
 <h4 id="why-dynamic-conversion-cannot-apply-on-the-whole-data-model">Why dynamic conversion cannot apply on the whole data model?<a class="headerlink" href="#why-dynamic-conversion-cannot-apply-on-the-whole-data-model" title="Permanent link">&para;</a></h4>
-<p>To ensure consistency and reuse of subschemas with a <code>$ref</code>. Indeed, if dynamic conversions were global,
-different endpoints with or without conversions could have different result for nested classes (because one of its field could be impacted), so these classes could not be referenced consistently with their <code>$ref</code>.</p>
+<p>To ensure consistency and reuse of subschemas with a <code>$ref</code>. Indeed, if dynamic conversions were global, different endpoints with or without conversions could have different result for nested classes (because one of its field could be impacted), so these classes could not be referenced consistently with their <code>$ref</code>.</p>
                 
               
               

@@ -1156,7 +1156,7 @@ It's fields <strong>must</strong> be typed using <code>apischema.tagged_unions.T
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">alias</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">apischema.tagged_unions</span> <span class="kn">import</span> <span class="n">Tagged</span><span class="p">,</span> <span class="n">TaggedUnion</span><span class="p">,</span> <span class="n">get_tagged</span>
 
 
@@ -1167,10 +1167,8 @@ It's fields <strong>must</strong> be typed using <code>apischema.tagged_unions.T
 
 <span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">TaggedUnion</span><span class="p">):</span>
     <span class="n">bar</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">Bar</span><span class="p">]</span>
-    <span class="c1"># Tagged parameters can be used to customize the field like a dataclass one</span>
-    <span class="n">baz</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">(</span>
-        <span class="n">alias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deserialization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">serialization</span><span class="o">=</span><span class="kc">None</span>
-    <span class="p">)</span>
+    <span class="c1"># Tagged can have metadata like a dataclass fields</span>
+    <span class="n">i</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">(</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;baz&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">schema</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
 
 
 <span class="c1"># Instantiate using class fields</span>
@@ -1179,7 +1177,7 @@ It's fields <strong>must</strong> be typed using <code>apischema.tagged_unions.T
 <span class="k">assert</span> <span class="n">tagged_bar</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="n">bar</span><span class="o">=</span><span class="n">Bar</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">))</span>
 
 <span class="c1"># All fields that are not tagged are Undefined</span>
-<span class="k">assert</span> <span class="n">tagged_bar</span><span class="o">.</span><span class="n">bar</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Undefined</span> <span class="ow">and</span> <span class="n">tagged_bar</span><span class="o">.</span><span class="n">baz</span> <span class="ow">is</span> <span class="n">Undefined</span>
+<span class="k">assert</span> <span class="n">tagged_bar</span><span class="o">.</span><span class="n">bar</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Undefined</span> <span class="ow">and</span> <span class="n">tagged_bar</span><span class="o">.</span><span class="n">i</span> <span class="ow">is</span> <span class="n">Undefined</span>
 <span class="c1"># get_tagged allows to retrieve the tag and it&#39;s value</span>
 <span class="c1"># (but the value is not typed-checked)</span>
 <span class="k">assert</span> <span class="n">get_tagged</span><span class="p">(</span><span class="n">tagged_bar</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="n">Bar</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">))</span>
@@ -1197,15 +1195,13 @@ It's fields <strong>must</strong> be typed using <code>apischema.tagged_unions.T
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span>
     <span class="p">{</span>
         <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="s2">&quot;tagged union must have one and only one tag set, found [&#39;bar&#39;, &#39;baz&#39;]&quot;</span>
-        <span class="p">],</span>
+        <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;size greater than 1 (maxProperties)&quot;</span><span class="p">],</span>
     <span class="p">}</span>
 <span class="p">]</span>
 </code></pre></div>
 
 <h3 id="json-schema">JSON schema<a class="headerlink" href="#json-schema" title="Permanent link">&para;</a></h3>
-<p>Tagged unions JSON schema use <code>oneOf</code> as expected.</p>
+<p>Tagged unions JSON schema uses <code>minProperties: 1</code> and <code>maxProperties: 1</code>.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span><span class="p">,</span> <span class="n">serialization_schema</span>
@@ -1226,21 +1222,20 @@ It's fields <strong>must</strong> be typed using <code>apischema.tagged_unions.T
     <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
     <span class="o">==</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
     <span class="o">==</span> <span class="p">{</span>
-        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;oneOf&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
-                        <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field&quot;</span><span class="p">],</span>
-                        <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                    <span class="p">}</span>
-                <span class="p">}</span>
-            <span class="p">},</span>
-            <span class="p">{</span><span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}}},</span>
-        <span class="p">],</span>
         <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
+                <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;minProperties&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;maxProperties&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">)</span>
 </code></pre></div>
