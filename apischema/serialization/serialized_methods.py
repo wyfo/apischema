@@ -34,7 +34,7 @@ from apischema.utils import (
 
 
 @dataclass(frozen=True)
-class Serialized:
+class SerializedMethod:
     func: Callable
     conversions: Optional[Conversions]
     schema: Optional[Schema]
@@ -73,9 +73,9 @@ class Serialized:
         return types
 
 
-_serialized_methods: Dict[Type, Dict[str, Serialized]] = defaultdict(dict)
+_serialized_methods: Dict[Type, Dict[str, SerializedMethod]] = defaultdict(dict)
 
-S = TypeVar("S", bound=Serialized)
+S = TypeVar("S", bound=SerializedMethod)
 
 
 def _get_methods(
@@ -96,7 +96,7 @@ def _get_methods(
 
 def get_serialized_methods(
     tp: AnyType,
-) -> Mapping[str, Tuple[Serialized, Mapping[str, AnyType]]]:
+) -> Mapping[str, Tuple[SerializedMethod, Mapping[str, AnyType]]]:
     return _get_methods(tp, _serialized_methods)
 
 
@@ -161,7 +161,7 @@ def serialized(
                     return error_handler(error, self, alias2)
 
         assert not isinstance(error_handler2, UndefinedType)
-        serialized = Serialized(func, conversions, schema, error_handler2)
+        serialized = SerializedMethod(func, conversions, schema, error_handler2)
         if owner is None:
             try:
                 owner = get_origin_or_type(get_type_hints(func)[parameters[0].name])

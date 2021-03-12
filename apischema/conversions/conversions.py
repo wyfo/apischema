@@ -1,3 +1,4 @@
+from collections.abc import Collection as Collection_
 from dataclasses import dataclass
 from typing import (
     Any,
@@ -49,6 +50,14 @@ class LazyConversion:
 
 ConvOrFunc = Union[Conversion, Converter, property, LazyConversion]
 Conversions = Union[ConvOrFunc, Collection[ConvOrFunc]]
+HashableConversions = Union[ConvOrFunc, Tuple[ConvOrFunc, ...]]
+
+
+def to_hashable_conversions(
+    conversions: Optional[Conversions],
+) -> Optional[HashableConversions]:
+    return tuple(conversions) if isinstance(conversions, Collection) else conversions
+
 
 ResolvedConversion = NewType("ResolvedConversion", Conversion)
 ResolvedConversions = Tuple[ResolvedConversion, ...]  # Tuple in order to be hashable
@@ -97,9 +106,9 @@ def is_identity(conversion: ResolvedConversion) -> bool:
 def handle_container_conversions(
     tp: AnyType,
     next_conversions: Optional[Conversions],
-    prev_conversions: Optional[Conversions],
+    prev_conversions: Optional[HashableConversions],
     dynamic: bool,
-) -> Optional[Conversions]:
+) -> Optional[HashableConversions]:
     origin = get_origin_or_type(tp)
     if (
         prev_conversions
@@ -116,5 +125,7 @@ def handle_container_conversions(
             )
         else:
             return prev_conversions
+    elif isinstance(next_conversions, Collection_):
+        return tuple(next_conversions)
     else:
         return next_conversions
