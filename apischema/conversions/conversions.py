@@ -106,7 +106,7 @@ def is_identity(conversion: ResolvedConversion) -> bool:
 def handle_container_conversions(
     tp: AnyType,
     next_conversions: Optional[Conversions],
-    prev_conversions: Optional[Conversions],
+    prev_conversions: Optional[HashableConversions],
     dynamic: bool,
 ) -> Optional[HashableConversions]:
     origin = get_origin_or_type(tp)
@@ -123,8 +123,6 @@ def handle_container_conversions(
                 LazyConversion(lambda: next_conversions),
                 LazyConversion(lambda: prev_conversions),
             )
-        elif isinstance(prev_conversions, Collection_):
-            return tuple(prev_conversions)
         else:
             return prev_conversions
     elif isinstance(next_conversions, Collection_):
