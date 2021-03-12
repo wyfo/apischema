@@ -252,7 +252,12 @@ However, it has been judged better to get the same restriction on both operation
 
 #### Why `Annotated` cannot be used to specified conversions?
 
-Same reason than above, because serialization doesn't use type annotations, so conversions would be lost. Actually, for dataclasses/namedtuples fields, as well as serialized methods return, it would be possible to use read an annotated conversion, even during serialization. However, this behavior could be confusing, because `Annotated[MyType, conversion(...)]` would be allowed as a dataclass fields, but `list[Annotated[Mytype, conversions(...)]]` will not work as expected. That's why it has been decided that conversions should not be embedded in `Annotated`, to keep things simple. 
+Same reason than above, because serialization doesn't use type annotations, so conversions would be lost.
+
+Actually, for dataclasses/namedtuples fields, as well as serialized methods return, it would be possible to use read an annotated conversion, even during serialization. 
+However, this behavior could be confusing, because `Annotated[MyType, conversion(...)]` would be allowed as a dataclass fields, but `list[Annotated[Mytype, conversions(...)]]` will not work as expected. 
+
+That's why it has been decided that conversions should not be embedded in `Annotated`, to keep things simple.
 
 
 #### Why dynamic conversion cannot apply on the whole data model?
