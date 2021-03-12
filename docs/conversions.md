@@ -250,7 +250,12 @@ On the other hand, deserialization use annotations, so it could indeed apply con
 
 However, it has been judged better to get the same restriction on both operation for simplicity and because the main need of deserialization customization is validation, which can already be registered for `NewType` or embedded in `Annotated`, etc.
 
+#### Why `Annotated` cannot be used to specified conversions?
+
+Same reason than above, because serialization doesn't use type annotations, so conversions would be lost. Actually, for dataclasses/namedtuples fields, as well as serialized methods return, it would be possible to use read an annotated conversion, even during serialization. However, this behavior could be confusing, because `Annotated[MyType, conversion(...)]` would be allowed as a dataclass fields, but `list[Annotated[Mytype, conversions(...)]]` will not work as expected. That's why it has been decided that conversions should not be embedded in `Annotated`, to keep things simple. 
+
+
 #### Why dynamic conversion cannot apply on the whole data model?
 
-To ensure consistency and reuse of subschemas with a `$ref`. Indeed, if dynamic conversions were global,
-different endpoints with or without conversions could have different result for nested classes (because one of its field could be impacted), so these classes could not be referenced consistently with their `$ref`.
+To ensure consistency and reuse of subschemas with a `$ref`. Indeed, if dynamic conversions were global, different endpoints with or without conversions could have different result for nested classes (because one of its field could be impacted), so these classes could not be referenced consistently with their `$ref`.
+
