@@ -1,3 +1,4 @@
+from collections.abc import Collection as Collection_
 from dataclasses import Field, dataclass, is_dataclass
 from enum import Enum
 from functools import wraps
@@ -27,6 +28,7 @@ from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import (
     Conversions,
+    HashableConversions,
     handle_container_conversions,
 )
 from apischema.conversions.utils import (
@@ -856,7 +858,7 @@ class DeserializationMethodVisitor(
 
 @cache
 def get_method(
-    tp: AnyType, conversions: Optional[Conversions], aliaser: Aliaser
+    tp: AnyType, conversions: Optional[HashableConversions], aliaser: Aliaser
 ) -> DeserializationMethod:
     factory = DeserializationMethodVisitor(aliaser).visit_with_conversions(
         tp, conversions
@@ -911,6 +913,6 @@ def deserialize(
     if aliaser is None:
         aliaser = settings.aliaser()
     ctx = DeserializationContext(additional_properties, coercion, default_fallback)
-    if isinstance(conversions, Collection):
-        conversions = tuple(conversions)  # Make it hashable
+    if conversions is not None and isinstance(conversions, Collection_):
+        conversions = tuple(conversions)
     return get_method(tp, conversions, aliaser)(ctx, data)

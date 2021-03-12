@@ -22,7 +22,12 @@ from typing import (
 import graphql
 
 from apischema.aliases import Aliaser
-from apischema.conversions.conversions import Conversions, handle_container_conversions
+from apischema.conversions.conversions import (
+    Conversions,
+    HashableConversions,
+    handle_container_conversions,
+    to_hashable_conversions,
+)
 from apischema.conversions.dataclass_models import DataclassModel
 from apischema.deserialization import deserialize
 from apischema.json_schema.schema import Schema
@@ -43,7 +48,7 @@ from apischema.serialization import (
 )
 from apischema.serialization.serialized_methods import (
     ErrorHandler,
-    Serialized,
+    SerializedMethod,
     _get_methods,
     serialized as register_serialized,
 )
@@ -61,7 +66,7 @@ from apischema.visitor import Unsupported
 
 
 def partial_serialize(
-    obj: Any, *, aliaser: Aliaser, conversions: Conversions = None
+    obj: Any, *, aliaser: Aliaser, conversions: HashableConversions = None
 ) -> Any:
     if obj is Undefined:
         return None
@@ -126,7 +131,7 @@ def unwrap_awaitable(tp: AnyType) -> AnyType:
 
 
 @dataclass(frozen=True)
-class Resolver(Serialized):
+class Resolver(SerializedMethod):
     parameters: Sequence[Parameter]
     parameters_metadata: Mapping[str, Mapping]
 
@@ -270,19 +275,16 @@ def resolver_resolve(
                 (aliaser(alias), param.name, deserializer, opt_param, required)
             )
     func, error_handler = resolver.func, resolver.error_handler
+    conversions = to_hashable_conversions(resolver.conversions)
 
     def no_serialize(result):
         return result
 
     async def async_serialize(result: Awaitable):
-        return partial_serialize(
-            await result, aliaser=aliaser, conversions=resolver.conversions
-        )
+        return partial_serialize(await result, aliaser=aliaser, conversions=conversions)
 
     def sync_serialize(result):
-        return partial_serialize(
-            result, aliaser=aliaser, conversions=resolver.conversions
-        )
+        return partial_serialize(result, aliaser=aliaser, conversions=conversions)
 
     serialize_result: Callable[[Any], Any]
     if not serialized:

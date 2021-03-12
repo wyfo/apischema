@@ -27,7 +27,7 @@ import graphql
 from apischema import UndefinedType, serialize
 from apischema.aliases import Aliaser
 from apischema.conversions import identity
-from apischema.conversions.conversions import Conversions
+from apischema.conversions.conversions import Conversions, to_hashable_conversions
 from apischema.conversions.visitor import (
     Conv,
     ConversionsVisitor,
@@ -521,7 +521,7 @@ class OutputSchemaBuilder(
             resolve = field.resolve
         else:
             field_name, aliaser = field.name, self.aliaser
-            conversions = field.conversions
+            conversions = to_hashable_conversions(field.conversions)
 
             def resolve(obj, _):
                 return partial_serialize(
@@ -591,7 +591,9 @@ class OutputSchemaBuilder(
     def _visit_merged(
         self, field: Field, field_type: AnyType
     ) -> Thunk[graphql.GraphQLType]:
-        conversions = get_field_conversions(field, self.operation)
+        conversions = to_hashable_conversions(
+            get_field_conversions(field, self.operation)
+        )
         field_name, aliaser = field.name, self.aliaser
         get_prev_merged = self._get_merged if self._get_merged is not None else identity
 
