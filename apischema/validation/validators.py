@@ -113,7 +113,7 @@ class Validator:
         return self if instance is None else MethodType(self.func, instance)
 
     def __call__(self, *args, **kwargs):
-        return self.func(*args, **kwargs)
+        raise RuntimeError("Method __set_name__ has not been called")
 
     def _register(self, owner: Type):
         if self._registered:
@@ -124,6 +124,7 @@ class Validator:
 
     def __set_name__(self, owner, name):
         self._register(owner)
+        setattr(owner, name, self.func)
 
 
 T = TypeVar("T")
@@ -182,16 +183,17 @@ def validator(
     ...
 
 
-def validator(arg=None, *, discard=None, owner=None):
-    if arg is None:
-        return lambda func: Validator(func, None, discard)
+def validator(arg=None, *, field=None, discard=None, owner=None):
     if callable(arg):
-        validator_ = Validator(arg, None, None)
-        if is_method(arg) and method_class(arg) is None:
-            return validator_
+        validator_ = Validator(arg, field, discard)
         if is_method(arg):
-            if owner is None:
-                owner = method_class(arg)
+            cls = method_class(arg)
+            if cls is None:
+                if owner is not None:
+                    raise TypeError("Validator owner cannot be set for class validator")
+                return validator_
+            elif owner is None:
+                owner = cls
         if owner is None:
             try:
                 first_param = next(iter(signature(arg).parameters))
@@ -199,16 +201,16 @@ def validator(arg=None, *, discard=None, owner=None):
             except Exception:
                 raise ValueError("Validator first parameter must be typed")
         validator_._register(owner)
-        return validator_
-    field = arg
-    if not isinstance(field, Field):
-        raise TypeError(
-            "Validator argument must be a field declared with `... = field(...)`"
-        )
-    if discard is not None:
-        if not isinstance(discard, Field) or not (
-            isinstance(discard, Collection)
-            and all(isinstance(f, Field) for f in discard)
-        ):
-            raise TypeError("discard must be a field or a collection of fields")
-    return lambda func: Validator(func, field, discard)
+        return arg
+    else:
+        field = field or arg
+        if field is not None:
+            if not isinstance(field, Field):
+                raise TypeError("Validator field must be a dataclass field")
+            if discard is not None:
+                if not isinstance(discard, Field) or not (
+                    isinstance(discard, Collection)
+                    and all(isinstance(f, Field) for f in discard)
+                ):
+                    raise TypeError("discard must be a field or a collection of fields")
+        return lambda func: validator(func, field=field, discard=discard, owner=owner)

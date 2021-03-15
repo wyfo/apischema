@@ -8,7 +8,7 @@ from apischema.metadata import validators
 Palindrome = NewType("Palindrome", str)
 
 
-@validator
+@validator  # could also use @validator(owner=Palindrome)
 def check_palindrome(s: Palindrome):
     for i in range(len(s) // 2):
         if s[i] != s[-1 - i]:

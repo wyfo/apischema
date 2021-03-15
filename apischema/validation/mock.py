@@ -7,7 +7,7 @@ from apischema.dataclass_utils import get_default, has_default
 from apischema.fields import FIELDS_SET_ATTR, set_fields
 
 if TYPE_CHECKING:
-    from apischema.validation.validator import Validator
+    from apischema.validation.validators import Validator
 
 MOCK_FIELDS_FIELD = "__mock_fields__"
 MOCK_CLS_FIELD = "__mock_cls__"

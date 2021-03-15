@@ -18,7 +18,7 @@ from apischema.types import AnyType, MetadataImplem, Metadata, MetadataMixin
 
 if TYPE_CHECKING:
     from apischema.conversions.conversions import Conversions
-    from apischema.validation.validator import Validator
+    from apischema.validation.validators import Validator
 
 
 def simple_metadata(key: str) -> Metadata:
@@ -86,6 +86,6 @@ class ValidatorsMetadata(MetadataMixin):
 
 
 def validators(*validator: Callable) -> ValidatorsMetadata:
-    from apischema.validation.validator import Validator
+    from apischema.validation.validators import Validator
 
     return ValidatorsMetadata(tuple(map(Validator, validator)))
