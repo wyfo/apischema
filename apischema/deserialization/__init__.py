@@ -85,7 +85,7 @@ from apischema.validation.errors import (
     merge_errors,
 )
 from apischema.validation.mock import ValidatorMock
-from apischema.validation.validator import (
+from apischema.validation.validators import (
     Validator,
     get_validators,
     validate,

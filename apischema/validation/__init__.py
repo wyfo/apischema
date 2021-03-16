@@ -9,4 +9,4 @@ __all__ = [
 ]
 
 from .errors import ValidationError, ValidatorResult, with_validation_error
-from .validator import Discard, get_validators, validate, validator
+from .validators import Discard, get_validators, validate, validator

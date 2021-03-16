@@ -1,13 +1,13 @@
 from dataclasses import Field, dataclass, field
 from operator import not_
-from typing import cast
+from typing import Callable, Type, cast
 
 from pytest import raises
 
 from apischema import ValidationError, validator
 from apischema.fields import fields
 from apischema.validation.mock import NonTrivialDependency, ValidatorMock
-from apischema.validation.validator import (
+from apischema.validation.validators import (
     Validator,
     get_validators,
     validate,
@@ -44,14 +44,21 @@ def non_trivial(data: Data):
     return data.c == data.b
 
 
+def get_validators_by_method(cls: Type, method: Callable) -> Validator:
+    return next(val for val in get_validators(cls) if val.func == method)
+
+
 def test_get_validators():
-    assert get_validators(Data) == [Data.a_gt_10, Data.a_lt_100, Data.non_trivial]
+    assert get_validators(Data) == [
+        get_validators_by_method(Data, method)
+        for method in (Data.a_gt_10, Data.a_lt_100, Data.non_trivial)
+    ]
 
 
 def test_validator_descriptor():
     # Class field is descriptor
-    val: Validator = Data.a_gt_10
-    assert val.dependencies == {"a"}
+    validator = get_validators_by_method(Data, Data.a_gt_10)
+    assert validator.dependencies == {"a"}
     # Can be called from class and instance
     with raises(ValueError):
         assert Data(200, 0).a_lt_100()
@@ -74,4 +81,4 @@ def test_non_trivial():
         validate(ValidatorMock(Data, {"a": 42}), get_validators(Data))
     # err.value.attr != "c" because `c` has a default value
     assert err.value.attr == "b"
-    assert err.value.validator == Data.non_trivial
+    assert err.value.validator.func == Data.non_trivial
