@@ -1,13 +1,11 @@
 from collections import defaultdict
-from dataclasses import dataclass, is_dataclass
-from enum import Enum
+from dataclasses import dataclass
 from functools import partial
 from inspect import Parameter, iscoroutinefunction, signature
 from typing import (
     Any,
     Awaitable,
     Callable,
-    Collection,
     Dict,
     Iterator,
     Mapping,
@@ -25,10 +23,8 @@ from apischema.aliases import Aliaser
 from apischema.conversions.conversions import (
     Conversions,
     HashableConversions,
-    handle_container_conversions,
     to_hashable_conversions,
 )
-from apischema.conversions.dataclass_models import DataclassModel
 from apischema.deserialization import deserialize
 from apischema.json_schema.schema import Schema
 from apischema.metadata.implem import ConversionMetadata
@@ -39,20 +35,14 @@ from apischema.metadata.keys import (
     REQUIRED_METADATA,
     get_annotated_metadata,
 )
-from apischema.serialization import (
-    COLLECTION_TYPE_SET,
-    MAPPING_TYPE_SET,
-    PRIMITIVE_TYPES_SET,
-    get_conversions,
-    serialize,
-)
+from apischema.serialization import serialization_method_factory, serialize
 from apischema.serialization.serialized_methods import (
     ErrorHandler,
     SerializedMethod,
     _get_methods,
     serialized as register_serialized,
 )
-from apischema.types import AnyType, NoneType, PRIMITIVE_TYPES
+from apischema.types import AnyType, NoneType
 from apischema.typing import get_origin, get_type_hints
 from apischema.utils import (
     Undefined,
@@ -62,53 +52,20 @@ from apischema.utils import (
     method_registerer,
 )
 from apischema.validation.errors import ValidationError
-from apischema.visitor import Unsupported
+
+T = TypeVar("T")
+
+
+partial_serialization_method = serialization_method_factory(
+    lambda cls, aliaser: lambda obj, exc_unset: obj,  # type: ignore
+    lambda obj, exc_unset: None,  # type: ignore
+)
 
 
 def partial_serialize(
-    obj: Any, *, aliaser: Aliaser, conversions: HashableConversions = None
+    obj: Any, *, conversions: HashableConversions = None, aliaser: Aliaser
 ) -> Any:
-    if obj is Undefined:
-        return None
-    cls = obj.__class__
-    if cls in PRIMITIVE_TYPES_SET:
-        return obj
-    if cls in COLLECTION_TYPE_SET:
-        return [
-            partial_serialize(elt, aliaser=aliaser, conversions=conversions)
-            for elt in obj
-        ]
-    if cls in MAPPING_TYPE_SET:
-        return serialize(
-            obj, conversions=conversions, aliaser=aliaser, exclude_unset=False
-        )
-    conversion, dynamic = get_conversions(cls, conversions)
-    if conversion is not None:
-        if isinstance(conversion.target, DataclassModel):
-            return obj
-        return partial_serialize(
-            conversion.converter(obj),  # type: ignore
-            aliaser=aliaser,
-            conversions=handle_container_conversions(
-                conversion.target,
-                conversion.sub_conversions,
-                conversions,
-                dynamic,
-            ),
-        )
-    if is_dataclass(cls):
-        return obj
-    if issubclass(cls, Enum):
-        return serialize(obj.value, aliaser=aliaser, exclude_unset=False)
-    if isinstance(obj, PRIMITIVE_TYPES):
-        return obj
-    if isinstance(obj, Mapping):
-        return serialize(obj, aliaser=aliaser, exclude_unset=False)
-    if isinstance(obj, Collection):
-        return [partial_serialize(elt, aliaser=aliaser) for elt in obj]
-    if issubclass(cls, tuple) and hasattr(cls, "_fields"):
-        return obj
-    raise Unsupported(cls)
+    return partial_serialization_method(obj.__class__, conversions, aliaser)(obj, False)
 
 
 awaitable_origin = get_origin(Awaitable[Any])
@@ -281,10 +238,15 @@ def resolver_resolve(
         return result
 
     async def async_serialize(result: Awaitable):
-        return partial_serialize(await result, aliaser=aliaser, conversions=conversions)
+        awaited = await result
+        return partial_serialization_method(awaited.__class__, conversions, aliaser)(
+            awaited, False
+        )
 
     def sync_serialize(result):
-        return partial_serialize(result, aliaser=aliaser, conversions=conversions)
+        return partial_serialization_method(result.__class__, conversions, aliaser)(
+            result, False
+        )
 
     serialize_result: Callable[[Any], Any]
     if not serialized:
