@@ -49,7 +49,7 @@ from apischema.graphql.resolvers import (
     Resolver,
     get_resolvers,
     none_error_handler,
-    partial_serialize,
+    partial_serialization_method,
     resolver_parameters,
     resolver_resolve,
 )
@@ -524,9 +524,10 @@ class OutputSchemaBuilder(
             conversions = to_hashable_conversions(field.conversions)
 
             def resolve(obj, _):
-                return partial_serialize(
-                    getattr(obj, field_name), aliaser=aliaser, conversions=conversions
-                )
+                attr = getattr(obj, field_name)
+                return partial_serialization_method(
+                    attr.__class__, conversions, aliaser
+                )(attr, False)
 
         resolve = self._wrap_resolve(resolve)
 
@@ -598,10 +599,9 @@ class OutputSchemaBuilder(
         get_prev_merged = self._get_merged if self._get_merged is not None else identity
 
         def get_merge(obj):
-            return partial_serialize(
-                getattr(get_prev_merged(obj), field_name),
-                aliaser=aliaser,
-                conversions=conversions,
+            attr = getattr(get_prev_merged(obj), field_name)
+            return partial_serialization_method(attr.__class__, conversions, aliaser)(
+                attr, False
             )
 
         merged_save = self._get_merged
