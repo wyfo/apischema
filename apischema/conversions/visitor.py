@@ -176,9 +176,7 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
         source = conversion.source
         if isinstance(source, DataclassModel):
             source = source.dataclass
-        if is_type_var(conversion.target):
-            return substitute_type_vars(source, {conversion.target: tp})
-        elif get_origin(tp) is None:
+        if get_origin(tp) is None:
             return source
         else:
             origin = get_origin_or_type(tp)
@@ -264,9 +262,7 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
         target = conversion.target
         if isinstance(target, DataclassModel):
             target = target.dataclass
-        if is_type_var(conversion.source):
-            return substitute_type_vars(target, {conversion.source: tp})
-        elif get_origin(tp) is None:
+        if get_origin(tp) is None:
             return target
         else:
             source = conversion.source
