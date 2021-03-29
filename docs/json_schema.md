@@ -114,13 +114,15 @@ When no schema are defined, a default schema can be computed using `settings.def
 ```python
 from typing import Optional
 from apischema import schema, settings
-from apischema.json_schema.schema import Schema
+from apischema.json_schema.schemas import Schema
+
+
 @settings.default_schema
 def default_schema(cls) -> Optional[Schema]:
     if not ...:
         return None
     return schema(...)
-    
+
 ``` 
 
 Default implementation returns `None` for every types.

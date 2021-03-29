@@ -55,7 +55,7 @@ from apischema.json_schema.constraints import (
     merge_constraints,
 )
 from apischema.json_schema.patterns import infer_pattern
-from apischema.json_schema.schema import Schema, get_schema
+from apischema.json_schema.schemas import Schema, get_schema
 from apischema.metadata.implem import ValidatorsMetadata
 from apischema.metadata.keys import (
     DEFAULT_FALLBACK_METADATA,

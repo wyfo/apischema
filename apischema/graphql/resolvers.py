@@ -26,11 +26,11 @@ from apischema.conversions.conversions import (
     to_hashable_conversions,
 )
 from apischema.deserialization import deserialize
-from apischema.json_schema.schema import Schema
+from apischema.json_schema.schemas import Schema
 from apischema.metadata.implem import ConversionMetadata
 from apischema.metadata.keys import (
     ALIAS_METADATA,
-    CONVERSIONS_METADATA,
+    CONVERSION_METADATA,
     DEFAULT_FALLBACK_METADATA,
     REQUIRED_METADATA,
     get_annotated_metadata,
@@ -221,7 +221,7 @@ def resolver_resolve(
                 deserialize,
                 param_type,
                 conversions=metadata.get(
-                    CONVERSIONS_METADATA, ConversionMetadata()
+                    CONVERSION_METADATA, ConversionMetadata()
                 ).deserialization,
                 aliaser=aliaser,
                 default_fallback=DEFAULT_FALLBACK_METADATA in metadata or None,

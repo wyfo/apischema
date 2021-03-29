@@ -24,7 +24,7 @@ from typing import Deque, List, NewType, TypeVar
 from uuid import UUID
 
 from apischema.conversions import Conversion, as_str, deserializer, serializer
-from apischema.json_schema.schema import schema
+from apischema.json_schema.schemas import schema
 
 T = TypeVar("T")
 

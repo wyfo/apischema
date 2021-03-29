@@ -54,7 +54,7 @@ from apischema.json_schema.constraints import (
 from apischema.json_schema.generation.refs import Refs, RefsExtractor
 from apischema.json_schema.patterns import infer_pattern
 from apischema.json_schema.refs import check_ref_type, get_ref, schema_ref
-from apischema.json_schema.schema import Schema, get_schema, merge_schema
+from apischema.json_schema.schemas import Schema, get_schema, merge_schema
 from apischema.json_schema.types import JsonSchema, JsonType, json_schema
 from apischema.json_schema.versions import JsonSchemaVersion, RefFactory
 from apischema.metadata.keys import (

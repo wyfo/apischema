@@ -12,7 +12,7 @@ except ImportError:
 
 ALIAS_METADATA = f"{PREFIX}alias"
 ALIAS_NO_OVERRIDE_METADATA = f"{PREFIX}alias_no_override"
-CONVERSIONS_METADATA = f"{PREFIX}conversions"
+CONVERSION_METADATA = f"{PREFIX}conversion"
 DEFAULT_AS_SET = f"{PREFIX}default_as_set"
 DEFAULT_FALLBACK_METADATA = f"{PREFIX}default_fallback"
 INIT_VAR_METADATA = f"{PREFIX}init_var"
