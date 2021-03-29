@@ -14,6 +14,7 @@ from typing import (
     Iterable,
     List,
     Mapping,
+    NoReturn,
     Optional,
     Set,
     Tuple,
@@ -312,6 +313,10 @@ def sort_by_annotations_position(
         annotations.update(getattr(base, "__annotations__", ()))
     positions = {key: i for i, key in enumerate(annotations)}
     return sorted(elts, key=lambda elt: positions.get(key(elt), len(positions)))
+
+
+def stop_signature_abuse() -> NoReturn:
+    raise TypeError("Stop signature abuse")
 
 
 try:

@@ -1,4 +1,6 @@
+import warnings
 from collections import defaultdict
+from dataclasses import replace
 from typing import (
     Callable,
     Dict,
@@ -11,6 +13,7 @@ from typing import (
     overload,
 )
 
+from apischema.conversions import LazyConversion
 from apischema.conversions.conversions import (
     ConvOrFunc,
     Conversion,
@@ -27,7 +30,7 @@ from apischema.utils import (
     is_method,
     is_type_var,
     method_class,
-    method_wrapper,
+    stop_signature_abuse,
 )
 
 if TYPE_CHECKING:
@@ -49,10 +52,8 @@ def check_converter_type(tp: AnyType, side: str) -> Type:
     return origin
 
 
-def _add_deserializer(conversion: Union[Converter, Conversion], owner: Type = None):
-    namespace = {owner.__name__: owner} if owner is not None else None
-    resolved = resolve_conversion(conversion, namespace)
-    target = check_converter_type(resolved.target, "deserializer target")
+def _add_deserializer(conversion: ConvOrFunc, target: AnyType):
+    target = check_converter_type(target, "deserializer target")
     if conversion not in _deserializers[target]:
         _deserializers[target].append(conversion)
 
@@ -64,43 +65,54 @@ class DeserializerDescriptor(MethodWrapper[staticmethod]):
 
     def __set_name__(self, owner, name):
         super().__set_name__(owner, name)
-        _add_deserializer(
-            Conversion(self._method.__get__(None, object), **self._kwargs), owner
-        )
+        method = self._method.__get__(None, object)
+        target = resolve_conversion(method, {owner.__name__: owner})
+        _add_deserializer(method, target)
 
 
 @overload
-def deserializer(arg: Deserializer) -> Deserializer:
+def deserializer(deserializer: Deserializer) -> Deserializer:
     ...
 
 
 @overload
 def deserializer(
-    *,
-    conversions: Conversions = None,
-    additional_properties: Optional[bool] = None,
-    coercion: Optional["Coercion"] = None,
-    default_fallback: Optional[bool] = None,
-) -> Callable[[Serializer], Serializer]:
+    *, lazy: Callable[[], Union[Converter, Conversion]], target: Type
+) -> None:
     ...
 
 
-def deserializer(arg=None, **kwargs):
-    if arg is None:
-        return lambda arg: deserializer(arg, **kwargs)  # type: ignore
-    if isinstance(arg, staticmethod):
-        return DeserializerDescriptor(arg, **kwargs)
-    if kwargs and not isinstance(arg, Conversion):
-        _add_deserializer(Conversion(arg, **kwargs))
+def deserializer(
+    deserializer: Deserializer = None,
+    *,
+    lazy: Callable[[], Union[Converter, Conversion]] = None,
+    target: Type = None,
+):
+    if deserializer is not None:
+        if isinstance(deserializer, staticmethod):
+            return DeserializerDescriptor(deserializer)
+        elif isinstance(deserializer, LazyConversion):
+            stop_signature_abuse()
+        else:
+            resolved = resolve_conversion(deserializer)
+            _add_deserializer(deserializer, resolved.target)
+            return deserializer
+    elif lazy is not None and target is not None:
+
+        def replace_target():
+            conversion = lazy()
+            if isinstance(conversion, Conversion):
+                return replace(conversion, target=target)
+            else:
+                return Conversion(conversion, target=target)
+
+        _add_deserializer(LazyConversion(replace_target), target)
     else:
-        _add_deserializer(arg)
-    return arg
+        stop_signature_abuse()
 
 
-def _add_serializer(conversion: Union[Converter, Conversion], owner: Type = None):
-    namespace = {owner.__name__: owner} if owner is not None else None
-    resolved = resolve_conversion(conversion, namespace)
-    source = check_converter_type(resolved.source, "serializer source")
+def _add_serializer(conversion: ConvOrFunc, source: AnyType):
+    source = check_converter_type(source, "serializer source")
     _serializers[source] = conversion
 
 
@@ -111,36 +123,48 @@ class SerializerDescriptor(MethodWrapper[MethodOrProperty]):
 
     def __set_name__(self, owner, name):
         super().__set_name__(owner, name)
-        _add_serializer(Conversion(self._method, source=owner, **self._kwargs), owner)
+        _add_serializer(self._method, source=owner)
 
 
 @overload
-def serializer(arg: Serializer) -> Serializer:
+def serializer(serializer: Serializer) -> Serializer:
     ...
 
 
 @overload
 def serializer(
-    *,
-    conversions: Conversions = None,
-    exclude_unset: bool = None,
+    *, lazy: Callable[[], Union[Converter, Conversion]], source: Type
 ) -> Callable[[Serializer], Serializer]:
     ...
 
 
-def serializer(arg=None, **kwargs):
-    if arg is None:
-        return lambda arg: serializer(arg, **kwargs)  # type: ignore
-    if is_method(arg):
-        if method_class(arg) is None:
-            return SerializerDescriptor(arg, **kwargs)
+def serializer(
+    serializer: Serializer = None,
+    *,
+    lazy: Callable[[], Union[Converter, Conversion]] = None,
+    source: Type = None,
+):
+    if serializer is not None:
+        if is_method(serializer) and method_class(serializer) is None:
+            return SerializerDescriptor(serializer)
+        elif isinstance(serializer, LazyConversion):
+            stop_signature_abuse()
         else:
-            arg = method_wrapper(arg)
-    if kwargs and not isinstance(arg, Conversion):
-        _add_serializer(Conversion(arg, **kwargs))
+            resolved = resolve_conversion(serializer)
+            _add_serializer(serializer, resolved.source)
+            return serializer
+    elif lazy is not None and source is not None:
+
+        def replace_source():
+            conversion = lazy()
+            if isinstance(conversion, Conversion):
+                return replace(conversion, source=source)
+            else:
+                return Conversion(conversion, source=source)
+
+        _add_serializer(LazyConversion(replace_source), source)
     else:
-        _add_serializer(arg)
-    return arg
+        stop_signature_abuse()
 
 
 def reset_deserializers(cls: Type):
@@ -180,7 +204,7 @@ def inherited_deserializer(method: ClsMethod) -> ClsMethod:
 @overload
 def inherited_deserializer(
     *,
-    conversions: Conversions = None,
+    sub_conversions: Conversions = None,
     additional_properties: Optional[bool] = None,
     coercion: Optional["Coercion"] = None,
     default_fallback: Optional[bool] = None,
@@ -189,6 +213,9 @@ def inherited_deserializer(
 
 
 def inherited_deserializer(method=None, **kwargs):
+    warnings.warn(
+        "inherited_deserializer is deprecated; __init_subclasses", DeprecationWarning
+    )
     if method is None:
         return lambda func: inherited_deserializer(func, **kwargs)  # type: ignore
     if not isinstance(method, classmethod):

@@ -61,14 +61,9 @@ Inheritance can also be toggled off in specific cases, like in the [Class as uni
 
 On the other hand, deserializers cannot be inherited, because the same `Source` passed to a conversion function `(Source) -> Target` will always give the same `Target` (not ensured to be the desired subtype).
 
-However, there is one way to do it by using a `classmethod` and the special decorator `apischema.conversions.inherited_deserializer`; the class parameter of the method is then assumed to be used to instantiate the return.  
-
-```python
-{!deserializer_inheritance.py!}
-```
-
 !!! note
-    An "other" way to achieve that would be to use `__init_subclass__` method in order to add a deserializer to each subclass. In fact, that's what `inherited_deserializer` is doing behind the scene.
+Pseudo-inheritance could be achieved by registering a conversion (using for example a `classmethod`) for each subclass in `__init_subclass__` method (or a metaclass), or by using `__subclasses__`; see [example](examples/inherited_deserializer.md)
+
 
 ## Generic conversions
 
@@ -187,8 +182,8 @@ There are two differences with regular conversions :
 - The dataclass model computation can be deferred until it's needed. This is because some libraries do some resolutions after class definition (for example SQLAchemy resolves dynamic string references in relationships). So you could replace the following line in the example, it would works too.
 
 ```python
-# dataclass_model(cls)(make_dataclass(cls.__name__, fields))
-dataclass_model(cls)(lambda: make_dataclass(cls.__name__, fields))
+# dataclass_model(cls, make_dataclass(cls.__name__, fields))
+dataclass_model(cls, lambda: make_dataclass(cls.__name__, fields))
 ```
 
 - [Serialized methods/properties](de_serialization.md#serialized-methodsproperties) of the class are automatically added to the dataclass model (but you can also declare serialized methods in the dataclass model). This behavior can be toggled off using `fields_only` parameter with a `True` value. 
@@ -238,6 +233,13 @@ It is used by *apischema* itself for the generated JSON schema. It is indeed a r
 {!recursive_conversions.py!}
 ```
 
+### Lazy registered conversions
+
+Lazy conversions can also be registered, but the deserialization target/serialization source has to be passed too.
+
+```python
+{!lazy_registered_conversion.py!}
+```
 ## FAQ
 
 #### Why conversion can only be applied on classes?
