@@ -17,12 +17,14 @@ from typing import (
     Union,
 )
 
+from apischema.cache import cache
 from apischema.conversions.conversions import (
     Conversion,
     Conversions,
     ResolvedConversion,
     ResolvedConversions,
     handle_container_conversions,
+    handle_identity_conversion,
     is_identity,
     resolve_conversions,
 )
@@ -138,6 +140,20 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
             return self.visit(tp)
 
 
+@cache
+def self_deserialization_wrapper(cls: Type) -> Type:
+    return new_class(
+        f"{cls.__name__}SelfDeserializer",
+        (cls,),
+        exec_body=lambda ns: ns.update(
+            {
+                "__new__": lambda _, *args, **kwargs: cls(*args, **kwargs),
+                SELF_CONVERSION_ATTR: True,
+            }
+        ),
+    )
+
+
 class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
     operation = OperationKind.DESERIALIZATION
 
@@ -149,24 +165,18 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
         identity_conv = False
         result = []
         for conv in conversions:
-            if is_identity(conv):
-                identity_conv = True
-                namespace = {
-                    "__new__": lambda _, *args, **kwargs: origin(*args, **kwargs),
-                    SELF_CONVERSION_ATTR: True,
-                }
-                wrapper = new_class(
-                    f"{origin.__name__}SelfDeserializer",
-                    (tp,),
-                    exec_body=lambda ns: ns.update(namespace),
-                )
-                result.append(
-                    ResolvedConversion(
-                        replace(conv, source=wrapper, target=conv.target)
-                    )
-                )
-            elif issubclass(get_origin_or_type(conv.target), origin):
-                result.append(conv)
+            conv = handle_identity_conversion(conv, tp)
+            if issubclass(get_origin_or_type(conv.target), origin):
+                if is_identity(conv):
+                    if identity_conv:
+                        continue
+                    identity_conv = True
+                    wrapper: AnyType = self_deserialization_wrapper(origin)
+                    if get_args(tp):
+                        wrapper = wrapper[get_args(tp)]
+                    result.append(ResolvedConversion(replace(conv, source=wrapper)))
+                else:
+                    result.append(conv)
         return Undefined if identity_conv and len(result) == 1 else result or None
 
     _default_conversions = staticmethod(_deserializers.get)  # type: ignore
@@ -235,10 +245,9 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
     ) -> Union[Serialization, None, UndefinedType]:
         origin = get_origin_or_type(tp)
         for conv in conversions:
-            if is_identity(conv):
-                return Undefined
-            elif issubclass(origin, get_origin_or_type(conv.source)):
-                return conv
+            conv = handle_identity_conversion(conv, tp)
+            if issubclass(origin, get_origin_or_type(conv.source)):
+                return Undefined if is_identity(conv) else conv
         else:
             return None
 

@@ -132,6 +132,9 @@ Using `apischema.conversion.identity` as a dynamic conversion allows to bypass a
 {!bypass_conversions.py!}
 ```
 
+!!! note
+    For a more precise selection of bypassed conversion, for `tuple` or `Union` member for example, it's possible to pass the concerned class as the source *and* the target of conversion *with* `identity` converter, as shown in the example. 
+
 ### Liskov substitution principle
 
 LSP is taken in account when applying dynamic conversion: serializer source can be a subclass of the actual class and deserializer target can be a superclass of the actual class.
