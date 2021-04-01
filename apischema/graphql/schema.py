@@ -54,10 +54,10 @@ from apischema.graphql.resolvers import (
     resolver_resolve,
 )
 from apischema.json_schema.refs import check_ref_type, get_ref, schema_ref
-from apischema.json_schema.schema import Schema, get_schema, merge_schema
+from apischema.json_schema.schemas import Schema, get_schema, merge_schema
 from apischema.metadata.implem import ConversionMetadata
 from apischema.metadata.keys import (
-    CONVERSIONS_METADATA,
+    CONVERSION_METADATA,
     MERGED_METADATA,
     PROPERTIES_METADATA,
     REQUIRED_METADATA,
@@ -562,7 +562,7 @@ class OutputSchemaBuilder(
                     except Exception:
                         param_type = Optional[param_type]
                 conversions = metadata.get(
-                    CONVERSIONS_METADATA, ConversionMetadata()
+                    CONVERSION_METADATA, ConversionMetadata()
                 ).deserialization
                 with self._replace_conversions(conversions):
                     arg_type = self.input_builder.visit(param_type)

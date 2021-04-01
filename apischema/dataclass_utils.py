@@ -31,7 +31,7 @@ from apischema.dependent_required import (
     Requirements,
 )
 from apischema.metadata.implem import ConversionMetadata
-from apischema.metadata.keys import ALIAS_METADATA, CONVERSIONS_METADATA
+from apischema.metadata.keys import ALIAS_METADATA, CONVERSION_METADATA
 from apischema.types import AnyType
 from apischema.typing import get_type_hints, get_type_hints2
 from apischema.utils import (
@@ -158,10 +158,10 @@ def get_field_conversions(
     field: Field, operation: OperationKind
 ) -> Optional["Conversions"]:
 
-    if CONVERSIONS_METADATA not in field.metadata:
+    if CONVERSION_METADATA not in field.metadata:
         return None
     else:
-        conversions: ConversionMetadata = field.metadata[CONVERSIONS_METADATA]
+        conversions: ConversionMetadata = field.metadata[CONVERSION_METADATA]
         return {
             OperationKind.DESERIALIZATION: conversions.deserialization,
             OperationKind.SERIALIZATION: conversions.serialization,

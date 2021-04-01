@@ -34,7 +34,7 @@ from .cache import reset_cache
 from .conversions import deserializer, serializer
 from .deserialization import deserialize
 from .json_schema.refs import schema_ref
-from .json_schema.schema import schema
+from .json_schema.schemas import schema
 from .metadata import properties
 from .serialization import serialize
 from .serialization.serialized_methods import serialized

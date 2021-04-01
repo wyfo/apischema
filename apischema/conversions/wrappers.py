@@ -6,7 +6,7 @@ from apischema.metadata import properties
 from apischema.metadata.keys import (
     ALIAS_METADATA,
     ALIAS_NO_OVERRIDE_METADATA,
-    CONVERSIONS_METADATA,
+    CONVERSION_METADATA,
     DEFAULT_AS_SET,
     DEFAULT_FALLBACK_METADATA,
     REQUIRED_METADATA,
@@ -18,7 +18,7 @@ from apischema.utils import to_camel_case
 FIELDS_METADATA = {
     ALIAS_METADATA,
     ALIAS_NO_OVERRIDE_METADATA,
-    CONVERSIONS_METADATA,
+    CONVERSION_METADATA,
     DEFAULT_AS_SET,
     DEFAULT_FALLBACK_METADATA,
     REQUIRED_METADATA,

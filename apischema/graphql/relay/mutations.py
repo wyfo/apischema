@@ -21,7 +21,7 @@ from apischema.json_schema.refs import schema_ref
 from apischema.utils import Undefined
 from apischema.graphql.schema import Mutation as Mutation_
 from apischema.graphql.resolvers import awaitable_origin
-from apischema.json_schema.schema import Schema
+from apischema.json_schema.schemas import Schema
 from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.types import AnyType
 from apischema.typing import get_type_hints

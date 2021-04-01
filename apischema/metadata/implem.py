@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Callable, Optional, Pattern, TYPE_CHECKING, Tuple, Union
 
 from apischema.metadata.keys import (
-    CONVERSIONS_METADATA,
+    CONVERSION_METADATA,
     DEFAULT_AS_SET,
     DEFAULT_FALLBACK_METADATA,
     INIT_VAR_METADATA,
@@ -27,7 +27,7 @@ def simple_metadata(key: str) -> Metadata:
 
 @dataclass(frozen=True)
 class ConversionMetadata(MetadataMixin):
-    key = CONVERSIONS_METADATA
+    key = CONVERSION_METADATA
     deserialization: Optional["Conversions"] = None
     serialization: Optional["Conversions"] = None
 

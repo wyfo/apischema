@@ -20,7 +20,7 @@ from apischema.conversions.visitor import (
     SerializationVisitor,
 )
 from apischema.deserialization import coercion as coercion_
-from apischema.json_schema import refs, schema, versions
+from apischema.json_schema import refs, schemas, versions
 from apischema.types import AnyType
 from apischema.utils import to_camel_case
 
@@ -142,7 +142,7 @@ def default_ref(func=None):
         refs._default_ref = func
 
 
-SchemaFunc = Callable[[AnyType], Optional[schema.Schema]]
+SchemaFunc = Callable[[AnyType], Optional[schemas.Schema]]
 
 
 @overload
@@ -157,7 +157,7 @@ def default_schema(func: SchemaFunc) -> SchemaFunc:
 
 def default_schema(func=None):
     if func is None:
-        return schema._default_schema
+        return schemas._default_schema
     else:
-        schema._default_schema = func
+        schemas._default_schema = func
         reset_cache()
