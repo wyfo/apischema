@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Any, Callable, Collection, Mapping, Optional, Type, TypeVar
 
 from apischema import settings
-from apischema.aliases import Aliaser
+from apischema.aliases import AliasedStr, Aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import (
     Conversions,
@@ -155,6 +155,8 @@ def serialization_method_factory(
                     )
 
                 return method
+        if issubclass(cls, AliasedStr):
+            return lambda obj, _: aliaser(obj)
         if issubclass(cls, PRIMITIVE_TYPES):
             return lambda obj, _: obj
         if issubclass(cls, tuple) and hasattr(cls, "_fields"):

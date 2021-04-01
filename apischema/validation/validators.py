@@ -1,5 +1,4 @@
 from collections import defaultdict
-from dataclasses import Field
 from functools import wraps
 from inspect import Parameter, isgeneratorfunction, signature
 from types import MethodType
@@ -16,18 +15,22 @@ from typing import (
     Sequence,
     Type,
     TypeVar,
-    Union,
     overload,
 )
 
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
+from apischema.objects import (
+    FieldOrName,
+    check_field_or_name,
+    get_field_name,
+    object_fields,
+)
 from apischema.types import AnyType
 from apischema.typing import get_type_hints
 from apischema.utils import get_origin_or_type, is_method, method_class
 from apischema.validation.dependencies import find_all_dependencies
 from apischema.validation.errors import (
     Error,
-    FieldPath,
     ValidationError,
     merge_errors,
     yield_to_raise,
@@ -50,7 +53,7 @@ def get_validators(tp: AnyType) -> Sequence["Validator"]:
 
 
 class Discard(Exception):
-    def __init__(self, fields: AbstractSet[Field], error: ValidationError):
+    def __init__(self, fields: AbstractSet[str], error: ValidationError):
         self.fields = fields
         self.error = error
 
@@ -59,19 +62,17 @@ class Validator:
     def __init__(
         self,
         func: Callable,
-        field: Field = None,
-        discard: Union[Field, Collection[Field]] = None,
+        field: FieldOrName = None,
+        discard: Collection[FieldOrName] = None,
     ):
         wraps(func)(self)
         self.func = func
         self.field = field
         # Cannot use field.name because fields are not yet initialized with __set_name__
         if field is not None and discard is None:
-            self.discard: AbstractSet[Field] = {field}
-        elif isinstance(discard, Field):
-            self.discard = {discard}
+            self.discard: Optional[Collection[FieldOrName]] = (field,)
         else:
-            self.discard = set(discard or ())
+            self.discard = discard
         self.dependencies: AbstractSet[str] = set()
         validate = func
         try:
@@ -90,21 +91,31 @@ class Validator:
             validate = yield_to_raise(validate)
         if self.field is not None:
             wrapped_field = validate
+            alias = None
 
             def validate(__obj, **kwargs):
+                nonlocal alias
                 try:
                     wrapped_field(__obj, **kwargs)
                 except ValidationError as err:
-                    raise ValidationError(children={FieldPath(field): err})
+                    if alias is None:
+                        alias = object_fields(self.owner)[
+                            get_field_name(self.field)
+                        ].alias
+                    raise ValidationError(children={alias: err})
 
         if self.discard:
             wrapped_discard = validate
+            discarded = None
 
             def validate(__obj, **kwargs):
+                nonlocal discarded
                 try:
                     wrapped_discard(__obj, **kwargs)
                 except ValidationError as err:
-                    raise Discard(self.discard, err)
+                    if discarded is None:
+                        discarded = set(map(get_field_name, self.discard))
+                    raise Discard(discarded, err)
 
         self.validate: Callable[..., Iterator[Error]] = validate
         self._registered = False
@@ -116,6 +127,7 @@ class Validator:
         raise RuntimeError("Method __set_name__ has not been called")
 
     def _register(self, owner: Type):
+        self.owner = owner
         if self._registered:
             raise RuntimeError("Validator already registered")
         self.dependencies = find_all_dependencies(owner, self.func) | self.params
@@ -149,7 +161,7 @@ def validate(__obj: T, __validators: Iterable[Validator] = None, **kwargs) -> T:
                 error = merge_errors(error, err)
             except Discard as err:
                 error = merge_errors(error, err.error)
-                discarded = {f.name for f in err.fields}
+                discarded = err.fields  # tmp variable because of NameError
                 __validators = iter(
                     v for v in __validators if not discarded & v.dependencies
                 )
@@ -205,12 +217,10 @@ def validator(arg=None, *, field=None, discard=None, owner=None):
     else:
         field = field or arg
         if field is not None:
-            if not isinstance(field, Field):
-                raise TypeError("Validator field must be a dataclass field")
-            if discard is not None:
-                if not isinstance(discard, Field) or not (
-                    isinstance(discard, Collection)
-                    and all(isinstance(f, Field) for f in discard)
-                ):
-                    raise TypeError("discard must be a field or a collection of fields")
+            check_field_or_name(field)
+        if discard is not None:
+            if not isinstance(discard, Collection) or isinstance(discard, str):
+                discard = [discard]
+            for discarded in discard:
+                check_field_or_name(discarded)
         return lambda func: validator(func, field=field, discard=discard, owner=owner)

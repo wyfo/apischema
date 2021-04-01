@@ -463,7 +463,7 @@ class InputSchemaBuilder(
         )
 
     def typed_dict(
-        self, cls: Type, keys: Mapping[str, AnyType], required_keys: Collection[str]
+        self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
     ) -> Thunk[graphql.GraphQLType]:
         return self.object(
             cls,
@@ -474,7 +474,7 @@ class InputSchemaBuilder(
                     default=Undefined if key in required_keys else graphql.Undefined,
                     alias=key,
                 )
-                for key, type in keys.items()
+                for key, type in types.items()
             ],
         )
 
@@ -676,7 +676,7 @@ class OutputSchemaBuilder(
             )
 
     def typed_dict(
-        self, cls: Type, keys: Mapping[str, AnyType], required_keys: Collection[str]
+        self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
     ) -> Thunk[graphql.GraphQLType]:
         raise TypeError("TyedDict are not supported in output schema")
 

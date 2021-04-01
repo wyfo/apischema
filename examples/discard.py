@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from pytest import raises
 
 from apischema import ValidationError, deserialize, serialize, validator
-from apischema.fields import fields
+from apischema.objects import get_alias
 
 
 @dataclass
@@ -15,14 +15,14 @@ class BoundedValues:
     def bounds_are_sorted(self):
         min_bound, max_bound = self.bounds
         if min_bound > max_bound:
-            yield fields(self).bounds, "bounds are not sorted"
+            yield get_alias(self).bounds, "bounds are not sorted"
 
     @validator
     def values_dont_exceed_bounds(self):
         min_bound, max_bound = self.bounds
         for index, value in enumerate(self.values):
             if not min_bound <= value <= max_bound:
-                yield (fields(self).values, index), "value exceeds bounds"
+                yield (get_alias(self).values, index), "value exceeds bounds"
 
 
 with raises(ValidationError) as err:

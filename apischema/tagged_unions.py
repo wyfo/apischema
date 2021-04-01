@@ -19,7 +19,7 @@ from apischema.conversions.conversions import ConvOrFunc
 from apischema.json_schema.schemas import Schema, schema
 from apischema.metadata import conversion
 from apischema.metadata.keys import (
-    DEFAULT_AS_SET,
+    DEFAULT_AS_SET_METADATA,
     DEFAULT_FALLBACK_METADATA,
     INIT_VAR_METADATA,
     MERGED_METADATA,
@@ -51,7 +51,7 @@ class Tag(str, Generic[T, V]):
 
 
 INVALID_METADATA = {
-    DEFAULT_AS_SET,
+    DEFAULT_AS_SET_METADATA,
     DEFAULT_FALLBACK_METADATA,
     INIT_VAR_METADATA,
     MERGED_METADATA,

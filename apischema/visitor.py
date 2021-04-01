@@ -118,7 +118,7 @@ class Visitor(Generic[Return]):
         raise NotImplementedError
 
     def typed_dict(
-        self, cls: Type, keys: Mapping[str, AnyType], required_keys: Collection[str]
+        self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
     ) -> Return:
         raise NotImplementedError
 

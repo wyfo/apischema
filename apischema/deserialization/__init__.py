@@ -78,12 +78,7 @@ from apischema.types import (
 )
 from apischema.typing import get_origin
 from apischema.utils import get_origin_or_type, opt_or
-from apischema.validation.errors import (
-    ErrorKey,
-    ValidationError,
-    apply_aliaser,
-    merge_errors,
-)
+from apischema.validation.errors import ErrorKey, ValidationError, merge_errors
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validators import (
     Validator,
@@ -495,9 +490,7 @@ class DeserializationMethodVisitor(
                         try:
                             validate(ValidatorMock(cls, values), validators2, **init)
                         except ValidationError as err:
-                            error = merge_errors(
-                                error, apply_aliaser(err, self.aliaser)
-                            )
+                            error = merge_errors(error, err)
                         raise error
                 elif field_errors or errors:
                     raise ValidationError(errors, field_errors)
@@ -505,10 +498,8 @@ class DeserializationMethodVisitor(
                     validators2, init = ..., ...  # type: ignore # only for linter
                 try:
                     res = cls(**values)
-                except AssertionError:
+                except (AssertionError, ValidationError):
                     raise
-                except ValidationError as err:
-                    raise apply_aliaser(err, self.aliaser)
                 except TypeError as err:
                     if str(err).startswith("__init__() got"):
                         raise Unsupported(cls)
@@ -516,10 +507,7 @@ class DeserializationMethodVisitor(
                         raise ValidationError([str(err)])
                 except Exception as err:
                     raise ValidationError([str(err)])
-                try:
-                    return validate(res, validators2, **init) if validators else res
-                except ValidationError as err:
-                    raise apply_aliaser(err, self.aliaser)
+                return validate(res, validators2, **init) if validators else res
 
             return method
 
@@ -722,10 +710,10 @@ class DeserializationMethodVisitor(
         return factory
 
     def typed_dict(
-        self, cls: Type, keys: Mapping[str, AnyType], required_keys: Collection[str]
+        self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
     ) -> DeserializationMethodFactory:
         # TypedDict doesn't use aliaser, because it cannot be used in serialization
-        items_deserializers = {key: self.method(tp) for key, tp in keys.items()}
+        items_deserializers = {key: self.method(tp) for key, tp in types.items()}
         required_keys = set(required_keys)
 
         @DeserializationMethodFactory.from_type(cls)

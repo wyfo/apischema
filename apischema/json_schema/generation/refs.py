@@ -113,9 +113,9 @@ class RefsExtractor(ConversionsVisitor):
             self.visit(cls)
 
     def typed_dict(
-        self, cls: Type, keys: Mapping[str, AnyType], required_keys: Collection[str]
+        self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
     ):
-        for cls in keys.values():
+        for cls in types.values():
             self.visit(cls)
 
     def _union_result(self, results: Iterable):

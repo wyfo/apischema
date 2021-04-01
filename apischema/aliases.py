@@ -1,11 +1,15 @@
 from collections import ChainMap
 from dataclasses import fields
-from typing import Callable, TypeVar, overload
+from typing import Any, Callable, Dict, TypeVar, overload
 
-from apischema.types import MetadataImplem, Metadata
+from apischema.types import Metadata, MetadataImplem
 
 Aliaser = Callable[[str], str]
 Cls = TypeVar("Cls")
+
+
+class AliasedStr(str):
+    pass
 
 
 @overload
@@ -49,9 +53,9 @@ def alias(arg=None, *, override: bool = True):  # type: ignore
             return cls
 
         return aliaser
-    metadata = {}
+    metadata: Dict[str, Any] = {}
     if arg is not None:
-        metadata[ALIAS_METADATA] = arg
+        metadata[ALIAS_METADATA] = AliasedStr(arg)
     if not override:
         metadata[ALIAS_NO_OVERRIDE_METADATA] = True
     if not metadata:  # pragma: no cover

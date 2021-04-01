@@ -4,7 +4,7 @@ from ipaddress import IPv4Address, IPv4Network
 from pytest import raises
 
 from apischema import ValidationError, deserialize, serialize, validator
-from apischema.fields import fields
+from apischema.objects import get_alias
 
 
 @dataclass
@@ -17,7 +17,7 @@ class SubnetIps:
         for index, ip in enumerate(self.ips):
             if ip not in self.subnet:
                 # yield <error path>, <error message>
-                yield (fields(self).ips, index), "ip not in subnet"
+                yield (get_alias(self).ips, index), "ip not in subnet"
 
 
 with raises(ValidationError) as err:

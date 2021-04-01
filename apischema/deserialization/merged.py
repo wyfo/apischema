@@ -37,9 +37,9 @@ class InitMergedAliasVisitor(DeserializationVisitor[Iterator[str]]):
         yield from types
 
     def typed_dict(
-        self, cls: Type, keys: Mapping[str, AnyType], required_keys: Collection[str]
+        self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
     ) -> Iterator[str]:
-        yield from keys
+        yield from types
 
     def _union_result(self, results: Iterable[Iterator[str]]) -> Iterator[str]:
         results = list(results)

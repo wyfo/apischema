@@ -362,8 +362,6 @@ class DynamicConversionResolver(ConversionsVisitor[Conv, Optional[AnyType]]):
         raise NotImplementedError
 
     def visit(self, tp: AnyType) -> Optional[AnyType]:
-        # if isinstance(tp, DataclassModel):
-        #     return self.visit(tp.dataclass)
         origin = get_origin(tp) or tp
         if not self._conversions or (origin, self._conversions) in self._rec_guard:
             return None
