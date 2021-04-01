@@ -1,13 +1,11 @@
 from collections.abc import Collection as Collection_
-from dataclasses import Field, dataclass, is_dataclass
+from dataclasses import dataclass, is_dataclass
 from enum import Enum
 from functools import wraps
-from itertools import chain
 from typing import (
     AbstractSet,
     Any,
     Callable,
-    Collection,
     Dict,
     Iterable,
     List,
@@ -24,31 +22,24 @@ from typing import (
 )
 
 from apischema import settings
-from apischema.aliases import Aliaser
+from apischema.aliases import AliasedStr, Aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import (
     Conversions,
     HashableConversions,
     handle_container_conversions,
 )
-from apischema.conversions.utils import (
-    Converter,
-    identity,
-)
+from apischema.conversions.utils import Converter, identity
 from apischema.conversions.visitor import Deserialization, DeserializationVisitor
 from apischema.dataclass_utils import (
+    dataclass_types_and_fields,
     get_alias,
-    get_default,
-    get_field_conversions,
-    get_fields,
     get_requirements,
-    has_default,
-    is_required,
 )
 from apischema.dataclasses import replace
 from apischema.dependent_required import DependentRequired
 from apischema.deserialization.coercion import Coercion, get_coercer
-from apischema.deserialization.merged import get_init_merged_alias
+from apischema.deserialization.merged import get_deserialization_merged_aliases
 from apischema.json_schema.constraints import (
     ArrayConstraints,
     Constraints,
@@ -58,16 +49,10 @@ from apischema.json_schema.patterns import infer_pattern
 from apischema.json_schema.schemas import Schema, get_schema
 from apischema.metadata.implem import ValidatorsMetadata
 from apischema.metadata.keys import (
-    DEFAULT_FALLBACK_METADATA,
-    MERGED_METADATA,
-    POST_INIT_METADATA,
-    PROPERTIES_METADATA,
     SCHEMA_METADATA,
-    SKIP_METADATA,
     VALIDATORS_METADATA,
-    check_metadata,
-    is_aggregate_field,
 )
+from apischema.objects import DeserializationObjectVisitor, ObjectField
 from apischema.skip import filter_skipped
 from apischema.types import (
     AnyType,
@@ -80,11 +65,7 @@ from apischema.typing import get_origin
 from apischema.utils import get_origin_or_type, opt_or
 from apischema.validation.errors import ErrorKey, ValidationError, merge_errors
 from apischema.validation.mock import ValidatorMock
-from apischema.validation.validators import (
-    Validator,
-    get_validators,
-    validate,
-)
+from apischema.validation.validators import Validator, get_validators, validate
 from apischema.visitor import Unsupported
 
 DICT_TYPE = get_origin(Dict[Any, Any])
@@ -215,46 +196,8 @@ class RecDeserializerMethodFactory:
             return self._method
 
 
-FieldDeserializer = Callable[
-    [
-        DeserializationContext,
-        Any,
-        Dict[str, Any],
-        List[str],
-        Dict[ErrorKey, ValidationError],
-    ],
-    None,
-]
-
-
-def field_deserializer(
-    field: Field, method: DeserializationMethod, aliaser: Aliaser
-) -> FieldDeserializer:
-    name = field.name
-    alias = aliaser(get_alias(field))
-    aggregate = is_aggregate_field(field)
-    default = has_default(field)
-    default_fallback = DEFAULT_FALLBACK_METADATA in field.metadata
-
-    def deserializer(
-        ctx: DeserializationContext,
-        data: Any,
-        values: Dict[str, Any],
-        errors: List[str],
-        field_errors: Dict[ErrorKey, ValidationError],
-    ):
-        try:
-            values[name] = method(ctx, data)  # type: ignore
-        except ValidationError as err:
-            if default and (default_fallback or ctx.default_fallback):
-                pass
-            elif aggregate:
-                errors.extend(err.messages)
-                field_errors.update(err.children)
-            else:
-                field_errors[alias] = err
-
-    return deserializer
+DefaultFallback = Optional[bool]
+Required = Union[bool, AbstractSet[str]]
 
 
 def with_validators(
@@ -274,12 +217,17 @@ def with_validators(
 
 
 class DeserializationMethodVisitor(
-    DeserializationVisitor[DeserializationMethodFactory]
+    DeserializationObjectVisitor[DeserializationMethodFactory],
+    DeserializationVisitor[DeserializationMethodFactory],
 ):
     def __init__(self, aliaser: Aliaser):
         super().__init__()
         self._rec_sentinel: Dict[Any, RecDeserializerMethodFactory] = {}
-        self.aliaser = aliaser
+
+        def _aliaser(s: str) -> str:
+            return aliaser(s) if isinstance(s, AliasedStr) else s
+
+        self.aliaser = _aliaser
 
     def _visit(self, tp: AnyType) -> DeserializationMethodFactory:
         key = self._generic or tp, self._conversions
@@ -343,171 +291,6 @@ class DeserializationMethodVisitor(
                 if elt_errors or errors:
                     raise ValidationError(errors, elt_errors)
                 return elts if cls is LIST_TYPE else COLLECTION_TYPES[cls](elts)
-
-            return method
-
-        return factory
-
-    def dataclass(
-        self,
-        cls: Type,
-        types: Mapping[str, AnyType],
-        fields: Sequence[Field],
-        init_vars: Sequence[Field],
-    ) -> DeserializationMethodFactory:
-        assert is_dataclass(cls)
-        normal_fields: List[
-            Tuple[str, FieldDeserializer, Union[bool, AbstractSet[str]]]
-        ] = []
-        merged_fields: List[Tuple[AbstractSet[str], FieldDeserializer]] = []
-        pattern_fields: List[Tuple[Pattern, FieldDeserializer]] = []
-        additional_field: Optional[FieldDeserializer] = None
-        post_init_modified = {
-            field.name
-            for field in chain(fields, init_vars)
-            if POST_INIT_METADATA in field.metadata
-        }
-        defaults: Dict[str, Callable[[], Any]] = {}
-        required_by = get_requirements(
-            cls, DependentRequired.required_by, self.operation
-        )
-        for field in get_fields(fields, init_vars, self.operation):  # noqa: F402
-            metadata = check_metadata(field)
-            if SKIP_METADATA in metadata or not field.init:
-                continue
-            if has_default(field):
-                defaults[field.name] = lambda: get_default(field)
-            field_type = types[field.name]
-            field_factory = self.visit_with_conversions(
-                field_type, get_field_conversions(field, self.operation)
-            )
-            if SCHEMA_METADATA in metadata:
-                field_factory = field_factory.merge(
-                    constraints=metadata[SCHEMA_METADATA].constraints
-                )
-            if VALIDATORS_METADATA in metadata:
-                field_factory = field_factory.merge(
-                    validators=metadata[VALIDATORS_METADATA].validators
-                )
-            deserializer = field_deserializer(field, field_factory.method, self.aliaser)
-            if MERGED_METADATA in metadata:
-                merged_alias = get_init_merged_alias(cls, field, field_type)
-                merged_fields.append(
-                    (set(map(self.aliaser, merged_alias)), deserializer)
-                )
-            elif PROPERTIES_METADATA in metadata:
-                pattern = metadata[PROPERTIES_METADATA]
-                if pattern is None:
-                    additional_field = deserializer
-                elif pattern is ...:
-                    pattern_fields.append((infer_pattern(field_type), deserializer))
-                else:
-                    pattern_fields.append((pattern, deserializer))
-            else:
-                required = is_required(field) or {
-                    self.aliaser(get_alias(req)) for req in required_by.get(field) or ()
-                }
-                normal_fields.append(
-                    (self.aliaser(get_alias(field)), deserializer, required)
-                )
-
-        @DeserializationMethodFactory.from_type(cls)
-        def factory(
-            constraints: Optional[Constraints], validators: Sequence[Validator]
-        ) -> DeserializationMethod:
-            def method(ctx: DeserializationContext, data: Any) -> Any:
-                data = ctx.coercer(dict, data)
-                values: Dict[str, Any] = {}
-                aliases: List[str] = []
-                errors = [] if constraints is None else constraints.errors(data)
-                field_errors: Dict[ErrorKey, ValidationError] = OrderedDict()
-
-                for alias, deserialize_field, required in normal_fields:
-                    if alias in data:
-                        aliases.append(alias)
-                        deserialize_field(
-                            ctx, data[alias], values, errors, field_errors
-                        )
-                    elif not required:
-                        pass
-                    elif required is True:
-                        field_errors[alias] = MISSING_PROPERTY
-                    else:
-                        assert isinstance(required, AbstractSet)
-                        requiring = required & data.keys()
-                        if requiring:
-                            msg = f"missing property (required by {sorted(requiring)})"
-                            field_errors[alias] = ValidationError([msg])
-
-                for merged_alias, deserialize_field in merged_fields:
-                    merged = {
-                        alias: data[alias] for alias in merged_alias if alias in data
-                    }
-                    aliases.extend(merged)
-                    deserialize_field(ctx, merged, values, errors, field_errors)
-                if len(data) != len(aliases):
-                    remain = data.keys() - set(aliases)
-                    for pattern, deserialize_field in pattern_fields:
-                        matched = {
-                            key: data[key] for key in remain if pattern.match(key)
-                        }
-                        remain -= matched.keys()
-                        deserialize_field(ctx, matched, values, errors, field_errors)
-                    if additional_field is not None:
-                        additional = {key: data[key] for key in remain}
-                        additional_field(ctx, additional, values, errors, field_errors)
-                    elif remain and not ctx.additional_properties:
-                        for key in remain:
-                            field_errors[key] = UNEXPECTED_PROPERTY
-                else:
-                    for _, deserialize_field in pattern_fields:
-                        deserialize_field(ctx, {}, values, errors, field_errors)
-                    if additional_field is not None:
-                        additional_field(ctx, {}, values, errors, field_errors)
-                validators2: Sequence[Validator]
-                if validators:
-                    init: Dict[str, Any] = {}
-                    for init_field in init_vars:
-                        if init_field.name in values:
-                            init[init_field.name] = values[init_field.name]
-                        if (
-                            init_field.name not in field_errors
-                            and init_field.name in defaults
-                        ):
-                            init[init_field.name] = defaults[init_field.name]()
-                    # Don't keep validators when all dependencies are default
-                    validators2 = [
-                        v for v in validators if v.dependencies & values.keys()
-                    ]
-                    if field_errors or errors:
-                        error = ValidationError(errors, field_errors)
-                        invalid_fields = field_errors.keys() | post_init_modified
-                        validators2 = [
-                            v
-                            for v in validators2
-                            if not v.dependencies & invalid_fields
-                        ]
-                        try:
-                            validate(ValidatorMock(cls, values), validators2, **init)
-                        except ValidationError as err:
-                            error = merge_errors(error, err)
-                        raise error
-                elif field_errors or errors:
-                    raise ValidationError(errors, field_errors)
-                else:
-                    validators2, init = ..., ...  # type: ignore # only for linter
-                try:
-                    res = cls(**values)
-                except (AssertionError, ValidationError):
-                    raise
-                except TypeError as err:
-                    if str(err).startswith("__init__() got"):
-                        raise Unsupported(cls)
-                    else:
-                        raise ValidationError([str(err)])
-                except Exception as err:
-                    raise ValidationError([str(err)])
-                return validate(res, validators2, **init) if validators else res
 
             return method
 
@@ -601,51 +384,227 @@ class DeserializationMethodVisitor(
 
         return factory
 
-    def named_tuple(
-        self,
-        cls: Type[Tuple],
-        types: Mapping[str, AnyType],
-        defaults: Mapping[str, Any],
+    def new_type(
+        self, tp: AnyType, super_type: AnyType
     ) -> DeserializationMethodFactory:
-        items_deserializers = [
-            (key, self.aliaser(key), self.method(tp)) for key, tp in types.items()
-        ]
+        return self.visit(super_type).merge(get_constraints(tp), get_validators(tp))
+
+    def object(
+        self, cls: Type, fields: Sequence[ObjectField]
+    ) -> DeserializationMethodFactory:
+        normal_fields: List[
+            Tuple[str, str, DeserializationMethod, Required, DefaultFallback]
+        ] = []
+        merged_fields: List[
+            Tuple[str, AbstractSet[str], DeserializationMethod, DefaultFallback]
+        ] = []
+        pattern_fields: List[
+            Tuple[str, Pattern, DeserializationMethod, DefaultFallback]
+        ] = []
+        additional_field: Optional[
+            Tuple[str, DeserializationMethod, DefaultFallback]
+        ] = None
+        post_init_modified = {field.name for field in fields if field.post_init}
+        defaults: Dict[str, Callable[[], Any]] = {}
+        if is_dataclass(cls):
+            required_by = get_requirements(
+                cls, DependentRequired.required_by, self.operation
+            )
+            _, _, init_vars = dataclass_types_and_fields(cls)  # type: ignore
+        else:
+            required_by = {}
+            init_vars = ()
+        for field in fields:
+            field_factory = self.visit_with_conversions(
+                field.type, field.deserialization
+            )
+            field_method = field_factory.merge(
+                field.constraints, field.validators
+            ).method
+            default_fallback = None if field.required else field.default_fallback
+            if field.merged:
+                merged_aliases = get_deserialization_merged_aliases(cls, field)
+                merged_fields.append(
+                    (
+                        field.name,
+                        set(map(self.aliaser, merged_aliases)),
+                        field_method,
+                        default_fallback,
+                    )
+                )
+            elif field.pattern_properties is ...:
+                pattern_fields.append(
+                    (
+                        field.name,
+                        infer_pattern(field.type),
+                        field_method,
+                        default_fallback,
+                    )
+                )
+            elif field.pattern_properties is not None:
+                assert isinstance(field.pattern_properties, Pattern)
+                pattern_fields.append(
+                    (
+                        field.name,
+                        field.pattern_properties,
+                        field_method,
+                        default_fallback,
+                    )
+                )
+            elif field.additional_properties:
+                additional_field = (field.name, field_method, default_fallback)
+            else:
+                # TODO
+                dataclass_field = (
+                    cls.__dataclass_fields__[field.name] if is_dataclass(cls) else None
+                )
+                required = field.required or {
+                    self.aliaser(get_alias(req))
+                    for req in required_by.get(dataclass_field) or ()  # type: ignore
+                }
+                normal_fields.append(
+                    (
+                        field.name,
+                        self.aliaser(field.alias),
+                        field_method,
+                        required,
+                        default_fallback,
+                    )
+                )
 
         @DeserializationMethodFactory.from_type(cls)
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            @with_validators(validators)
             def method(ctx: DeserializationContext, data: Any) -> Any:
                 data = ctx.coercer(dict, data)
-                items: Dict[str, Any] = {}
-                item_errors: Dict[ErrorKey, ValidationError] = {}
-                for key, alias, deserialize_item in items_deserializers:
-                    if key in data:
-                        try:
-                            items[key] = deserialize_item(ctx, data[alias])
-                        except ValidationError as err:
-                            if key not in defaults or not ctx.default_fallback:
-                                item_errors[alias] = err
-                    elif key not in defaults:
-                        item_errors[alias] = MISSING_PROPERTY
+                values: Dict[str, Any] = {}
+                aliases: List[str] = []
+                errors = [] if constraints is None else constraints.errors(data)
+                field_errors: Dict[ErrorKey, ValidationError] = OrderedDict()
 
-                if not ctx.additional_properties:
-                    for key in sorted(data.keys() - defaults.keys() - items.keys()):
-                        item_errors[key] = UNEXPECTED_PROPERTY
-                errors = () if constraints is None else constraints.errors(data)
-                if item_errors or errors:
-                    raise ValidationError(errors, item_errors)
-                return cls(**items)
+                for (
+                    name,
+                    alias,
+                    field_method,
+                    required,
+                    default_fallback,
+                ) in normal_fields:
+                    if alias in data:
+                        aliases.append(alias)
+                        try:
+                            values[name] = field_method(ctx, data[alias])
+                        except ValidationError as err:
+                            if default_fallback is None or not (
+                                default_fallback or ctx.default_fallback
+                            ):
+                                field_errors[alias] = err
+                    elif not required:
+                        pass
+                    elif required is True:
+                        field_errors[alias] = MISSING_PROPERTY
+                    else:
+                        assert isinstance(required, AbstractSet)
+                        requiring = required & data.keys()
+                        if requiring:
+                            msg = f"missing property (required by {sorted(requiring)})"
+                            field_errors[alias] = ValidationError([msg])
+
+                for (
+                    name,
+                    merged_alias,
+                    field_method,
+                    default_fallback,
+                ) in merged_fields:
+                    merged = {
+                        alias: data[alias] for alias in merged_alias if alias in data
+                    }
+                    aliases.extend(merged)
+                    try:
+                        values[name] = field_method(ctx, merged)
+                    except ValidationError as err:
+                        if default_fallback is None or not (
+                            default_fallback or ctx.default_fallback
+                        ):
+                            errors.extend(err.messages)
+                            field_errors.update(err.children)
+                if len(data) != len(aliases):
+                    remain = data.keys() - set(aliases)
+                else:
+                    remain = set()
+                for name, pattern, field_method, default_fallback in pattern_fields:
+                    matched = {key: data[key] for key in remain if pattern.match(key)}
+                    remain -= matched.keys()
+                    try:
+                        values[name] = field_method(ctx, matched)
+                    except ValidationError as err:
+                        if default_fallback is None or not (
+                            default_fallback or ctx.default_fallback
+                        ):
+                            errors.extend(err.messages)
+                            field_errors.update(err.children)
+                if additional_field is not None:
+                    name, field_method, default_fallback = additional_field
+                    additional = {key: data[key] for key in remain}
+                    try:
+                        values[name] = field_method(ctx, additional)
+                    except ValidationError as err:
+                        if default_fallback is None or not (
+                            default_fallback or ctx.default_fallback
+                        ):
+                            errors.extend(err.messages)
+                            field_errors.update(err.children)
+                elif remain and not ctx.additional_properties:
+                    for key in remain:
+                        field_errors[key] = UNEXPECTED_PROPERTY
+                validators2: Sequence[Validator]
+                if validators:
+                    init: Dict[str, Any] = {}
+                    for init_field in init_vars:
+                        if init_field.name in values:
+                            init[init_field.name] = values[init_field.name]
+                        if (
+                            init_field.name not in field_errors
+                            and init_field.name in defaults
+                        ):
+                            init[init_field.name] = defaults[init_field.name]()
+                    # Don't keep validators when all dependencies are default
+                    validators2 = [
+                        v for v in validators if v.dependencies & values.keys()
+                    ]
+                    if field_errors or errors:
+                        error = ValidationError(errors, field_errors)
+                        invalid_fields = field_errors.keys() | post_init_modified
+                        validators2 = [
+                            v
+                            for v in validators2
+                            if not v.dependencies & invalid_fields
+                        ]
+                        try:
+                            validate(ValidatorMock(cls, values), validators2, **init)
+                        except ValidationError as err:
+                            error = merge_errors(error, err)
+                        raise error
+                elif field_errors or errors:
+                    raise ValidationError(errors, field_errors)
+                else:
+                    validators2, init = ..., ...  # type: ignore # only for linter
+                try:
+                    res = cls(**values)
+                except (AssertionError, ValidationError):
+                    raise
+                except TypeError as err:
+                    if str(err).startswith("__init__() got"):
+                        raise Unsupported(cls)
+                    else:
+                        raise ValidationError([str(err)])
+                except Exception as err:
+                    raise ValidationError([str(err)])
+                return validate(res, validators2, **init) if validators else res
 
             return method
 
         return factory
-
-    def new_type(
-        self, tp: AnyType, super_type: AnyType
-    ) -> DeserializationMethodFactory:
-        return self.visit(super_type).merge(get_constraints(tp), get_validators(tp))
 
     def primitive(self, cls: Type) -> DeserializationMethodFactory:
         @DeserializationMethodFactory
@@ -704,41 +663,6 @@ class DeserializationMethodVisitor(
                 if elt_errors or errors:
                     raise ValidationError(errors, elt_errors)
                 return tuple(elts)
-
-            return method
-
-        return factory
-
-    def typed_dict(
-        self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
-    ) -> DeserializationMethodFactory:
-        # TypedDict doesn't use aliaser, because it cannot be used in serialization
-        items_deserializers = {key: self.method(tp) for key, tp in types.items()}
-        required_keys = set(required_keys)
-
-        @DeserializationMethodFactory.from_type(cls)
-        def factory(
-            constraints: Optional[Constraints], validators: Sequence[Validator]
-        ) -> DeserializationMethod:
-            @with_validators(validators)
-            def method(ctx: DeserializationContext, data: Any) -> Any:
-                data = ctx.coercer(dict, data)
-                items: Dict[str, Any] = {}
-                item_errors: Dict[ErrorKey, ValidationError] = {}
-                for key, value in data.items():
-                    if key in items_deserializers:
-                        try:
-                            items[key] = items_deserializers[key](ctx, value)
-                        except ValidationError as err:
-                            item_errors[key] = err
-                    else:
-                        items[key] = value
-                for missing in required_keys - data.keys():
-                    item_errors[missing] = MISSING_PROPERTY
-                errors = () if constraints is None else constraints.errors(data)
-                if item_errors or errors:
-                    raise ValidationError(errors, item_errors)
-                return items
 
             return method
 

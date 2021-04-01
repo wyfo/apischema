@@ -1,45 +1,25 @@
-from dataclasses import Field
-from typing import Any, Collection, Iterable, Iterator, Mapping, Sequence, Tuple, Type
+from typing import Iterable, Iterator, Mapping, Sequence, Type
 
 from apischema.conversions.visitor import DeserializationVisitor
-from apischema.dataclass_utils import get_alias, get_field_conversions, get_fields
-from apischema.metadata.keys import MERGED_METADATA
+from apischema.objects import DeserializationObjectVisitor, ObjectField
 from apischema.types import AnyType
-from apischema.utils import OperationKind
 from apischema.visitor import Unsupported
 
 
-class InitMergedAliasVisitor(DeserializationVisitor[Iterator[str]]):
-    def dataclass(
-        self,
-        cls: Type,
-        types: Mapping[str, AnyType],
-        fields: Sequence[Field],
-        init_vars: Sequence[Field],
-    ) -> Iterator[str]:
-        for field in get_fields(fields, init_vars, operation=self.operation):
-            if MERGED_METADATA in field.metadata:
-                yield from get_init_merged_alias(cls, field, types[field.name])
-            else:
-                yield get_alias(field)
-
+class InitMergedAliasVisitor(
+    DeserializationObjectVisitor[Iterator[str]], DeserializationVisitor[Iterator[str]]
+):
     def mapping(
         self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType
     ) -> Iterator[str]:
         yield from ()
 
-    def named_tuple(
-        self,
-        cls: Type[Tuple],
-        types: Mapping[str, AnyType],
-        defaults: Mapping[str, Any],
-    ) -> Iterator[str]:
-        yield from types
-
-    def typed_dict(
-        self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
-    ) -> Iterator[str]:
-        yield from types
+    def object(self, cls: Type, fields: Sequence[ObjectField]) -> Iterator[str]:
+        for field in fields:
+            if field.merged:
+                yield from self.visit(field.type)
+            elif not field.is_aggregate:
+                yield field.alias
 
     def _union_result(self, results: Iterable[Iterator[str]]) -> Iterator[str]:
         results = list(results)
@@ -48,12 +28,11 @@ class InitMergedAliasVisitor(DeserializationVisitor[Iterator[str]]):
         return results[0]
 
 
-def get_init_merged_alias(
-    cls: Type, field: Field, field_type: AnyType
-) -> Iterator[str]:
+def get_deserialization_merged_aliases(cls: Type, field: ObjectField) -> Iterator[str]:
+    assert field.merged
     try:
         yield from InitMergedAliasVisitor().visit_with_conversions(
-            field_type, get_field_conversions(field, OperationKind.DESERIALIZATION)
+            field.type, field.deserialization
         )
     except (NotImplementedError, Unsupported):
         raise TypeError(

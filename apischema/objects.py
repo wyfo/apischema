@@ -1,13 +1,6 @@
 __all__ = ["get_alias", "get_field", "object_fields"]
-from dataclasses import (
-    Field,
-    InitVar,
-    MISSING,
-    dataclass,
-    field,
-    make_dataclass,
-    replace,
-)
+from dataclasses import Field, InitVar, MISSING, dataclass, field, replace
+from types import new_class
 from typing import (
     Any,
     Callable,
@@ -31,9 +24,11 @@ from typing import (
 
 from apischema.aliases import AliasedStr
 from apischema.cache import cache
-from apischema.conversions.conversions import Conversions
+from apischema.conversions.conversions import Conversion, Conversions
+from apischema.conversions.utils import identity
+from apischema.json_schema.constraints import Constraints
 from apischema.json_schema.schemas import Schema
-from apischema.metadata.implem import ConversionMetadata, ValidatorsMetadata, required
+from apischema.metadata.implem import ConversionMetadata, ValidatorsMetadata
 from apischema.metadata.keys import (
     ALIAS_METADATA,
     CONVERSION_METADATA,
@@ -49,8 +44,9 @@ from apischema.metadata.keys import (
 from apischema.types import AnyType, ChainMap, OrderedDict
 from apischema.typing import _GenericAlias, get_args, get_origin
 from apischema.utils import (
-    PREFIX,
+    Undefined,
     get_parameters,
+    has_type_vars,
     sort_by_annotations_position,
     substitute_type_vars,
 )
@@ -78,8 +74,10 @@ class ObjectField:
     metadata: Mapping[str, Any] = field(default_factory=lambda: empty_dict)
     default: InitVar[Any] = MISSING_DEFAULT
     default_factory: Optional[Callable[[], Any]] = None
+    aliased: bool = True
 
     def __post_init__(self, default: Any):
+        # TODO add metadata check
         if not self.required and self.default_factory is None:
             if default is MISSING_DEFAULT:
                 raise ValueError("Missing default for required ObjectField")
@@ -90,8 +88,9 @@ class ObjectField:
         return self.metadata.get(PROPERTIES_METADATA, ...) is None
 
     @property
-    def alias(self) -> AliasedStr:
-        return self.metadata.get(ALIAS_METADATA, self.name)
+    def alias(self) -> str:
+        str_class = AliasedStr if self.aliased else str
+        return str_class(self.metadata.get(ALIAS_METADATA, self.name))
 
     @property
     def _conversion(self) -> Optional[ConversionMetadata]:
@@ -126,6 +125,11 @@ class ObjectField:
     def schema(self) -> Optional[Schema]:
         return self.metadata.get(SCHEMA_METADATA, None)
 
+    @property
+    def constraints(self) -> Optional[Constraints]:
+        return self.schema.constraints if self.schema is not None else None
+
+    @property
     def validators(self) -> Sequence["Validator"]:
         if VALIDATORS_METADATA in self.metadata:
             return cast(
@@ -138,6 +142,14 @@ class ObjectField:
     def serialization(self) -> Optional[Conversions]:
         conversion = self._conversion
         return conversion.serialization if conversion is not None else None
+
+    @property
+    def is_aggregate(self) -> bool:
+        return (
+            self.merged
+            or self.additional_properties
+            or self.pattern_properties is not None
+        )
 
 
 # These metadata are retrieved are not specific to fields
@@ -159,10 +171,8 @@ def annotated_metadata(tp: AnyType) -> Mapping:
 
 def object_field_from_field(field: Field, field_type: AnyType) -> ObjectField:
     metadata = {**annotated_metadata(field_type), **field.metadata}
-    required = (
-        REQUIRED_METADATA in metadata
-        or field.default is MISSING
-        and field.default_factory is MISSING  # type: ignore
+    required = REQUIRED_METADATA in metadata or (
+        field.default is MISSING and field.default_factory is MISSING  # type: ignore
     )
     return ObjectField(
         field.name,
@@ -174,27 +184,36 @@ def object_field_from_field(field: Field, field_type: AnyType) -> ObjectField:
     )
 
 
-def object_field_to_field(field: ObjectField) -> Tuple[str, AnyType, Field]:
-    metadata = ChainMap(required, field.metadata) if field.required else field.metadata
-    dataclass_field = Field(  # type: ignore
-        MISSING, field.default_factory, True, True, None, True, metadata
-    )
-    return field.name, field.type, dataclass_field
-
-
-def dataclass_from_fields(name: str, fields: Iterable[ObjectField]) -> type:
-    return make_dataclass(name, map(object_field_to_field, fields))
-
-
 T = TypeVar("T")
-
-OBJECT_WRAPPER_ATTR = f"{PREFIX}object_wrapper"
 
 
 @dataclass
 class ObjectWrapper(Generic[T]):
+    type: ClassVar[Type[T]]
     fields: ClassVar[Sequence[ObjectField]]
     wrapped: T
+
+    deserialization: Conversion
+    serialization: Conversion
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        # Generic aliases are subclasses
+        if getattr(cls, "__origin__", None) is not None:  # py36
+            return
+        tp = cls.type[cls.__parameters__] if has_type_vars(cls.type) else cls.type
+        cls.deserialization = Conversion(identity, source=cls[tp], target=tp)
+        cls.serialization = Conversion(identity, source=tp, target=cls[tp])
+
+
+def object_wrapper(
+    cls: Type[T], fields: Iterable[ObjectField]
+) -> Type[ObjectWrapper[T]]:
+    return new_class(
+        f"{cls.__name__}{ObjectWrapper.__name__}",
+        (ObjectWrapper[T],),
+        exec_body=lambda ns: ns.update({"type": cls, "fields": list(fields)}),
+    )
 
 
 class ObjectVisitor(Visitor[Return]):
@@ -234,7 +253,7 @@ class ObjectVisitor(Visitor[Return]):
             ObjectField(
                 name,
                 tp,
-                name in defaults,
+                name not in defaults,
                 annotated_metadata(tp),
                 defaults.get(name),
             )
@@ -248,34 +267,26 @@ class ObjectVisitor(Visitor[Return]):
         # Fields cannot have Annotated metadata because they would not be available
         # at serialization
         fields = [
-            ObjectField(name, tp, name in required_keys) for name, tp in types.items()
+            ObjectField(
+                name, tp, name in required_keys, default=Undefined, aliased=False
+            )
+            for name, tp in types.items()
         ]
         return self.object(cls, fields)
 
-    def visit(self, tp: AnyType) -> Return:
-        origin = get_origin(tp)
-        if origin is not None and issubclass(origin, ObjectWrapper):
-            (wrapped,) = get_args(tp)
-            fields = origin.fields
-            wrapped_origin = get_origin(wrapped)
-            if wrapped_origin is not None:
-                substitution = dict(
-                    zip(get_parameters(wrapped_origin), get_args(wrapped))
-                )
-                fields2 = [
-                    replace(f, type=substitute_type_vars(f.type, substitution))
-                    for f in fields
-                ]
-                _generic = self._generic
-                self._generic = wrapped
-                try:
-                    return self.object(wrapped_origin, fields2)
-                finally:
-                    self._generic = _generic
-            else:
-                return self.object(wrapped, fields)
-        else:
-            return super().visit(tp)
+    def _visit(self, tp: AnyType) -> Return:
+        if isinstance(tp, type) and issubclass(tp, ObjectWrapper):
+            fields = tp.fields
+            if self._generic is not None:
+                (wrapped,) = get_args(self._generic)
+                if get_args(wrapped):
+                    substitution = dict(zip(get_parameters(wrapped), get_args(wrapped)))
+                    fields = [
+                        replace(f, type=substitute_type_vars(f.type, substitution))
+                        for f in fields
+                    ]
+            return self.object(tp.type, fields)
+        return super()._visit(tp)
 
 
 class DeserializationObjectVisitor(ObjectVisitor[Return]):

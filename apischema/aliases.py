@@ -55,7 +55,7 @@ def alias(arg=None, *, override: bool = True):  # type: ignore
         return aliaser
     metadata: Dict[str, Any] = {}
     if arg is not None:
-        metadata[ALIAS_METADATA] = AliasedStr(arg)
+        metadata[ALIAS_METADATA] = arg
     if not override:
         metadata[ALIAS_NO_OVERRIDE_METADATA] = True
     if not metadata:  # pragma: no cover
