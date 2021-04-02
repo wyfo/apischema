@@ -34,11 +34,11 @@ assert serialization_schema(Foo) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "type": "object",
     "properties": {
-        "bar": {"readOnly": True, "type": "integer"},
-        "baz": {"readOnly": True, "type": "integer"},
-        "aliased": {"readOnly": True, "type": "integer"},
-        "function": {"readOnly": True, "type": "integer"},
+        "aliased": {"type": "integer"},
+        "bar": {"type": "integer"},
+        "baz": {"type": "integer"},
+        "function": {"type": "integer"},
     },
-    "required": ["bar", "baz", "aliased", "function"],
+    "required": ["aliased", "bar", "baz", "function"],
     "additionalProperties": False,
 }

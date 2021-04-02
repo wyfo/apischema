@@ -12,6 +12,7 @@ from typing import (
     overload,
 )
 
+from apischema.objects import check_field_or_name, get_field_name
 
 _dependent_requireds: Dict[type, List[Tuple[Any, Collection[Any]]]] = defaultdict(list)
 
@@ -19,7 +20,6 @@ DependentRequired = Mapping[str, AbstractSet[str]]
 
 
 def get_dependent_required(cls: type) -> DependentRequired:
-    from apischema.objects import get_field_name
 
     result: Dict[str, Set[str]] = defaultdict(set)
     for sub_cls in cls.__mro__:
@@ -59,7 +59,6 @@ def dependent_required(*groups: Collection[Any], owner: type = None):  # type: i
     if owner is None:
         return DependentRequiredDescriptor(fields, groups)
     else:
-        from apischema.objects import check_field_or_name
 
         dep_req = _dependent_requireds[owner]
         for field, required in fields.items():

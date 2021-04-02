@@ -8,6 +8,7 @@ __all__ = [
     "deserialization",
     "deserialize",
     "deserializer",
+    "objects",
     "properties",
     "reset_cache",
     "schema",
@@ -25,6 +26,7 @@ from . import (  # noqa: F401
     fields,
     json_schema,
     metadata,
+    objects,
     settings,
     skip,
     tagged_unions,
@@ -33,8 +35,8 @@ from . import (  # noqa: F401
 from .aliases import alias
 from .cache import reset_cache
 from .conversions import deserializer, serializer
-from .deserialization import deserialize
 from .dependencies import dependent_required
+from .deserialization import deserialize
 from .json_schema.refs import schema_ref
 from .json_schema.schemas import schema
 from .metadata import properties

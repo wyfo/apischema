@@ -1,21 +1,19 @@
 from contextlib import suppress
-from dataclasses import Field
 from enum import Enum
-from typing import (
-    Any,
-    Collection,
-    Dict,
-    Iterable,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-)
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple, Type
 
-from apischema.conversions.visitor import ConversionsVisitor
-from apischema.dataclass_utils import get_field_conversions, get_fields
+from apischema.conversions.visitor import (
+    ConversionsVisitor,
+    DeserializationVisitor,
+    SerializationVisitor,
+)
 from apischema.json_schema.refs import check_ref_type, get_ref, schema_ref
+from apischema.objects import (
+    DeserializationObjectVisitor,
+    ObjectField,
+    ObjectVisitor,
+    SerializationObjectVisitor,
+)
 from apischema.skip import filter_skipped
 from apischema.types import AnyType
 from apischema.utils import contains
@@ -32,7 +30,7 @@ class Recursive(Exception):
     pass
 
 
-class RefsExtractor(ConversionsVisitor):
+class RefsExtractor(ObjectVisitor, ConversionsVisitor):
     def __init__(self, refs: Refs):
         super().__init__()
         self.refs = refs
@@ -68,18 +66,6 @@ class RefsExtractor(ConversionsVisitor):
     def collection(self, cls: Type[Iterable], value_type: AnyType):
         return self.visit(value_type)
 
-    def dataclass(
-        self,
-        cls: Type,
-        types: Mapping[str, AnyType],
-        fields: Sequence[Field],
-        init_vars: Sequence[Field],
-    ):
-        for field in get_fields(fields, init_vars, self.operation):
-            self.visit_with_conversions(
-                types[field.name], get_field_conversions(field, self.operation)
-            )
-
     def enum(self, cls: Type[Enum]):
         pass
 
@@ -90,17 +76,12 @@ class RefsExtractor(ConversionsVisitor):
         self.visit(key_type)
         self.visit(value_type)
 
-    def named_tuple(
-        self,
-        cls: Type[Tuple],
-        types: Mapping[str, AnyType],
-        defaults: Mapping[str, Any],
-    ):
-        for cls in types.values():
-            self.visit(cls)
-
     def new_type(self, tp: AnyType, super_type: AnyType):
         self.visit(super_type)
+
+    def object(self, cls: Type, fields: Sequence[ObjectField]):
+        for field in fields:
+            self.visit_with_conversions(field.type, self._field_conversion(field))
 
     def primitive(self, cls: Type):
         pass
@@ -110,12 +91,6 @@ class RefsExtractor(ConversionsVisitor):
 
     def tuple(self, types: Sequence[AnyType]):
         for cls in types:
-            self.visit(cls)
-
-    def typed_dict(
-        self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
-    ):
-        for cls in types.values():
             self.visit(cls)
 
     def _union_result(self, results: Iterable):
@@ -142,3 +117,15 @@ class RefsExtractor(ConversionsVisitor):
                         self._rec_guard[ref_tp] = False
                     else:
                         del self._rec_guard[ref_tp]
+
+
+class DeserializationRefsExtractor(
+    DeserializationObjectVisitor, DeserializationVisitor, RefsExtractor
+):
+    pass
+
+
+class SerializationRefsExtractor(
+    SerializationObjectVisitor, SerializationVisitor, RefsExtractor
+):
+    pass

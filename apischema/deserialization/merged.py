@@ -37,5 +37,4 @@ def get_deserialization_merged_aliases(cls: Type, field: ObjectField) -> Iterato
     except (NotImplementedError, Unsupported):
         raise TypeError(
             f"Merged field {cls.__name__}.{field.name} must have an object type"
-            f" or an unique deserializer to an object type"
         ) from None

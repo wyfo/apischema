@@ -28,8 +28,6 @@ from apischema.cache import cache
 from apischema.conversions.conversions import Conversion, Conversions
 from apischema.conversions.converters import deserializer, serializer
 from apischema.conversions.utils import identity
-from apischema.json_schema.constraints import Constraints
-from apischema.json_schema.schemas import Schema
 from apischema.metadata.implem import ConversionMetadata, ValidatorsMetadata
 from apischema.metadata.keys import (
     ALIAS_METADATA,
@@ -42,6 +40,7 @@ from apischema.metadata.keys import (
     PROPERTIES_METADATA,
     REQUIRED_METADATA,
     SCHEMA_METADATA,
+    SKIP_METADATA,
     VALIDATORS_METADATA,
 )
 from apischema.types import AnyType, ChainMap, OrderedDict
@@ -56,6 +55,9 @@ from apischema.utils import (
 from apischema.visitor import Return, Unsupported, Visitor
 
 if TYPE_CHECKING:
+    from apischema.json_schema.annotations import Annotations
+    from apischema.json_schema.constraints import Constraints
+    from apischema.json_schema.schemas import Schema
     from apischema.validation.validators import Validator
 
 try:
@@ -131,11 +133,15 @@ class ObjectField:
         return self.metadata.get(PROPERTIES_METADATA, None)
 
     @property
-    def schema(self) -> Optional[Schema]:
+    def schema(self) -> Optional["Schema"]:
         return self.metadata.get(SCHEMA_METADATA, None)
 
     @property
-    def constraints(self) -> Optional[Constraints]:
+    def annotations(self) -> Optional["Annotations"]:
+        return self.schema.annotations if self.schema is not None else None
+
+    @property
+    def constraints(self) -> Optional["Constraints"]:
         return self.schema.constraints if self.schema is not None else None
 
     @property
@@ -278,6 +284,9 @@ class ObjectVisitor(Visitor[Return]):
     ) -> Iterable[Field]:
         raise NotImplementedError
 
+    def _field_conversion(self, field: ObjectField) -> Optional[Conversions]:
+        return NotImplementedError
+
     def dataclass(
         self,
         cls: Type,
@@ -292,10 +301,16 @@ class ObjectVisitor(Visitor[Return]):
         return self._object(
             cls,
             sort_by_annotations_position(cls, object_fields, key=lambda f: f.name),
+            class_aliasing=True,
         )
 
-    def _object(self, cls: Type, fields: Sequence[ObjectField]) -> Return:
-        return self.object(cls, apply_class_aliaser(cls, fields))
+    def _object(
+        self, cls: Type, fields: Sequence[ObjectField], class_aliasing: bool
+    ) -> Return:
+        fields = [field for field in fields if SKIP_METADATA not in field.metadata]
+        return self.object(
+            cls, apply_class_aliaser(cls, fields) if class_aliasing else fields
+        )
 
     def object(self, cls: Type, fields: Sequence[ObjectField]) -> Return:
         raise NotImplementedError
@@ -316,7 +331,7 @@ class ObjectVisitor(Visitor[Return]):
             )
             for name, tp in types.items()
         ]
-        return self._object(cls, fields)
+        return self._object(cls, fields, class_aliasing=True)
 
     def typed_dict(
         self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
@@ -329,7 +344,7 @@ class ObjectVisitor(Visitor[Return]):
             )
             for name, tp in types.items()
         ]
-        return self.object(cls, fields)  # no class aliaser for typed_dict
+        return self._object(cls, fields, class_aliasing=False)
 
     def _visit(self, tp: AnyType) -> Return:
         if isinstance(tp, type) and issubclass(tp, ObjectWrapper):
@@ -342,26 +357,34 @@ class ObjectVisitor(Visitor[Return]):
                         replace(f, type=substitute_type_vars(f.type, substitution))
                         for f in fields
                     ]
-            return self._object(tp.type, fields)
+            return self._object(tp.type, fields, class_aliasing=True)
         return super()._visit(tp)
 
 
 class DeserializationObjectVisitor(ObjectVisitor[Return]):
+    @staticmethod
     def _fields(
-        self,
         fields: Sequence[Field],
         init_vars: Sequence[Field],
     ) -> Iterable[Field]:
         return (*(f for f in fields if f.init), *init_vars)
 
+    @staticmethod
+    def _field_conversion(field: ObjectField) -> Optional[Conversions]:
+        return field.deserialization
+
 
 class SerializationObjectVisitor(ObjectVisitor[Return]):
+    @staticmethod
     def _fields(
-        self,
         fields: Sequence[Field],
         init_vars: Sequence[Field],
     ) -> Iterable[Field]:
         return fields
+
+    @staticmethod
+    def _field_conversion(field: ObjectField) -> Optional[Conversions]:
+        return field.serialization
 
 
 class GetFields(ObjectVisitor[Sequence[ObjectField]]):

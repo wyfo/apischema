@@ -15,7 +15,7 @@ class Base:
 base_schema = {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "type": "object",
-    "properties": {"serialized": {"readOnly": True, "type": "integer"}},
+    "properties": {"serialized": {"type": "integer"}},
     "required": ["serialized"],
     "additionalProperties": False,
 }

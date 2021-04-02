@@ -29,6 +29,7 @@ def test_typed_dict():
                 "key3": {"type": "boolean"},
             },
             "required": ["key2"],
+            "additionalProperties": False,
             "$schema": "http://json-schema.org/draft/2019-09/schema#",
         }
     )
