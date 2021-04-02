@@ -358,28 +358,35 @@ class SerializationObjectVisitor(ObjectVisitor[Return]):
 
 
 class GetFields(ObjectVisitor[Sequence[ObjectField]]):
+    def __init__(self, serialization: bool):
+        super().__init__()
+        self.serialization = serialization
+
     def _fields(
         self,
         fields: Sequence[Field],
         init_vars: Sequence[Field],
     ) -> Iterable[Field]:
-        return (*fields, *init_vars)
+        return fields if self.serialization else (*fields, *init_vars)
 
     def object(self, cls: Type, fields: Sequence[ObjectField]) -> Sequence[ObjectField]:
         return fields
 
 
 @cache
-def object_fields(tp: AnyType) -> Mapping[str, ObjectField]:
+def object_fields(
+    tp: AnyType, *, serialization: bool = False
+) -> Mapping[str, ObjectField]:
     try:
-        return OrderedDict((f.name, f) for f in GetFields().visit(tp))
+        return OrderedDict((f.name, f) for f in GetFields(serialization).visit(tp))
     except Unsupported:
         raise TypeError(f"{tp} doesn't have fields")
 
 
-def object_fields2(obj: Any) -> Mapping[str, ObjectField]:
+def object_fields2(obj: Any, serialization: bool = False) -> Mapping[str, ObjectField]:
     return object_fields(
-        obj if isinstance(obj, (type, _GenericAlias)) else obj.__class__
+        obj if isinstance(obj, (type, _GenericAlias)) else obj.__class__,
+        serialization=serialization,
     )
 
 

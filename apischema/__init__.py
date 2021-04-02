@@ -4,6 +4,7 @@ __all__ = [
     "Unsupported",
     "ValidationError",
     "alias",
+    "dependent_required",
     "deserialization",
     "deserialize",
     "deserializer",
@@ -33,6 +34,7 @@ from .aliases import alias
 from .cache import reset_cache
 from .conversions import deserializer, serializer
 from .deserialization import deserialize
+from .dependencies import dependent_required
 from .json_schema.refs import schema_ref
 from .json_schema.schemas import schema
 from .metadata import properties

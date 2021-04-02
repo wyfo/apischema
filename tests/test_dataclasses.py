@@ -5,7 +5,7 @@ from dataclasses import (  # type: ignore
     replace as std_replace,
 )
 
-from apischema.dataclass_utils import dataclass_types_and_fields
+from apischema.visitor import dataclass_types_and_fields
 from apischema.dataclasses import replace
 from apischema.fields import fields_set, with_fields_set
 from apischema.metadata.implem import init_var

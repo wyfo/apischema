@@ -1,16 +1,7 @@
 from collections.abc import Collection as Collection_
 from dataclasses import is_dataclass
 from enum import Enum
-from typing import (
-    Any,
-    Callable,
-    Collection,
-    Mapping,
-    Optional,
-    Sequence,
-    Type,
-    TypeVar,
-)
+from typing import Any, Callable, Collection, Mapping, Optional, Sequence, Type, TypeVar
 
 from apischema import settings
 from apischema.aliases import AliasedStr, Aliaser
@@ -25,12 +16,7 @@ from apischema.conversions.conversions import (
 from apischema.conversions.dataclass_models import DataclassModel
 from apischema.conversions.visitor import SerializationVisitor
 from apischema.fields import FIELDS_SET_ATTR, fields_set
-from apischema.objects import (
-    GetFields,
-    ObjectField,
-    ObjectWrapper,
-    SerializationObjectVisitor,
-)
+from apischema.objects import ObjectField, ObjectWrapper, object_fields
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import PRIMITIVE_TYPES
 from apischema.utils import Undefined, UndefinedType, get_origin_or_type
@@ -41,17 +27,12 @@ T = TypeVar("T")
 SerializationMethod = Callable[[T, bool], Any]
 
 
-class GetSerializationFields(
-    SerializationObjectVisitor[Sequence[ObjectField]], GetFields
-):
-    pass
-
-
 def serialize_object(cls: Type[T], aliaser: Aliaser) -> SerializationMethod[T]:
+    fields: Sequence[ObjectField]
     if issubclass(cls, ObjectWrapper):
         cls, fields = cls.type, cls.fields  # type: ignore
     else:
-        fields = GetSerializationFields().visit(cls)
+        fields = list(object_fields(cls).values())
     normal_fields, aggregate_fields = [], []
     for field in fields:
         conversions = to_hashable_conversions(field.serialization)

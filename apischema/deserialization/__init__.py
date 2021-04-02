@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections.abc import Collection as Collection_
 from dataclasses import dataclass, is_dataclass
 from enum import Enum
@@ -13,6 +14,7 @@ from typing import (
     Optional,
     Pattern,
     Sequence,
+    Set,
     Tuple,
     Type,
     TypeVar,
@@ -31,13 +33,8 @@ from apischema.conversions.conversions import (
 )
 from apischema.conversions.utils import Converter, identity
 from apischema.conversions.visitor import Deserialization, DeserializationVisitor
-from apischema.dataclass_utils import (
-    dataclass_types_and_fields,
-    get_alias,
-    get_requirements,
-)
 from apischema.dataclasses import replace
-from apischema.dependent_required import DependentRequired
+from apischema.dependencies import get_dependent_required
 from apischema.deserialization.coercion import Coercion, get_coercer
 from apischema.deserialization.merged import get_deserialization_merged_aliases
 from apischema.json_schema.constraints import (
@@ -48,10 +45,7 @@ from apischema.json_schema.constraints import (
 from apischema.json_schema.patterns import infer_pattern
 from apischema.json_schema.schemas import Schema, get_schema
 from apischema.metadata.implem import ValidatorsMetadata
-from apischema.metadata.keys import (
-    SCHEMA_METADATA,
-    VALIDATORS_METADATA,
-)
+from apischema.metadata.keys import SCHEMA_METADATA, VALIDATORS_METADATA
 from apischema.objects import DeserializationObjectVisitor, ObjectField
 from apischema.skip import filter_skipped
 from apischema.types import (
@@ -66,7 +60,7 @@ from apischema.utils import get_origin_or_type, opt_or
 from apischema.validation.errors import ErrorKey, ValidationError, merge_errors
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validators import Validator, get_validators, validate
-from apischema.visitor import Unsupported
+from apischema.visitor import Unsupported, dataclass_types_and_fields
 
 DICT_TYPE = get_origin(Dict[Any, Any])
 LIST_TYPE = get_origin(List[Any])
@@ -77,7 +71,6 @@ UNEXPECTED_PROPERTY = ValidationError(["unexpected property"])
 T = TypeVar("T")
 
 
-# TODO maybe ctx parameters to deserializers
 @dataclass
 class DeserializationContext:
     additional_properties: bool
@@ -405,14 +398,17 @@ class DeserializationMethodVisitor(
             Tuple[str, DeserializationMethod, DefaultFallback]
         ] = None
         post_init_modified = {field.name for field in fields if field.post_init}
-        defaults: Dict[str, Callable[[], Any]] = {}
+        defaults: Dict[str, Callable[[], Any]] = {
+            f.name: f.default_factory for f in fields if not f.required  # type: ignore
+        }
+        alias_by_name = {field.name: self.aliaser(field.alias) for field in fields}
+        requiring: Dict[str, Set[str]] = defaultdict(set)
+        for f, reqs in get_dependent_required(cls).items():
+            for req in reqs:
+                requiring[req].add(alias_by_name[f])
         if is_dataclass(cls):
-            required_by = get_requirements(
-                cls, DependentRequired.required_by, self.operation
-            )
             _, _, init_vars = dataclass_types_and_fields(cls)  # type: ignore
         else:
-            required_by = {}
             init_vars = ()
         for field in fields:
             field_factory = self.visit_with_conversions(
@@ -454,20 +450,12 @@ class DeserializationMethodVisitor(
             elif field.additional_properties:
                 additional_field = (field.name, field_method, default_fallback)
             else:
-                # TODO
-                dataclass_field = (
-                    cls.__dataclass_fields__[field.name] if is_dataclass(cls) else None
-                )
-                required = field.required or {
-                    self.aliaser(get_alias(req))
-                    for req in required_by.get(dataclass_field) or ()  # type: ignore
-                }
                 normal_fields.append(
                     (
                         field.name,
                         self.aliaser(field.alias),
                         field_method,
-                        required,
+                        field.required or requiring[field.name],
                         default_fallback,
                     )
                 )

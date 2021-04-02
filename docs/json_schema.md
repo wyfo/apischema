@@ -166,7 +166,7 @@ However when the schema of the key has a `pattern`, it will give a `"patternProp
 {!dependent_required.py!}
 ```
 
-Because bidirectional dependencies are a common idiom, *apischema* provides a shortcut notation. Its indeed possible to write `DependentRequired([credit_card, billing_adress])`.
+Because bidirectional dependencies are a common idiom, *apischema* provides a shortcut notation; it's indeed possible to write `dependent_required([credit_card, billing_adress])`.
 
 ## JSON schema reference
 

@@ -43,7 +43,6 @@ from apischema.dataclass_utils import (
     is_required,
 )
 from apischema.dataclasses import replace
-from apischema.dependent_required import DependentRequired
 from apischema.json_schema.constraints import (
     ArrayConstraints,
     Constraints,
@@ -279,7 +278,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, JsonSchema]):
                 self.aliaser(get_alias(req)) for req in required_by
             )
             for field, required_by in get_requirements(
-                cls, DependentRequired.requiring, self.operation
+                cls, ..., self.operation  # type: ignore
             ).items()
         }
         result = json_schema(

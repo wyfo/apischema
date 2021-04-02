@@ -112,7 +112,7 @@ def _field_names(fields: Collection) -> AbstractSet[str]:
 def _fields_set(obj: Any) -> Set[str]:
     if not hasattr(obj, FIELDS_SET_ATTR):
         try:
-            default_fields: Collection[str] = object_fields2(obj)
+            default_fields: Collection[str] = object_fields2(obj, serialization=True)
         except TypeError:
             default_fields = ()
         try:
