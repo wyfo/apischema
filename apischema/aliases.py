@@ -1,11 +1,13 @@
-from collections import ChainMap
-from dataclasses import fields
-from typing import Any, Callable, Dict, TypeVar, overload
+from typing import Callable, Dict, TypeVar, overload
 
 from apischema.types import Metadata, MetadataImplem
 
 Aliaser = Callable[[str], str]
-Cls = TypeVar("Cls")
+Cls = TypeVar("Cls", bound=type)
+
+_class_aliasers: Dict[type, Aliaser] = {}
+
+get_class_aliaser = _class_aliasers.get
 
 
 class AliasedStr(str):
@@ -37,30 +39,24 @@ def alias(arg=None, *, override: bool = True):  # type: ignore
     from apischema.metadata.keys import (
         ALIAS_METADATA,
         ALIAS_NO_OVERRIDE_METADATA,
-        is_aggregate_field,
     )
 
     if callable(arg):
 
         def aliaser(cls: Cls) -> Cls:
-            for field in fields(cls):
-                if is_aggregate_field(field) or field.metadata.get(
-                    ALIAS_NO_OVERRIDE_METADATA
-                ):
-                    continue
-                alias = arg(field.metadata.get(ALIAS_METADATA, field.name))
-                field.metadata = ChainMap({ALIAS_METADATA: alias}, field.metadata)
+            _class_aliasers[cls] = arg
             return cls
 
         return aliaser
-    metadata: Dict[str, Any] = {}
-    if arg is not None:
-        metadata[ALIAS_METADATA] = arg
-    if not override:
-        metadata[ALIAS_NO_OVERRIDE_METADATA] = True
-    if not metadata:  # pragma: no cover
-        raise ValueError("Alias must be called with arguments")
-    return MetadataImplem(metadata)
+    else:
+        metadata = MetadataImplem()
+        if arg is not None:
+            metadata[ALIAS_METADATA] = arg
+        if not override:
+            metadata[ALIAS_NO_OVERRIDE_METADATA] = True
+        if not metadata:
+            raise NotImplementedError
+        return metadata
 
 
 def _global_aliaser(s: str) -> str:

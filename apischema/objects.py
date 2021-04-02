@@ -23,7 +23,7 @@ from typing import (
     overload,
 )
 
-from apischema.aliases import AliasedStr
+from apischema.aliases import AliasedStr, Aliaser, get_class_aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import Conversion, Conversions
 from apischema.conversions.utils import identity
@@ -32,6 +32,7 @@ from apischema.json_schema.schemas import Schema
 from apischema.metadata.implem import ConversionMetadata, ValidatorsMetadata
 from apischema.metadata.keys import (
     ALIAS_METADATA,
+    ALIAS_NO_OVERRIDE_METADATA,
     CONVERSION_METADATA,
     DEFAULT_AS_SET_METADATA,
     DEFAULT_FALLBACK_METADATA,
@@ -92,6 +93,10 @@ class ObjectField:
     def alias(self) -> str:
         str_class = AliasedStr if self.aliased else str
         return str_class(self.metadata.get(ALIAS_METADATA, self.name))
+
+    @property
+    def override_alias(self) -> bool:
+        return ALIAS_NO_OVERRIDE_METADATA not in self.metadata
 
     @property
     def _conversion(self) -> Optional[ConversionMetadata]:
@@ -232,6 +237,24 @@ def object_wrapper(
     )
 
 
+def override_alias(field: ObjectField, aliaser: Aliaser) -> ObjectField:
+    if field.override_alias:
+        return replace(
+            field,
+            metadata={**field.metadata, ALIAS_METADATA: aliaser(field.alias)},
+            default=MISSING_DEFAULT,
+        )
+    else:
+        return field
+
+
+def apply_class_aliaser(
+    cls: Type, fields: Sequence[ObjectField]
+) -> Sequence[ObjectField]:
+    aliaser = get_class_aliaser(cls)
+    return fields if aliaser is None else [override_alias(f, aliaser) for f in fields]
+
+
 class ObjectVisitor(Visitor[Return]):
     def _fields(
         self,
@@ -251,10 +274,13 @@ class ObjectVisitor(Visitor[Return]):
             object_field_from_field(f, types[f.name])
             for f in self._fields(fields, init_vars)
         ]
-        return self.object(
+        return self._object(
             cls,
             sort_by_annotations_position(cls, object_fields, key=lambda f: f.name),
         )
+
+    def _object(self, cls: Type, fields: Sequence[ObjectField]) -> Return:
+        return self.object(cls, apply_class_aliaser(cls, fields))
 
     def object(self, cls: Type, fields: Sequence[ObjectField]) -> Return:
         raise NotImplementedError
@@ -275,7 +301,7 @@ class ObjectVisitor(Visitor[Return]):
             )
             for name, tp in types.items()
         ]
-        return self.object(cls, fields)
+        return self._object(cls, fields)
 
     def typed_dict(
         self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
@@ -288,7 +314,7 @@ class ObjectVisitor(Visitor[Return]):
             )
             for name, tp in types.items()
         ]
-        return self.object(cls, fields)
+        return self.object(cls, fields)  # no class aliaser for typed_dict
 
     def _visit(self, tp: AnyType) -> Return:
         if isinstance(tp, type) and issubclass(tp, ObjectWrapper):
@@ -301,7 +327,7 @@ class ObjectVisitor(Visitor[Return]):
                         replace(f, type=substitute_type_vars(f.type, substitution))
                         for f in fields
                     ]
-            return self.object(tp.type, fields)
+            return self._object(tp.type, fields)
         return super()._visit(tp)
 
 
