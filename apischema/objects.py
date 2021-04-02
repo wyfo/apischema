@@ -1,4 +1,5 @@
 __all__ = ["get_alias", "get_field", "object_fields"]
+import sys
 from dataclasses import Field, InitVar, MISSING, dataclass, field, replace
 from types import new_class
 from typing import (
@@ -187,23 +188,38 @@ def object_field_from_field(field: Field, field_type: AnyType) -> ObjectField:
 T = TypeVar("T")
 
 
+if sys.version_info < (3, 7) and not TYPE_CHECKING:
+    from typing import GenericMeta
+
+    class _ObjectWrapperBaseMeta(GenericMeta):
+        def __init__(cls: "ObjectWrapper", *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            if not hasattr(cls, "type") or cls.__origin__ is not None:
+                return
+            tp = cls.type[cls.__parameters__] if has_type_vars(cls.type) else cls.type
+            cls.deserialization = Conversion(identity, source=cls[tp], target=tp)
+            cls.serialization = Conversion(identity, source=tp, target=cls[tp])
+
+    _ObjectWrapperBase = [_ObjectWrapperBaseMeta("ObjectWrapperBase", (), {})]
+else:
+    _ObjectWrapperBase = ()
+
+
 @dataclass
-class ObjectWrapper(Generic[T]):
+class ObjectWrapper(*_ObjectWrapperBase, Generic[T]):  # type: ignore
     type: ClassVar[Type[T]]
     fields: ClassVar[Sequence[ObjectField]]
     wrapped: T
 
     deserialization: Conversion
     serialization: Conversion
+    if sys.version_info >= (3, 7):
 
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        # Generic aliases are subclasses
-        if getattr(cls, "__origin__", None) is not None:  # py36
-            return
-        tp = cls.type[cls.__parameters__] if has_type_vars(cls.type) else cls.type
-        cls.deserialization = Conversion(identity, source=cls[tp], target=tp)
-        cls.serialization = Conversion(identity, source=tp, target=cls[tp])
+        def __init_subclass__(cls, **kwargs):
+            super().__init_subclass__(**kwargs)
+            tp = cls.type[cls.__parameters__] if has_type_vars(cls.type) else cls.type
+            cls.deserialization = Conversion(identity, source=cls[tp], target=tp)
+            cls.serialization = Conversion(identity, source=tp, target=cls[tp])
 
 
 def object_wrapper(
