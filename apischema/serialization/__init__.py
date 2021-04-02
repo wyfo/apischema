@@ -32,7 +32,7 @@ def serialize_object(cls: Type[T], aliaser: Aliaser) -> SerializationMethod[T]:
     if issubclass(cls, ObjectWrapper):
         cls, fields = cls.type, cls.fields  # type: ignore
     else:
-        fields = list(object_fields(cls).values())
+        fields = list(object_fields(cls, serialization=True).values())
     normal_fields, aggregate_fields = [], []
     for field in fields:
         conversions = to_hashable_conversions(field.serialization)
