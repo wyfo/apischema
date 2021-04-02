@@ -80,6 +80,8 @@ class ObjectField:
 
     def __post_init__(self, default: Any):
         # TODO add metadata check
+        if self.default_factory is MISSING:
+            object.__setattr__(self, "default_factory", None)
         if not self.required and self.default_factory is None:
             if default is MISSING_DEFAULT:
                 raise ValueError("Missing default for required ObjectField")
@@ -156,6 +158,12 @@ class ObjectField:
             or self.additional_properties
             or self.pattern_properties is not None
         )
+
+    def get_default(self) -> Any:
+        if self.required:
+            raise RuntimeError("Field is required")
+        assert self.default_factory is not None
+        return self.default_factory()  # type: ignore
 
 
 # These metadata are retrieved are not specific to fields

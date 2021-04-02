@@ -37,7 +37,6 @@ from apischema.typing import get_type_hints, get_type_hints2
 from apischema.utils import (
     OperationKind,
     PREFIX,
-    get_origin2,
     get_origin_or_type,
     has_type_vars,
 )
@@ -143,15 +142,6 @@ def get_requirements(
                 req for req in required if req in fields_by_operation
             )
     return requirements
-
-
-def check_merged_class(merged_cls: AnyType) -> Type:
-    origin = get_origin2(merged_cls)
-    if origin is None:
-        origin = merged_cls
-    if not is_dataclass(origin):
-        raise TypeError("Merged field must have dataclass type")
-    return origin
 
 
 def get_field_conversions(

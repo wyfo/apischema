@@ -1,10 +1,10 @@
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from functools import partial
 from types import FunctionType, MethodType
 from typing import Any, Mapping, Optional, TYPE_CHECKING, Type, TypeVar
 
-from apischema.dataclass_utils import get_default, has_default
-from apischema.fields import FIELDS_SET_ATTR, set_fields
+from apischema.fields import FIELDS_SET_ATTR
+from apischema.objects import object_fields
 
 if TYPE_CHECKING:
     from apischema.validation.validators import Validator
@@ -24,31 +24,21 @@ class ValidatorMock:
     def __init__(self, cls: Type, values: Mapping[str, Any]):
         self.cls = cls
         self.values = values
-        set_fields(self, *values, overwrite=True)
 
     def __getattribute__(self, name: str) -> Any:
         values = super().__getattribute__("values")
         if name in values:
             return values[name]
         cls = super().__getattribute__("cls")
-        for field in fields(cls):
-            if name == field.name:
-                try:
-                    return get_default(field)
-                except NotImplementedError:
-                    raise NonTrivialDependency(name) from None
+        fields = object_fields(cls)
+        if name in fields:
+            if fields[name].required:
+                raise NonTrivialDependency(name)
+            return fields[name].get_default()
         if name == "__class__":
             return cls
         if name == "__dict__":
-            return {
-                **values,
-                **{
-                    field.name: get_default(field)
-                    for field in fields(cls)
-                    if has_default(field)
-                },
-                FIELDS_SET_ATTR: set(values),
-            }
+            return {**values, FIELDS_SET_ATTR: set(values)}
         if name == FIELDS_SET_ATTR:
             return set(values)
         if hasattr(cls, name):
