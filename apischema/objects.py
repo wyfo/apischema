@@ -26,6 +26,7 @@ from typing import (
 from apischema.aliases import AliasedStr, Aliaser, get_class_aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import Conversion, Conversions
+from apischema.conversions.converters import deserializer, serializer
 from apischema.conversions.utils import identity
 from apischema.json_schema.constraints import Constraints
 from apischema.json_schema.schemas import Schema
@@ -243,6 +244,12 @@ def object_wrapper(
         (ObjectWrapper[T],),
         exec_body=lambda ns: ns.update({"type": cls, "fields": list(fields)}),
     )
+
+
+def register_object_wrapper(cls: Type[T], fields: Iterable[ObjectField]) -> None:
+    wrapper = object_wrapper(cls, fields)
+    deserializer(wrapper.deserialization)
+    serializer(wrapper.serialization)
 
 
 def override_alias(field: ObjectField, aliaser: Aliaser) -> ObjectField:

@@ -19,3 +19,9 @@ assert serialize(Foo(0), conversions=FooWrapper.serialization) == {"bar": 0}
 #     "required": ["bar"],
 #     "additionalProperties": False,
 # }
+
+# register_object_wrapper(Foo, [ObjectField("bar", int, True)])
+# is equivalent to
+# FooWrapper = object_wrapper(Foo, [ObjectField("bar", int, True)])
+# deserializer(FooWrapper.deserialization)
+# serializer(FooWrapper.serialization)
