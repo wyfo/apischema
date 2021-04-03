@@ -10,6 +10,7 @@ from typing import (
     Optional,
     TYPE_CHECKING,
     Tuple,
+    Type,
     Union,
 )
 
@@ -91,10 +92,19 @@ def resolve_conversions(conversions: Optional[Conversions]) -> ResolvedConversio
     return tuple(result)
 
 
+def handle_identity_conversion(
+    conversion: ResolvedConversion, cls: Type
+) -> ResolvedConversion:
+    if is_identity(conversion) and conversion.source == IdentityT:
+        return ResolvedConversion(replace(conversion, source=cls, target=cls))
+    else:
+        return conversion
+
+
 def is_identity(conversion: ResolvedConversion) -> bool:
     return (
         conversion.converter == identity
-        and conversion.source == conversion.target == IdentityT
+        and conversion.source == conversion.target
         and conversion.sub_conversions is None
         and conversion.additional_properties is None
         and conversion.coercion is None

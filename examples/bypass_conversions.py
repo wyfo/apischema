@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from apischema import serialize, serializer
-from apischema.conversions import identity
+from apischema.conversions import Conversion, identity
 
 
 @dataclass
@@ -19,6 +19,14 @@ class RGB:
 assert serialize(RGB(0, 0, 0)) == "#000000"
 # dynamic conversion used to bypass the registered one
 assert serialize(RGB(0, 0, 0), conversions=identity) == {
+    "red": 0,
+    "green": 0,
+    "blue": 0,
+}
+# Expended bypass form
+assert serialize(
+    RGB(0, 0, 0), conversions=Conversion(identity, source=RGB, target=RGB)
+) == {
     "red": 0,
     "green": 0,
     "blue": 0,
