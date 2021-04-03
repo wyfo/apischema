@@ -4,7 +4,7 @@ from enum import Enum
 from pytest import raises
 
 from apischema import ValidationError, deserialize, serialize, validator
-from apischema.objects import get_alias
+from apischema.objects import get_alias, get_field
 
 
 class Parity(Enum):
@@ -15,19 +15,25 @@ class Parity(Enum):
 @dataclass
 class NumberWithParity:
     parity: Parity
-    number: int = field()  # field must be assign, even with empty `field()`
+    number: int = field()
 
     @validator(number)
     def check_parity(self):
         if (self.parity == Parity.EVEN) != (self.number % 2 == 0):
             yield "number doesn't respect parity"
 
-    # using field argument adds automatically discard argument
-    # and prefix all error paths with the field
+    # A field validator is equivalent to a discard argument and all error paths prefixed
+    # with the field alias
     @validator(discard=number)
     def check_parity_equivalent(self):
         if (self.parity == Parity.EVEN) != (self.number % 2 == 0):
             yield get_alias(self).number, "number doesn't respect parity"
+
+
+@validator(get_field(NumberWithParity).number)
+def check_parity_other_equivalent(number2: NumberWithParity):
+    if (number2.parity == Parity.EVEN) != (number2.number % 2 == 0):
+        yield "number doesn't respect parity"
 
 
 with raises(ValidationError) as err:

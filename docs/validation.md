@@ -41,7 +41,7 @@ It makes no sense to execute a validator using a field that is ill-formed. Hopef
 
 Validation of list field can require to raise several exception, one for each bad elements. With `raise`, this is not possible, because you can raise only once.
 
-However, *apischema* provides a way or raising as many errors as needed by using `yield`. Moreover, with this syntax, it is possible to add a "path" to the error to precise its location in the validated data. This path will be added to the `loc` key of the error.
+However, *apischema* provides a way or raising as many errors as needed by using `yield`. Moreover, with this syntax, it is possible to add a "path" (see [below](#error-path)) to the error to precise its location in the validated data. This path will be added to the `loc` key of the error.
 
 ```python
 {!validator_yield.py!}
@@ -53,13 +53,13 @@ In the example, validator yield a tuple of an "error path" and the error message
 
 - a string
 - an integer (for list indices)
-- a dataclass field (obtained with `apischema.fields.fields`)
+- a field alias (obtained with `apischema.objects.get_alias`)
 - a tuple of this 3 components.
 
 `yield` can also be used with only an error message.
 
 !!! note
-    For dataclass field error path, it's advised to use `apischema.fields.fields` instead of raw string, because it will take in account potential aliasing and it will be easier to rename field with IDE refactoring.
+    For dataclass field error path, it's advised to use `apischema.objects.get_alias` instead of raw string, because it will take in account potential aliasing and it will be better handled by IDE (refactoring, cross-referencing, etc.)
 
 ### Discard
 
@@ -68,6 +68,11 @@ If one of your validators fails because a field is corrupted, maybe you don't wa
 ```python
 {!discard.py!}
 ```
+
+You can notice in this example that *apischema* tries avoiding using raw strings to identify fields. In every function of the library using fields identifier (`apischema.validator`, `apischema.dependent_required`, `apischema.fields.set_fields`, etc.), you have always three ways to pass them:
+- using field object, preferred in dataclass definition
+- using `apischema.objects.get_field`, to be used outside of class definition; it works with `NamedTuple` too — the object returned is the *apischema* internal field representation, common to `dataclass`, `NamedTuple` and `TypedDict`
+- using raw strings, thus not handled by static tools like refactoring, but it works
 
 ### Field validators
 
@@ -85,7 +90,7 @@ When validation fails for a field, it is discarded and cannot be used in class v
 
 #### Using other fields
 
-A common pattern can be to validate a field using other fields values. This is achieved with dataclass validators seen above. However there is a shortcut for this use case:
+A common pattern can be to validate a field using other fields values. This is achieved with dataclass validators seen above. However, there is a shortcut for this use case:
 
 ```python
 {!validator_field.py!}
