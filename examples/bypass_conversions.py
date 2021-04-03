@@ -1,7 +1,4 @@
-from collections import deque
 from dataclasses import dataclass
-
-from mypy.plugins.dataclasses import dataclass_class_maker_callback
 
 from apischema import serialize, serializer
 from apischema.conversions import Conversion, identity
