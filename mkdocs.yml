@@ -28,6 +28,7 @@ nav:
   - examples/attrs_support.md
   - examples/subclasses_union.md
   - examples/recoverable_fields.md
+  - examples/inherited_deserializer.md
 - benchmark.md
 - difference_with_pydantic.md
 - Releases: https://github.com/wyfo/apischema/releases
