@@ -116,7 +116,7 @@ def exception(err: Exception) -> str:
     return str(err)
 
 
-def _rec_build_error(path: Sequence[str], msg: ErrorMsg) -> ValidationError:
+def _rec_build_error(path: Sequence[ErrorKey], msg: ErrorMsg) -> ValidationError:
     if not path:
         return ValidationError([msg])
     else:
@@ -145,7 +145,7 @@ def build_validation_error(errors: Iterable[Error]) -> ValidationError:
         if not path:
             messages.append(msg)
         else:
-            key, *remain = (path,) if isinstance(path, (int, str)) else path
+            key, *remain = _check_error_path(path)
             children[key] = merge_errors(
                 children.get(key), _rec_build_error(remain, msg)
             )

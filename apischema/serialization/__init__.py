@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Any, Callable, Collection, Mapping, Optional, Sequence, Type, TypeVar
 
 from apischema import settings
-from apischema.aliases import AliasedStr, Aliaser
+from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import (
     Conversions,
@@ -16,7 +16,7 @@ from apischema.conversions.conversions import (
 from apischema.conversions.dataclass_models import DataclassModel
 from apischema.conversions.visitor import SerializationVisitor
 from apischema.fields import FIELDS_SET_ATTR, fields_set
-from apischema.objects import ObjectField, ObjectWrapper, object_fields
+from apischema.objects import AliasedStr, ObjectField, ObjectWrapper, object_fields
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import PRIMITIVE_TYPES
 from apischema.utils import Undefined, UndefinedType, get_origin_or_type
@@ -127,6 +127,15 @@ def serialization_method_factory(
                     )
 
                 return method
+        if issubclass(cls, ObjectWrapper):  # must be before dataclass
+            method = object_method(cls, aliaser)  # type: ignore
+            return lambda obj, exc_unset: method(obj.wrapped, exc_unset)
+        if is_dataclass(cls):
+            return object_method(cls, aliaser)
+        if issubclass(cls, Enum):
+            return lambda obj, exc_unset: get_method(
+                obj.value.__class__, None, aliaser
+            )(obj.value, exc_unset)
         if issubclass(cls, AliasedStr):
             return lambda obj, _: aliaser(obj)
         if issubclass(cls, PRIMITIVE_TYPES):
@@ -145,15 +154,6 @@ def serialization_method_factory(
                 get_method(elt.__class__, conversions, aliaser)(elt, exc_unset)
                 for elt in obj
             ]
-        if is_dataclass(cls):
-            return object_method(cls, aliaser)
-        if issubclass(cls, Enum):
-            return lambda obj, exc_unset: get_method(
-                obj.value.__class__, None, aliaser
-            )(obj.value, exc_unset)
-        if issubclass(cls, ObjectWrapper):
-            method = object_method(cls, aliaser)  # type: ignore
-            return lambda obj, exc_unset: method(obj.wrapped, exc_unset)
         raise Unsupported(cls)
 
     return get_method

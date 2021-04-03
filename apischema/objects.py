@@ -1,4 +1,12 @@
-__all__ = ["get_alias", "get_field", "object_fields"]
+__all__ = [
+    "AliasedStr",
+    "ObjectField",
+    "ObjectWrapper",
+    "get_alias",
+    "get_field",
+    "object_fields",
+    "register_object_wrapper",
+]
 import sys
 from dataclasses import Field, InitVar, MISSING, dataclass, field, replace
 from types import new_class
@@ -23,7 +31,7 @@ from typing import (
     overload,
 )
 
-from apischema.aliases import AliasedStr, Aliaser, get_class_aliaser
+from apischema.aliases import Aliaser, get_class_aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import Conversion, Conversions
 from apischema.conversions.converters import deserializer, serializer
@@ -64,6 +72,11 @@ try:
     from apischema.typing import Annotated
 except ImportError:
     Annotated = ...  # type: ignore
+
+
+class AliasedStr(str):
+    pass
+
 
 empty_dict: Mapping[str, Any] = {}
 
@@ -208,17 +221,21 @@ def object_field_from_field(field: Field, field_type: AnyType) -> ObjectField:
 T = TypeVar("T")
 
 
+def _set_conversions(cls: Type["ObjectWrapper"]):
+    tp = cls.type[cls.__parameters__] if has_type_vars(cls.type) else cls.type
+    cls.deserialization = Conversion(identity, source=cls[tp], target=tp)  # type: ignore # noqa: E501
+    cls.serialization = Conversion(identity, source=tp, target=cls[tp])  # type: ignore
+
+
 if sys.version_info < (3, 7) and not TYPE_CHECKING:
     from typing import GenericMeta
 
     class _ObjectWrapperBaseMeta(GenericMeta):
-        def __init__(cls: "ObjectWrapper", *args, **kwargs):
+        def __init__(cls, *args, **kwargs):
             super().__init__(*args, **kwargs)
             if not hasattr(cls, "type") or cls.__origin__ is not None:
                 return
-            tp = cls.type[cls.__parameters__] if has_type_vars(cls.type) else cls.type
-            cls.deserialization = Conversion(identity, source=cls[tp], target=tp)
-            cls.serialization = Conversion(identity, source=tp, target=cls[tp])
+            _set_conversions(cast(Type["ObjectWrapper"], cls))
 
     _ObjectWrapperBase = [_ObjectWrapperBaseMeta("ObjectWrapperBase", (), {})]
 else:
@@ -231,15 +248,13 @@ class ObjectWrapper(*_ObjectWrapperBase, Generic[T]):  # type: ignore
     fields: ClassVar[Sequence[ObjectField]]
     wrapped: T
 
-    deserialization: Conversion
-    serialization: Conversion
+    deserialization: ClassVar[Conversion]
+    serialization: ClassVar[Conversion]
     if sys.version_info >= (3, 7):
 
         def __init_subclass__(cls, **kwargs):
             super().__init_subclass__(**kwargs)
-            tp = cls.type[cls.__parameters__] if has_type_vars(cls.type) else cls.type
-            cls.deserialization = Conversion(identity, source=cls[tp], target=tp)
-            cls.serialization = Conversion(identity, source=tp, target=cls[tp])
+            _set_conversions(cls)
 
 
 def object_wrapper(
@@ -252,13 +267,28 @@ def object_wrapper(
     )
 
 
-def register_object_wrapper(cls: Type[T], fields: Iterable[ObjectField]) -> None:
-    wrapper = object_wrapper(cls, fields)
-    deserializer(wrapper.deserialization)
-    serializer(wrapper.serialization)
+def register_object_wrapper(
+    cls: Type[T],
+    fields: Union[Iterable[ObjectField], Callable[[], Iterable[ObjectField]]],
+) -> None:
+    if callable(fields):
+        wrapper = None
+
+        def compute_wrapper() -> Type[ObjectWrapper[T]]:
+            nonlocal wrapper
+            if wrapper is None:
+                wrapper = object_wrapper(cls, fields())  # type: ignore
+            return wrapper
+
+        deserializer(lazy=lambda: compute_wrapper().deserialization, target=cls)
+        serializer(lazy=lambda: compute_wrapper().serialization, source=cls)
+    else:
+        wrapper = object_wrapper(cls, cast(Iterable[ObjectField], fields))
+        deserializer(wrapper.deserialization)
+        serializer(wrapper.serialization)
 
 
-def override_alias(field: ObjectField, aliaser: Aliaser) -> ObjectField:
+def _override_alias(field: ObjectField, aliaser: Aliaser) -> ObjectField:
     if field.override_alias:
         return replace(
             field,
@@ -269,14 +299,27 @@ def override_alias(field: ObjectField, aliaser: Aliaser) -> ObjectField:
         return field
 
 
-def apply_class_aliaser(
+def _apply_class_aliaser(
     cls: Type, fields: Sequence[ObjectField]
 ) -> Sequence[ObjectField]:
     aliaser = get_class_aliaser(cls)
-    return fields if aliaser is None else [override_alias(f, aliaser) for f in fields]
+    return fields if aliaser is None else [_override_alias(f, aliaser) for f in fields]
 
 
 class ObjectVisitor(Visitor[Return]):
+    # def __init__(self):
+    #     super().__init__()
+    #     self._wrapper_fields: Optional[Sequence[ObjectField]] = None
+    #
+    # @contextmanager
+    # def _set_wrapper_fields(self, fields: Optional[Sequence[ObjectField]]):
+    #     prev_fields = self._wrapper_fields
+    #     self._wrapper_fields = fields
+    #     try:
+    #         yield
+    #     finally:
+    #         self._wrapper_fields = prev_fields
+
     def _fields(
         self,
         fields: Sequence[Field],
@@ -309,7 +352,7 @@ class ObjectVisitor(Visitor[Return]):
     ) -> Return:
         fields = [field for field in fields if SKIP_METADATA not in field.metadata]
         return self.object(
-            cls, apply_class_aliaser(cls, fields) if class_aliasing else fields
+            cls, _apply_class_aliaser(cls, fields) if class_aliasing else fields
         )
 
     def object(self, cls: Type, fields: Sequence[ObjectField]) -> Return:
@@ -347,8 +390,11 @@ class ObjectVisitor(Visitor[Return]):
         return self._object(cls, fields, class_aliasing=False)
 
     def _visit(self, tp: AnyType) -> Return:
+        # if self._wrapper_fields is not None:
+        #     with self._set_wrapper_fields(None):
+        #         return self._object(tp, self._wrapper_fields, class_aliasing=True)
         if isinstance(tp, type) and issubclass(tp, ObjectWrapper):
-            fields = tp.fields
+            wrapped, fields = tp.type, tp.fields
             if self._generic is not None:
                 (wrapped,) = get_args(self._generic)
                 if get_args(wrapped):
@@ -358,6 +404,8 @@ class ObjectVisitor(Visitor[Return]):
                         for f in fields
                     ]
             return self._object(tp.type, fields, class_aliasing=True)
+            # with self._set_wrapper_fields(fields):
+            #     return self.visit(wrapped)
         return super()._visit(tp)
 
 

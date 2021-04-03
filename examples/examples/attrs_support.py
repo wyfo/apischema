@@ -1,29 +1,20 @@
-from dataclasses import MISSING, field, make_dataclass
 from functools import lru_cache
 from typing import Optional
 
 import attr
 
 from apischema import deserialize, serialize, settings
-from apischema.conversions import dataclass_model
-from apischema.conversions.conversions import Conversion, Conversions
-
-
-def attrs_to_dataclass(cls: type) -> type:
-    fields = [
-        (
-            a.name,
-            a.type,
-            field(default=a.default) if a.default != attr.NOTHING else MISSING,
-        )
-        for a in getattr(cls, "__attrs_attrs__")
-    ]
-    return make_dataclass(cls.__name__, fields)
+from apischema.conversions.conversions import Conversions
+from apischema.objects import ObjectField, ObjectWrapper, object_wrapper
 
 
 @lru_cache()  # Use cache because it will be called often
-def attrs_dataclass_model(cls: type) -> tuple[Conversion, Conversion]:
-    return dataclass_model(cls, attrs_to_dataclass(cls))
+def attrs_object_wrapper(cls: type) -> type[ObjectWrapper]:
+    fields = [
+        ObjectField(a.name, a.type, a.default == attr.NOTHING, default=a.default)
+        for a in getattr(cls, "__attrs_attrs__")
+    ]
+    return object_wrapper(cls, fields)
 
 
 prev_deserialization = settings.deserialization()
@@ -36,8 +27,7 @@ def deserialization(cls: type) -> Optional[Conversions]:
     if result is not None:
         return result
     elif hasattr(cls, "__attrs_attrs__"):
-        deserialization_conversion, _ = attrs_dataclass_model(cls)
-        return deserialization_conversion
+        return attrs_object_wrapper(cls).deserialization
     else:
         return None
 
@@ -48,8 +38,7 @@ def serialization(cls: type) -> Optional[Conversions]:
     if result is not None:
         return result
     elif hasattr(cls, "__attrs_attrs__"):
-        _, serialization_conversion = attrs_dataclass_model(cls)
-        return serialization_conversion
+        return attrs_object_wrapper(cls).serialization
     else:
         return None
 

@@ -24,7 +24,7 @@ from typing import (
 )
 
 from apischema import settings
-from apischema.aliases import AliasedStr, Aliaser
+from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import (
     Conversions,
@@ -46,7 +46,7 @@ from apischema.json_schema.patterns import infer_pattern
 from apischema.json_schema.schemas import Schema, get_schema
 from apischema.metadata.implem import ValidatorsMetadata
 from apischema.metadata.keys import SCHEMA_METADATA, VALIDATORS_METADATA
-from apischema.objects import DeserializationObjectVisitor, ObjectField
+from apischema.objects import AliasedStr, DeserializationObjectVisitor, ObjectField
 from apischema.skip import filter_skipped
 from apischema.types import (
     AnyType,

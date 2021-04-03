@@ -25,7 +25,7 @@ from typing import (
 import graphql
 
 from apischema import UndefinedType, serialize
-from apischema.aliases import AliasedStr, Aliaser
+from apischema.aliases import Aliaser
 from apischema.conversions import identity
 from apischema.conversions.conversions import Conversions, to_hashable_conversions
 from apischema.conversions.visitor import (
@@ -53,6 +53,7 @@ from apischema.metadata.keys import (
     SCHEMA_METADATA,
 )
 from apischema.objects import (
+    AliasedStr,
     DeserializationObjectVisitor,
     ObjectField,
     ObjectVisitor,

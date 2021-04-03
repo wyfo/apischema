@@ -43,6 +43,7 @@ from apischema.utils import (
     UndefinedType,
     get_args2,
     get_origin_or_type,
+    has_type_vars,
     is_type_var,
     substitute_type_vars,
 )
@@ -144,7 +145,7 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
 def self_deserialization_wrapper(cls: Type) -> Type:
     return new_class(
         f"{cls.__name__}SelfDeserializer",
-        (cls,),
+        (cls[cls.__parameters__] if has_type_vars(cls) else cls,),
         exec_body=lambda ns: ns.update(
             {
                 "__new__": lambda _, *args, **kwargs: cls(*args, **kwargs),

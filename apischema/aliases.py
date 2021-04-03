@@ -10,10 +10,6 @@ _class_aliasers: Dict[type, Aliaser] = {}
 get_class_aliaser = _class_aliasers.get
 
 
-class AliasedStr(str):
-    pass
-
-
 @overload
 def alias(alias_: str, *, override: bool = True) -> Metadata:
     ...

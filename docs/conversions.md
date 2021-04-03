@@ -167,11 +167,16 @@ Serialized method can also have dedicated conversions
 ```
 
 
-## Dataclass model - automatic conversion from/to dataclass
+## Object wrapper — use any class as if it was a dataclass
 
-Conversions are a powerful tool, which allows to support every type you need. If it is particularly well suited for scalar types (`datetime.datetime`, `bson.ObjectId`, etc.), it may seem a little bit complex for object types. In fact, the conversion would often be a simple mapping of fields between the type and a dataclass.
+Conversions are a powerful tool, which allows to support every type you need. If it is particularly well suited for scalar types (`datetime.datetime`, `bson.ObjectId`, etc.), it's may seem cumbersome for object types. In fact, the conversion would often be a simple mapping of fields between the type and a custom dataclass.
 
-That's why *apischema* provides a shortcut for this case: `apischema.conversions.dataclass_model`; it allows to specify a dataclass which will be used as a typed model for a given class : each field of the dataclass will be mapped on the attributes of the class instances.
+That's why *apischema* provides a shortcut for this case: `apischema.objects.object_wrapper`; it takes the class to wrap and a collection of `apischema.objects.ObjectField` fields which will be used as if they were owned by the wrapped class.
+
+
+
+it allows to specify a dataclass which will be used as a typed model for a given class : each field of the dataclass will be mapped on the attributes of the class instances.
+
 The function returns two `Conversion` object, one for deserialization and the other for serialization. They can then be registered with `serializer`/`deserializer`, or be used dynamically.
 
 Remember that dataclass can also be declared dynamically with `dataclasses.make_dataclasses`. That's especially useful when it comes to add support for libraries like ORM. The following example show how to add a [basic support for 
@@ -244,6 +249,13 @@ Lazy conversions can also be registered, but the deserialization target/serializ
 ```python
 {!lazy_registered_conversion.py!}
 ```
+
+Object wrappers also have a shortcut to register them lazily; one just needs to wrap the list of `ObjectField` in a function. That's often needed when wrapped classes are post-processed after their creation — *SQLAlchemy* tables with relations are a good example.
+
+```python
+{!lazy_object_wrapper.py!}
+```
+
 ## FAQ
 
 #### Why conversion can only be applied on classes?

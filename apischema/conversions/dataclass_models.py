@@ -1,3 +1,4 @@
+import warnings
 from dataclasses import dataclass
 from types import new_class
 from typing import Callable, Optional, TYPE_CHECKING, Tuple, Type, Union
@@ -56,6 +57,11 @@ def dataclass_model(
     default_fallback: Optional[bool] = None,
     exclude_unset: Optional[bool] = None,
 ) -> Tuple[Conversion, Conversion]:
+    warnings.warn(
+        "dataclass_model is deprecated, use object_wrapper/"
+        "register_object_wrapper instead",
+        DeprecationWarning,
+    )
     if isinstance(model, type):
         check_model(origin, model)
 
