@@ -30,7 +30,7 @@ type Query {
 type Foo {
   bar(
     """argument"""
-    param: Int!
+    arg: Int!
   ): Int!
 }
 '''

@@ -180,10 +180,10 @@ ANNOTATED_METADATA = {
 }
 
 
-def annotated_metadata(tp: AnyType) -> Mapping:
+def annotated_metadata(tp: AnyType, skip_schema_validators: bool = True) -> Mapping:
     if get_origin(tp) == Annotated:
         return ChainMap(
-            ANNOTATED_METADATA,
+            ANNOTATED_METADATA if skip_schema_validators else {},
             *(arg for arg in reversed(get_args(tp)[1:]) if isinstance(arg, Mapping)),
         )
     else:
