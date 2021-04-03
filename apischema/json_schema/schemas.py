@@ -58,6 +58,12 @@ class Schema(MetadataMixin):
             result.update(self.annotations.as_dict())
         return result
 
+    def validate(self, data: T) -> T:
+        if self.constraints is not None:
+            return self.constraints.validate(data)
+        else:
+            return data
+
 
 _annotations_fields = {f.name for f in fields(Annotations)}
 
