@@ -105,11 +105,12 @@ No matter if a conversion is registered or not for a given type, conversions can
 
 Dynamic conversions are discarded after having been applied (or after class without conversion having been encountered). For example, you can't apply directly a dynamic conversion to a dataclass field when calling  `serialize` on an instance of this dataclass. Reasons of this design are detailed in the [FAQ](#why-dynamic-conversion-cannot-apply-on-the-whole-data-model). 
 
-However, there is an exception for containers like `Collection`, `list`, `dict`, etc. and `Union`, and types with a registered conversion from/to a container: dynamic conversions are not discarded and can be used by their elements 
-
 ```python
 {!local_conversions.py!}
 ```
+
+!!! note
+    Dynamic conversion is not discarded when the encountered type is a container (`list`, `dict`, `Collection`, etc. or `Union`) or a registered conversion from/to a container; the dynamic conversion can then apply to the container elements
 
 ### Dynamic conversions interact with `schema_ref`
 

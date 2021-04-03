@@ -812,7 +812,11 @@ class DeserializationMethodVisitor(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
             alt_deserializers = [
-                (fact.merge(constraints, validators).method, converter, conv_ctx)
+                (
+                    fact.merge(constraints if not dynamic else None).method,
+                    converter,
+                    conv_ctx,
+                )
                 for fact, converter, conv_ctx in factories
             ]
             if len(alt_deserializers) == 1:
@@ -851,7 +855,7 @@ class DeserializationMethodVisitor(
                     except Exception as err:
                         raise ValidationError([str(err)])
 
-            return method
+            return with_validators(validators)(method)
 
         return factory
 
@@ -872,6 +876,7 @@ def deserialize(
     data: Any,
     *,
     conversions: Conversions = None,
+    schema: Schema = None,
     aliaser: Aliaser = None,
     additional_properties: bool = None,
     coercion: Coercion = None,
@@ -886,6 +891,7 @@ def deserialize(
     data: Any,
     *,
     conversions: Conversions = None,
+    schema: Schema = None,
     aliaser: Aliaser = None,
     additional_properties: bool = None,
     coercion: Coercion = None,
@@ -899,6 +905,7 @@ def deserialize(
     data: Any,
     *,
     conversions: Conversions = None,
+    schema: Schema = None,
     aliaser: Aliaser = None,
     additional_properties: bool = None,
     coercion: Coercion = None,

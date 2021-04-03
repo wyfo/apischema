@@ -119,6 +119,7 @@ def handle_container_conversions(
     prev_conversions: Optional[HashableConversions],
     dynamic: bool,
 ) -> Optional[HashableConversions]:
+    """Allow dynamic conversions passing through registered conversions on containers"""
     origin = get_origin_or_type(tp)
     if (
         prev_conversions
