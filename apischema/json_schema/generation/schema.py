@@ -42,7 +42,7 @@ from apischema.json_schema.constraints import (
 from apischema.json_schema.generation.refs import (
     DeserializationRefsExtractor,
     Refs,
-    RefsExtractor,
+    RefsExtractor as RefsExtractor_,
     SerializationRefsExtractor,
 )
 from apischema.json_schema.patterns import infer_pattern
@@ -391,7 +391,7 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
     def visit(self, tp: AnyType) -> JsonSchema:
         return self.visit_with_schema(tp, None)
 
-    RefsExtractor: Type["RefsExtractor"]
+    RefsExtractor: Type[RefsExtractor_]
 
 
 class DeserializationSchemaBuilder(
