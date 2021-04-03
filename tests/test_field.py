@@ -1,8 +1,7 @@
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 
 from pytest import raises
 
-from apischema.dataclass_utils import get_default
 from apischema.fields import (
     fields_set,
     set_fields,
@@ -28,14 +27,6 @@ class Inherited(Data):
 @dataclass
 class DecoratedInherited(Data):
     other: int = 42
-
-
-def test_default():
-    without_default, with_default, with_default_factory = fields(Data)
-    with raises(NotImplementedError):
-        get_default(without_default)
-    assert get_default(with_default) == 0
-    assert get_default(with_default_factory) == 0
 
 
 def test_fields_set():

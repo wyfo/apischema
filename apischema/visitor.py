@@ -22,7 +22,6 @@ from typing import (
 )
 
 from apischema.cache import cache
-from apischema.dataclass_utils import is_dataclass
 from apischema.types import (
     AnyType,
     COLLECTION_TYPES,
@@ -39,7 +38,13 @@ from apischema.typing import (
     get_type_hints2,
     required_keys,
 )
-from apischema.utils import PREFIX, get_origin_or_type, has_type_vars, is_type_var
+from apischema.utils import (
+    PREFIX,
+    get_origin_or_type,
+    has_type_vars,
+    is_dataclass,
+    is_type_var,
+)
 
 try:
     from apischema.typing import Annotated, Literal
