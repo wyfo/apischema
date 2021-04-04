@@ -16,7 +16,8 @@ from apischema.conversions.conversions import (
 from apischema.conversions.dataclass_models import DataclassModel
 from apischema.conversions.visitor import SerializationVisitor
 from apischema.fields import FIELDS_SET_ATTR, fields_set
-from apischema.objects import AliasedStr, ObjectField, ObjectWrapper, object_fields
+from apischema.objects import AliasedStr, ObjectField, object_fields
+from apischema.objects.conversions import ObjectWrapper
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import PRIMITIVE_TYPES
 from apischema.utils import Undefined, UndefinedType, get_origin_or_type

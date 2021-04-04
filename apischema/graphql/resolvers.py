@@ -27,7 +27,8 @@ from apischema.conversions.conversions import (
 )
 from apischema.deserialization import deserialize
 from apischema.json_schema.schemas import Schema
-from apischema.objects import ObjectField, annotated_metadata
+from apischema.objects import ObjectField
+from apischema.objects.utils import annotated_metadata
 from apischema.serialization import serialization_method_factory, serialize
 from apischema.serialization.serialized_methods import (
     ErrorHandler,

@@ -3,11 +3,11 @@ from dataclasses import dataclass, field
 from graphql import graphql_sync, print_schema
 from pytest import raises
 
-from apischema import deserialize, deserializer, serialize, serializer
-from apischema.conversions import dataclass_model
+from apischema import deserialize, serialize
 from apischema.graphql import graphql_schema
 from apischema.json_schema import deserialization_schema, serialization_schema
 from apischema.metadata import conversion, merged
+from apischema.objects import ObjectField, as_object
 
 
 class Field:
@@ -15,14 +15,7 @@ class Field:
         self.attr = attr
 
 
-@dataclass
-class FieldModel:
-    attr: int
-
-
-d_conv, s_conv = dataclass_model(Field, FieldModel)
-deserializer(d_conv)
-serializer(s_conv)
+as_object(Field, [ObjectField("attr", int)])
 
 
 @dataclass

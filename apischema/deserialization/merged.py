@@ -1,7 +1,8 @@
 from typing import Iterable, Iterator, Mapping, Sequence, Type
 
 from apischema.conversions.visitor import DeserializationVisitor
-from apischema.objects import DeserializationObjectVisitor, ObjectField
+from apischema.objects import ObjectField
+from apischema.objects.visitor import DeserializationObjectVisitor
 from apischema.types import AnyType
 from apischema.visitor import Unsupported
 

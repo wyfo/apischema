@@ -16,6 +16,9 @@ Sometimes dataclass field names can clash with language keyword, sometimes the p
 {!alias.py!}
 ```
 
+!!! warning
+    `TypedDict` fields cannot have aliases, see [FAQ]()
+
 ### Alias all fields
 
 Field aliasing can also be done at class level by specifying an aliasing function. This aliaser is applied to field alias if defined or field name, or not applied if `override=False` is specified.
@@ -251,6 +254,10 @@ Dataclasses `InitVar` and `field(init=False)` fields will be flagged respectivel
 In [definitions schema](#definitions-schema), if a type appears both in deserialization and serialization,  properties are merged and the resulting schema contains then `readOnly` and `writeOnly` properties. By the way, the `required` is not merged because it can't (it would mess up validation if some not-init field was required), so deserialization `required` is kept because it's more important as it can be used in validation (*OpenAPI* 3.0 semantic which allows the merge [has been dropped](https://www.openapis.org/blog/2020/06/18/openapi-3-1-0-rc0-its-here) in 3.1, so it has not been judged useful to be supported)
 
 ## FAQ
+
+#### Why `TypedDict` doesn't support field aliasing?
+
+`TypedDict` subclasses are not real classes, they are static annotations with no runtime existence, there are only `dict` (or other mappings) at runtime. However, serialization is implemented using runtime classes, as explained [here](conversions.md#why-conversion-can-only-be-applied-on-classes), so `TypedDict` fields are not available during serialization. As a consequence, `TypedDict` field's aliases would not be able to be retrieved by serialization, so they are not supported at all instead of having them at deserialization and not at serialization.  
 
 #### Why field default value is not used by default to generate JSON schema?
 

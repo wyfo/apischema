@@ -178,6 +178,10 @@ def get_origin_or_type(tp: AnyType) -> AnyType:
     return origin if origin is not None else tp
 
 
+def with_parameters(tp: AnyType) -> AnyType:
+    return tp[tp.__parameters__] if getattr(tp, "__parameters__", ()) else tp
+
+
 def is_union_of(tp: AnyType, of: AnyType) -> bool:
     return tp == of or (get_origin_or_type(tp) == Union and of in get_args2(tp))
 

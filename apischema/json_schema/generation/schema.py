@@ -27,7 +27,9 @@ from apischema.conversions.conversions import Conversions
 from apischema.conversions.visitor import (
     Conv,
     ConversionsVisitor,
+    Deserialization,
     DeserializationVisitor,
+    Serialization,
     SerializationVisitor,
 )
 from apischema.dataclasses import replace
@@ -51,9 +53,9 @@ from apischema.json_schema.schemas import Schema, get_schema, merge_schema
 from apischema.json_schema.types import JsonSchema, JsonType, json_schema
 from apischema.json_schema.versions import JsonSchemaVersion, RefFactory
 from apischema.metadata.keys import SCHEMA_METADATA
-from apischema.objects import (
+from apischema.objects import ObjectField
+from apischema.objects.visitor import (
     DeserializationObjectVisitor,
-    ObjectField,
     ObjectVisitor,
     SerializationObjectVisitor,
 )
@@ -395,14 +397,14 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
 
 
 class DeserializationSchemaBuilder(
-    DeserializationObjectVisitor, DeserializationVisitor, SchemaBuilder
+    DeserializationObjectVisitor, DeserializationVisitor, SchemaBuilder[Deserialization]
 ):
     RefsExtractor = DeserializationRefsExtractor
     visit_conversion = with_schema(DeserializationVisitor.visit_conversion)  # type: ignore # noqa: E501
 
 
 class SerializationSchemaBuilder(
-    SerializationObjectVisitor, SerializationVisitor, SchemaBuilder
+    SerializationObjectVisitor, SerializationVisitor, SchemaBuilder[Serialization]
 ):
     RefsExtractor = SerializationRefsExtractor
     visit_conversion = with_schema(SerializationVisitor.visit_conversion)  # type: ignore # noqa: E501

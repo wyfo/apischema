@@ -8,9 +8,9 @@ from apischema.conversions.visitor import (
     SerializationVisitor,
 )
 from apischema.json_schema.refs import check_ref_type, get_ref, schema_ref
-from apischema.objects import (
+from apischema.objects import ObjectField
+from apischema.objects.visitor import (
     DeserializationObjectVisitor,
-    ObjectField,
     ObjectVisitor,
     SerializationObjectVisitor,
 )

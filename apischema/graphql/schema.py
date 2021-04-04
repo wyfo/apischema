@@ -52,13 +52,12 @@ from apischema.json_schema.schemas import Schema, get_schema, merge_schema
 from apischema.metadata.keys import (
     SCHEMA_METADATA,
 )
-from apischema.objects import (
-    AliasedStr,
+from apischema.objects import AliasedStr, ObjectField
+from apischema.objects.utils import annotated_metadata
+from apischema.objects.visitor import (
     DeserializationObjectVisitor,
-    ObjectField,
     ObjectVisitor,
     SerializationObjectVisitor,
-    annotated_metadata,
 )
 from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.skip import filter_skipped

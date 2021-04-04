@@ -12,7 +12,7 @@ from typing import (
     overload,
 )
 
-from apischema.objects import check_field_or_name, get_field_name
+from apischema.objects.fields import check_field_or_name, get_field_name
 
 _dependent_requireds: Dict[type, List[Tuple[Any, Collection[Any]]]] = defaultdict(list)
 

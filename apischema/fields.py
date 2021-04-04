@@ -18,7 +18,8 @@ from typing import (
     cast,
 )
 
-from apischema.objects import get_field_name, object_fields2
+from apischema.objects.fields import get_field_name
+from apischema.objects.getters import object_fields2
 from apischema.utils import PREFIX
 
 FIELDS_SET_ATTR = f"{PREFIX}fields_set"

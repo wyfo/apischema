@@ -46,7 +46,8 @@ from apischema.json_schema.patterns import infer_pattern
 from apischema.json_schema.schemas import Schema, get_schema
 from apischema.metadata.implem import ValidatorsMetadata
 from apischema.metadata.keys import SCHEMA_METADATA, VALIDATORS_METADATA
-from apischema.objects import AliasedStr, DeserializationObjectVisitor, ObjectField
+from apischema.objects import AliasedStr, ObjectField
+from apischema.objects.visitor import DeserializationObjectVisitor
 from apischema.skip import filter_skipped
 from apischema.types import (
     AnyType,

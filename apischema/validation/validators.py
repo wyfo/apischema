@@ -19,12 +19,8 @@ from typing import (
 )
 
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
-from apischema.objects import (
-    FieldOrName,
-    check_field_or_name,
-    get_field_name,
-    object_fields,
-)
+from apischema.objects.fields import FieldOrName, check_field_or_name, get_field_name
+from apischema.objects import object_fields
 from apischema.types import AnyType
 from apischema.typing import get_type_hints
 from apischema.utils import get_origin_or_type, is_method, method_class

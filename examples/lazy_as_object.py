@@ -1,5 +1,5 @@
 from apischema import deserialize, serialize
-from apischema.objects import ObjectField, register_object_wrapper
+from apischema.objects import ObjectField, as_object
 
 
 class Foo:
@@ -7,7 +7,7 @@ class Foo:
         self.bar = bar
 
 
-register_object_wrapper(Foo, lambda: [ObjectField("bar", int, required=True)])
+as_object(Foo, lambda: [ObjectField("bar", int, required=True)])
 
 foo = deserialize(Foo, {"bar": 0})
 assert type(foo) == Foo and foo.bar == 0
