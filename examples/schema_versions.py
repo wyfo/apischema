@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Literal, Optional
 
 from apischema.json_schema import (
     JsonSchemaVersion,
@@ -11,6 +11,7 @@ from apischema.json_schema import (
 @dataclass
 class Bar:
     baz: Optional[int]
+    constant: Literal[0] = 0
 
 
 @dataclass
@@ -30,7 +31,10 @@ assert deserialization_schema(Foo, all_refs=True) == {
         },
         "Bar": {
             "type": "object",
-            "properties": {"baz": {"type": ["integer", "null"]}},
+            "properties": {
+                "baz": {"type": ["integer", "null"]},
+                "constant": {"type": "integer", "const": 0},
+            },
             "required": ["baz"],
             "additionalProperties": False,
         },
@@ -51,7 +55,10 @@ assert deserialization_schema(
         },
         "Bar": {
             "type": "object",
-            "properties": {"baz": {"type": ["integer", "null"]}},
+            "properties": {
+                "baz": {"type": ["integer", "null"]},
+                "constant": {"type": "integer", "const": 0},
+            },
             "required": ["baz"],
             "additionalProperties": False,
         },
@@ -73,7 +80,10 @@ assert definitions_schema(
     "Bar": {
         "type": "object",
         # "nullable" instead of "type": "null"
-        "properties": {"baz": {"type": "integer", "nullable": True}},
+        "properties": {
+            "baz": {"type": "integer", "nullable": True},
+            "constant": {"type": "integer", "enum": [0]},
+        },
         "required": ["baz"],
         "additionalProperties": False,
     },
