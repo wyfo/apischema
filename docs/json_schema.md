@@ -89,10 +89,10 @@ max_props | maxProperties | `dict`
 !!! note
     `schema` function has an overloaded signature which prevents to mix incompatible keywords. 
     
-Two other arguments enable a finer control of the JSON schema generated : 
+Two other arguments give a finer control of the JSON schema generated: 
 
-- `extra` enable to add arbitrary keys to schema;
-- `override=True` prevents *apischema* to use the annotated type schema, using only `schema` annotation.  
+- `extra`, either a mapping which will be merged in the schema, or a callable taking the schema dictionary to be modified in place.
+- `override=True` prevents *apischema* to use the annotated type schema, using only `schema` annotation, especially `extra` parameter.  
 
 ```python
 {!schema_extra.py!}

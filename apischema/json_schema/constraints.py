@@ -90,12 +90,17 @@ class Constraints:
     def errors(self, data: Any) -> List[str]:
         raise NotImplementedError  # initialized in __post_init__
 
-    def as_dict(self) -> Mapping[str, Any]:
-        return {
-            f.metadata.get(ALIAS_METADATA, f.name): getattr(self, f.name)
-            for f in fields(self)
-            if getattr(self, f.name) is not None
-        }
+    def merge_into(self, base_schema: Dict[str, Any]):
+        for f in fields(self):
+            attr = getattr(self, f.name)
+            alias = f.metadata.get(ALIAS_METADATA, f.name)
+            if attr is not None:
+                if alias in base_schema:
+                    base_schema[alias] = f.metadata[MERGE_METADATA](
+                        attr, base_schema[alias]
+                    )
+                else:
+                    base_schema[alias] = attr
 
 
 Cls = TypeVar("Cls", bound=type)
