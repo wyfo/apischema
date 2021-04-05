@@ -4,25 +4,26 @@ __all__ = [
     "coercer",
     "coercion",
     "default_fallback",
+    "default_ref",
+    "default_schema",
     "deserialization",
     "json_schema_version",
     "serialization",
 ]
 
-from typing import Callable, Optional, Type, TypeVar, overload
+from typing import Callable, Optional, TYPE_CHECKING, Type, TypeVar, overload
 
 from apischema import aliases
 from apischema.aliases import Aliaser
 from apischema.cache import reset_cache
 from apischema.conversions.conversions import Conversions
-from apischema.conversions.visitor import (
-    DeserializationVisitor,
-    SerializationVisitor,
-)
-from apischema.deserialization import coercion as coercion_
+from apischema.conversions.visitor import DeserializationVisitor, SerializationVisitor
 from apischema.json_schema import refs, schemas, versions
 from apischema.types import AnyType
 from apischema.utils import to_camel_case
+
+if TYPE_CHECKING:
+    from apischema.deserialization.coercion import Coercer
 
 additional_properties = False
 coercion: bool = False
@@ -30,32 +31,37 @@ default_fallback = False
 exclude_unset = True
 json_schema_version = versions.JsonSchemaVersion.DRAFT_2019_09
 
+CoercerFunc = TypeVar("CoercerFunc", bound="Coercer")
+
 
 @overload
-def coercer() -> "coercion_.Coercer":
+def coercer() -> "Coercer":
     ...
 
 
 @overload
-def coercer(func: "coercion_.Coercer") -> "coercion_.Coercer":
+def coercer(func: CoercerFunc) -> CoercerFunc:
     ...
 
 
-def coercer(func=None):
+def coercer(func: "Coercer" = None) -> "Coercer":
+    from apischema.deserialization import coercion as c
+
     if func is None:
-        return coercion_._coercer
-    elif func is coercion_.coerce:
-        coercion_._coercer = func
+        return c._coercer
+    elif func is c.coerce:
+        c._coercer = func
     else:
-        coercion_._coercer = coercion_.wrap_coercer(func)
-        return func
+        c._coercer = c.wrap_coercer(func)
+    return func
 
 
-ConversionsFunc = Callable[[Type], Optional[Conversions]]
+DefaultConversions = Callable[[Type], Optional[Conversions]]
+ConversionsFunc = TypeVar("ConversionsFunc", bound=DefaultConversions)
 
 
 @overload
-def deserialization() -> ConversionsFunc:
+def deserialization() -> DefaultConversions:
     ...
 
 
@@ -64,17 +70,17 @@ def deserialization(func: ConversionsFunc) -> ConversionsFunc:
     ...
 
 
-def deserialization(func=None):
+def deserialization(func: DefaultConversions = None) -> DefaultConversions:
     if func is None:
-        return DeserializationVisitor._default_conversions
+        return DeserializationVisitor._default_conversions  # type: ignore
     else:
-        DeserializationVisitor._default_conversions = staticmethod(func)
+        DeserializationVisitor._default_conversions = staticmethod(func)  # type: ignore
         reset_cache()
         return func
 
 
 @overload
-def serialization() -> ConversionsFunc:
+def serialization() -> DefaultConversions:
     ...
 
 
@@ -83,11 +89,11 @@ def serialization(func: ConversionsFunc) -> ConversionsFunc:
     ...
 
 
-def serialization(func=None):
+def serialization(func: DefaultConversions = None) -> DefaultConversions:
     if func is None:
         return SerializationVisitor._default_conversions
     else:
-        SerializationVisitor._default_conversions = staticmethod(func)
+        SerializationVisitor._default_conversions = staticmethod(func)  # type: ignore
         reset_cache()
         return func
 
@@ -110,7 +116,7 @@ def aliaser(*, camel_case: bool):
     ...
 
 
-def aliaser(func=None, *, camel_case: bool = None):
+def aliaser(func: Aliaser = None, *, camel_case: bool = None):
     if camel_case is True:
         func = to_camel_case
     elif camel_case is False:
@@ -118,15 +124,16 @@ def aliaser(func=None, *, camel_case: bool = None):
     if func is None:
         return aliases._global_aliaser
     else:
-        aliases._global_aliaser = func
+        aliases._global_aliaser = func  # type: ignore
     return func
 
 
-RefFunc = Callable[[AnyType], Optional[str]]
+DefaultRef = Callable[[AnyType], Optional[str]]
+RefFunc = TypeVar("RefFunc", bound=DefaultRef)
 
 
 @overload
-def default_ref() -> RefFunc:
+def default_ref() -> DefaultRef:
     ...
 
 
@@ -135,18 +142,21 @@ def default_ref(func: RefFunc) -> RefFunc:
     ...
 
 
-def default_ref(func=None):
+def default_ref(func: DefaultRef = None) -> DefaultRef:
     if func is None:
         return refs._default_ref
     else:
-        refs._default_ref = func
+        refs._default_ref = func  # type: ignore
+        reset_cache()
+        return func
 
 
-SchemaFunc = Callable[[AnyType], Optional[schemas.Schema]]
+DefaultSchema = Callable[[AnyType], Optional[schemas.Schema]]
+SchemaFunc = TypeVar("SchemaFunc", bound=DefaultSchema)
 
 
 @overload
-def default_schema() -> SchemaFunc:
+def default_schema() -> DefaultSchema:
     ...
 
 
@@ -155,9 +165,10 @@ def default_schema(func: SchemaFunc) -> SchemaFunc:
     ...
 
 
-def default_schema(func=None):
+def default_schema(func: DefaultSchema = None) -> DefaultSchema:
     if func is None:
         return schemas._default_schema
     else:
-        schemas._default_schema = func
+        schemas._default_schema = func  # type: ignore
         reset_cache()
+        return func
