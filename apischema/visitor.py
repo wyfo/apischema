@@ -1,6 +1,11 @@
-from dataclasses import Field, is_dataclass
+from dataclasses import (  # type: ignore
+    Field,
+    InitVar,
+    _FIELDS,
+    _FIELD_CLASSVAR,
+    make_dataclass,
+)
 from enum import Enum
-from functools import lru_cache
 from types import MappingProxyType
 from typing import (
     Any,
@@ -16,7 +21,7 @@ from typing import (
     Union,
 )
 
-from apischema.dataclass_utils import dataclass_types_and_fields
+from apischema.cache import cache
 from apischema.types import (
     AnyType,
     COLLECTION_TYPES,
@@ -29,10 +34,17 @@ from apischema.typing import (
     _TypedDictMeta,
     get_args,
     get_origin,
+    get_type_hints,
     get_type_hints2,
     required_keys,
 )
-from apischema.utils import is_type_var
+from apischema.utils import (
+    PREFIX,
+    get_origin_or_type,
+    has_type_vars,
+    is_dataclass,
+    is_type_var,
+)
 
 try:
     from apischema.typing import Annotated, Literal
@@ -42,10 +54,44 @@ except ImportError:
 TUPLE_TYPE = get_origin(Tuple[Any])
 
 
-@lru_cache()
+@cache
 def type_hints_cache(obj) -> Mapping[str, AnyType]:
     # Use immutable return because of cache
     return MappingProxyType(get_type_hints2(obj))
+
+
+@cache
+def dataclass_types_and_fields(
+    tp: AnyType,
+) -> Tuple[Mapping[str, AnyType], Sequence[Field], Sequence[Field]]:
+    from apischema.metadata.keys import INIT_VAR_METADATA
+
+    cls = get_origin_or_type(tp)
+    assert is_dataclass(cls)
+    types = get_type_hints2(tp)
+    fields, init_fields = [], []
+    for field in getattr(cls, _FIELDS).values():
+        assert isinstance(field, Field)
+        if field._field_type == _FIELD_CLASSVAR:  # type: ignore
+            continue
+        field_type = types[field.name]
+        if isinstance(field_type, InitVar):
+            types[field.name] = field_type.type  # type: ignore
+            init_fields.append(field)
+        elif field_type is InitVar:
+            metadata = getattr(cls, _FIELDS)[field.name].metadata
+            if INIT_VAR_METADATA not in metadata:
+                raise TypeError("Before 3.8, InitVar requires init_var metadata")
+            init_field = (PREFIX, metadata[INIT_VAR_METADATA], ...)
+            tmp_cls = make_dataclass("Tmp", [init_field], bases=(cls,))  # type: ignore
+            types[field.name] = get_type_hints(tmp_cls, include_extras=True)[PREFIX]
+            if has_type_vars(types[field.name]):
+                raise TypeError("Generic InitVar are not supported before 3.8")
+            init_fields.append(field)
+        else:
+            fields.append(field)
+    # Use immutable return because of cache
+    return MappingProxyType(types), tuple(fields), tuple(init_fields)
 
 
 class Unsupported(TypeError):
@@ -118,7 +164,7 @@ class Visitor(Generic[Return]):
         raise NotImplementedError
 
     def typed_dict(
-        self, cls: Type, keys: Mapping[str, AnyType], required_keys: Collection[str]
+        self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
     ) -> Return:
         raise NotImplementedError
 

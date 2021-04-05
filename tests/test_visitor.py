@@ -1,6 +1,6 @@
 import collections
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from enum import Enum
 from types import MethodType
 from typing import (
@@ -21,7 +21,6 @@ from unittest.mock import Mock
 
 from pytest import fixture, mark, raises
 
-from apischema.fields import fields
 from apischema.types import NoneType
 from apischema.typing import Annotated, Literal, TypedDict
 from apischema.visitor import Unsupported, Visitor
@@ -117,7 +116,7 @@ if sys.version_info >= (3, 9):
             [
                 DataclassExample,
                 {"a": int, "b": str},
-                (fields(DataclassExample).a, fields(DataclassExample).b),
+                (fields(DataclassExample)[0], fields(DataclassExample)[1]),
                 (),
             ],
         ),

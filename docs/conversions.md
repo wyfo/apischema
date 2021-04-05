@@ -2,7 +2,7 @@
 
 *apischema* covers majority of standard data types, but it's of course not enough, that's why it gives you the way to add support for all your classes and the libraries you use.
 
-Actually, *apischema* uses internally its own feature to support standard library data types like UUID/datetime/etc. (see [std_types.py](https://github.com/wyfo/apischema/blob/master/apischema/std_types.py))
+Actually, *apischema* uses its own feature to provide a basic support for standard library data types like UUID/datetime/etc. (see [std_types.py](https://github.com/wyfo/apischema/blob/master/apischema/std_types.py))
 
 ORM support can easily be achieved with this feature (see [SQLAlchemy example](examples/sqlalchemy_support.md)).
 
@@ -160,37 +160,54 @@ It is possible to register a conversion for a particular dataclass field using `
 
 ## Serialized method conversions
 
-Serialized method can also have dedicated conversions
+Serialized methods can also have dedicated conversions for their return
 
 ```python
 {!serialized_conversions.py!}
 ```
 
+## String conversions
 
-## Dataclass model - automatic conversion from/to dataclass
+A common pattern of conversion concerns class having a string constructor and a `__str__` method; standard types `uuid.UUID`, `pathlib.Path`, `ipaddress.IPv4Address` are concerned. Using `apischema.conversions.as_str` will register a string-deserializer from the constructor and a string-serializer from the `__str__` method.
 
-Conversions are a powerful tool, which allows to support every type you need. If it is particularly well suited for scalar types (`datetime.datetime`, `bson.ObjectId`, etc.), it may seem a little bit complex for object types. In fact, the conversion would often be a simple mapping of fields between the type and a dataclass.
+```python
+{!as_str.py!}
+```
 
-That's why *apischema* provides a shortcut for this case: `apischema.conversions.dataclass_model`; it allows to specify a dataclass which will be used as a typed model for a given class : each field of the dataclass will be mapped on the attributes of the class instances.
-The function returns two `Conversion` object, one for deserialization and the other for serialization. They can then be registered with `serializer`/`deserializer`, or be used dynamically.
+!!! note
+    Previously mentioned standard types are handled by *apischema* using `as_str`.
 
-Remember that dataclass can also be declared dynamically with `dataclasses.make_dataclasses`. That's especially useful when it comes to add support for libraries like ORM. The following example show how to add a [basic support for 
+
+## Object conversions — use any class as if it was a dataclass
+
+Conversions are a powerful tool, which allows to support every type you need. If it is particularly well suited for scalar types (`datetime.datetime`, `bson.ObjectId`, etc.), it's may seem cumbersome for object types. In fact, the conversion would often be a simple mapping of fields between the type and a custom dataclass.
+
+That's why *apischema* provides a shortcut for this case: `apischema.objects.object_conversion`; it takes the class to convert and a collection of `apischema.objects.ObjectField` fields which will be used as if they were owned by the converted class, and return deserialization/serialization conversions.
+
+As you can guess, it requires the class constructor being callable with fields as keyword, and each field being available with `getattr`. 
+
+```python
+{!object_conversion.py!}
+```
+
+Using `apischema.objects.as_object` instead will directly register these conversions (and it can do it [lazily](#lazy-registered-conversions)).
+
+```python
+{!as_object.py!}
+```
+
+Object conversions have two differences with regular conversions :
+
+- Converted class is directly used, as if it was a dataclass with the provided fields. This means there is no converter call, and no intermediate object generated; object conversions are thus more performant.
+
+- As a consequence of having no intermediate, the converted class serialized methods are available in the serialization. 
+
+Object conversions are thus the best way to support dataclass-like classes, like ORM mappers. Here is an example of [basic support for 
 *SQLAlchemy*](examples/sqlalchemy_support.md):
 
 ```python
 {!examples/sqlalchemy_support.py!}
 ```
-
-There are two differences with regular conversions :
-
-- The dataclass model computation can be deferred until it's needed. This is because some libraries do some resolutions after class definition (for example SQLAchemy resolves dynamic string references in relationships). So you could replace the following line in the example, it would works too.
-
-```python
-# dataclass_model(cls, make_dataclass(cls.__name__, fields))
-dataclass_model(cls, lambda: make_dataclass(cls.__name__, fields))
-```
-
-- [Serialized methods/properties](de_serialization.md#serialized-methodsproperties) of the class are automatically added to the dataclass model (but you can also declare serialized methods in the dataclass model). This behavior can be toggled off using `fields_only` parameter with a `True` value. 
 
 ## Function parameters as dataclass
 
@@ -244,6 +261,13 @@ Lazy conversions can also be registered, but the deserialization target/serializ
 ```python
 {!lazy_registered_conversion.py!}
 ```
+
+Object conversion also has a shortcut to be registered lazily, by wrapping the list of `ObjectField` in a function. It can be needed when wrapped classes are post-processed after their creation — *SQLAlchemy* tables with relations are a good example.
+
+```python
+{!lazy_object_wrapper.py!}
+```
+
 ## FAQ
 
 #### Why conversion can only be applied on classes?
@@ -256,14 +280,11 @@ On the other hand, deserialization use annotations, so it could indeed apply con
 
 However, it has been judged better to get the same restriction on both operation for simplicity and because the main need of deserialization customization is validation, which can already be registered for `NewType` or embedded in `Annotated`, etc.
 
-#### Why `Annotated` cannot be used to specified conversions?
+#### Why `Annotated` cannot be used to specified conversions in a container, like `list[Annotated[MyType, conversion(...)]]` ?
 
-Same reason than above, because serialization doesn't use type annotations, so conversions would be lost.
+Same reason than above, because serialization doesn't use type annotations, so conversions would be lost. 
 
-Actually, for dataclasses/namedtuples fields, as well as serialized methods return, it would be possible to use read an annotated conversion (only on the field/return type, not on nested types), even during serialization.
-However, this behavior could be confusing, because `Annotated[MyType, conversion(...)]` would be allowed as a dataclass fields, but `list[Annotated[Mytype, conversions(...)]]` will not work as expected.
-
-That's why it has been decided that conversions should not be embedded in `Annotated`, to keep things simple.
+However, fields annotations are available in serialization, because they are retrieved from the serialized object class, that's why field annotations are supported for named tuples/dataclasses, the same way than dataclass field metadata are.   
 
 
 #### Why dynamic conversion cannot apply on the whole data model?

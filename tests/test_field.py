@@ -1,10 +1,8 @@
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 
 from pytest import raises
 
-from apischema.dataclass_utils import get_default
 from apischema.fields import (
-    FIELDS_SET_ATTR,
     fields_set,
     set_fields,
     unset_fields,
@@ -31,16 +29,8 @@ class DecoratedInherited(Data):
     other: int = 42
 
 
-def test_default():
-    without_default, with_default, with_default_factory = fields(Data)
-    with raises(NotImplementedError):
-        get_default(without_default)
-    assert get_default(with_default) == 0
-    assert get_default(with_default_factory) == 0
-
-
 def test_fields_set():
-    with raises(ValueError):
+    with raises(TypeError):
         fields_set(object())
 
     assert fields_set(Data(0)) == {"without_default"}
@@ -56,23 +46,8 @@ def test_fields_set():
     assert fields_set(data) == {"with_default", "with_default_factory"}
     set_fields(data, "with_default", overwrite=True)
     assert fields_set(data) == {"with_default"}
-    data.__dict__.pop(FIELDS_SET_ATTR)
-    assert fields_set(data) == {
-        "without_default",
-        "with_default",
-        "with_default_factory",
-    }
-    unset_fields(data, "without_default")
-    assert fields_set(data) == {"with_default", "with_default_factory"}
-    data.__dict__.pop(FIELDS_SET_ATTR)
-    set_fields(data, "with_default")
-    assert fields_set(data) == {
-        "without_default",
-        "with_default",
-        "with_default_factory",
-    }
-    with raises(ValueError):
-        set_fields(data, "not_a_field")
+    set_fields(data, "not_a_field")
+    assert fields_set(data) == {"with_default", "not_a_field"}
 
     assert fields_set(Inherited(0, other=0)) == {
         "without_default",

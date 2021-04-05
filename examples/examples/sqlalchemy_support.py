@@ -1,34 +1,32 @@
 from collections.abc import Collection
-from dataclasses import field, make_dataclass
 from inspect import getmembers
+from itertools import starmap
 from typing import Any, Optional
 
 from graphql import print_schema
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import as_declarative
 
-from apischema import Undefined, deserialize, deserializer, serialize, serializer
-from apischema.conversions import dataclass_model
+from apischema import Undefined, deserialize, serialize
 from apischema.graphql import graphql_schema
 from apischema.json_schema import serialization_schema
-from apischema.metadata import required
+from apischema.objects import ObjectField, as_object
 
 
-def column_type(column: Column) -> Any:
-    col_type = column.type.python_type
-    return Optional[col_type] if column.nullable else col_type
-
-
-def column_field(column: Column) -> Any:
+def column_field(name: str, column: Column) -> ObjectField:
+    required = False
+    default: Any = ...
     if column.default is not None:
-        return column.default
+        default = column.default
     elif column.server_default is not None:
-        return Undefined
+        default = Undefined
     elif column.nullable:
-        return None
+        default = None
     else:
-        # Put default everywhere to avoid
-        return field(default=..., metadata=required)
+        required = True
+    col_type = column.type.python_type
+    col_type = Optional[col_type] if column.nullable else col_type
+    return ObjectField(column.name or name, col_type, required, default=default)
 
 
 # Very basic SQLAlchemy support
@@ -38,14 +36,7 @@ class Base:
         columns = getmembers(cls, lambda m: isinstance(m, Column))
         if not columns:
             return
-
-        fields = [
-            (column.name or field_name, column_type(column), column_field(column))
-            for field_name, column in columns
-        ]
-        d_conv, s_conv = dataclass_model(cls, make_dataclass(cls.__name__, fields))
-        deserializer(d_conv)
-        serializer(s_conv)
+        as_object(cls, list(starmap(column_field, columns)))
 
 
 class Foo(Base):

@@ -4,7 +4,7 @@ from typing import Callable, Optional, Pattern, TYPE_CHECKING, Tuple, Union
 
 from apischema.metadata.keys import (
     CONVERSION_METADATA,
-    DEFAULT_AS_SET,
+    DEFAULT_AS_SET_METADATA,
     DEFAULT_FALLBACK_METADATA,
     INIT_VAR_METADATA,
     MERGED_METADATA,
@@ -14,7 +14,7 @@ from apischema.metadata.keys import (
     SKIP_METADATA,
     VALIDATORS_METADATA,
 )
-from apischema.types import AnyType, MetadataImplem, Metadata, MetadataMixin
+from apischema.types import AnyType, Metadata, MetadataImplem, MetadataMixin
 
 if TYPE_CHECKING:
     from apischema.conversions.conversions import Conversions
@@ -45,7 +45,7 @@ else:
     conversion = ConversionMetadata
 
 
-default_as_set = simple_metadata(DEFAULT_AS_SET)
+default_as_set = simple_metadata(DEFAULT_AS_SET_METADATA)
 
 default_fallback = simple_metadata(DEFAULT_FALLBACK_METADATA)
 
@@ -72,7 +72,6 @@ class PropertiesMetadata(dict, Metadata):  # type: ignore
 
 
 properties = PropertiesMetadata()
-
 
 required = simple_metadata(REQUIRED_METADATA)
 

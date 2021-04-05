@@ -1,10 +1,11 @@
-from dataclasses import InitVar, dataclass, field, fields
+from dataclasses import InitVar, dataclass, field
 from typing import Generic, TypeVar
 
 from pytest import raises
 
-from apischema.deserialization import get_init_merged_alias
+from apischema.deserialization import get_deserialization_merged_aliases
 from apischema.metadata import init_var, merged
+from apischema.objects import object_fields
 
 
 @dataclass
@@ -37,17 +38,13 @@ class D(Generic[T]):
 
 @dataclass
 class Data:
-    field: A
+    field: A = field(metadata=merged)
 
 
 def test_merged_aliases():
-    assert set(get_init_merged_alias(Data, fields(Data)[0], A)) == {
-        "a",
-        "g",
-        "h",
-        "i",
-        "e",
-    }
+    assert set(
+        get_deserialization_merged_aliases(Data, object_fields(Data)["field"])
+    ) == {"a", "g", "h", "i", "e"}
 
 
 @dataclass
@@ -57,4 +54,6 @@ class BadData:
 
 def test_invalid_merged():
     with raises(TypeError):
-        list(get_init_merged_alias(BadData, fields(BadData)[0], int))
+        list(
+            get_deserialization_merged_aliases(BadData, object_fields(BadData)["field"])
+        )

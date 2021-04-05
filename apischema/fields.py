@@ -1,11 +1,9 @@
-__all__ = ["fields", "fields_set", "set_fields", "unset_fields", "with_fields_set"]
+__all__ = ["fields_set", "is_set", "set_fields", "unset_fields", "with_fields_set"]
 from dataclasses import (  # type: ignore
     Field,
     _FIELD,
     _FIELDS,
-    _FIELD_CLASSVAR,
     _FIELD_INITVAR,
-    fields as fields_,
     is_dataclass,
 )
 from functools import wraps
@@ -17,19 +15,14 @@ from typing import (
     Set,
     Type,
     TypeVar,
-    Union,
     cast,
-    overload,
 )
 
+from apischema.objects.fields import get_field_name
+from apischema.objects.getters import object_fields2
 from apischema.utils import PREFIX
 
 FIELDS_SET_ATTR = f"{PREFIX}fields_set"
-
-
-def _check_dataclass(obj):
-    if not is_dataclass(obj):
-        raise ValueError("not a dataclass")
 
 
 Cls = TypeVar("Cls", bound=Type)
@@ -38,7 +31,7 @@ _ALREADY_SET = f"{PREFIX}already_set"
 
 
 def with_fields_set(cls: Cls) -> Cls:
-    from apischema.metadata.keys import DEFAULT_AS_SET
+    from apischema.metadata.keys import DEFAULT_AS_SET_METADATA
 
     init_fields = set()
     post_init_fields = set()
@@ -49,7 +42,7 @@ def with_fields_set(cls: Cls) -> Cls:
                 init_fields.add(field.name)
             if field._field_type == _FIELD and not field.init:  # type: ignore
                 post_init_fields.add(field.name)
-            if field.metadata.get(DEFAULT_AS_SET):
+            if field.metadata.get(DEFAULT_AS_SET_METADATA):
                 post_init_fields.add(field.name)
     params = list(signature(cls.__init__).parameters)[1:]
     old_new = cls.__new__
@@ -110,95 +103,50 @@ dataclass_before_error = (
 T = TypeVar("T")
 
 
-def _all_fields(obj: Any) -> AbstractSet[str]:
-    _check_dataclass(obj)
-    return {
-        f.name
-        for f in fields_(obj)
-        if f._field_type is not _FIELD_INITVAR  # type: ignore
-    }
-
-
-def _field_names(obj: Any, fields: Collection) -> AbstractSet[str]:
-    all_fields = _all_fields(obj)
+def _field_names(fields: Collection) -> AbstractSet[str]:
     result: Set[str] = set()
-    for f in fields:
-        if isinstance(f, Field):
-            f = f.name
-        if not isinstance(f, str):
-            raise ValueError("Fields must be dataclass Field or str")
-        if f not in all_fields:
-            raise ValueError(f"Wrong field {f}")
-        result.add(f)
+    for field in fields:
+        result.add(get_field_name(field))
     return result
 
 
-def set_fields(obj: T, *fields: Any, overwrite=False) -> T:
-    _fields = _field_names(obj, fields)
-    if overwrite:
-        obj.__dict__[FIELDS_SET_ATTR] = _fields
-    else:
+def _fields_set(obj: Any) -> Set[str]:
+    if not hasattr(obj, FIELDS_SET_ATTR):
         try:
-            obj.__dict__[FIELDS_SET_ATTR].update(_fields)
-        except KeyError:
-            # with_fields_set is not use, so all fields are set
-            pass
+            default_fields: Collection[str] = object_fields2(obj, serialization=True)
+        except TypeError:
+            default_fields = ()
+        try:
+            setattr(obj, FIELDS_SET_ATTR, set(default_fields))
+        except AttributeError:  # cannot setattr (builtin, etc.)
+            raise TypeError(f"Cannot track fields set on {obj}")
+    return getattr(obj, FIELDS_SET_ATTR)
+
+
+def set_fields(obj: T, *fields: Any, overwrite=False) -> T:
+    if overwrite:
+        _fields_set(obj).clear()
+    _fields_set(obj).update(map(get_field_name, fields))
     return obj
 
 
 def unset_fields(obj: T, *fields: Any) -> T:
-    _fields = _field_names(obj, fields)
-    obj.__dict__[FIELDS_SET_ATTR] = fields_set(obj) - _fields
+    _fields_set(obj).difference_update(map(get_field_name, fields))
     return obj
 
 
+# This could just be an alias with a specified type, but it's better handled by IDE
+# like this
 def fields_set(obj: Any) -> AbstractSet[str]:
-    try:
-        return getattr(obj, FIELDS_SET_ATTR)
-    except AttributeError:
-        return _all_fields(obj)
+    return _fields_set(obj)
 
 
-class FieldGetter:
-    def __init__(self, obj):
-        _check_dataclass(obj)
-        self.fields = {
-            name: f
-            for name, f in getattr(obj, _FIELDS).items()
-            if not f._field_type == _FIELD_CLASSVAR
-        }
+class FieldIsSet:
+    def __init__(self, obj: Any):
+        self.fields_set = fields_set(obj)
 
-    def __getattribute__(self, name: str) -> Field:
-        try:
-            return super().__getattribute__("fields")[name]
-        except KeyError:
-            raise AttributeError(name)
-
-
-@overload
-def fields(obj: Type[T]) -> T:
-    ...
-
-
-@overload
-def fields(obj: T) -> T:
-    ...
-
-
-# Overload because of Mypy issue
-# https://github.com/python/mypy/issues/9003#issuecomment-667418520
-def fields(obj: Union[Type[T], T]) -> T:
-    return cast(T, FieldGetter(obj))
-
-
-class FieldIsSet(FieldGetter):
-    def __init__(self, obj):
-        super().__init__(obj)
-        self.obj = obj
-
-    def __getattribute__(self, name: str) -> bool:  # type: ignore
-        field = super().__getattribute__(name)
-        return field.name in fields_set(object.__getattribute__(self, "obj"))
+    def __getattribute__(self, name: str) -> bool:
+        return name in object.__getattribute__(self, "fields_set")
 
 
 def is_set(obj: T) -> T:

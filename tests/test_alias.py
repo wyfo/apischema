@@ -1,13 +1,13 @@
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 
 from apischema import alias, settings
 from apischema.json_schema import deserialization_schema
-from apischema.metadata.keys import ALIAS_METADATA
+from apischema.objects import object_fields
 
 
 @alias(lambda s: f"prefixed_{s}")
 @dataclass
-class Class:
+class Data:
     not_aliased: int = field(metadata=alias(override=False))
     not_prefixed: int = field(metadata=alias("not_overridden", override=False))
     prefixed: int
@@ -15,8 +15,8 @@ class Class:
 
 
 def test_alias():
-    assert {f.name: f.metadata.get(ALIAS_METADATA) for f in fields(Class)} == {
-        "not_aliased": None,
+    assert {name: field.alias for name, field in object_fields(Data).items()} == {
+        "not_aliased": "not_aliased",
         "not_prefixed": "not_overridden",
         "prefixed": "prefixed_prefixed",
         "prefixed_alias": "prefixed_alias",

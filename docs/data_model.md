@@ -13,19 +13,18 @@ apischema fully support 3.9 and PEP 585, as shown in the different examples. How
 
 Because the library aims to bring the minimum boilerplate, it's build on the top of standard library. [Dataclasses](https://docs.python.org/3/library/dataclasses.html) are thus the core structure of the data model.
 
-Dataclasses bring the possibility of field customization, with more than just a default value.
-In addition to the common parameters of [`dataclasses.field`](https://docs.python.org/3/library/dataclasses.html#dataclasses.field), customization is done with `metadata` parameter. 
+Dataclasses bring the possibility of field customization, with more than just a default value. In addition to the common parameters of [`dataclasses.field`](https://docs.python.org/3/library/dataclasses.html#dataclasses.field), customization is done with `metadata` parameter; metadata can also be passed using PEP 593 `typing.Annotated`.
 
 With some teasing of features presented later:
+
 ```python
 {!field_metadata.py!}
 ```
 
-
 !!! note
     Field's metadata are just an ordinary `dict`; *apischema* provides some functions to enrich these metadata with it's own keys (`alias("foo_bar)` is roughly equivalent to `{"_apischema_alias": "foo_bar"}) and use them when the time comes, but metadata are not reserved to *apischema* and other keys can be added.
    
-    Because [PEP 584](https://www.python.org/dev/peps/pep-0584/) is painfully missing before Python 3.9, *apischema* metadata use their own subclass of `dict` just to add `|` operator for convenience.
+    Because [PEP 584](https://www.python.org/dev/peps/pep-0584/) is painfully missing before Python 3.9, *apischema* metadata use their own subclass of `dict` just to add `|` operator for convenience in all Python versions.
     
 Dataclasses `__post_init__` and `field(init=False)` are fully supported. Implication of this feature usage is documented in the relative sections.
 
@@ -86,9 +85,13 @@ For `Enum`, this is the value and not the attribute name that is serialized
 
 : Serialized according to its base type
 
-- `typing.TypedDict`, `typing.NamedTuple`
+- `typing.NamedTuple`
 
-: Handled like a simple dataclass without all dataclass customizations
+: Handled as an object type, roughly like a dataclass; fields metadata can be passed using `Annotated`
+
+- `typing.TypedDict`
+
+: Hanlded as an object type, but it supports less fields metadata, as explained [here](); in particular, there is no aliasing
 
 - `typing.Any`
 
@@ -125,6 +128,7 @@ For `Enum`, this is the value and not the attribute name that is serialized
 ## Generic
 
 `typing.Generic` can be used out of the box like in the following example:
+
 ```python
 {!generic.py!}
 ```
@@ -167,7 +171,7 @@ Dataclass/`NamedTuple` fields are ignored by serialization when `Undefined`.
     
 ## Annotated - PEP 593
 
-[PEP 593](https://www.python.org/dev/peps/pep-0593/) is fully supported; annotations stranger to *apischema* are simlply ignored.
+[PEP 593](https://www.python.org/dev/peps/pep-0593/) is fully supported; annotations stranger to *apischema* are simply ignored.
 
 ### Skip `Union` member
 

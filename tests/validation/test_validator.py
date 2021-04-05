@@ -1,18 +1,13 @@
-from dataclasses import Field, dataclass, field
+from dataclasses import dataclass, field
 from operator import not_
-from typing import Callable, Type, cast
+from typing import Callable, Type
 
 from pytest import raises
 
 from apischema import ValidationError, validator
-from apischema.fields import fields
-from apischema.validation.mock import NonTrivialDependency, ValidatorMock
-from apischema.validation.validators import (
-    Validator,
-    get_validators,
-    validate,
-)
 from apischema.metadata import validators
+from apischema.validation.mock import NonTrivialDependency, ValidatorMock
+from apischema.validation.validators import Validator, get_validators, validate
 
 
 @dataclass
@@ -35,9 +30,6 @@ class Data:
     @validator
     def non_trivial(self):
         non_trivial(self)
-
-
-validator_field = cast(Field, fields(Data).with_validator)
 
 
 def non_trivial(data: Data):

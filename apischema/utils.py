@@ -1,4 +1,6 @@
 import collections.abc
+import sys
+from dataclasses import is_dataclass
 import re
 from enum import Enum, auto
 from functools import wraps
@@ -59,6 +61,12 @@ class UndefinedType(Enum):
 
 
 Undefined = UndefinedType.Undefined
+
+if sys.version_info <= (3, 7):  # pragma: no cover
+    is_dataclass_ = is_dataclass
+
+    def is_dataclass(obj) -> bool:
+        return is_dataclass_(obj) and getattr(obj, "__origin__", None) is None
 
 
 def opt_or(opt: Optional[T], default: U) -> Union[T, U]:
@@ -168,6 +176,10 @@ def get_origin_or_type(tp: AnyType) -> AnyType:
     if origin is Annotated:
         return get_origin_or_type(get_args(tp)[0])
     return origin if origin is not None else tp
+
+
+def with_parameters(tp: AnyType) -> AnyType:
+    return tp[tp.__parameters__] if getattr(tp, "__parameters__", ()) else tp
 
 
 def is_union_of(tp: AnyType, of: AnyType) -> bool:

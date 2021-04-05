@@ -27,14 +27,8 @@ from apischema.conversions.conversions import (
 )
 from apischema.deserialization import deserialize
 from apischema.json_schema.schemas import Schema
-from apischema.metadata.implem import ConversionMetadata
-from apischema.metadata.keys import (
-    ALIAS_METADATA,
-    CONVERSION_METADATA,
-    DEFAULT_FALLBACK_METADATA,
-    REQUIRED_METADATA,
-    get_annotated_metadata,
-)
+from apischema.objects import ObjectField
+from apischema.objects.utils import annotated_metadata
 from apischema.serialization import serialization_method_factory, serialize
 from apischema.serialization.serialized_methods import (
     ErrorHandler,
@@ -213,23 +207,32 @@ def resolver_resolve(
         if is_union_of(param_type, graphql.GraphQLResolveInfo):
             info_parameter = param.name
         else:
-            metadata = get_annotated_metadata(param_type)
+            metadata = annotated_metadata(param_type)
             if param.name in resolver.parameters_metadata:
                 metadata = {**metadata, **resolver.parameters_metadata[param.name]}
-            alias = metadata.get(ALIAS_METADATA, param.name)
+            param_field = ObjectField(
+                param.name,
+                param_type,
+                param.default is Parameter.empty,
+                metadata,
+                default=...,
+            )
             deserializer = partial(
                 deserialize,
                 param_type,
-                conversions=metadata.get(
-                    CONVERSION_METADATA, ConversionMetadata()
-                ).deserialization,
+                conversions=param_field.deserialization,
                 aliaser=aliaser,
-                default_fallback=DEFAULT_FALLBACK_METADATA in metadata or None,
+                default_fallback=param_field.default_fallback or None,
             )
-            required = REQUIRED_METADATA in metadata or param.default is Parameter.empty
             opt_param = is_union_of(param_type, NoneType)
             parameters.append(
-                (aliaser(alias), param.name, deserializer, opt_param, required)
+                (
+                    aliaser(param_field.alias),
+                    param.name,
+                    deserializer,
+                    opt_param,
+                    param_field.required,
+                )
             )
     func, error_handler = resolver.func, resolver.error_handler
     conversions = to_hashable_conversions(resolver.conversions)

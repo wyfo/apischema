@@ -3,10 +3,17 @@ from enum import Enum
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Type, TypeVar
 
 from apischema.conversions.visitor import SELF_CONVERSION_ATTR
-from apischema.dataclass_utils import is_dataclass
+from apischema.objects.conversions import ObjectWrapper
 from apischema.types import AnyType
 from apischema.typing import _TypedDictMeta
-from apischema.utils import contains, has_type_vars, is_type_var, replace_builtins
+from apischema.utils import (
+    contains,
+    get_origin_or_type,
+    has_type_vars,
+    is_dataclass,
+    is_type_var,
+    replace_builtins,
+)
 from apischema.visitor import Unsupported, Visitor
 
 _refs: Dict[AnyType, Optional[str]] = {}
@@ -25,8 +32,10 @@ def _default_ref(tp: AnyType) -> Optional[str]:
         )
     ) or hasattr(tp, "__supertype__"):
         return tp.__name__
-    else:
-        return None
+    origin = get_origin_or_type(tp)
+    if isinstance(origin, type) and issubclass(origin, ObjectWrapper):
+        return origin.type.__name__
+    return None
 
 
 def get_ref(tp: AnyType) -> Optional[str]:

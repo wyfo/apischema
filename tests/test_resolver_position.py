@@ -38,8 +38,8 @@ def test_resolver_position():
         "type": "object",
         "properties": {
             "a": {"type": "integer"},
-            "b": {"readOnly": True, "type": "integer"},
-            "c": {"readOnly": True, "type": "integer"},
+            "b": {"type": "integer"},
+            "c": {"type": "integer"},
             "d": {"type": "integer"},
             "e": {"type": "integer"},
         },

@@ -36,7 +36,7 @@ def test_mock():
     assert mock.b == "1"
     assert mock.c == 42
     assert mock.d == 0
-    assert mock.__dict__ == {"a": 0, "b": "1", FIELDS_SET_ATTR: {"a"}}
+    assert mock.__dict__ == {"a": 0, FIELDS_SET_ATTR: {"a"}}
     assert getattr(mock, FIELDS_SET_ATTR) == {"a"}
     assert mock.property == 1
     assert mock.method(1) == 1
