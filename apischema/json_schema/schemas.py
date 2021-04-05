@@ -1,7 +1,8 @@
 from contextlib import suppress
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, replace
 from typing import (
     Any,
+    Callable,
     Dict,
     Mapping,
     Optional,
@@ -12,19 +13,18 @@ from typing import (
     overload,
 )
 
+from apischema.metadata.keys import SCHEMA_METADATA
 from apischema.types import AnyType, MetadataMixin, Number
+from apischema.typing import get_origin
 from apischema.utils import Undefined, contains, merge_opts, replace_builtins
-from .annotations import Annotations, Deprecated, merge_annotations
+from .annotations import Annotations, Deprecated
 from .constraints import (
     ArrayConstraints,
     Constraints,
     NumberConstraints,
     ObjectConstraints,
     StringConstraints,
-    merge_constraints,
 )
-from apischema.metadata.keys import SCHEMA_METADATA
-from apischema.typing import get_origin
 
 try:
     from apischema.typing import Annotated
@@ -33,13 +33,17 @@ except ImportError:
 
 T = TypeVar("T")
 
+Extra = Union[Mapping[str, Any], Callable[[Dict[str, Any]], None]]
+
 
 @dataclass(frozen=True)
 class Schema(MetadataMixin):
     key = SCHEMA_METADATA
     annotations: Optional[Annotations] = None
     constraints: Optional[Constraints] = None
+    extra: Optional[Extra] = None
     override: bool = False
+    parent: Optional["Schema"] = None
 
     def __call__(self, tp: T) -> T:
         if get_origin(tp) is Annotated:
@@ -50,13 +54,19 @@ class Schema(MetadataMixin):
     def __set_name__(self, owner, name):
         self.__call__(owner)
 
-    def as_dict(self) -> Mapping[str, Any]:
-        result: Dict[str, Any] = {}
+    def merge_into(self, base_schema: Dict[str, Any]):
+        if self.override:
+            base_schema.clear()
+        elif self.parent is not None:
+            self.parent.merge_into(base_schema)
         if self.constraints is not None:
-            result.update(self.constraints.as_dict())
+            self.constraints.merge_into(base_schema)
         if self.annotations is not None:
-            result.update(self.annotations.as_dict())
-        return result
+            self.annotations.merge_into(base_schema)
+        if callable(self.extra):
+            self.extra(base_schema)
+        elif self.extra is not None:
+            base_schema.update(self.extra)  # type: ignore
 
     def validate(self, data: T) -> T:
         if self.constraints is not None:
@@ -75,8 +85,8 @@ def schema(
     description: Optional[str] = None,
     default: Any = Undefined,
     examples: Optional[Sequence[Any]] = None,
-    deprecated: Deprecated = False,
-    extra: Mapping[str, Any] = None,
+    deprecated: Optional[Deprecated] = None,
+    extra: Optional[Extra] = None,
     override: bool = False,
 ) -> Schema:
     ...
@@ -89,13 +99,13 @@ def schema(
     description: Optional[str] = None,
     default: Any = Undefined,
     examples: Optional[Sequence[Any]] = None,
-    deprecated: Deprecated = False,
+    deprecated: Optional[Deprecated] = None,
     min: Optional[Number] = None,
     max: Optional[Number] = None,
     exc_min: Optional[Number] = None,
     exc_max: Optional[Number] = None,
     mult_of: Optional[Number] = None,
-    extra: Mapping[str, Any] = None,
+    extra: Optional[Extra] = None,
     override: bool = False,
 ) -> Schema:
     ...
@@ -108,12 +118,12 @@ def schema(
     description: Optional[str] = None,
     default: Any = Undefined,
     examples: Optional[Sequence[Any]] = None,
-    deprecated: Deprecated = False,
+    deprecated: Optional[Deprecated] = None,
     format: Optional[str] = None,
     min_len: Optional[int] = None,
     max_len: Optional[int] = None,
     pattern: Optional[Union[str, Pattern]] = None,
-    extra: Mapping[str, Any] = None,
+    extra: Optional[Extra] = None,
     override: bool = False,
 ) -> Schema:
     ...
@@ -126,11 +136,11 @@ def schema(
     description: Optional[str] = None,
     default: Any = Undefined,
     examples: Optional[Sequence[Any]] = None,
-    deprecated: Deprecated = False,
+    deprecated: Optional[Deprecated] = None,
     min_items: Optional[int] = None,
     max_items: Optional[int] = None,
     unique: Optional[bool] = None,
-    extra: Mapping[str, Any] = None,
+    extra: Optional[Extra] = None,
     override: bool = False,
 ) -> Schema:
     ...
@@ -143,16 +153,16 @@ def schema(
     description: Optional[str] = None,
     default: Any = Undefined,
     examples: Optional[Sequence[Any]] = None,
-    deprecated: Deprecated = False,
+    deprecated: Optional[Deprecated] = None,
     min_props: Optional[int] = None,
     max_props: Optional[int] = None,
-    extra: Mapping[str, Any] = None,
+    extra: Optional[Extra] = None,
     override: bool = False,
 ) -> Schema:
     ...
 
 
-def schema(override=False, **kwargs) -> Schema:
+def schema(extra: Extra = None, override=False, **kwargs) -> Schema:
     annotations_kwargs = {k: v for k, v in kwargs.items() if k in _annotations_fields}
     constraints_kwargs = {
         k: v for k, v in kwargs.items() if k not in _annotations_fields
@@ -173,7 +183,7 @@ def schema(override=False, **kwargs) -> Schema:
         else:
             raise TypeError("Invalid schema")
 
-    return Schema(annotations, constraints, override)
+    return Schema(annotations, constraints, extra, override)
 
 
 def _default_schema(tp: AnyType) -> Optional[Schema]:
@@ -192,8 +202,4 @@ def get_schema(tp: AnyType) -> Optional[Schema]:
 def merge_schema(default: Schema, override: Schema) -> Schema:
     if override.override:
         return override
-    return Schema(
-        merge_annotations(default.annotations, override.annotations),
-        merge_constraints(default.constraints, override.constraints),
-        override.override,
-    )
+    return replace(override, parent=default)
