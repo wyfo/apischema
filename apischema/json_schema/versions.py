@@ -48,6 +48,8 @@ def to_open_api_3_0(schema: JsonSchema) -> Mapping[str, Any]:
         result["anyOf"] = [a for a in result["anyOf"] if a != {"type": "null"}]
     if "examples" in result:
         result.setdefault("example", result.pop("examples")[0])
+    if "const" in result:
+        result.setdefault("enum", [result.pop("const")])
     return result
 
 
