@@ -1,5 +1,5 @@
 from collections.abc import Collection as Collection_
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import (
     Any,
     Callable,
@@ -39,6 +39,17 @@ class Conversion:
     default_fallback: Optional[bool] = None
     exclude_unset: Optional[bool] = None
     inherited: Optional[bool] = None
+
+    def __post_init__(self):
+        object.__setattr__(
+            self, "sub_conversions", to_hashable_conversions(self.sub_conversions)
+        )
+        # Cannot use astuple because of deepcopy bug with property in py36
+        cached_hash = hash(tuple(getattr(self, f.name) for f in fields(self)))
+        object.__setattr__(self, "_hash", cached_hash)
+
+    def __hash__(self):
+        return self._hash  # type: ignore
 
     def __call__(self, *args, **kwargs):
         return self.converter(*args, **kwargs)
