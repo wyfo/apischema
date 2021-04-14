@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Type, TypeVar
+from typing import Dict, Optional, TypeVar
 
 from apischema.conversions.visitor import SELF_CONVERSION_ATTR
 from apischema.objects.conversions import ObjectWrapper
@@ -14,7 +14,6 @@ from apischema.utils import (
     is_type_var,
     replace_builtins,
 )
-from apischema.visitor import Unsupported, Visitor
 
 _refs: Dict[AnyType, Optional[str]] = {}
 
@@ -71,36 +70,3 @@ class schema_ref:
         check_ref_type(tp)
         _refs[replace_builtins(tp)] = self.ref
         return tp
-
-
-class BuiltinVisitor(Visitor):
-    def collection(self, cls: Type[Iterable], value_type: AnyType):
-        self.visit(value_type)
-
-    def enum(self, cls: Type[Enum]):
-        pass
-
-    def literal(self, values: Sequence[Any]):
-        pass
-
-    def mapping(self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType):
-        self.visit(key_type), self.visit(value_type)
-
-    def primitive(self, cls: Type):
-        pass
-
-    def subprimitive(self, cls: Type, superclass: Type):
-        raise NotImplementedError
-
-    def union(self, alternatives: Sequence[AnyType]):
-        for alt in alternatives:
-            self.visit(alt)
-
-
-def is_builtin(tp: AnyType) -> bool:
-    try:
-        BuiltinVisitor().visit(tp)
-    except (NotImplementedError, Unsupported):
-        return False
-    else:
-        return True
