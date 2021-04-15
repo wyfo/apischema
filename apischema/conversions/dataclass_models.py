@@ -4,6 +4,7 @@ from types import new_class
 from typing import Callable, Optional, TYPE_CHECKING, Tuple, Type, Union
 
 from apischema.conversions import Conversion
+from apischema.conversions.conversions import ResolvedConversion
 from apischema.conversions.utils import identity
 from apischema.dataclasses import replace
 from apischema.utils import PREFIX, cached_property
@@ -84,3 +85,12 @@ def has_model_origin(cls: Type) -> bool:
 
 def get_model_origin(cls: Type) -> Type:
     return getattr(cls, MODEL_ORIGIN_ATTR)
+
+
+def handle_dataclass_model(conversion: ResolvedConversion) -> ResolvedConversion:
+    conv: Conversion = conversion
+    if isinstance(conv.source, DataclassModel):
+        conv = replace(conv, source=conv.source.dataclass)
+    if isinstance(conv.target, DataclassModel):
+        conv = replace(conv, target=conv.target.dataclass)
+    return ResolvedConversion(conv)

@@ -1,4 +1,3 @@
-import warnings
 from contextlib import contextmanager
 from dataclasses import replace
 from types import new_class
@@ -18,36 +17,36 @@ from typing import (
 )
 
 from apischema.cache import cache
+from apischema.conversions import LazyConversion
 from apischema.conversions.conversions import (
     Conversion,
     Conversions,
     ResolvedConversion,
     ResolvedConversions,
-    handle_container_conversions,
     handle_identity_conversion,
     is_identity,
     resolve_conversions,
+    update_generics,
 )
 from apischema.conversions.converters import _deserializers, _serializers
-from apischema.conversions.dataclass_models import DataclassModel
+from apischema.conversions.dataclass_models import (
+    handle_dataclass_model,
+)
 from apischema.conversions.utils import (
     INVALID_CONVERSION_TYPES,
 )
 from apischema.skip import filter_skipped
-from apischema.types import AnyType, COLLECTION_TYPES, MAPPING_TYPES
-from apischema.typing import generic_mro, get_args, get_origin
+from apischema.types import AnyType
+from apischema.typing import get_args
 from apischema.utils import (
     OperationKind,
     PREFIX,
     Undefined,
     UndefinedType,
-    get_args2,
     get_origin_or_type,
     has_type_vars,
-    is_type_var,
-    substitute_type_vars,
 )
-from apischema.visitor import Return, Visitor
+from apischema.visitor import Return, Unsupported, Visitor
 
 try:
     from apischema.typing import Annotated
@@ -56,9 +55,14 @@ except ImportError:
 
 Deserialization = Sequence[ResolvedConversion]
 Serialization = ResolvedConversion
-Conv = TypeVar("Conv", Deserialization, Serialization)
+Conv = TypeVar("Conv")
 
 SELF_CONVERSION_ATTR = f"{PREFIX}self_conversion"
+
+
+def is_container(tp: AnyType) -> bool:
+    orig = get_origin_or_type(tp)
+    return orig == Union or (isinstance(orig, type) and issubclass(orig, Collection))
 
 
 class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
@@ -71,7 +75,7 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
 
     @staticmethod
     def _get_conversions(
-        tp: Type, conversions: ResolvedConversions
+        tp: AnyType, conversions: ResolvedConversions
     ) -> Union[Conv, None, UndefinedType]:
         raise NotImplementedError
 
@@ -79,20 +83,23 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
     def _default_conversions(tp: Type) -> Optional[Conversions]:
         raise NotImplementedError
 
+    def _handle_container_sub_conversions(self, conversion: Conv) -> Conv:
+        raise NotImplementedError
+
     @classmethod
     def get_conversions(
-        cls, tp: Type, conversions: ResolvedConversions
+        cls, tp: AnyType, conversions: ResolvedConversions
     ) -> Tuple[Optional[Conv], bool]:
-        result, dynamic = None, False
+        conv, dynamic = None, False
         if conversions is not None:
-            result = cls._get_conversions(tp, conversions)
-        if result is not None:
+            conv = cls._get_conversions(tp, conversions)
+        if conv is not None:
             dynamic = True
         else:
-            default_conv = cls._default_conversions(tp)
-            if default_conv:
-                result = cls._get_conversions(tp, resolve_conversions(default_conv))
-        return (result if result is not Undefined else None), dynamic  # type: ignore
+            default = cls._default_conversions(get_origin_or_type(tp))
+            if default:
+                conv = cls._get_conversions(tp, resolve_conversions(default))
+        return (conv if conv is not Undefined else None), dynamic
 
     def _apply_dynamic_conversions(self, tp: AnyType) -> Optional[AnyType]:
         if not self._conversions:
@@ -105,7 +112,7 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
     def visit_conversion(self, tp: AnyType, conversion: Conv, dynamic: bool) -> Return:
         raise NotImplementedError
 
-    def visit_not_conversion(self, tp: AnyType) -> Return:
+    def visit_not_conversion(self, tp: AnyType, dynamic: bool) -> Return:
         return super().visit(tp)
 
     @contextmanager
@@ -118,21 +125,20 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
             self._conversions = conversions_save
 
     def visit(self, tp: AnyType) -> Return:
-        origin = get_origin(tp) or tp
+        origin = get_origin_or_type(tp)
         if origin in INVALID_CONVERSION_TYPES or not isinstance(origin, type):
-            return self.visit_not_conversion(tp)
-        conversion, dynamic = self.get_conversions(origin, self._conversions)
-        if conversion is None:
-            with self._replace_conversions(
-                handle_container_conversions(tp, None, self._conversions, dynamic)
-            ):
-                return self.visit_not_conversion(tp)
-        else:
+            return self.visit_not_conversion(tp, False)
+        conversion, dynamic = self.get_conversions(tp, self._conversions)
+        reuse_conversions = not dynamic and is_container(tp)
+        if conversion is not None:
+            if reuse_conversions:
+                conversion = self._handle_container_sub_conversions(conversion)
             return self.visit_conversion(tp, conversion, dynamic)
-
-    @staticmethod
-    def _update_generic_args(tp: AnyType, conversion: ResolvedConversion) -> AnyType:
-        raise NotImplementedError
+        elif reuse_conversions:
+            return self.visit_not_conversion(tp, dynamic)
+        else:
+            with self._replace_conversions(None):
+                return self.visit_not_conversion(tp, dynamic)
 
     def visit_with_conversions(
         self, tp: AnyType, conversions: Optional[Conversions]
@@ -155,12 +161,26 @@ def self_deserialization_wrapper(cls: Type) -> Type:
     )
 
 
+def merge_prev_conversions(
+    conversion: ResolvedConversion, prev_conversions: Conversions
+) -> ResolvedConversion:
+    if not conversion.sub_conversions:
+        return conversion
+    else:
+        # Use lazy conversions to "flat" Conversions inside a Conversions list
+        sub_conversions = (
+            LazyConversion(lambda: conversion.sub_conversions),
+            LazyConversion(lambda: prev_conversions),
+        )
+        return ResolvedConversion(replace(conversion, sub_conversions=sub_conversions))
+
+
 class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
     operation = OperationKind.DESERIALIZATION
 
     @staticmethod
     def _get_conversions(
-        tp: Type, conversions: ResolvedConversions
+        tp: AnyType, conversions: ResolvedConversions
     ) -> Union[Deserialization, None, UndefinedType]:
         origin = get_origin_or_type(tp)
         identity_conv = False
@@ -178,63 +198,24 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
                     result.append(ResolvedConversion(replace(conv, source=wrapper)))
                 else:
                     result.append(conv)
+        result = list(map(handle_dataclass_model, result))
+        result = [update_generics(conv, tp, as_target=True) for conv in result]
         return Undefined if identity_conv and len(result) == 1 else result or None
 
     _default_conversions = staticmethod(_deserializers.get)  # type: ignore
 
-    @staticmethod
-    def _update_generic_args(tp: AnyType, conversion: ResolvedConversion) -> AnyType:
-        source = conversion.source
-        if isinstance(source, DataclassModel):
-            source = source.dataclass
-        if get_origin(tp) is None:
-            return source
-        else:
-            origin = get_origin_or_type(tp)
-            if get_origin(conversion.target) == Annotated:
-                target = get_args(conversion.target)[0]
-            else:
-                target = conversion.target
-            if getattr(target, "__parameters__", ()):
-                target = target[target.__parameters__]
-            substitution = {}
-            for base in generic_mro(target):
-                base_origin = get_origin_or_type(base)
-                if (
-                    base_origin == origin
-                    or (origin in MAPPING_TYPES and base_origin in MAPPING_TYPES)
-                    or (
-                        origin in COLLECTION_TYPES
-                        and base_origin
-                        in COLLECTION_TYPES.keys() | MAPPING_TYPES.keys()
-                    )
-                ):
-                    for base_arg, arg in zip(get_args(base), get_args2(tp)):
-                        if is_type_var(base_arg):
-                            substitution[base_arg] = arg
-                        elif base_arg != arg:
-                            warnings.warn(
-                                f"Generic conversion target {conversion.target} is"
-                                f" incompatible with type {tp}"
-                            )
-                            return source
-                break
-            return substitute_type_vars(source, substitution)
+    def _handle_container_sub_conversions(
+        self, conversion: Deserialization
+    ) -> Deserialization:
+        return [merge_prev_conversions(conv, self._conversions) for conv in conversion]
 
     def visit_conversion(
         self, tp: AnyType, conversion: Deserialization, dynamic: bool
     ) -> Return:
-        results = []
-        for conv in conversion:
-            results.append(
-                self.visit_with_conversions(
-                    self._update_generic_args(tp, conv),
-                    handle_container_conversions(
-                        conv.source, conv.sub_conversions, self._conversions, dynamic
-                    ),
-                )
-            )
-        return self._union_result(results)
+        return self._union_result(
+            self.visit_with_conversions(conv.source, conv.sub_conversions)
+            for conv in conversion
+        )
 
 
 class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
@@ -242,13 +223,18 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
 
     @staticmethod
     def _get_conversions(
-        tp: Type, conversions: ResolvedConversions
+        tp: AnyType, conversions: ResolvedConversions
     ) -> Union[Serialization, None, UndefinedType]:
         origin = get_origin_or_type(tp)
         for conv in conversions:
             conv = handle_identity_conversion(conv, tp)
             if issubclass(origin, get_origin_or_type(conv.source)):
-                return Undefined if is_identity(conv) else conv
+                if is_identity(conv):
+                    return Undefined
+                else:
+                    return update_generics(
+                        handle_dataclass_model(conv), tp, as_source=True
+                    )
         else:
             return None
 
@@ -267,53 +253,16 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
         else:
             return None
 
-    @staticmethod
-    def _update_generic_args(tp: AnyType, conversion: ResolvedConversion) -> AnyType:
-        target = conversion.target
-        if isinstance(target, DataclassModel):
-            target = target.dataclass
-        if get_origin(tp) is None:
-            return target
-        else:
-            source = conversion.source
-            source_origin = get_origin_or_type(source)
-            if getattr(source, "__parameters__", ()):
-                source = source[source.__parameters__]
-            substitution = {}
-            for base in generic_mro(tp):
-                base_origin = get_origin(base)
-                if (
-                    base_origin == source_origin
-                    or (source_origin in MAPPING_TYPES and base_origin in MAPPING_TYPES)
-                    or (
-                        source_origin in COLLECTION_TYPES
-                        and base_origin
-                        in COLLECTION_TYPES.keys() | MAPPING_TYPES.keys()
-                    )
-                ):
-                    for base_arg, source_arg in zip(get_args(base), get_args2(source)):
-                        if is_type_var(source_arg):
-                            substitution[source_arg] = base_arg
-                        elif base_arg != source_arg:
-                            warnings.warn(
-                                f"Generic conversion source {conversion.source} is"
-                                f" incompatible with type {tp}"
-                            )
-                            return target
-                    break
-            return substitute_type_vars(target, substitution)
+    def _handle_container_sub_conversions(
+        self, conversion: Serialization
+    ) -> Serialization:
+        return merge_prev_conversions(conversion, self._conversions)
 
     def visit_conversion(
         self, tp: AnyType, conversion: Serialization, dynamic: bool
     ) -> Return:
         return self.visit_with_conversions(
-            self._update_generic_args(tp, conversion),
-            handle_container_conversions(
-                conversion.target,
-                conversion.sub_conversions,
-                self._conversions,
-                dynamic,
-            ),
+            conversion.target, conversion.sub_conversions
         )
 
 
@@ -330,7 +279,7 @@ class DynamicConversionResolver(ConversionsVisitor[Conv, Optional[AnyType]]):
         self, cls: Type[Collection], value_type: AnyType
     ) -> Optional[AnyType]:
         value = self.visit(value_type)
-        return None if value is None else Sequence[value]  # type: ignore
+        return None if value is None else Collection[value]  # type: ignore
 
     def mapping(
         self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType
@@ -359,39 +308,49 @@ class DynamicConversionResolver(ConversionsVisitor[Conv, Optional[AnyType]]):
     def union(self, alternatives: Sequence[AnyType]) -> Optional[AnyType]:
         return self.visit_types(filter_skipped(alternatives, schema_only=True), Union)
 
-    def _final_type(self, tp: AnyType, conversion: Conv) -> AnyType:
+    def _conversion_type(self, conversion: Conv) -> AnyType:
         raise NotImplementedError
 
-    def visit(self, tp: AnyType) -> Optional[AnyType]:
-        origin = get_origin(tp) or tp
-        if not self._conversions or (origin, self._conversions) in self._rec_guard:
-            return None
-        if origin in INVALID_CONVERSION_TYPES or not isinstance(origin, type):
-            return self.visit_not_conversion(tp)
-        conv, dynamic = self.get_conversions(origin, self._conversions)
-        if not dynamic and (conv is None and get_origin(tp) is None):
+    def _visit_dynamic(
+        self, tp: AnyType, conversion: Optional[Conv], dynamic: bool
+    ) -> Optional[AnyType]:
+        origin = get_origin_or_type(tp)
+        if (origin, self._conversions) in self._rec_guard:
             return None
         self._rec_guard.add((origin, self._conversions))
         try:
-            if conv is not None:
-                result = self.visit_conversion(tp, conv, dynamic)
+            if conversion is not None:
+                result = super().visit_conversion(tp, conversion, dynamic)
             else:
-                result = self.visit_not_conversion(tp)
-            if result is not None:
-                return result
-            elif conv is not None:
-                return self._final_type(tp, conv)
-            else:
-                return tp
-        except Exception:
-            return self._final_type(tp, conv) if conv is not None else tp
+                result = super().visit_not_conversion(tp, dynamic)
+        except (NotImplementedError, Unsupported):
+            result = None
         finally:
             self._rec_guard.remove((origin, self._conversions))
+        if not dynamic or result is not None:
+            return result
+        elif conversion is not None:
+            return self._conversion_type(conversion)
+        else:
+            return tp
+
+    def visit_not_conversion(self, tp: AnyType, dynamic: bool) -> Optional[AnyType]:
+        return self._visit_dynamic(tp, None, dynamic)
+
+    def visit_conversion(
+        self, tp: AnyType, conversion: Conv, dynamic: bool
+    ) -> Optional[AnyType]:
+        return self._visit_dynamic(tp, conversion, dynamic)
+
+    def visit(self, tp: AnyType) -> Optional[AnyType]:
+        if not self._conversions:
+            return None
+        return super().visit(tp)
 
 
 class DynamicDeserializationResolver(DynamicConversionResolver, DeserializationVisitor):
-    def _final_type(self, tp: AnyType, conversion: Deserialization) -> AnyType:
-        return Union[tuple(self._update_generic_args(tp, conv) for conv in conversion)]
+    def _conversion_type(self, conversion: Deserialization) -> AnyType:
+        return Union[tuple(conv.source for conv in conversion)]
 
     def visit_conversion(
         self, tp: AnyType, conversion: Deserialization, dynamic: bool
@@ -399,24 +358,18 @@ class DynamicDeserializationResolver(DynamicConversionResolver, DeserializationV
         args = []
         modified = False
         for conv in conversion:
-            source = self._update_generic_args(tp, conv)
             try:
-                res = self.visit_with_conversions(
-                    source,
-                    handle_container_conversions(
-                        conv.source, conv.sub_conversions, self._conversions, dynamic
-                    ),
-                )
-                args.append(res if res is not None else source)
+                res = self.visit_with_conversions(conv.source, conv.sub_conversions)
+                args.append(res if res is not None else conv.source)
                 modified = res is not None
             except Exception:
-                args.append(source)
+                args.append(conv.source)
         return Union[tuple(args)] if modified else None
 
 
 class DynamicSerializationResolver(DynamicConversionResolver, SerializationVisitor):
-    def _final_type(self, tp: AnyType, conversion: Serialization) -> AnyType:
-        return self._update_generic_args(tp, conversion)
+    def _conversion_type(self, conversion: Serialization) -> AnyType:
+        return conversion.target
 
 
 DeserializationVisitor._dynamic_conversion_resolver = DynamicDeserializationResolver

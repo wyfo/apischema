@@ -9,12 +9,15 @@ from apischema.cache import cache
 from apischema.conversions.conversions import (
     Conversions,
     HashableConversions,
-    handle_container_conversions,
     resolve_conversions,
     to_hashable_conversions,
 )
-from apischema.conversions.dataclass_models import DataclassModel
-from apischema.conversions.visitor import SerializationVisitor
+from apischema.conversions.dataclass_models import MODEL_ORIGIN_ATTR
+from apischema.conversions.visitor import (
+    SerializationVisitor,
+    is_container,
+    merge_prev_conversions,
+)
 from apischema.fields import FIELDS_SET_ATTR, fields_set
 from apischema.objects import AliasedStr, ObjectField, object_fields
 from apischema.objects.conversions import ObjectWrapper
@@ -106,17 +109,18 @@ def serialization_method_factory(
         conversion, dynamic = SerializationVisitor.get_conversions(
             cls, resolve_conversions(conversions)
         )
+        reuse_conversions = not dynamic and is_container(cls)
         if conversion is not None:
-            if isinstance(conversion.target, DataclassModel):
-                return get_method(conversion.target.dataclass, None, aliaser)
+            if reuse_conversions and conversions is not None:
+                merge_prev_conversions(conversion, conversions)
+            if hasattr(conversion.target, MODEL_ORIGIN_ATTR):
+                return get_method(conversion.target, None, aliaser)
             target_orig = get_origin_or_type(conversion.target)
             if isinstance(target_orig, type) and issubclass(target_orig, ObjectWrapper):
                 return object_method(target_orig, aliaser)  # type: ignore
             else:
                 converter = conversion.converter
-                sub_conversions = handle_container_conversions(
-                    conversion.target, conversion.sub_conversions, conversions, dynamic
-                )
+                sub_conversions = to_hashable_conversions(conversion.sub_conversions)
                 exclude_unset = conversion.exclude_unset
 
                 def method(obj: T, exc_unset: bool) -> Any:
@@ -128,6 +132,8 @@ def serialization_method_factory(
                     )
 
                 return method
+        elif not reuse_conversions:
+            conversions = None
         if issubclass(cls, ObjectWrapper):  # must be before dataclass
             method = object_method(cls, aliaser)  # type: ignore
             return lambda obj, exc_unset: method(obj.wrapped, exc_unset)
