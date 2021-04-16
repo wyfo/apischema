@@ -71,13 +71,15 @@ class Constraints:
                     modif = len
                 else:
                     modif = None
-            if modif is None:
-                modif = lambda x: x  # noqa: E731
             checks.append((attr, comp, modif, error))
 
         def errors(data: Any) -> List[str]:
             assert isinstance(data, self.valid_types)
-            return [err for attr, comp, modif, err in checks if comp(modif(data), attr)]
+            return [
+                err
+                for attr, comp, modif, err in checks
+                if comp(data if modif is None else modif(data), attr)
+            ]
 
         object.__setattr__(self, self.errors.__name__, errors)
 

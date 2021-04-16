@@ -40,6 +40,9 @@ from apischema.deserialization.merged import get_deserialization_merged_aliases
 from apischema.json_schema.constraints import (
     ArrayConstraints,
     Constraints,
+    NumberConstraints,
+    ObjectConstraints,
+    StringConstraints,
     merge_constraints,
 )
 from apischema.json_schema.patterns import infer_pattern
@@ -471,7 +474,6 @@ class DeserializationMethodVisitor(
                 aliases: List[str] = []
                 errors = [] if constraints is None else constraints.errors(data)
                 field_errors: Dict[ErrorKey, ValidationError] = OrderedDict()
-
                 for (
                     name,
                     alias,
@@ -498,7 +500,6 @@ class DeserializationMethodVisitor(
                         if requiring:
                             msg = f"missing property (required by {sorted(requiring)})"
                             field_errors[alias] = ValidationError([msg])
-
                 for (
                     name,
                     merged_alias,
@@ -601,12 +602,16 @@ class DeserializationMethodVisitor(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
             if constraints is None:
-                method = lambda ctx, data: ctx.coercer(cls, data)  # noqa: E731
+
+                def method(ctx: DeserializationContext, data: Any) -> Any:
+                    return ctx.coercer(cls, data)
+
             else:
 
                 def method(ctx: DeserializationContext, data: Any) -> Any:
                     data = ctx.coercer(cls, data)
-                    if constraints is not None and data is not None:
+                    assert constraints is not None
+                    if data is not None:
                         constraints.validate(data)
                     return data
 
@@ -627,7 +632,6 @@ class DeserializationMethodVisitor(
         return factory
 
     def tuple(self, types: Sequence[AnyType]) -> DeserializationMethodFactory:
-        tuple_constraints = ArrayConstraints(min_items=len(types), max_items=len(types))
         elts_deserializers = [self.method(cls) for cls in types]
 
         @DeserializationMethodFactory
@@ -637,8 +641,6 @@ class DeserializationMethodVisitor(
             @with_validators(validators)
             def method(ctx: DeserializationContext, data: Any) -> Any:
                 data = ctx.coercer(list, data)
-                if len(data) != len(types):
-                    tuple_constraints.validate(data)
                 elts: List[Any] = []
                 elt_errors: Dict[ErrorKey, ValidationError] = {}
                 for i, (deserialize_elt, elt) in enumerate(
@@ -655,7 +657,9 @@ class DeserializationMethodVisitor(
 
             return method
 
-        return factory
+        return factory.merge(
+            constraints=ArrayConstraints(min_items=len(types), max_items=len(types))
+        )
 
     def union(self, alternatives: Sequence[AnyType]) -> DeserializationMethodFactory:
         factories = [self.visit(cls) for cls in filter_skipped(alternatives)]
@@ -771,6 +775,14 @@ def get_method(
     return factory.method
 
 
+constraints_type: Mapping[Type[Constraints], Type] = {
+    NumberConstraints: float,
+    StringConstraints: str,
+    ArrayConstraints: list,
+    ObjectConstraints: dict,
+}
+
+
 @overload
 def deserialize(
     tp: Type[T],
@@ -821,6 +833,10 @@ def deserialize(
     if aliaser is None:
         aliaser = settings.aliaser()
     ctx = DeserializationContext(additional_properties, coercion, default_fallback)
+    if schema is not None and schema.constraints is not None:
+        schema.constraints.validate(
+            ctx.coercer(constraints_type[type(schema.constraints)], data)
+        )
     if conversions is not None and isinstance(conversions, Collection_):
         conversions = tuple(conversions)
     return get_method(tp, conversions, aliaser)(ctx, data)
