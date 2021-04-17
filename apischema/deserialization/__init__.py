@@ -26,11 +26,7 @@ from typing import (
 from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.cache import cache
-from apischema.conversions.conversions import (
-    Conversions,
-    HashableConversions,
-    handle_container_conversions,
-)
+from apischema.conversions.conversions import Conversions, HashableConversions
 from apischema.conversions.utils import Converter, identity
 from apischema.conversions.visitor import Deserialization, DeserializationVisitor
 from apischema.dataclasses import replace
@@ -700,12 +696,7 @@ class DeserializationMethodVisitor(
         cls = get_origin_or_type(tp)
         factories = [
             (
-                self.visit_with_conversions(
-                    self._update_generic_args(tp, conv),
-                    handle_container_conversions(
-                        conv.source, conv.sub_conversions, self._conversions, dynamic
-                    ),
-                ),
+                self.visit_with_conversions(conv.source, conv.sub_conversions),
                 cast(Converter, conv.converter),
                 (conv.additional_properties, conv.coercion, conv.default_fallback),
             )
