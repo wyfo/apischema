@@ -340,6 +340,8 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
         results = list(results)
         if len(results) == 1:
             return results[0]
+        elif any(alt == {} for alt in results):
+            return JsonSchema()
         elif all(alt.keys() == {"type"} for alt in results):
             types: Any = chain.from_iterable(
                 [res["type"]]
