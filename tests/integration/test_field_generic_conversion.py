@@ -24,11 +24,12 @@ class Foo(Generic[V]):
     )
 
 
-assert serialize(Foo({1: "a", 0: "b"})) == {"values": ["b", "a"]}
-assert serialization_schema(Foo[str]) == {
-    "type": "object",
-    "properties": {"values": {"type": "array", "items": {"type": "string"}}},
-    "required": ["values"],
-    "additionalProperties": False,
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
-}
+def test_field_generic_conversion():
+    assert serialize(Foo({1: "a", 0: "b"})) == {"values": ["b", "a"]}
+    assert serialization_schema(Foo[str]) == {
+        "type": "object",
+        "properties": {"values": {"type": "array", "items": {"type": "string"}}},
+        "required": ["values"],
+        "additionalProperties": False,
+        "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    }
