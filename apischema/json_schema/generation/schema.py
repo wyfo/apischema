@@ -401,14 +401,28 @@ class DeserializationSchemaBuilder(
     DeserializationObjectVisitor, DeserializationVisitor, SchemaBuilder[Deserialization]
 ):
     RefsExtractor = DeserializationRefsExtractor
-    visit_conversion = with_schema(DeserializationVisitor.visit_conversion)  # type: ignore # noqa: E501
+    _visit_conversion = with_schema(DeserializationVisitor.visit_conversion)
+
+    def visit_conversion(
+        self, tp: AnyType, conversion: Deserialization, dynamic: bool
+    ) -> JsonSchema:
+        if not dynamic and get_origin(tp) is not None:
+            self._merge_schema(get_schema(get_origin(tp)))
+        return self._visit_conversion(tp, conversion, dynamic)
 
 
 class SerializationSchemaBuilder(
     SerializationObjectVisitor, SerializationVisitor, SchemaBuilder[Serialization]
 ):
     RefsExtractor = SerializationRefsExtractor
-    visit_conversion = with_schema(SerializationVisitor.visit_conversion)  # type: ignore # noqa: E501
+    _visit_conversion = with_schema(SerializationVisitor.visit_conversion)
+
+    def visit_conversion(
+        self, tp: AnyType, conversion: Serialization, dynamic: bool
+    ) -> JsonSchema:
+        if not dynamic and get_origin(tp) is not None:
+            self._merge_schema(get_schema(get_origin(tp)))
+        return self._visit_conversion(tp, conversion, dynamic)
 
     def object(self, cls: Type, fields: Sequence[ObjectField]) -> JsonSchema:
         result = super().object(cls, fields)

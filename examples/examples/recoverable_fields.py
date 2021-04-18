@@ -1,12 +1,14 @@
-from typing import Annotated, Any, Generic, TypeVar, Union
+from typing import Any, Dict, Generic, TypeVar, Union
 
 from pytest import raises
 
-from apischema import deserialize, deserializer, serialize, serializer
+from apischema import deserialize, deserializer, schema, serialize, serializer
 from apischema.json_schema import deserialization_schema, serialization_schema
-from apischema.skip import Skip
 
 
+# Add a dummy placeholder comment in order to not have an empty schema
+# (because Union member with empty schema would "contaminate" whole Union schema)
+@schema(extra={"$comment": "recoverable"})
 class RecoverableRaw(Exception):
     def __init__(self, raw: Any):
         self.raw = raw
@@ -17,10 +19,16 @@ deserializer(RecoverableRaw)
 T = TypeVar("T")
 
 
+def remove_recoverable_schema(json_schema: Dict[str, Any]):
+    if "anyOf" in json_schema:  # deserialization schema
+        value_schema, recoverable_comment = json_schema.pop("anyOf")
+        assert recoverable_comment == {"$comment": "recoverable"}
+        json_schema.update(value_schema)
+
+
+@schema(extra=remove_recoverable_schema)
 class Recoverable(Generic[T]):
-    def __init__(
-        self, value: Union[T, Annotated[RecoverableRaw, Skip(schema_only=True)]]
-    ):
+    def __init__(self, value: Union[T, RecoverableRaw]):
         self._value = value
 
     @property
@@ -49,6 +57,6 @@ assert err.value.raw == "bad"
 
 assert (
     deserialization_schema(Recoverable[int])
-    == {"$schema": "http://json-schema.org/draft/2019-09/schema#", "type": "integer"}
     == serialization_schema(Recoverable[int])
+    == {"$schema": "http://json-schema.org/draft/2019-09/schema#", "type": "integer"}
 )

@@ -29,12 +29,8 @@ from apischema.conversions.conversions import (
     update_generics,
 )
 from apischema.conversions.converters import _deserializers, _serializers
-from apischema.conversions.dataclass_models import (
-    handle_dataclass_model,
-)
-from apischema.conversions.utils import (
-    INVALID_CONVERSION_TYPES,
-)
+from apischema.conversions.dataclass_models import handle_dataclass_model
+from apischema.conversions.utils import INVALID_CONVERSION_TYPES
 from apischema.skip import filter_skipped
 from apischema.types import AnyType
 from apischema.typing import get_args
@@ -58,11 +54,6 @@ Serialization = ResolvedConversion
 Conv = TypeVar("Conv")
 
 SELF_CONVERSION_ATTR = f"{PREFIX}self_conversion"
-
-
-def is_container(tp: AnyType) -> bool:
-    orig = get_origin_or_type(tp)
-    return orig == Union or (isinstance(orig, type) and issubclass(orig, Collection))
 
 
 class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
@@ -129,7 +120,7 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
         if origin in INVALID_CONVERSION_TYPES or not isinstance(origin, type):
             return self.visit_not_conversion(tp, False)
         conversion, dynamic = self.get_conversions(tp, self._conversions)
-        reuse_conversions = not dynamic and is_container(tp)
+        reuse_conversions = not dynamic and issubclass(origin, Collection)
         if conversion is not None:
             if reuse_conversions:
                 conversion = self._handle_container_sub_conversions(conversion)
