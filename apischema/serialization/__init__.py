@@ -13,11 +13,7 @@ from apischema.conversions.conversions import (
     to_hashable_conversions,
 )
 from apischema.conversions.dataclass_models import MODEL_ORIGIN_ATTR
-from apischema.conversions.visitor import (
-    SerializationVisitor,
-    is_container,
-    merge_prev_conversions,
-)
+from apischema.conversions.visitor import SerializationVisitor, merge_prev_conversions
 from apischema.fields import FIELDS_SET_ATTR, fields_set
 from apischema.objects import AliasedStr, ObjectField, object_fields
 from apischema.objects.conversions import ObjectWrapper
@@ -109,7 +105,7 @@ def serialization_method_factory(
         conversion, dynamic = SerializationVisitor.get_conversions(
             cls, resolve_conversions(conversions)
         )
-        reuse_conversions = not dynamic and is_container(cls)
+        reuse_conversions = not dynamic and issubclass(cls, Collection)
         if conversion is not None:
             if reuse_conversions and conversions is not None:
                 merge_prev_conversions(conversion, conversions)
