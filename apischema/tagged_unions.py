@@ -77,7 +77,10 @@ class Tagged(Generic[V]):
         deserialization: Optional[ConvOrFunc],
         serialization: Optional[ConvOrFunc],
     ):
-        # TODO Remove deprecated part
+        if self.metadata is None or isinstance(self.metadata, str):
+            raise TypeError(
+                "Tagged alias parameter is deprecated, use metadata instead"
+            )
         if any(m is not None for m in (alias, schema, deserialization, serialization)):
             metadata = self.metadata
             warnings.warn(
