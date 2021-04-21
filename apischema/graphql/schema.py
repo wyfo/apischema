@@ -46,12 +46,9 @@ from apischema.graphql.resolvers import (
     resolver_parameters,
     resolver_resolve,
 )
-from apischema.json_schema.annotations import Annotations
 from apischema.json_schema.refs import check_ref_type, get_ref, schema_ref
 from apischema.json_schema.schemas import Schema, get_schema, merge_schema
-from apischema.metadata.keys import (
-    SCHEMA_METADATA,
-)
+from apischema.metadata.keys import SCHEMA_METADATA
 from apischema.objects import AliasedStr, ObjectField
 from apischema.objects.utils import annotated_metadata
 from apischema.objects.visitor import (
@@ -115,17 +112,42 @@ def exec_thunk(thunk: TypeThunk, *, non_null=None) -> Any:
     return result
 
 
-def field_description(field: ObjectField) -> Optional[str]:
-    return field.annotations.description if field.annotations is not None else None
+def merged_schema(
+    schema: Optional[Schema], tp: Optional[AnyType]
+) -> Tuple[Optional[Schema], Mapping[str, Any]]:
+    if tp is not None and get_origin(tp) == Annotated:
+        for annotation in reversed(get_args(tp)[1:]):
+            if isinstance(annotation, schema_ref):
+                break
+            elif isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
+                schema = merge_schema(annotation[SCHEMA_METADATA], schema)
+    schema_dict: Dict[str, Any] = {}
+    if schema is not None:
+        schema.merge_into(schema_dict)
+    return schema, schema_dict
 
 
-def str_deprecated(annotations: Annotations) -> Optional[str]:
-    if annotations is not None:
-        if isinstance(annotations.deprecated, str):
-            return annotations.deprecated
-        elif annotations.deprecated:
-            return graphql.DEFAULT_DEPRECATION_REASON
-    return None
+def get_description(
+    schema: Optional[Schema], tp: Optional[AnyType] = None
+) -> Optional[str]:
+    _, schema_dict = merged_schema(schema, tp)
+    return schema_dict.get("description")
+
+
+def get_deprecated(
+    schema: Optional[Schema], tp: Optional[AnyType] = None
+) -> Optional[str]:
+    schema, schema_dict = merged_schema(schema, tp)
+    if not schema_dict.get("deprecated", False):
+        return None
+    while schema is not None:
+        if schema.annotations is not None:
+            if isinstance(schema.annotations.deprecated, str):
+                return schema.annotations.deprecated
+            elif schema.annotations.deprecated:
+                return graphql.DEFAULT_DEPRECATION_REASON
+        schema = schema.child
+    return graphql.DEFAULT_DEPRECATION_REASON
 
 
 @dataclass(frozen=True)
@@ -150,17 +172,12 @@ class ResolverField:
         return self.types["return"]
 
     @property
-    def _annotations(self) -> Optional[Annotations]:
-        schema = self.resolver.schema
-        return schema.annotations if schema is not None else None
-
-    @property
     def description(self) -> Optional[str]:
-        return self._annotations.description if self._annotations is not None else None
+        return get_description(self.resolver.schema)
 
     @property
     def deprecated(self) -> Optional[str]:
-        return None if self._annotations is None else str_deprecated(self._annotations)
+        return get_deprecated(self.resolver.schema)
 
 
 IdPredicate = Callable[[AnyType], bool]
@@ -174,10 +191,6 @@ def annotated_schema(tp: AnyType) -> Optional[Schema]:
             if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
                 schema = merge_schema(annotation[SCHEMA_METADATA], schema)
     return schema
-
-
-def field_deprecated(field: ObjectField) -> Optional[str]:
-    return None if field.annotations is None else str_deprecated(field.annotations)
 
 
 class SchemaBuilder(ObjectVisitor[TypeThunk], ConversionsVisitor[Conv, TypeThunk]):
@@ -216,7 +229,7 @@ class SchemaBuilder(ObjectVisitor[TypeThunk], ConversionsVisitor[Conv, TypeThunk
         return self._ref, self._description
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> TypeThunk:
-        for annotation in annotations:
+        for annotation in reversed(annotations):
             if isinstance(annotation, schema_ref):
                 check_ref_type(tp)
                 ref = annotation.ref
@@ -224,7 +237,10 @@ class SchemaBuilder(ObjectVisitor[TypeThunk], ConversionsVisitor[Conv, TypeThunk
                     raise ValueError("Annotated schema_ref can only be str")
                 self._ref = self._ref or ref
             if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
-                self._schema = merge_schema(self._schema, annotation[SCHEMA_METADATA])
+                if self._ref is not None:
+                    self._schema = merge_schema(
+                        annotation[SCHEMA_METADATA], self._schema
+                    )
         return self.visit_with_schema(tp, self._ref, self._schema)
 
     def any(self) -> TypeThunk:
@@ -411,7 +427,7 @@ class InputSchemaBuilder(
         return lambda: graphql.GraphQLInputField(
             exec_thunk(type_thunk),
             default_value=default,
-            description=field_description(field),
+            description=get_description(field.schema, field.type),
         )
 
     def object(self, cls: Type, fields: Sequence[ObjectField]) -> TypeThunk:
@@ -482,8 +498,8 @@ class OutputSchemaBuilder(
             exec_thunk(type_thunk),
             None,
             resolve,
-            description=field_description(field),
-            deprecation_reason=field_deprecated(field),
+            description=get_description(field.schema, field.type),
+            deprecation_reason=get_deprecated(field.schema, field.type),
         )
 
     def _resolver(self, field: ResolverField) -> Lazy[graphql.GraphQLField]:
@@ -500,12 +516,12 @@ class OutputSchemaBuilder(
                 param_type = field.types[param.name]
                 if is_union_of(param_type, graphql.GraphQLResolveInfo):
                     break
-                metadata = annotated_metadata(param_type, skip_schema_validators=False)
+                metadata = annotated_metadata(param_type)
                 if param.name in field.metadata:
                     metadata = {**metadata, **field.metadata[param.name]}
                 param_field = ObjectField(
                     param.name,
-                    ...,
+                    param_type,
                     param.default is Parameter.empty,
                     metadata,
                     default=...,
@@ -525,10 +541,13 @@ class OutputSchemaBuilder(
                         param_type = Optional[param_type]
                 with self._replace_conversions(param_field.deserialization):
                     arg_type = self.input_builder.visit(param_type)
-                if param_field.annotations is None:
-                    description = None
-                else:
-                    description = param_field.annotations.description
+                description = get_description(
+                    merge_schema(
+                        metadata.get(SCHEMA_METADATA),
+                        field.metadata.get(param.name, {}).get(SCHEMA_METADATA),
+                    ),
+                    param_type,
+                )
 
                 def arg_thunk(
                     arg_type=arg_type, default=default, description=description

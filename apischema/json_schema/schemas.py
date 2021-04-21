@@ -43,7 +43,7 @@ class Schema(MetadataMixin):
     constraints: Optional[Constraints] = None
     extra: Optional[Extra] = None
     override: bool = False
-    parent: Optional["Schema"] = None
+    child: Optional["Schema"] = None
 
     def __call__(self, tp: T) -> T:
         if get_origin(tp) is Annotated:
@@ -57,8 +57,8 @@ class Schema(MetadataMixin):
     def merge_into(self, base_schema: Dict[str, Any]):
         if self.override:
             base_schema.clear()
-        elif self.parent is not None:
-            self.parent.merge_into(base_schema)
+        elif self.child is not None:
+            self.child.merge_into(base_schema)
         if self.constraints is not None:
             self.constraints.merge_into(base_schema)
         if self.annotations is not None:
@@ -202,4 +202,4 @@ def get_schema(tp: AnyType) -> Optional[Schema]:
 def merge_schema(default: Schema, override: Schema) -> Schema:
     if override.override:
         return override
-    return replace(override, parent=default)
+    return replace(override, child=merge_schema(default, override.child))
