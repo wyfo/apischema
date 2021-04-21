@@ -79,11 +79,11 @@ Method = TypeVar("Method", bound=Callable[..., JsonSchema])
 def with_schema(method: Method) -> Method:
     @wraps(method)
     def wrapper(self: "SchemaBuilder", *args, **kwargs):
-        if self._schema is None:
-            return method(self, *args, **kwargs)
-        schema = {} if self._schema.override else method(self, *args, **kwargs).copy()
-        self._schema.merge_into(schema)
-        return JsonSchema(schema)
+        result = method(self, *args, **kwargs)
+        if self._schema is not None:
+            result = JsonSchema(result)  # make a copy
+            self._schema.merge_into(result)
+        return result
 
     return cast(Method, wrapper)
 

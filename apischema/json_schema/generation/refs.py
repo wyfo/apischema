@@ -49,13 +49,14 @@ class RefsExtractor(ObjectVisitor, ConversionsVisitor):
             return count > 0
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]):
-        for annotation in reversed(annotations):
+        for i, annotation in enumerate(reversed(annotations)):
             if isinstance(annotation, schema_ref):
                 check_ref_type(tp)
                 ref = annotation.ref
                 if not isinstance(ref, str):
                     raise ValueError("Annotated schema_ref can only be str")
-                annotated = Annotated[(tp, *annotations)]  # type: ignore
+                ref_annotations = annotations[: len(annotations) - i]
+                annotated = Annotated[(tp, *ref_annotations)]  # type: ignore
                 if self._incr_ref(ref, annotated):
                     return
         return self.visit(tp)
