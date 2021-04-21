@@ -17,7 +17,7 @@ class Annotations:
 
     def merge_into(self, base_schema: Dict[str, Any]):
         if self.deprecated:
-            base_schema["deprecated"] = self.deprecated
+            base_schema["deprecated"] = bool(self.deprecated)
         for k in ("title", "description", "examples", "format"):
             if getattr(self, k) is not None:
                 base_schema[k] = getattr(self, k)
