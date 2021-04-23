@@ -57,7 +57,6 @@ from apischema.objects.visitor import (
 )
 from apischema.serialization import serialize
 from apischema.serialization.serialized_methods import ErrorHandler
-from apischema.skip import filter_skipped
 from apischema.types import AnyType, NoneType, OrderedDict, UndefinedType, Undefined
 from apischema.typing import get_args, get_origin
 from apischema.utils import (
@@ -312,8 +311,8 @@ class SchemaBuilder(ObjectVisitor[TypeThunk], ConversionsVisitor[Conv, TypeThunk
 
     def union(self, alternatives: Sequence[AnyType]) -> TypeThunk:
         if UndefinedType in alternatives:
-            alternatives = [*alternatives, NoneType]
-        alternatives = list(filter_skipped(alternatives, schema_only=True))
+            filtered = [alt for alt in alternatives if alt is not UndefinedType]
+            alternatives = [*filtered, NoneType]
         results = []
         non_null_alternatives = []
         for alt in alternatives:

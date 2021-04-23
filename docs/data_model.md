@@ -181,9 +181,6 @@ Sometimes, one of the `Union` members has not to be taken in account during vali
 {!skip_union.py!}
 ```
 
-!!! note
-    `Skip(schema_only=True)` can also be used to skip the member only for [JSON schema generation](json_schema.md)
-    
 ### Optional vs. NotNull
 
 `Optional` type is not always appropriate, because it allows deserialized value to be `null`, but sometimes, you just want `None` as a default value for unset fields, not an authorized one.
@@ -197,8 +194,6 @@ That's why *apischema* defines a `NotNull` type; in fact, `NotNull = Union[T, An
 !!! note
     You can also use [`Undefined`](#null-vs-undefined), but it can be more convenient to directly manipulate an `Optional` field, especially in the rest of the code unrelated to (de)serialization.
 
-    [Fields set feature](de_serialization.md#fields-set) can be used to avoid unwanted serialization of a `None` default value of a `NotNull` field. 
-    
 ## Skip dataclass field
 
 Dataclass fields can be excluded from *apischema* processing by using `apischema.metadata.skip` in the field metadata
