@@ -239,7 +239,7 @@ class Visitor(Generic[Return]):
         return self.unsupported(tp)
 
     def visit(self, tp: AnyType) -> Return:
-        if get_origin(tp) is not None:
+        if get_args(tp):
             return self._visit_generic(tp)
         if is_type_var(tp):
             if tp.__constraints__:
