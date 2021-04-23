@@ -7,7 +7,7 @@ from apischema.conversions import Conversion
 from apischema.conversions.conversions import ResolvedConversion
 from apischema.conversions.utils import identity
 from apischema.dataclasses import replace
-from apischema.utils import PREFIX, cached_property
+from apischema.utils import PREFIX
 
 if TYPE_CHECKING:
     from apischema.deserialization.coercion import Coercion
@@ -24,6 +24,8 @@ def check_model(origin: Type, model: Type):
 
 MODEL_ORIGIN_ATTR = f"{PREFIX}model_origin"
 
+DATACLASS_ATTR = "_dataclass"
+
 
 @dataclass(frozen=True)
 class DataclassModel:
@@ -31,21 +33,24 @@ class DataclassModel:
     model: Model
     fields_only: bool
 
-    @cached_property
+    @property
     def dataclass(self) -> Type:
-        origin = self.origin
-        if isinstance(self.model, type):
-            assert check_model(origin, self.model) is None
-            model = self.model
-        else:
-            model = self.model()
-            check_model(origin, model)
-        namespace = {"__new__": lambda _, *args, **kwargs: origin(*args, **kwargs)}
-        if not self.fields_only:
-            namespace[MODEL_ORIGIN_ATTR] = origin
-        return new_class(
-            model.__name__, (model,), exec_body=lambda ns: ns.update(namespace)
-        )
+        if not hasattr(self, "_dataclass"):
+            origin = self.origin
+            if isinstance(self.model, type):
+                assert check_model(origin, self.model) is None
+                model = self.model
+            else:
+                model = self.model()
+                check_model(origin, model)
+            namespace = {"__new__": lambda _, *args, **kwargs: origin(*args, **kwargs)}
+            if not self.fields_only:
+                namespace[MODEL_ORIGIN_ATTR] = origin
+            cls = new_class(
+                model.__name__, (model,), exec_body=lambda ns: ns.update(namespace)
+            )
+            object.__setattr__(self, "_dataclass", cls)
+        return getattr(self, "_dataclass")
 
 
 def dataclass_model(
