@@ -49,7 +49,7 @@ class DataclassModel:
             cls = new_class(
                 model.__name__, (model,), exec_body=lambda ns: ns.update(namespace)
             )
-            setattr(self, "_dataclass", cls)
+            object.__setattr__(self, "_dataclass", cls)
         return getattr(self, "_dataclass")
 
 
