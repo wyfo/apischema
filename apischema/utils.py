@@ -46,22 +46,6 @@ T = TypeVar("T")
 U = TypeVar("U")
 
 
-# Singleton type, see https://www.python.org/dev/peps/pep-0484/#id30
-class UndefinedType(Enum):
-    def __repr__(self):
-        return "Undefined"
-
-    def __str__(self):
-        return "Undefined"
-
-    def __bool__(self):
-        return False
-
-    Undefined = auto()
-
-
-Undefined = UndefinedType.Undefined
-
 if sys.version_info <= (3, 7):  # pragma: no cover
     is_dataclass_ = is_dataclass
 

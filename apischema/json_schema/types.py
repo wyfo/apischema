@@ -15,9 +15,7 @@ from typing import (
     cast,
 )
 
-
-from apischema.types import NoneType, Number
-from apischema.utils import Undefined
+from apischema.types import NoneType, Number, Undefined
 
 
 class JsonType(str, Enum):

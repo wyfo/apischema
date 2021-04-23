@@ -62,9 +62,9 @@ from apischema.objects.visitor import (
 from apischema.serialization import serialize
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.skip import filter_skipped
-from apischema.types import AnyType, OrderedDict
+from apischema.types import AnyType, OrderedDict, UndefinedType
 from apischema.typing import get_origin
-from apischema.utils import UndefinedType, is_union_of, sort_by_annotations_position
+from apischema.utils import is_union_of, sort_by_annotations_position
 
 constraint_by_type = {
     int: NumberConstraints,

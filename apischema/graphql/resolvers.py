@@ -36,10 +36,9 @@ from apischema.serialization.serialized_methods import (
     _get_methods,
     serialized as register_serialized,
 )
-from apischema.types import AnyType, NoneType
+from apischema.types import AnyType, NoneType, Undefined
 from apischema.typing import get_origin, get_type_hints
 from apischema.utils import (
-    Undefined,
     get_args2,
     get_origin_or_type,
     is_union_of,

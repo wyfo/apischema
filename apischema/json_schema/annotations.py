@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Sequence, Union
 
-from apischema.utils import Undefined
+from apischema.types import Undefined
 
 Deprecated = Union[bool, str]
 

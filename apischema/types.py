@@ -1,6 +1,7 @@
 import collections.abc
 import sys
 import typing
+from enum import Enum, auto
 from itertools import chain
 from types import MappingProxyType
 from typing import (
@@ -113,3 +114,20 @@ class MetadataMixin(Metadata):
 class MetadataImplem(dict, Metadata):  # type: ignore
     def __hash__(self):
         return hash(tuple(sorted(self.items())))
+
+
+# Singleton type, see https://www.python.org/dev/peps/pep-0484/#id30
+class UndefinedType(Enum):
+    def __repr__(self):
+        return "Undefined"
+
+    def __str__(self):
+        return "Undefined"
+
+    def __bool__(self):
+        return False
+
+    Undefined = auto()
+
+
+Undefined = UndefinedType.Undefined

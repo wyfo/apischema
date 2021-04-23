@@ -24,7 +24,6 @@ from typing import (
 
 import graphql
 
-from apischema import UndefinedType, serialize
 from apischema.aliases import Aliaser
 from apischema.conversions import identity
 from apischema.conversions.conversions import Conversions, to_hashable_conversions
@@ -56,12 +55,12 @@ from apischema.objects.visitor import (
     ObjectVisitor,
     SerializationObjectVisitor,
 )
+from apischema.serialization import serialize
 from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.skip import filter_skipped
-from apischema.types import AnyType, NoneType, OrderedDict
+from apischema.types import AnyType, NoneType, OrderedDict, UndefinedType, Undefined
 from apischema.typing import get_args, get_origin
 from apischema.utils import (
-    Undefined,
     get_args2,
     get_origin2,
     is_union_of,

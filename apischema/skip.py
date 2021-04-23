@@ -1,9 +1,8 @@
 __all__ = ["NotNull", "Skip"]
 from typing import Iterator, Sequence, TypeVar, Union
 
-from apischema.types import AnyType
+from apischema.types import AnyType, UndefinedType
 from apischema.typing import get_args, get_origin
-from apischema.utils import UndefinedType
 
 
 class Skipped(Exception):
