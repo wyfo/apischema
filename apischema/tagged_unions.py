@@ -28,9 +28,9 @@ from apischema.metadata.keys import (
     REQUIRED_METADATA,
     SKIP_METADATA,
 )
-from apischema.types import Metadata, MetadataImplem
+from apischema.types import Metadata, MetadataImplem, Undefined, UndefinedType
 from apischema.typing import get_type_hints
-from apischema.utils import PREFIX, Undefined, UndefinedType, get_args2, get_origin2
+from apischema.utils import PREFIX, get_args2, get_origin2
 
 TAGS_ATTR = f"{PREFIX}tags"
 

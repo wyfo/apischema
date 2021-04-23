@@ -18,12 +18,11 @@ from graphql.pyutils import camel_to_snake
 
 from apischema.aliases import alias
 from apischema.json_schema.refs import schema_ref
-from apischema.utils import Undefined
 from apischema.graphql.schema import Mutation as Mutation_
 from apischema.graphql.resolvers import awaitable_origin
 from apischema.json_schema.schemas import Schema
 from apischema.serialization.serialized_methods import ErrorHandler
-from apischema.types import AnyType
+from apischema.types import AnyType, Undefined
 from apischema.typing import get_type_hints
 from apischema.utils import get_origin_or_type, is_union_of
 

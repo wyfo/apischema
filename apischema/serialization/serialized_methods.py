@@ -19,11 +19,9 @@ from typing import (
 from apischema.conversions.conversions import Conversions
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
 from apischema.json_schema.schemas import Schema
-from apischema.types import AnyType
+from apischema.types import AnyType, Undefined, UndefinedType
 from apischema.typing import generic_mro, get_args, get_type_hints
 from apischema.utils import (
-    Undefined,
-    UndefinedType,
     get_args2,
     get_origin2,
     get_origin_or_type,

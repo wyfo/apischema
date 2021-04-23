@@ -32,13 +32,11 @@ from apischema.conversions.converters import _deserializers, _serializers
 from apischema.conversions.dataclass_models import handle_dataclass_model
 from apischema.conversions.utils import INVALID_CONVERSION_TYPES
 from apischema.skip import filter_skipped
-from apischema.types import AnyType
+from apischema.types import AnyType, Undefined, UndefinedType
 from apischema.typing import get_args
 from apischema.utils import (
     OperationKind,
     PREFIX,
-    Undefined,
-    UndefinedType,
     get_origin_or_type,
     has_type_vars,
 )

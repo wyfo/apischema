@@ -14,9 +14,9 @@ from typing import (
 )
 
 from apischema.metadata.keys import SCHEMA_METADATA
-from apischema.types import AnyType, MetadataMixin, Number
+from apischema.types import AnyType, MetadataMixin, Number, Undefined
 from apischema.typing import get_origin
-from apischema.utils import Undefined, contains, merge_opts, replace_builtins
+from apischema.utils import contains, merge_opts, replace_builtins
 from .annotations import Annotations, Deprecated
 from .constraints import (
     ArrayConstraints,

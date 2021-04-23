@@ -42,7 +42,7 @@ from .json_schema.schemas import schema
 from .metadata import properties
 from .serialization import serialize
 from .serialization.serialized_methods import serialized
-from .utils import Undefined, UndefinedType
+from .types import Undefined, UndefinedType
 from .validation import ValidationError, validator
 from .visitor import Unsupported
 

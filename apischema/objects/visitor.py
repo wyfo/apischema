@@ -7,10 +7,9 @@ from apischema.metadata.keys import ALIAS_METADATA, REQUIRED_METADATA, SKIP_META
 from apischema.objects.conversions import ObjectWrapper
 from apischema.objects.fields import MISSING_DEFAULT, ObjectField
 from apischema.objects.utils import annotated_metadata
-from apischema.types import AnyType
+from apischema.types import AnyType, Undefined
 from apischema.typing import get_args, get_origin
 from apischema.utils import (
-    Undefined,
     get_origin_or_type,
     get_parameters,
     sort_by_annotations_position,
