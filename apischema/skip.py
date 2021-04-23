@@ -1,7 +1,7 @@
 __all__ = ["NotNull", "Skip"]
-from typing import Iterator, Sequence, TypeVar, Union
+from typing import TypeVar, Union
 
-from apischema.types import AnyType, UndefinedType
+from apischema.types import AnyType
 from apischema.typing import get_args, get_origin
 
 
@@ -9,13 +9,7 @@ class Skipped(Exception):
     pass
 
 
-class _Skip:
-    def __call__(self, *, schema_only: bool):
-        return SkipSchema if schema_only else self
-
-
-Skip = _Skip()
-SkipSchema = object()
+Skip = object()
 
 T = TypeVar("T")
 try:
@@ -37,16 +31,5 @@ else:
     NotNull = _NotNull()  # type: ignore
 
 
-def is_skipped(tp: AnyType, *, schema_only) -> bool:
-    return tp is UndefinedType or (
-        get_origin(tp) is Annotated
-        and (
-            Skip in get_args(tp)[1:] or (schema_only and SkipSchema in get_args(tp)[1:])
-        )
-    )
-
-
-def filter_skipped(
-    alternatives: Sequence[AnyType], *, schema_only=False
-) -> Iterator[AnyType]:
-    return (alt for alt in alternatives if not is_skipped(alt, schema_only=schema_only))
+def is_skipped(tp: AnyType) -> bool:
+    return get_origin(tp) is Annotated and (Skip in get_args(tp)[1:])

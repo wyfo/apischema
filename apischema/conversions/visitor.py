@@ -31,7 +31,6 @@ from apischema.conversions.conversions import (
 from apischema.conversions.converters import _deserializers, _serializers
 from apischema.conversions.dataclass_models import handle_dataclass_model
 from apischema.conversions.utils import INVALID_CONVERSION_TYPES
-from apischema.skip import filter_skipped
 from apischema.types import AnyType, Undefined, UndefinedType
 from apischema.typing import get_args
 from apischema.utils import (
@@ -295,7 +294,7 @@ class DynamicConversionResolver(ConversionsVisitor[Conv, Optional[AnyType]]):
         return self.visit_types(types, Tuple)
 
     def union(self, alternatives: Sequence[AnyType]) -> Optional[AnyType]:
-        return self.visit_types(filter_skipped(alternatives, schema_only=True), Union)
+        return self.visit_types(alternatives, Union)
 
     def _conversion_type(self, conversion: Conv) -> AnyType:
         raise NotImplementedError

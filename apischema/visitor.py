@@ -22,6 +22,7 @@ from typing import (
 )
 
 from apischema.cache import cache
+from apischema.skip import is_skipped
 from apischema.types import (
     AnyType,
     COLLECTION_TYPES,
@@ -172,7 +173,10 @@ class Visitor(Generic[Return]):
         raise NotImplementedError
 
     def union(self, alternatives: Sequence[AnyType]) -> Return:
-        return self._union_result(map(self.visit, alternatives))
+        if len(alternatives) == 1:
+            return self.visit(alternatives[0])
+        else:
+            return self._union_result(map(self.visit, alternatives))
 
     def unsupported(self, tp: AnyType) -> Return:
         raise Unsupported(tp)
@@ -183,7 +187,7 @@ class Visitor(Generic[Return]):
         if origin is Annotated:
             return self.annotated(args[0], args[1:])
         if origin is Union:
-            return self.union(args)
+            return self.union(tuple(arg for arg in args if not is_skipped(arg)))
         if origin is TUPLE_TYPE:
             if len(args) < 2 or args[1] is not ...:
                 return self.tuple(args)

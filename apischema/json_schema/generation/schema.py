@@ -61,7 +61,6 @@ from apischema.objects.visitor import (
 )
 from apischema.serialization import serialize
 from apischema.serialization.serialized_methods import get_serialized_methods
-from apischema.skip import filter_skipped
 from apischema.types import AnyType, OrderedDict, UndefinedType
 from apischema.typing import get_origin
 from apischema.utils import is_union_of, sort_by_annotations_position
@@ -370,9 +369,7 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
 
     @with_schema
     def union(self, alternatives: Sequence[AnyType]) -> JsonSchema:
-        return self._union_result(
-            map(self.visit, filter_skipped(alternatives, schema_only=True))
-        )
+        return super().union([alt for alt in alternatives if alt is not UndefinedType])
 
     def visit_with_schema(self, tp: AnyType, schema: Optional[Schema]) -> JsonSchema:
         schema_save = self._schema

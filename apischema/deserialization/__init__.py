@@ -47,13 +47,13 @@ from apischema.metadata.implem import ValidatorsMetadata
 from apischema.metadata.keys import SCHEMA_METADATA, VALIDATORS_METADATA
 from apischema.objects import AliasedStr, ObjectField
 from apischema.objects.visitor import DeserializationObjectVisitor
-from apischema.skip import filter_skipped
 from apischema.types import (
     AnyType,
     COLLECTION_TYPES,
     MAPPING_TYPES,
     NoneType,
     OrderedDict,
+    UndefinedType,
 )
 from apischema.typing import get_origin
 from apischema.utils import get_origin_or_type, opt_or
@@ -658,7 +658,10 @@ class DeserializationMethodVisitor(
         )
 
     def union(self, alternatives: Sequence[AnyType]) -> DeserializationMethodFactory:
-        factories = [self.visit(cls) for cls in filter_skipped(alternatives)]
+        factories = [
+            self.visit(alt) for alt in alternatives if alt is not UndefinedType
+        ]
+        factories = list(map(self.visit, alternatives))
         optional = NoneType in alternatives
 
         @DeserializationMethodFactory

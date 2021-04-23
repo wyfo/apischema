@@ -14,8 +14,7 @@ from apischema.objects.visitor import (
     ObjectVisitor,
     SerializationObjectVisitor,
 )
-from apischema.skip import filter_skipped
-from apischema.types import AnyType
+from apischema.types import AnyType, UndefinedType
 from apischema.utils import contains
 
 try:
@@ -99,8 +98,7 @@ class RefsExtractor(ObjectVisitor, ConversionsVisitor):
             pass
 
     def union(self, alternatives: Sequence[AnyType]):
-        for tp in filter_skipped(alternatives, schema_only=True):
-            self.visit(tp)
+        return super().union([alt for alt in alternatives if alt is not UndefinedType])
 
     def visit(self, tp: AnyType):
         dynamic = self._apply_dynamic_conversions(tp)
