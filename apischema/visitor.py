@@ -11,7 +11,6 @@ from typing import (
     Any,
     Collection,
     Generic,
-    Iterable,
     Mapping,
     Optional,
     Sequence,
@@ -169,14 +168,8 @@ class Visitor(Generic[Return]):
     ) -> Return:
         raise NotImplementedError
 
-    def _union_result(self, results: Iterable[Return]) -> Return:
-        raise NotImplementedError
-
     def union(self, alternatives: Sequence[AnyType]) -> Return:
-        if len(alternatives) == 1:
-            return self.visit(alternatives[0])
-        else:
-            return self._union_result(map(self.visit, alternatives))
+        raise NotImplementedError
 
     def unsupported(self, tp: AnyType) -> Return:
         raise Unsupported(tp)
@@ -187,7 +180,11 @@ class Visitor(Generic[Return]):
         if origin is Annotated:
             return self.annotated(args[0], args[1:])
         if origin is Union:
-            return self.union(tuple(arg for arg in args if not is_skipped(arg)))
+            alternatives = tuple(arg for arg in args if not is_skipped(arg))
+            if len(alternatives) == 1:
+                return self.visit(alternatives[0])
+            else:
+                return self.union(alternatives)
         if origin is TUPLE_TYPE:
             if len(args) < 2 or args[1] is not ...:
                 return self.tuple(args)
