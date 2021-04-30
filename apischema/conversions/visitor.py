@@ -97,6 +97,12 @@ class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
                 tp, self._conversions
             )
 
+    def _union_result(self, results: Iterable[Return]) -> Return:
+        raise NotImplementedError
+
+    def union(self, alternatives: Sequence[AnyType]) -> Return:
+        return self._union_result(map(self.visit, alternatives))
+
     def visit_conversion(self, tp: AnyType, conversion: Conv, dynamic: bool) -> Return:
         raise NotImplementedError
 
