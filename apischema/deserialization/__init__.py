@@ -699,9 +699,8 @@ class DeserializationMethodVisitor(
         cls = get_origin_or_type(tp)
         factories = [
             (
+                conv,
                 self.visit_with_conversions(conv.source, conv.sub_conversions),
-                cast(Converter, conv.converter),
-                (conv.additional_properties, conv.coercion, conv.default_fallback),
             )
             for conv in conversion
         ]
@@ -713,10 +712,10 @@ class DeserializationMethodVisitor(
             alt_deserializers = [
                 (
                     fact.merge(constraints if not dynamic else None).method,
-                    converter,
-                    conv_ctx,
+                    cast(Converter, conv.converter),
+                    (conv.additional_properties, conv.coercion, conv.default_fallback),
                 )
-                for fact, converter, conv_ctx in factories
+                for conv, fact in factories
             ]
             if len(alt_deserializers) == 1:
                 deserialize_alt, converter, conv_ctx = alt_deserializers[0]
@@ -726,13 +725,17 @@ class DeserializationMethodVisitor(
 
                     def method(ctx: DeserializationContext, data: Any) -> Any:
                         try:
-                            return converter(
-                                deserialize_alt(ctx.merge(*conv_ctx), data)
-                            )
+                            return converter(deserialize_alt(ctx, data))
                         except (ValidationError, AssertionError):
                             raise
                         except Exception as err:
                             raise ValidationError([str(err)])
+
+                if conv_ctx != (None, None, None):
+                    wrapped = method
+
+                    def method(ctx: DeserializationContext, data: Any) -> Any:
+                        return wrapped(ctx.merge(*conv_ctx), data)
 
             else:
 
