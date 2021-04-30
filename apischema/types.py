@@ -17,6 +17,7 @@ from typing import (
     MutableSet,
     Sequence,
     Set,
+    TYPE_CHECKING,
     Tuple,
     Type,
     Union,
@@ -117,17 +118,25 @@ class MetadataImplem(dict, Metadata):  # type: ignore
 
 
 # Singleton type, see https://www.python.org/dev/peps/pep-0484/#id30
-class UndefinedType(Enum):
-    def __repr__(self):
-        return "Undefined"
+if TYPE_CHECKING:
 
-    def __str__(self):
-        return "Undefined"
+    class UndefinedType(Enum):
+        Undefined = auto()
 
-    def __bool__(self):
-        return False
+    Undefined = UndefinedType.Undefined
+else:
 
-    Undefined = auto()
+    class UndefinedType:
+        def __new__(cls):
+            return Undefined
 
+        def __repr__(self):
+            return "Undefined"
 
-Undefined = UndefinedType.Undefined
+        def __str__(self):
+            return "Undefined"
+
+        def __bool__(self):
+            return False
+
+    Undefined = object.__new__(UndefinedType)
