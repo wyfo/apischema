@@ -1,6 +1,5 @@
 import warnings
-from dataclasses import dataclass
-from typing import Callable, Dict, Optional, TypeVar
+from typing import Callable, Dict, NamedTuple, Optional, TypeVar
 
 from apischema.types import AnyType, PRIMITIVE_TYPES
 from apischema.typing import get_args
@@ -11,8 +10,7 @@ _type_names: Dict[AnyType, "TypeName"] = {}
 T = TypeVar("T")
 
 
-@dataclass
-class TypeName:
+class TypeName(NamedTuple):
     json_schema: Optional[str]
     graphql: Optional[str]
 
@@ -52,7 +50,7 @@ def type_name(
     json_schema: Optional[str] = None,
     graphql: Optional[str] = None
 ) -> Callable[[T], T]:
-    return TypeName(json_schema or ref, graphql or ref)
+    return TypeName(json_schema or ref, graphql or ref)  # type: ignore
 
 
 def schema_ref(ref: Optional[str]) -> Callable[[T], T]:

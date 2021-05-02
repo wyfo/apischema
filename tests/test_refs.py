@@ -15,7 +15,7 @@ from apischema import type_name
 from apischema.conversions import Conversion, LazyConversion
 from apischema.json_schema import deserialization_schema, serialization_schema
 from apischema.json_schema.generation.schema import DeserializationSchemaBuilder
-from apischema.type_names import TypeName, get_type_name
+from apischema.type_names import get_type_name
 from apischema.typing import Annotated
 
 
@@ -106,11 +106,7 @@ def test_generic_schema():
 
 def test_collection_type_name():
     type_name("test")(Sequence[A])
-    assert (
-        get_type_name(List[A])
-        == get_type_name(Collection[A])
-        == TypeName("test", "test")
-    )
+    assert get_type_name(List[A]) == get_type_name(Collection[A]) == ("test", "test")
 
 
 @type_name(None)
