@@ -66,8 +66,8 @@ class DeserializerDescriptor(MethodWrapper[staticmethod]):
     def __set_name__(self, owner, name):
         super().__set_name__(owner, name)
         method = self._method.__get__(None, object)
-        target = resolve_conversion(method, {owner.__name__: owner})
-        _add_deserializer(method, target)
+        resolved = resolve_conversion(method, {owner.__name__: owner})
+        _add_deserializer(method, resolved.target)
 
 
 @overload
