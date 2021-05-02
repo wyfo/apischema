@@ -77,6 +77,8 @@ exc_min | exclusiveMinimum | `int`
 exc_max | exclusiveMaximum | `int`
 mult_of | multipleOf | `int`
 format | / | `str`
+media_type | contentMediaType | `str`
+encoding | contentEncoding | `str`
 min_len | minLength | `str`
 max_len | maxLength | `str`
 pattern | / | `str`
@@ -173,7 +175,7 @@ Because bidirectional dependencies are a common idiom, *apischema* provides a sh
 
 ## JSON schema reference
 
-For complex schema with type reuse, it's convenient to extract definitions of schema components in order to reuse them; it's even mandatory for recursive types. Then, schema use JSON pointers "$ref" to refer to the definitions. *apischema* handles this feature natively.
+For complex schema with type reuse, it's convenient to extract definitions of schema components in order to reuse them — it's even mandatory for recursive types; JSON schema use JSON pointers "$ref" to refer to the definitions. *apischema* handles this feature natively.
 
 ```python
 {!complex_schema.py!}
@@ -192,26 +194,29 @@ For complex schema with type reuse, it's convenient to extract definitions of sc
 {!all_refs.py!}
 ``` 
 
-### Assign a reference to a type
+### Set reference name
 
-It's possible to assign a reference name to every type using `apischema.schema_ref`, this name being then used in the schema. It can also be used to remove the reference of a type, by passing `None` instead of a string, so the type can no more be referenced as a separate definition in the schema.
+In the previous examples, types were referenced using their name. This is indeed the default behavior for every classes/`NewType`s (except primitive `int`/`str`/`bool`/`float`).
 
+It's possible to override the default reference name using `apischema.type_name`; passing `None` instead of a string will remove the reference, making the type unable to be referenced as a separate definition in the schema.
 
-Generic aliases can have a ref, but they need to be specialized; `Foo[T, int]` cannot have a ref but `Foo[str, int]` can.
+Generic aliases can have a type name, but they need to be specialized; `Foo[T, int]` cannot have a type name but `Foo[str, int]` can.
 
 ```python
-{!schema_ref.py!}
+{!type_name.py!}
 ```
 
 !!! note
-    Builtin collections are interchangeable when a ref is registered. For example, if a ref is registered for `list[Foo]`, this ref will also be used for `Sequence[Foo]` or `Collection[Foo]`.
+    Builtin collections are interchangeable when a type_name is registered. For example, if a name is registered for `list[Foo]`, this name will also be used for `Sequence[Foo]` or `Collection[Foo]`.
 
-By default, `dataclass`, `NewType`, `TypedDict` and `NamedTuple` will use their type name as reference (but it can be overridden). This default behavior can be customized using `apischema.settings.default_ref`:
+The default behavior can also be customized using `apischema.settings.default_type_name`:
 
 ```python
 from typing import Optional
 from apischema import settings
-@settings.default_ref
+
+
+@settings.default_type_name
 def default_ref(tp) -> Optional[str]:
     ...
 ``` 
@@ -219,7 +224,7 @@ def default_ref(tp) -> Optional[str]:
 
 ### Reference factory
 
-`schema_ref` is used to set the reference name, like the name of a class, but in schema, `$ref` looks like `#/$defs/Foo`. In fact, schema generation use the ref given by `schema_ref` and pass it to a `ref_factory` function (a parameter of schema generation functions) which will convert it to its final form. [JSON schema version](#json-schemaopenapi-version) comes with its default `ref_factory`, for draft 2019-09, it prefixes the ref with `#/$defs/`, while it prefixes with `#/components/schema` in case of *OpenAPI*.
+In JSON schema, `$ref` looks like `#/$defs/Foo`, not just `Foo`. In fact, schema generation use the ref given by `type_name`/`default_type_name` and pass it to a `ref_factory` function (a parameter of schema generation functions) which will convert it to its final form. [JSON schema version](#json-schemaopenapi-version) comes with its default `ref_factory`, for draft 2019-09, it prefixes the ref with `#/$defs/`, while it prefixes with `#/components/schema` in case of *OpenAPI*.
 
 ```python
 {!ref_factory.py!}

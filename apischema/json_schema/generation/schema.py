@@ -48,7 +48,7 @@ from apischema.json_schema.generation.refs import (
     SerializationRefsExtractor,
 )
 from apischema.json_schema.patterns import infer_pattern
-from apischema.json_schema.refs import check_ref_type, get_ref, schema_ref
+from apischema.type_names import TypeName, check_type_with_name, get_type_name
 from apischema.json_schema.schemas import Schema, get_schema, merge_schema
 from apischema.json_schema.types import JsonSchema, JsonType, json_schema
 from apischema.json_schema.versions import JsonSchemaVersion, RefFactory
@@ -128,17 +128,17 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> JsonSchema:
         for annotation in reversed(annotations):
-            if isinstance(annotation, schema_ref):
-                check_ref_type(tp)
-                if annotation.ref in self.refs:
+            if isinstance(annotation, TypeName):
+                check_type_with_name(tp)
+                ref = annotation.json_schema
+                if ref in self.refs:
                     if self._ignore_first_ref:
                         self._ignore_first_ref = False
                     else:
-                        assert isinstance(annotation.ref, str)
-                        return self._ref_schema(annotation.ref)
-                ref = annotation.ref
+                        assert isinstance(ref, str)
+                        return self._ref_schema(ref)
                 if not isinstance(ref, str):
-                    raise ValueError("Annotated schema_ref can only be str")
+                    raise ValueError("Annotated type_name can only be str")
             if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
                 self._merge_schema(annotation[SCHEMA_METADATA])
         return self.visit_with_schema(tp, self._schema)
@@ -375,7 +375,7 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
         schema_save = self._schema
         dynamic = self._apply_dynamic_conversions(tp)
         tp, self._schema = (dynamic, None) if dynamic is not None else (tp, schema)
-        ref = get_ref(tp)
+        ref = get_type_name(tp).json_schema
         if ref in self.refs:
             if self._ignore_first_ref:
                 self._ignore_first_ref = False

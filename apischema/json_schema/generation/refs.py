@@ -7,13 +7,13 @@ from apischema.conversions.visitor import (
     DeserializationVisitor,
     SerializationVisitor,
 )
-from apischema.json_schema.refs import check_ref_type, get_ref, schema_ref
 from apischema.objects import ObjectField
 from apischema.objects.visitor import (
     DeserializationObjectVisitor,
     ObjectVisitor,
     SerializationObjectVisitor,
 )
+from apischema.type_names import TypeName, check_type_with_name, get_type_name
 from apischema.types import AnyType, UndefinedType
 from apischema.utils import contains
 
@@ -49,11 +49,11 @@ class RefsExtractor(ObjectVisitor, ConversionsVisitor):
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]):
         for i, annotation in enumerate(reversed(annotations)):
-            if isinstance(annotation, schema_ref):
-                check_ref_type(tp)
-                ref = annotation.ref
+            if isinstance(annotation, TypeName):
+                check_type_with_name(tp)
+                ref = annotation.json_schema
                 if not isinstance(ref, str):
-                    raise ValueError("Annotated schema_ref can only be str")
+                    raise ValueError("Annotated type_name can only be str")
                 ref_annotations = annotations[: len(annotations) - i]
                 annotated = Annotated[(tp, *ref_annotations)]  # type: ignore
                 if self._incr_ref(ref, annotated):
@@ -103,7 +103,7 @@ class RefsExtractor(ObjectVisitor, ConversionsVisitor):
     def visit(self, tp: AnyType):
         dynamic = self._apply_dynamic_conversions(tp)
         ref_tp = dynamic if dynamic is not None else tp
-        if not self._incr_ref(get_ref(ref_tp), ref_tp):
+        if not self._incr_ref(get_type_name(ref_tp).json_schema, ref_tp):
             if contains(self._rec_guard, ref_tp) and self._rec_guard[ref_tp]:
                 raise TypeError(f"Recursive type {tp} need a ref")
             with suppress(TypeError):

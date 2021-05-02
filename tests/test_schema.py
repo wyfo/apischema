@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import NewType, Optional
 
-from apischema import deserializer, schema, schema_ref
+from apischema import deserializer, schema, type_name
 from apischema.json_schema import deserialization_schema
 
 
@@ -21,12 +21,12 @@ def foo(bar: Bar) -> Foo:
 
 def test_recursive_by_conversion_schema():
     assert deserialization_schema(Foo) == {
-        "$ref": "#/$defs/Bar",
+        "$ref": "#/$defs/Foo",
         "$defs": {
-            "Bar": {
+            "Foo": {
                 "type": "object",
                 "properties": {
-                    "foo": {"anyOf": [{"$ref": "#/$defs/Bar"}, {"type": "null"}]}
+                    "foo": {"anyOf": [{"$ref": "#/$defs/Foo"}, {"type": "null"}]}
                 },
                 "required": ["foo"],
                 "additionalProperties": False,
@@ -37,7 +37,7 @@ def test_recursive_by_conversion_schema():
 
 
 MoreThanTwo = NewType("MoreThanTwo", int)
-schema(min=0, extra=lambda s: s.update({"minimum": 2}))(schema_ref(None)(MoreThanTwo))
+schema(min=0, extra=lambda s: s.update({"minimum": 2}))(type_name(None)(MoreThanTwo))
 
 
 @dataclass

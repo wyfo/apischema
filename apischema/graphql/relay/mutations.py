@@ -1,3 +1,4 @@
+from dataclasses import Field, MISSING, field, make_dataclass
 from functools import wraps
 from inspect import Parameter, iscoroutinefunction, signature
 from typing import (
@@ -13,21 +14,20 @@ from typing import (
     TypeVar,
 )
 
-from dataclasses import Field, MISSING, field, make_dataclass
 from graphql.pyutils import camel_to_snake
 
 from apischema.aliases import alias
-from apischema.json_schema.refs import schema_ref
-from apischema.graphql.schema import Mutation as Mutation_
 from apischema.graphql.resolvers import awaitable_origin
+from apischema.graphql.schema import Mutation as Mutation_
 from apischema.json_schema.schemas import Schema
 from apischema.serialization.serialized_methods import ErrorHandler
+from apischema.type_names import type_name
 from apischema.types import AnyType, Undefined
 from apischema.typing import get_type_hints
 from apischema.utils import get_origin_or_type, is_union_of
 
 ClientMutationId = NewType("ClientMutationId", str)
-schema_ref(None)(ClientMutationId)
+type_name(None)(ClientMutationId)
 CLIENT_MUTATION_ID = "client_mutation_id"
 M = TypeVar("M", bound="Mutation")
 
@@ -48,7 +48,7 @@ class Mutation:
         if not isinstance(cls.__dict__["mutate"], (classmethod, staticmethod)):
             raise TypeError(f"{cls.__name__}.mutate must be a classmethod/staticmethod")
         mutate = getattr(cls, "mutate")
-        schema_ref(f"{cls.__name__}Payload")(cls)
+        type_name(f"{cls.__name__}Payload")(cls)
         types = get_type_hints(mutate, localns={cls.__name__: cls}, include_extras=True)
         async_mutate = (
             iscoroutinefunction(mutate)

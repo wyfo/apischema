@@ -12,10 +12,10 @@ __all__ = [
     "properties",
     "reset_cache",
     "schema",
-    "schema_ref",
     "serialize",
     "serialized",
     "serializer",
+    "type_name",
     "validator",
 ]
 
@@ -37,7 +37,7 @@ from .cache import reset_cache
 from .conversions import deserializer, serializer
 from .dependencies import dependent_required
 from .deserialization import deserialize
-from .json_schema.refs import schema_ref
+from .type_names import type_name
 from .json_schema.schemas import schema
 from .metadata import properties
 from .serialization import serialize

@@ -3,11 +3,11 @@ from typing import Optional
 
 from graphql import print_schema
 
-from apischema import schema_ref
+from apischema import type_name
 from apischema.graphql import graphql_schema
 
 
-@schema_ref("Foo")
+@type_name("Foo")
 @dataclass
 class FooFoo:
     bar: int

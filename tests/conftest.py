@@ -1,33 +1,32 @@
 import sys
 from datetime import date, datetime
-from typing import NewType
 
-from apischema import deserializer, schema, serializer
+from apischema import deserializer, schema, serializer, type_name
 from apischema.graphql import relay
 from apischema.graphql.relay import global_identification
 
 if sys.version_info < (3, 7):
-    Datetime = NewType("Datetime", str)
-    schema(format="date-time")(Datetime)
+    type_name("Datetime")(datetime)
+    schema(format="date-time")(datetime)
 
     @deserializer
-    def to_datetime(s: Datetime) -> datetime:
+    def to_datetime(s: str) -> datetime:
         return datetime.strptime(s, "%Y-%m-%d")
 
     @serializer
-    def from_datetime(obj: datetime) -> Datetime:
-        return Datetime(obj.strftime("%Y-%m-%dT%H:%M:%S"))
+    def from_datetime(obj: datetime) -> str:
+        return obj.strftime("%Y-%m-%dT%H:%M:%S")
 
-    Date = NewType("Date", str)
-    schema(format="date")(Date)
+    type_name("Date")(date)
+    schema(format="date")(date)
 
     @deserializer
-    def to_date(s: Date) -> date:
+    def to_date(s: str) -> date:
         return date.strptime(s, "%Y-%m-%d")
 
     @serializer
-    def from_date(obj: date) -> Date:
-        return Date(obj.strftime("%Y-%m-%d"))
+    def from_date(obj: date) -> str:
+        return obj.strftime("%Y-%m-%d")
 
 
 relay.Node._node_key = classmethod(  # type: ignore

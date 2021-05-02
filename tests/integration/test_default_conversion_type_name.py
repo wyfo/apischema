@@ -25,7 +25,7 @@ def b() -> B:
     return B(0)
 
 
-def test_default_conversion_schema_ref():
+def test_default_conversion_type_name():
     assert (
         print_schema(graphql_schema(query=[b]))
         == """\

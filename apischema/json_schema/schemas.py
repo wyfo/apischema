@@ -16,8 +16,8 @@ from typing import (
 from apischema.metadata.keys import SCHEMA_METADATA
 from apischema.types import AnyType, MetadataMixin, Number, Undefined
 from apischema.typing import get_origin
-from apischema.utils import contains, merge_opts, replace_builtins
-from .annotations import Annotations, Deprecated
+from apischema.utils import contains, merge_opts, replace_builtins, stop_signature_abuse
+from .annotations import Annotations, ContentEncoding, Deprecated
 from .constraints import (
     ArrayConstraints,
     Constraints,
@@ -120,6 +120,8 @@ def schema(
     examples: Optional[Sequence[Any]] = None,
     deprecated: Optional[Deprecated] = None,
     format: Optional[str] = None,
+    media_type: Optional[str] = None,
+    encoding: Optional[ContentEncoding] = None,
     min_len: Optional[int] = None,
     max_len: Optional[int] = None,
     pattern: Optional[Union[str, Pattern]] = None,
@@ -181,7 +183,7 @@ def schema(extra: Extra = None, override=False, **kwargs) -> Schema:
                 constraints = cls(**constraints_kwargs)
                 break
         else:
-            raise TypeError("Invalid schema")
+            stop_signature_abuse()
 
     return Schema(annotations, constraints, extra, override)
 
