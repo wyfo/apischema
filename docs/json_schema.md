@@ -206,7 +206,7 @@ Generic aliases can have a ref, but they need to be specialized; `Foo[T, int]` c
 !!! note
     Builtin collections are interchangeable when a ref is registered. For example, if a ref is registered for `list[Foo]`, this ref will also be used for `Sequence[Foo]` or `Collection[Foo]`.
 
-By default, `dataclass`, `NewType`, `TypedDict` and `NamedTuple` will use their type name as reference (but it can be overridden). This default behavior can be customized using `apischema.settings.default_ref`:
+By default, type name will be used for `NewType`s and classes, except unspecialized generic, and primitive ones. This default behavior can be customized using `apischema.settings.default_ref`:
 
 ```python
 from typing import Optional
