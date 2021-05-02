@@ -4,21 +4,23 @@ __all__ = [
     "coercer",
     "coercion",
     "default_fallback",
-    "default_ref",
     "default_schema",
+    "default_type_name",
     "deserialization",
     "json_schema_version",
     "serialization",
 ]
 
-from typing import Callable, Optional, TYPE_CHECKING, Type, TypeVar, overload
+import warnings
+from typing import Callable, Optional, TYPE_CHECKING, Type, TypeVar, Union, overload
 
-from apischema import aliases
+from apischema import aliases, type_names
 from apischema.aliases import Aliaser
 from apischema.cache import reset_cache
 from apischema.conversions.conversions import Conversions
 from apischema.conversions.visitor import DeserializationVisitor, SerializationVisitor
-from apischema.json_schema import refs, schemas, versions
+from apischema.json_schema import schemas, versions
+from apischema.type_names import TypeName
 from apischema.types import AnyType
 from apischema.utils import to_camel_case
 
@@ -128,27 +130,38 @@ def aliaser(func: Aliaser = None, *, camel_case: bool = None):
     return func
 
 
-DefaultRef = Callable[[AnyType], Optional[str]]
-RefFunc = TypeVar("RefFunc", bound=DefaultRef)
+DefaultTypeName = Callable[[AnyType], TypeName]
+RefFunc = TypeVar("RefFunc", bound=Callable[[AnyType], Union[Optional[str], TypeName]])
 
 
 @overload
-def default_ref() -> DefaultRef:
+def default_type_name() -> Callable[[AnyType], TypeName]:
     ...
 
 
 @overload
-def default_ref(func: RefFunc) -> RefFunc:
+def default_type_name(func: RefFunc) -> RefFunc:
     ...
 
 
-def default_ref(func: DefaultRef = None) -> DefaultRef:
+def default_type_name(func=None):
     if func is None:
-        return refs._default_ref
+        return type_names._default_type_name
     else:
-        refs._default_ref = func  # type: ignore
+
+        def wrapper(tp: AnyType) -> TypeName:
+            name = func(tp)
+            return name if isinstance(name, TypeName) else TypeName(name, name)
+
+        type_names._default_type_name = wrapper
         reset_cache()
         return func
+
+
+def default_ref(func=None):
+    warnings.warn(
+        "default_ref if deprecated, use default_type_name instead", DeprecationWarning
+    )
 
 
 DefaultSchema = Callable[[AnyType], Optional[schemas.Schema]]

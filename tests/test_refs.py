@@ -11,15 +11,15 @@ from typing import (
 from _pytest.python_api import raises
 from pytest import mark
 
-from apischema import schema_ref
+from apischema import type_name
 from apischema.conversions import Conversion, LazyConversion
 from apischema.json_schema import deserialization_schema, serialization_schema
 from apischema.json_schema.generation.schema import DeserializationSchemaBuilder
-from apischema.json_schema.refs import get_ref
+from apischema.type_names import get_type_name
 from apischema.typing import Annotated
 
 
-@schema_ref(None)
+@type_name(None)
 @dataclass
 class A:
     a: int
@@ -30,13 +30,13 @@ class B:
     a: Optional[A]
 
 
-schema_ref("Bs")(List[B])
+type_name("Bs")(List[B])
 
 
-@schema_ref("DD")
+@type_name("DD")
 @dataclass
 class D:
-    bs: Annotated[List[B], schema_ref("Bs2")]  # noqa: F821
+    bs: Annotated[List[B], type_name("Bs2")]  # noqa: F821
 
 
 @dataclass
@@ -52,7 +52,7 @@ def test_find_refs():
         "B": (B, 1),
         "DD": (D, 1),
         "Bs": (List[B], 1),
-        "Bs2": (Annotated[List[B], schema_ref("Bs2")], 1),
+        "Bs2": (Annotated[List[B], type_name("Bs2")], 1),
         "Recursive": (Recursive, 2),
     }
 
@@ -66,13 +66,13 @@ class DataGeneric(Generic[T]):
     a: T
 
 
-schema_ref("StrData")(DataGeneric[str])
+type_name("StrData")(DataGeneric[str])
 
 
 @mark.parametrize("cls", [DataGeneric, DataGeneric[U]])
 def test_generic_ref_error(cls):
     with raises(TypeError):
-        schema_ref("Data")(cls)
+        type_name("Data")(cls)
 
 
 def test_generic_schema():
@@ -104,11 +104,12 @@ def test_generic_schema():
     }
 
 
-def test_get_refs_of_replaced():
-    schema_ref("test")(Sequence[A])
-    assert get_ref(List[A]) == get_ref(Collection[A]) == "test"
+def test_collection_type_name():
+    type_name("test")(Sequence[A])
+    assert get_type_name(List[A]) == get_type_name(Collection[A]) == ("test", "test")
 
 
+@type_name(None)
 class RecConv:
     pass
 

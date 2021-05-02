@@ -21,13 +21,16 @@ In fact, `graphql_schema` is just a wrapper around `graphql.GraphQLSchema` (same
 
 ## Type names
 
-Schema types are named the same way they are in generated JSON schema: type name is used by default, and it can be overridden using [`apischema.schema_ref`](../json_schema.md#customize-ref)
+Schema types are named the same way they are in generated JSON schema: type name is used by default, and it can be overridden using [`apischema.type_name`](../json_schema.md#customize-ref)
 
 ```python
-{!graphql_schema_ref.py!}
+{!graphql_type_name.py!}
 ```
 
-However, in *GraphQL* schema, unions must be named, so `typing.Union` used should be annotated with `apischema.schema_ref`. `graphql_schema` also provides a `union_ref` parameter which can be passed as a function to generate a type name from the union argument. Default `union_ref` is `"Or".join` meaning `typing.Union[Foo, Bar]` will result in `union FooOrBar = Foo | Bar`
+!!! note
+    Type names can be distinguished between JSON schema and *GraphQL* schema using `type_name` named parameter. Indeed, `type_name("foo")` is equivalent to `type_name(json_schema="foo", graphql="foo")`.
+
+However, in *GraphQL* schema, unions must be named, so `typing.Union` used should be annotated with `apischema.type_name`. `graphql_schema` also provides a `union_ref` parameter which can be passed as a function to generate a type name from the union argument. Default `union_ref` is `"Or".join` meaning `typing.Union[Foo, Bar]` will result in `union FooOrBar = Foo | Bar`
 
 ```python
 {!union_ref.py!}

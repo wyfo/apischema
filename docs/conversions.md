@@ -112,12 +112,12 @@ Dynamic conversions are discarded after having been applied (or after class with
 !!! note
     Dynamic conversion is not discarded when the encountered type is a container (`list`, `dict`, `Collection`, etc. or `Union`) or a registered conversion from/to a container; the dynamic conversion can then apply to the container elements
 
-### Dynamic conversions interact with `schema_ref`
+### Dynamic conversions interact with `type_name`
 
-Dynamic conversions are applied before looking for a ref registered with `schema_ref`
+Dynamic conversions are applied before looking for a ref registered with `type_name`
 
 ```python
-{!dynamic_schema_ref.py!}
+{!dynamic_type_name.py!}
 ```
 
 ### Bypass registered conversion

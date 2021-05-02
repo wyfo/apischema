@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from apischema import schema_ref
+from apischema import type_name
 from apischema.json_schema import serialization_schema
 
 
@@ -18,7 +18,7 @@ def foo_to_bar(_: Foo) -> Bar:
     return Bar()
 
 
-schema_ref("Bars")(list[Bar])
+type_name("Bars")(list[Bar])
 
 assert serialization_schema(list[Foo], all_refs=True, conversions=foo_to_bar) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",

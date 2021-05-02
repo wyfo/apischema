@@ -2,11 +2,10 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Annotated
 
-from apischema import deserialize, properties, schema, schema_ref
+from apischema import deserialize, properties, schema
 from apischema.json_schema import deserialization_schema
 
 
-@schema_ref(None)
 @dataclass
 class Config:
     active: bool = True

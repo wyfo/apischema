@@ -18,8 +18,8 @@ import graphql
 
 from apischema import deserialize, deserializer, serialize, serializer
 from apischema.graphql import ID, interface, resolver
-from apischema.json_schema.refs import get_ref
 from apischema.metadata import skip
+from apischema.type_names import get_type_name
 from apischema.typing import generic_mro, get_args, get_origin
 from apischema.utils import PREFIX, has_type_vars
 
@@ -105,9 +105,9 @@ class Node(Generic[Id], ABC):
 
     @classmethod
     def _node_key(cls) -> str:
-        node_name = get_ref(cls)
+        node_name = get_type_name(cls).graphql
         if node_name is None:
-            raise TypeError(f"Node {cls} has no schema_ref registered")
+            raise TypeError(f"Node {cls} has no type_name registered")
         return node_name
 
     def __init_subclass__(cls, not_a_node: bool = False, **kwargs):

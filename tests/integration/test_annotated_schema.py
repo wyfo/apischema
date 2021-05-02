@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from graphql.utilities import print_schema
 
-from apischema import schema, schema_ref
+from apischema import schema, type_name
 from apischema.graphql import graphql_schema
 from apischema.json_schema import deserialization_schema, serialization_schema
 from apischema.typing import Annotated
@@ -14,7 +14,7 @@ class A:
         int,
         schema(max=10),
         schema(description="type description"),
-        schema_ref("some_int"),
+        type_name("some_int"),
         schema(description="field description"),
     ] = field(metadata=schema(min=0))
 

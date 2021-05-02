@@ -1,17 +1,17 @@
 from dataclasses import dataclass
 from typing import Annotated
 
-from apischema import schema_ref
+from apischema import type_name
 from apischema.json_schema import deserialization_schema
 
 
 # Schema ref can be added as a decorator
-@schema_ref("Resource")
+@type_name("Resource")
 @dataclass
 class BaseResource:
     id: int
     # or using typing.Annotated
-    tags: Annotated[set[str], schema_ref("ResourceTags")]
+    tags: Annotated[set[str], type_name("ResourceTags")]
 
 
 assert deserialization_schema(BaseResource, all_refs=True) == {
