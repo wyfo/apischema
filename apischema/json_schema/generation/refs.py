@@ -13,7 +13,7 @@ from apischema.objects.visitor import (
     ObjectVisitor,
     SerializationObjectVisitor,
 )
-from apischema.type_names import TypeName, check_type_with_name, get_type_name
+from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.types import AnyType, UndefinedType
 from apischema.utils import contains
 
@@ -49,11 +49,10 @@ class RefsExtractor(ObjectVisitor, ConversionsVisitor):
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]):
         for i, annotation in enumerate(reversed(annotations)):
-            if isinstance(annotation, TypeName):
-                check_type_with_name(tp)
-                ref = annotation.json_schema
+            if isinstance(annotation, TypeNameFactory):
+                ref = annotation.to_type_name(tp).json_schema
                 if not isinstance(ref, str):
-                    raise ValueError("Annotated type_name can only be str")
+                    continue
                 ref_annotations = annotations[: len(annotations) - i]
                 annotated = Annotated[(tp, *ref_annotations)]  # type: ignore
                 if self._incr_ref(ref, annotated):

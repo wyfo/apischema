@@ -200,14 +200,18 @@ In the previous examples, types were referenced using their name. This is indeed
 
 It's possible to override the default reference name using `apischema.type_name`; passing `None` instead of a string will remove the reference, making the type unable to be referenced as a separate definition in the schema.
 
-Generic aliases can have a type name, but they need to be specialized; `Foo[T, int]` cannot have a type name but `Foo[str, int]` can.
-
 ```python
 {!type_name.py!}
 ```
 
 !!! note
     Builtin collections are interchangeable when a type_name is registered. For example, if a name is registered for `list[Foo]`, this name will also be used for `Sequence[Foo]` or `Collection[Foo]`.
+
+Generic aliases can have a type name, but they need to be specialized; `Foo[T, int]` cannot have a type name but `Foo[str, int]` can. However, generic classes can get a dynamic type name depending on their generic argument, passing a name factory to `type_name`:
+
+```python
+{!generic_type_name.py!}
+```
 
 The default behavior can also be customized using `apischema.settings.default_type_name`:
 
