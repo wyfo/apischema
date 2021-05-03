@@ -5,7 +5,7 @@ from apischema import type_name
 from apischema.json_schema import deserialization_schema
 
 
-# Schema ref can be added as a decorator
+# Type name can be added as a decorator
 @type_name("Resource")
 @dataclass
 class BaseResource:
