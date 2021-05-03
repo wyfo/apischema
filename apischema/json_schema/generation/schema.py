@@ -48,7 +48,7 @@ from apischema.json_schema.generation.refs import (
     SerializationRefsExtractor,
 )
 from apischema.json_schema.patterns import infer_pattern
-from apischema.type_names import TypeName, check_type_with_name, get_type_name
+from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.json_schema.schemas import Schema, get_schema, merge_schema
 from apischema.json_schema.types import JsonSchema, JsonType, json_schema
 from apischema.json_schema.versions import JsonSchemaVersion, RefFactory
@@ -128,17 +128,14 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> JsonSchema:
         for annotation in reversed(annotations):
-            if isinstance(annotation, TypeName):
-                check_type_with_name(tp)
-                ref = annotation.json_schema
+            if isinstance(annotation, TypeNameFactory):
+                ref = annotation.to_type_name(tp).json_schema
                 if ref in self.refs:
                     if self._ignore_first_ref:
                         self._ignore_first_ref = False
                     else:
                         assert isinstance(ref, str)
                         return self._ref_schema(ref)
-                if not isinstance(ref, str):
-                    raise ValueError("Annotated type_name can only be str")
             if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
                 self._merge_schema(annotation[SCHEMA_METADATA])
         return self.visit_with_schema(tp, self._schema)

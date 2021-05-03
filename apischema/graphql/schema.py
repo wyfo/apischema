@@ -56,7 +56,7 @@ from apischema.objects.visitor import (
 )
 from apischema.serialization import serialize
 from apischema.serialization.serialized_methods import ErrorHandler
-from apischema.type_names import TypeName, check_type_with_name, get_type_name
+from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.types import AnyType, NoneType, OrderedDict, Undefined, UndefinedType
 from apischema.typing import get_args, get_origin
 from apischema.utils import (
@@ -115,7 +115,7 @@ def merged_schema(
 ) -> Tuple[Optional[Schema], Mapping[str, Any]]:
     if tp is not None and get_origin(tp) == Annotated:
         for annotation in reversed(get_args(tp)[1:]):
-            if isinstance(annotation, TypeName):
+            if isinstance(annotation, TypeNameFactory):
                 break
             elif isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
                 schema = merge_schema(annotation[SCHEMA_METADATA], schema)
@@ -228,11 +228,8 @@ class SchemaBuilder(ObjectVisitor[TypeThunk], ConversionsVisitor[Conv, TypeThunk
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> TypeThunk:
         for annotation in reversed(annotations):
-            if isinstance(annotation, TypeName):
-                check_type_with_name(tp)
-                name = annotation.graphql
-                if not isinstance(name, str):
-                    raise ValueError("Annotated type_name can only be str")
+            if isinstance(annotation, TypeNameFactory):
+                name = annotation.to_type_name(tp).graphql
                 self._name = self._name or name
             if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
                 if self._name is not None:
