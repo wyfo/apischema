@@ -1,13 +1,7 @@
 import ast
-from inspect import getsourcelines, signature
-from itertools import takewhile
+import inspect
+import textwrap
 from typing import AbstractSet, Callable, Collection, Dict, Set
-
-
-def getsource(func: Callable) -> str:
-    lines, _ = getsourcelines(func)
-    indentation = sum(1 for _ in takewhile(str.isspace, lines[0]))
-    return "".join(line[indentation:] for line in lines)
 
 
 Dependencies = AbstractSet[str]
@@ -29,7 +23,7 @@ class DependencyFinder(ast.NodeVisitor):
 
 def first_parameter(func: Callable) -> str:
     try:
-        return next(iter(signature(func).parameters))
+        return next(iter(inspect.signature(func).parameters))
     except StopIteration:
         raise TypeError("Cannot compute dependencies if no parameter")
 
@@ -37,7 +31,7 @@ def first_parameter(func: Callable) -> str:
 def find_dependencies(func: Callable) -> Dependencies:
     try:
         finder = DependencyFinder(first_parameter(func))
-        finder.visit(ast.parse(getsource(func)))
+        finder.visit(ast.parse(textwrap.dedent(inspect.getsource(func))))
     except ValueError:
         return set()
     return finder.dependencies
