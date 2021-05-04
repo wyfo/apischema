@@ -9,7 +9,6 @@ from typing import (
     Collection,
     Dict,
     Iterable,
-    Iterator,
     List,
     Optional,
     Sequence,
@@ -19,17 +18,16 @@ from typing import (
 )
 
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
-from apischema.objects.fields import FieldOrName, check_field_or_name, get_field_name
 from apischema.objects import object_fields
+from apischema.objects.fields import FieldOrName, check_field_or_name, get_field_name
 from apischema.types import AnyType
 from apischema.typing import get_type_hints
 from apischema.utils import get_origin_or_type, is_method, method_class
 from apischema.validation.dependencies import find_all_dependencies
 from apischema.validation.errors import (
-    Error,
     ValidationError,
+    build_validation_error,
     merge_errors,
-    yield_to_raise,
 )
 from apischema.validation.mock import NonTrivialDependency
 
@@ -49,7 +47,7 @@ def get_validators(tp: AnyType) -> Sequence["Validator"]:
 
 
 class Discard(Exception):
-    def __init__(self, fields: AbstractSet[str], error: ValidationError):
+    def __init__(self, fields: Optional[AbstractSet[str]], error: ValidationError):
         self.fields = fields
         self.error = error
 
@@ -70,7 +68,6 @@ class Validator:
         else:
             self.discard = discard
         self.dependencies: AbstractSet[str] = set()
-        validate = func
         try:
             parameters = signature(func).parameters
         except ValueError:
@@ -84,37 +81,16 @@ class Validator:
                 raise TypeError("Validator cannot have variadic positional parameter")
             self.params = set(list(parameters)[1:])
         if isgeneratorfunction(func):
-            validate = yield_to_raise(validate)
-        if self.field is not None:
-            wrapped_field = validate
-            alias = None
 
-            def validate(__obj, **kwargs):
-                nonlocal alias
-                try:
-                    wrapped_field(__obj, **kwargs)
-                except ValidationError as err:
-                    if alias is None:
-                        alias = object_fields(self.owner)[
-                            get_field_name(self.field)
-                        ].alias
-                    raise ValidationError(children={alias: err})
+            def validate(*args, **kwargs):
+                errors = list(func(*args, **kwargs))
+                if errors:
+                    raise build_validation_error(errors)
 
-        if self.discard:
-            wrapped_discard = validate
-            discarded = None
+            self.validate = validate
 
-            def validate(__obj, **kwargs):
-                nonlocal discarded
-                try:
-                    wrapped_discard(__obj, **kwargs)
-                except ValidationError as err:
-                    if discarded is None:
-                        discarded = set(map(get_field_name, self.discard))
-                    raise Discard(discarded, err)
-
-        self.validate: Callable[..., Iterator[Error]] = validate
-        self._registered = False
+        else:
+            self.validate = func
 
     def __get__(self, instance, owner):
         return self if instance is None else MethodType(self.func, instance)
@@ -124,11 +100,8 @@ class Validator:
 
     def _register(self, owner: Type):
         self.owner = owner
-        if self._registered:
-            raise RuntimeError("Validator already registered")
         self.dependencies = find_all_dependencies(owner, self.func) | self.params
         _validators[owner].append(self)
-        self._registered = True
 
     def __set_name__(self, owner, name):
         self._register(owner)
@@ -143,34 +116,43 @@ def validate(__obj: T, __validators: Iterable[Validator] = None, **kwargs) -> T:
         __validators = get_validators(type(__obj))
     error: Optional[ValidationError] = None
     __validators = iter(__validators)
-    while True:
-        for validator in __validators:
-            try:
-                if kwargs and validator.params != kwargs.keys():
-                    assert all(k in kwargs for k in validator.params)
-                    validator.validate(
-                        __obj, **{k: kwargs[k] for k in validator.params}
+    for validator in __validators:
+        try:
+            if kwargs and validator.params != kwargs.keys():
+                if any(k not in kwargs for k in validator.params):
+                    raise RuntimeError(
+                        f"Missing parameters {kwargs.keys() - validator.params}"
+                        f" for validator {validator.func}"
                     )
-                else:
-                    validator.validate(__obj, **kwargs)
-            except ValidationError as err:
-                error = merge_errors(error, err)
-            except Discard as err:
-                error = merge_errors(error, err.error)
-                discarded = err.fields  # tmp variable because of NameError
-                __validators = iter(
+                validator.validate(__obj, **{k: kwargs[k] for k in validator.params})
+            else:
+                validator.validate(__obj, **kwargs)
+        except ValidationError as e:
+            err = e
+        except NonTrivialDependency as exc:
+            exc.validator = validator
+            raise
+        except AssertionError:
+            raise
+        except Exception as e:
+            err = ValidationError([str(e)])
+        else:
+            continue
+        if validator.field is not None:
+            alias = object_fields(validator.owner)[
+                get_field_name(validator.field)
+            ].alias
+            err = ValidationError(children={alias: err})
+        error = merge_errors(error, err)
+        if validator.discard:
+            try:
+                discarded = set(map(get_field_name, validator.discard))
+                next_validators = (
                     v for v in __validators if not discarded & v.dependencies
                 )
-                break
-            except NonTrivialDependency as exc:
-                exc.validator = validator
-                raise
-            except AssertionError:
-                raise
-            except Exception as err:
-                error = merge_errors(error, ValidationError([str(err)]))
-        else:
-            break
+                validate(__obj, next_validators, **kwargs)
+            except ValidationError as err:
+                error = merge_errors(error, err)
     if error is not None:
         raise error
     return __obj
