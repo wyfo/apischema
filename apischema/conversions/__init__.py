@@ -1,5 +1,6 @@
 __all__ = [
     "Conversion",
+    "Conversions",
     "LazyConversion",
     "as_str",
     "dataclass_input_wrapper",
@@ -12,7 +13,7 @@ __all__ = [
     "serializer",
 ]
 
-from .conversions import Conversion, LazyConversion
+from .conversions import Conversion, Conversions, LazyConversion
 from .converters import (
     as_str,
     deserializer,

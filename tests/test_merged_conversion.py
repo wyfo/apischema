@@ -7,7 +7,7 @@ from apischema import deserialize, serialize
 from apischema.graphql import graphql_schema
 from apischema.json_schema import deserialization_schema, serialization_schema
 from apischema.metadata import conversion, merged
-from apischema.objects import ObjectField, as_object
+from apischema.objects import ObjectField, set_object_fields
 
 
 class Field:
@@ -15,7 +15,7 @@ class Field:
         self.attr = attr
 
 
-as_object(Field, [ObjectField("attr", int)])
+set_object_fields(Field, [ObjectField("attr", int)])
 
 
 @dataclass

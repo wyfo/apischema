@@ -1,7 +1,6 @@
 import collections.abc
-import sys
-from dataclasses import is_dataclass
 import re
+import sys
 from enum import Enum, auto
 from functools import wraps
 from inspect import signature
@@ -26,14 +25,10 @@ from typing import (
     cast,
 )
 
-from apischema.types import (
-    AnyType,
-    COLLECTION_TYPES,
-    MAPPING_TYPES,
-    OrderedDict,
-    subscriptable_origin,
-)
+
+from apischema.types import AnyType, COLLECTION_TYPES, MAPPING_TYPES, OrderedDict
 from apischema.typing import _collect_type_vars, get_args, get_origin
+from dataclasses import is_dataclass
 
 try:
     from apischema.typing import Annotated
@@ -286,15 +281,18 @@ def method_registerer(
 
 
 def replace_builtins(tp: AnyType) -> AnyType:
+    if get_origin2(tp) is None:
+        return tp
     origin = get_origin_or_type(tp)
     args = tuple(map(replace_builtins, get_args2(tp)))
+    replacement: Any
     if origin in COLLECTION_TYPES:
         if issubclass(origin, collections.abc.Set):
-            replacement = subscriptable_origin(Set[None])
+            replacement = Set
         else:
-            replacement = subscriptable_origin(List[None])
+            replacement = List
     elif origin in MAPPING_TYPES:
-        replacement = subscriptable_origin(Dict[None, None])
+        replacement = Dict
     else:
         replacement = origin
     res = replacement[args] if args else replacement
@@ -313,3 +311,6 @@ def sort_by_annotations_position(
 
 def stop_signature_abuse() -> NoReturn:
     raise TypeError("Stop signature abuse")
+
+
+empty_dict: Mapping[str, Any] = {}

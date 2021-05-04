@@ -12,7 +12,16 @@ __all__ = [
 ]
 
 import warnings
-from typing import Callable, Optional, TYPE_CHECKING, Type, TypeVar, Union, overload
+from typing import (
+    Callable,
+    Optional,
+    Sequence,
+    TYPE_CHECKING,
+    Type,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from apischema import aliases, type_names
 from apischema.aliases import Aliaser
@@ -20,6 +29,8 @@ from apischema.cache import reset_cache
 from apischema.conversions.conversions import Conversions
 from apischema.conversions.visitor import DeserializationVisitor, SerializationVisitor
 from apischema.json_schema import schemas, versions
+from apischema.objects import ObjectField
+from apischema.objects.visitor import ObjectVisitor
 from apischema.type_names import TypeName
 from apischema.types import AnyType
 from apischema.utils import to_camel_case
@@ -183,5 +194,28 @@ def default_schema(func: DefaultSchema = None) -> DefaultSchema:
         return schemas._default_schema
     else:
         schemas._default_schema = func  # type: ignore
+        reset_cache()
+        return func
+
+
+DefaultFields = Callable[[AnyType], Optional[Sequence[ObjectField]]]
+FieldsFunc = TypeVar("FieldsFunc", bound=DefaultFields)
+
+
+@overload
+def default_object_fields() -> DefaultFields:
+    ...
+
+
+@overload
+def default_object_fields(func: FieldsFunc) -> FieldsFunc:
+    ...
+
+
+def default_object_fields(func: DefaultFields = None) -> DefaultFields:
+    if func is None:
+        return ObjectVisitor._object_fields
+    else:
+        ObjectVisitor._object_fields = staticmethod(func)  # type: ignore
         reset_cache()
         return func

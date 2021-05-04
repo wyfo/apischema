@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from dataclasses import InitVar, dataclass, field as field_
 from enum import Enum
 from inspect import Parameter, iscoroutinefunction
@@ -191,7 +192,7 @@ def annotated_schema(tp: AnyType) -> Optional[Schema]:
     return schema
 
 
-class SchemaBuilder(ObjectVisitor[TypeThunk], ConversionsVisitor[Conv, TypeThunk]):
+class SchemaBuilder(ConversionsVisitor[Conv, TypeThunk], ObjectVisitor[TypeThunk]):
     def __init__(
         self,
         aliaser: Aliaser,
@@ -212,13 +213,11 @@ class SchemaBuilder(ObjectVisitor[TypeThunk], ConversionsVisitor[Conv, TypeThunk
         self._non_null = True
         self._name: Optional[str] = None
         self._schema: Optional[Schema] = None
+        self._merge_next: bool = False
 
     @property
     def _description(self) -> Optional[str]:
-        if self._schema is not None and self._schema.annotations is not None:
-            return self._schema.annotations.description
-        else:
-            return None
+        return get_description(self._schema)
 
     @property
     def _name_and_desc(self) -> Tuple[str, Optional[str]]:
@@ -226,17 +225,33 @@ class SchemaBuilder(ObjectVisitor[TypeThunk], ConversionsVisitor[Conv, TypeThunk
             raise MissingName
         return self._name, self._description
 
+    @contextmanager
+    def _replace_name_and_schema(
+        self, ref: Optional[str], schema: Optional[Schema], merge_next: bool
+    ):
+        name_save, schema_save, merge_save = self._name, self._schema, self._merge_next
+        self._name, self._schema, self._merge_next = ref, schema, merge_next
+        try:
+            yield
+        finally:
+            self._name, self._schema, self._merge_next = (
+                name_save,
+                schema_save,
+                merge_save,
+            )
+
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> TypeThunk:
+        annotated_name, annotated_schema = self._name, self._schema
         for annotation in reversed(annotations):
             if isinstance(annotation, TypeNameFactory):
-                name = annotation.to_type_name(tp).graphql
-                self._name = self._name or name
+                annotated_name = annotated_name or annotation.to_type_name(tp).graphql
             if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
-                if self._name is not None:
-                    self._schema = merge_schema(
-                        annotation[SCHEMA_METADATA], self._schema
+                if annotated_name is not None:
+                    annotated_schema = merge_schema(
+                        annotation[SCHEMA_METADATA], annotated_schema
                     )
-        return self.visit_with_schema(tp, self._name, self._schema)
+        with self._replace_name_and_schema(annotated_name, annotated_schema, True):
+            return self.visit(tp)
 
     def any(self) -> TypeThunk:
         return JsonScalar
@@ -250,10 +265,6 @@ class SchemaBuilder(ObjectVisitor[TypeThunk], ConversionsVisitor[Conv, TypeThunk
 
     def enum(self, cls: Type[Enum]) -> TypeThunk:
         return self.literal([elt.value for elt in cls])
-
-    def generic(self, tp: AnyType) -> TypeThunk:
-        self._name = self._name or get_type_name(tp).graphql
-        return super().generic(tp)
 
     def literal(self, values: Sequence[Any]) -> TypeThunk:
         if not all(isinstance(v, str) for v in values):
@@ -271,9 +282,6 @@ class SchemaBuilder(ObjectVisitor[TypeThunk], ConversionsVisitor[Conv, TypeThunk
             return graphql.GraphQLScalarType(name, description=description)
         except MissingName:
             return JsonScalar
-
-    def new_type(self, tp: Type, super_type: AnyType) -> TypeThunk:
-        return self.visit_with_schema(super_type, self._name, self._schema)
 
     def object(self, cls: Type, fields: Sequence[ObjectField]) -> TypeThunk:
         raise NotImplementedError
@@ -326,40 +334,39 @@ class SchemaBuilder(ObjectVisitor[TypeThunk], ConversionsVisitor[Conv, TypeThunk
             tuple(non_null_alternatives), lambda: self._union_result(results)
         )
 
-    def visit_with_schema(
-        self, tp: AnyType, name: Optional[str], schema: Optional[Schema]
+    def visit_conversion(
+        self, tp: AnyType, conversion: Optional[Conv], dynamic: bool
     ) -> TypeThunk:
+        if dynamic:
+            with self._replace_name_and_schema(None, None, False):
+                return super().visit_conversion(tp, conversion, dynamic)
         if self.is_id(tp) or tp == ID:
             return graphql.GraphQLNonNull(self.id_type)
-        if self._apply_dynamic_conversions(tp) is None:
-            name = name or get_type_name(tp).graphql
-            schema = merge_schema(get_schema(tp), schema)
-        name_save, schema_save, non_null_save = self._name, self._schema, self._non_null
-        self._name, self._schema, self._non_null = name, schema, True
+        name, schema = get_type_name(tp).graphql, get_schema(tp)
+        if self._merge_next:
+            name, schema = self._name or name, merge_schema(schema, self._schema)
+        if get_origin(tp) == Annotated or hasattr(tp, "__supertype__"):
+            with self._replace_name_and_schema(name, schema, True):
+                return super().visit_conversion(tp, conversion, dynamic)
+        if get_args(tp):
+            schema = merge_schema(get_schema(get_origin(tp)), schema)
+        non_null_save = self._non_null
+        self._non_null = True
         try:
-            result = super().visit(tp)
+            with self._replace_name_and_schema(name, schema, conversion is not None):
+                result = super().visit_conversion(tp, conversion, dynamic)
             non_null = self._non_null
             return lambda: exec_thunk(result, non_null=non_null)
         except MissingName:
-            raise TypeError(f"Missing name for type {tp}") from None
+            raise TypeError(f"Missing ref for type {tp}") from None
         finally:
-            self._name, self._schema = name_save, schema_save
             self._non_null = non_null_save
 
-    def _visit(self, tp: AnyType) -> TypeThunk:
+    def _visit_not_generic(self, tp: AnyType) -> TypeThunk:
         if tp is NoneType:
             raise Nullable
-        _visit = super()._visit
+        _visit = super()._visit_not_generic
         return self._use_cache(self._generic or tp, lambda: _visit(tp))
-
-    def visit(self, tp: AnyType) -> TypeThunk:
-        return self.visit_with_schema(tp, None, None)
-
-    def visit_with_conversions(
-        self, tp: AnyType, conversions: Optional[Conversions]
-    ) -> TypeThunk:
-        with self._replace_conversions(conversions):
-            return self.visit_with_schema(tp, self._name, self._schema)
 
 
 FieldType = TypeVar("FieldType", graphql.GraphQLInputField, graphql.GraphQLField)
@@ -392,9 +399,9 @@ def merge_fields(
 
 
 class InputSchemaBuilder(
-    DeserializationObjectVisitor[TypeThunk],
-    DeserializationVisitor[TypeThunk],
     SchemaBuilder[Deserialization],
+    DeserializationVisitor[TypeThunk],
+    DeserializationObjectVisitor[TypeThunk],
 ):
     def _visit_merged(self, field: ObjectField) -> TypeThunk:
         with self._replace_conversions(field.deserialization):
@@ -434,9 +441,7 @@ class InputSchemaBuilder(
         }
         merged_types = {f.name: self._visit_merged(f) for f in fields if f.merged}
         return lambda: graphql.GraphQLInputObjectType(
-            name,
-            lambda: merge_fields(cls, visited_fields, merged_types),
-            description,
+            name, lambda: merge_fields(cls, visited_fields, merged_types), description
         )
 
     def _union_result(self, results: Iterable[TypeThunk]) -> TypeThunk:
@@ -449,9 +454,9 @@ class InputSchemaBuilder(
 
 
 class OutputSchemaBuilder(
-    SerializationObjectVisitor[TypeThunk],
-    SerializationVisitor[TypeThunk],
     SchemaBuilder[Serialization],
+    SerializationVisitor[TypeThunk],
+    SerializationObjectVisitor[TypeThunk],
 ):
     def __init__(
         self,
@@ -520,7 +525,7 @@ class OutputSchemaBuilder(
                     param_type,
                     param.default is Parameter.empty,
                     metadata,
-                    default=...,
+                    default=param.default,
                 )
                 if param_field.required:
                     pass
@@ -611,11 +616,7 @@ class OutputSchemaBuilder(
         merged_types = {f.name: self._visit_merged(f) for f in fields if f.merged}
 
         def field_thunk() -> graphql.GraphQLFieldMap:
-            return merge_fields(
-                cls,
-                visited_fields,
-                merged_types,
-            )
+            return merge_fields(cls, visited_fields, merged_types)
 
         interfaces = list(map(self.visit, get_interfaces(cls)))
         interface_thunk = None
@@ -633,10 +634,7 @@ class OutputSchemaBuilder(
 
         if is_interface(cls):
             return lambda: graphql.GraphQLInterfaceType(
-                name,
-                field_thunk,
-                interface_thunk,
-                description=description,
+                name, field_thunk, interface_thunk, description=description
             )
 
         else:
@@ -851,10 +849,10 @@ def graphql_schema(
     ) -> Optional[graphql.GraphQLObjectType]:
         if not fields:
             return None
-        builder._name = name
-        return exec_thunk(
-            builder.object(type(name, (), {}), (), fields), non_null=False
-        )
+        with builder._replace_name_and_schema(name, None, False):
+            return exec_thunk(
+                builder.object(type(name, (), {}), (), fields), non_null=False
+            )
 
     return graphql.GraphQLSchema(
         query=root_type("Query", query_fields),

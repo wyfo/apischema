@@ -1,7 +1,7 @@
 from collections.abc import Collection as Collection_
 from dataclasses import is_dataclass
 from enum import Enum
-from typing import Any, Callable, Collection, Mapping, Optional, Sequence, Type, TypeVar
+from typing import Any, Callable, Collection, Mapping, Optional, Type, TypeVar
 
 from apischema import settings
 from apischema.aliases import Aliaser
@@ -15,11 +15,11 @@ from apischema.conversions.conversions import (
 from apischema.conversions.dataclass_models import MODEL_ORIGIN_ATTR
 from apischema.conversions.visitor import SerializationVisitor, merge_prev_conversions
 from apischema.fields import FIELDS_SET_ATTR, fields_set
-from apischema.objects import AliasedStr, ObjectField, object_fields
-from apischema.objects.conversions import ObjectWrapper
+from apischema.objects import AliasedStr, object_fields
+from apischema.objects.fields import FieldKind
+from apischema.objects.visitor import ObjectVisitor
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import PRIMITIVE_TYPES, Undefined, UndefinedType
-from apischema.utils import get_origin_or_type
 from apischema.visitor import Unsupported
 
 T = TypeVar("T")
@@ -28,13 +28,10 @@ SerializationMethod = Callable[[T, bool], Any]
 
 
 def serialize_object(cls: Type[T], aliaser: Aliaser) -> SerializationMethod[T]:
-    fields: Sequence[ObjectField]
-    if issubclass(cls, ObjectWrapper):
-        cls, fields = cls.type, cls.fields  # type: ignore
-    else:
-        fields = list(object_fields(cls, serialization=True).values())
     normal_fields, aggregate_fields = [], []
-    for field in fields:
+    for field in object_fields(cls).values():
+        if field.kind == FieldKind.WRITE_ONLY:
+            continue
         conversions = to_hashable_conversions(field.serialization)
         if field.is_aggregate:
             aggregate_fields.append((field.name, conversions))
@@ -96,9 +93,7 @@ def serialization_method_factory(
 ]:
     @cache
     def get_method(
-        cls: Type[T],
-        conversions: Optional[HashableConversions],
-        aliaser: Aliaser,
+        cls: Type[T], conversions: Optional[HashableConversions], aliaser: Aliaser
     ):
         if cls is UndefinedType:
             return undefined_method
@@ -111,28 +106,21 @@ def serialization_method_factory(
                 merge_prev_conversions(conversion, conversions)
             if hasattr(conversion.target, MODEL_ORIGIN_ATTR):
                 return get_method(conversion.target, None, aliaser)
-            target_orig = get_origin_or_type(conversion.target)
-            if isinstance(target_orig, type) and issubclass(target_orig, ObjectWrapper):
-                return object_method(target_orig, aliaser)  # type: ignore
-            else:
-                converter = conversion.converter
-                sub_conversions = to_hashable_conversions(conversion.sub_conversions)
-                exclude_unset = conversion.exclude_unset
+            converter = conversion.converter
+            sub_conversions = to_hashable_conversions(conversion.sub_conversions)
+            exclude_unset = conversion.exclude_unset
 
-                def method(obj: T, exc_unset: bool) -> Any:
-                    if exclude_unset is not None:
-                        exc_unset = exclude_unset
-                    converted = converter(obj)  # type: ignore
-                    return get_method(converted.__class__, sub_conversions, aliaser)(
-                        converted, exc_unset
-                    )
+            def method(obj: T, exc_unset: bool) -> Any:
+                if exclude_unset is not None:
+                    exc_unset = exclude_unset
+                converted = converter(obj)  # type: ignore
+                return get_method(converted.__class__, sub_conversions, aliaser)(
+                    converted, exc_unset
+                )
 
-                return method
+            return method
         elif not reuse_conversions:
             conversions = None
-        if issubclass(cls, ObjectWrapper):  # must be before dataclass
-            method = object_method(cls, aliaser)  # type: ignore
-            return lambda obj, exc_unset: method(obj.wrapped, exc_unset)
         if is_dataclass(cls):
             return object_method(cls, aliaser)
         if issubclass(cls, Enum):
@@ -157,6 +145,8 @@ def serialization_method_factory(
                 get_method(elt.__class__, conversions, aliaser)(elt, exc_unset)
                 for elt in obj
             ]
+        if ObjectVisitor._object_fields(cls) is not None:
+            return object_method(cls, aliaser)
         raise Unsupported(cls)
 
     return get_method

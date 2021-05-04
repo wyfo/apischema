@@ -106,4 +106,4 @@ Comparison is simple with an example (validator is taken from [*pydantic* docume
 
 ### *apischema* supports *pydantic*
 
-It's not a feature, is just the result of [20 lines of code](examples/pydantic_support.md).
+It's not a feature, is just the result of [30 lines of code](examples/pydantic_support.md).

@@ -29,6 +29,12 @@ class Wrapper:
     def __call__(self, *args, **kwargs):
         return self.implem(*args, **kwargs)
 
+    def __instancecheck__(self, instance):
+        return isinstance(instance, self.implem)
+
+    def __subclasscheck__(self, subclass):
+        return issubclass(subclass, self.implem)
+
 
 for cls in (Dict, List, Set, FrozenSet, Tuple, Type):  # noqa
     wrapper = Wrapper(cls)

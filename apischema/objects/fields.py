@@ -1,7 +1,10 @@
 from dataclasses import Field, InitVar, MISSING, dataclass, field
+from enum import Enum, auto
 from typing import (
     Any,
     Callable,
+    Dict,
+    Iterable,
     Mapping,
     NoReturn,
     Optional,
@@ -26,14 +29,22 @@ from apischema.metadata.keys import (
     SCHEMA_METADATA,
     VALIDATORS_METADATA,
 )
-from apischema.objects.utils import AliasedStr, empty_dict
+from apischema.objects.utils import AliasedStr
 from apischema.types import AnyType
+from apischema.utils import empty_dict
 
 if TYPE_CHECKING:
     from apischema.json_schema.schemas import Schema
     from apischema.json_schema.annotations import Annotations
     from apischema.json_schema.constraints import Constraints
     from apischema.validation.validators import Validator
+
+
+class FieldKind(Enum):
+    NORMAL = auto()
+    READ_ONLY = auto()
+    WRITE_ONLY = auto()
+
 
 # Cannot reuse MISSING for dataclass field because it would be interpreted as no default
 MISSING_DEFAULT = object()
@@ -48,6 +59,7 @@ class ObjectField:
     default: InitVar[Any] = MISSING_DEFAULT
     default_factory: Optional[Callable[[], Any]] = None
     aliased: bool = True
+    kind: FieldKind = FieldKind.NORMAL
 
     def __post_init__(self, default: Any):
         # TODO add metadata check
@@ -162,3 +174,18 @@ def get_field_name(field_or_name: Any) -> str:
         return field_or_name
     else:
         _bad_field(field_or_name)
+
+
+_class_fields: Dict[type, Callable[[], Sequence[ObjectField]]] = {}
+
+
+def set_object_fields(
+    cls: type,
+    fields: Union[Iterable[ObjectField], Callable[[], Sequence[ObjectField]], None],
+):
+    if fields is None:
+        _class_fields.pop(cls, ...)
+    elif callable(fields):
+        _class_fields[cls] = fields
+    else:
+        _class_fields[cls] = lambda fields=tuple(fields): fields  # type: ignore

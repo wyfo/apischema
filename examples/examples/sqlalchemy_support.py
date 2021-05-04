@@ -10,7 +10,7 @@ from sqlalchemy.ext.declarative import as_declarative
 from apischema import Undefined, deserialize, serialize
 from apischema.graphql import graphql_schema
 from apischema.json_schema import serialization_schema
-from apischema.objects import ObjectField, as_object
+from apischema.objects import ObjectField, set_object_fields
 
 
 def column_field(name: str, column: Column) -> ObjectField:
@@ -36,7 +36,7 @@ class Base:
         columns = getmembers(cls, lambda m: isinstance(m, Column))
         if not columns:
             return
-        as_object(cls, list(starmap(column_field, columns)))
+        set_object_fields(cls, starmap(column_field, columns))
 
 
 class Foo(Base):

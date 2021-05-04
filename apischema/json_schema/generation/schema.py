@@ -1,11 +1,9 @@
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from enum import Enum
-from functools import wraps
 from itertools import chain
-from typing import (  # type: ignore
+from typing import (
     AbstractSet,
     Any,
-    Callable,
     Collection,
     Dict,
     Iterable,
@@ -16,9 +14,7 @@ from typing import (  # type: ignore
     Sequence,
     Tuple,
     Type,
-    TypeVar,
     Union,
-    cast,
 )
 
 from apischema import settings
@@ -41,6 +37,9 @@ from apischema.json_schema.constraints import (
     ObjectConstraints,
     StringConstraints,
 )
+from apischema.json_schema.generation.conversions_resolver import (
+    WithConversionsResolver,
+)
 from apischema.json_schema.generation.refs import (
     DeserializationRefsExtractor,
     Refs,
@@ -48,7 +47,6 @@ from apischema.json_schema.generation.refs import (
     SerializationRefsExtractor,
 )
 from apischema.json_schema.patterns import infer_pattern
-from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.json_schema.schemas import Schema, get_schema, merge_schema
 from apischema.json_schema.types import JsonSchema, JsonType, json_schema
 from apischema.json_schema.versions import JsonSchemaVersion, RefFactory
@@ -61,9 +59,16 @@ from apischema.objects.visitor import (
 )
 from apischema.serialization import serialize
 from apischema.serialization.serialized_methods import get_serialized_methods
+from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.types import AnyType, OrderedDict, UndefinedType
-from apischema.typing import get_origin
+from apischema.typing import get_args, get_origin
 from apischema.utils import is_union_of, sort_by_annotations_position
+
+try:
+    from apischema.typing import Annotated
+except ImportError:
+    Annotated = ...  # type: ignore
+
 
 constraint_by_type = {
     int: NumberConstraints,
@@ -72,22 +77,18 @@ constraint_by_type = {
 }
 
 
-Method = TypeVar("Method", bound=Callable[..., JsonSchema])
+def full_schema(base_schema: JsonSchema, schema: Optional[Schema]) -> JsonSchema:
+    if schema is not None:
+        base_schema = JsonSchema(base_schema)
+        schema.merge_into(base_schema)
+    return base_schema
 
 
-def with_schema(method: Method) -> Method:
-    @wraps(method)
-    def wrapper(self: "SchemaBuilder", *args, **kwargs):
-        result = method(self, *args, **kwargs)
-        if self._schema is not None:
-            result = JsonSchema(result)  # make a copy
-            self._schema.merge_into(result)
-        return result
-
-    return cast(Method, wrapper)
-
-
-class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSchema]):
+class SchemaBuilder(
+    ConversionsVisitor[Conv, JsonSchema],
+    ObjectVisitor[JsonSchema],
+    WithConversionsResolver,
+):
     def __init__(
         self,
         ref_factory: RefFactory,
@@ -119,32 +120,47 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
                     f" found {type(self._schema.constraints).__name__}"
                 )
 
-    def _merge_schema(self, schema: Optional[Schema]):
-        self._schema = merge_schema(schema, self._schema)
+    @contextmanager
+    def _replace_schema(self, schema: Optional[Schema]):
+        schema_save = self._schema
+        self._schema = schema
+        try:
+            yield
+        finally:
+            self._schema = schema_save
 
-    @with_schema
-    def _ref_schema(self, ref: str) -> JsonSchema:
-        return JsonSchema({"$ref": self.ref_factory(ref)})
+    def ref_schema(self, ref: Optional[str]) -> Optional[JsonSchema]:
+        if ref not in self.refs:
+            return None
+        elif self._ignore_first_ref:
+            self._ignore_first_ref = False
+            return None
+        else:
+            assert isinstance(ref, str)
+            return full_schema(
+                JsonSchema({"$ref": self.ref_factory(ref)}), self._schema
+            )
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> JsonSchema:
-        for annotation in reversed(annotations):
-            if isinstance(annotation, TypeNameFactory):
-                ref = annotation.to_type_name(tp).json_schema
-                if ref in self.refs:
-                    if self._ignore_first_ref:
-                        self._ignore_first_ref = False
-                    else:
-                        assert isinstance(ref, str)
-                        return self._ref_schema(ref)
-            if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
-                self._merge_schema(annotation[SCHEMA_METADATA])
-        return self.visit_with_schema(tp, self._schema)
+        with ExitStack() as exit_stack:
+            for annotation in reversed(annotations):
+                if isinstance(annotation, TypeNameFactory):
+                    ref = annotation.to_type_name(tp).json_schema
+                    ref_schema = self.ref_schema(ref)
+                    if ref_schema is not None:
+                        return ref_schema
+                if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
+                    exit_stack.enter_context(
+                        self._replace_schema(
+                            merge_schema(annotation[SCHEMA_METADATA], self._schema)
+                        )
+                    )
+            return self.visit(tp)
+        raise NotImplementedError  # for mypy
 
-    @with_schema
     def any(self) -> JsonSchema:
         return JsonSchema()
 
-    @with_schema
     def collection(self, cls: Type[Iterable], value_type: AnyType) -> JsonSchema:
         self._check_constraints(ArrayConstraints)
         return json_schema(
@@ -152,6 +168,41 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
             items=self.visit(value_type),
             uniqueItems=issubclass(cls, AbstractSet),
         )
+
+    def enum(self, cls: Type[Enum]) -> JsonSchema:
+        if len(cls) == 0:
+            raise TypeError("Empty enum")
+        return self.literal(list(cls))
+
+    def literal(self, values: Sequence[Any]) -> JsonSchema:
+        if not values:
+            raise TypeError("Empty Literal")
+        types = {
+            JsonType.from_type(type(v.value if isinstance(v, Enum) else v))
+            for v in values
+        }
+        # Mypy issue
+        type_: Any = types.pop() if len(types) == 1 else types
+        if len(values) == 1:
+            return json_schema(type=type_, const=values[0])
+        else:
+            return json_schema(type=type_, enum=values)
+
+    def mapping(
+        self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType
+    ) -> JsonSchema:
+        self._check_constraints(ObjectConstraints)
+        with self._tmp_ignore_first_ref():
+            key = self.visit(key_type)
+        if key["type"] != JsonType.STRING:
+            raise ValueError("Mapping types must string-convertible key")
+        value = self.visit(value_type)
+        if "pattern" in key:
+            return json_schema(
+                type=JsonType.OBJECT, patternProperties={key["pattern"]: value}
+            )
+        else:
+            return json_schema(type=JsonType.OBJECT, additionalProperties=value)
 
     def visit_field(self, field: ObjectField) -> JsonSchema:
         schema = field.schema
@@ -171,7 +222,8 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
                 assert field.schema is not None
                 schema = replace(field.schema, annotations=annotations)
         with self._replace_conversions(self._field_conversion(field)):
-            return self.visit_with_schema(field.type, schema)
+            with self._replace_schema(schema):
+                return self.visit(field.type)
 
     def _properties_schema(self, field: ObjectField) -> JsonSchema:
         assert field.pattern_properties is not None or field.additional_properties
@@ -197,67 +249,11 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
     def _check_merged_schema(self, cls: Type, field: ObjectField):
         assert field.merged
         with self._tmp_ignore_first_ref():
-            if self.visit_field(field).get("type") not in {
-                JsonType.OBJECT,
-                "object",
-            }:
+            if self.visit_field(field).get("type") not in {JsonType.OBJECT, "object"}:
                 raise TypeError(
                     f"Merged field {cls.__name__}.{field.name} must have an object type"
                 )
 
-    def _update_properties(
-        self, cls: Type, properties: Dict[str, JsonSchema], required: List[str]
-    ):
-        pass
-
-    def enum(self, cls: Type[Enum]) -> JsonSchema:
-        if len(cls) == 0:
-            raise TypeError("Empty enum")
-        return self.literal(list(cls))
-
-    def generic(self, tp: AnyType) -> JsonSchema:
-        self._merge_schema(get_schema(get_origin(tp)))
-        return super().generic(tp)
-
-    @with_schema
-    def literal(self, values: Sequence[Any]) -> JsonSchema:
-        if not values:
-            raise TypeError("Empty Literal")
-        types = {
-            JsonType.from_type(type(v.value if isinstance(v, Enum) else v))
-            for v in values
-        }
-        # Mypy issue
-        type_: Any = types.pop() if len(types) == 1 else types
-        if len(values) == 1:
-            return json_schema(type=type_, const=values[0])
-        else:
-            return json_schema(type=type_, enum=values)
-
-    @with_schema
-    def mapping(
-        self,
-        cls: Type[Mapping],
-        key_type: AnyType,
-        value_type: AnyType,
-    ) -> JsonSchema:
-        self._check_constraints(ObjectConstraints)
-        with self._tmp_ignore_first_ref():
-            key = self.visit(key_type)
-        if key["type"] != JsonType.STRING:
-            raise ValueError("Mapping types must string-convertible key")
-        value = self.visit(value_type)
-        if "pattern" in key:
-            return json_schema(
-                type=JsonType.OBJECT, patternProperties={key["pattern"]: value}
-            )
-        else:
-            return json_schema(type=JsonType.OBJECT, additionalProperties=value)
-
-    def new_type(self, tp: Type, super_type: AnyType) -> JsonSchema:
-        return self.visit_with_schema(super_type, self._schema)
-
-    @with_schema
     def object(self, cls: Type, fields: Sequence[ObjectField]) -> JsonSchema:
         self._check_constraints(ObjectConstraints)
         merged_schemas: List[JsonSchema] = []
@@ -291,10 +287,7 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
             additionalProperties=additional_properties,
             patternProperties=pattern_properties,
             dependentRequired=OrderedDict(
-                (
-                    alias_by_names(f),
-                    sorted(map(alias_by_names, dependent_required[f])),
-                )
+                (alias_by_names(f), sorted(map(alias_by_names, dependent_required[f])))
                 for f in sorted(dependent_required, key=alias_by_names)
             ),
         )
@@ -306,16 +299,11 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
             )
         return result
 
-    @with_schema
     def primitive(self, cls: Type) -> JsonSchema:
         if cls in constraint_by_type:
             self._check_constraints(constraint_by_type[cls])
         return JsonSchema(type=JsonType.from_type(cls))
 
-    def subprimitive(self, cls: Type, superclass: Type) -> JsonSchema:
-        return self.primitive(superclass)
-
-    @with_schema
     def tuple(self, types: Sequence[AnyType]) -> JsonSchema:
         self._check_constraints(ArrayConstraints)
         if self._schema is not None and self._schema.constraints is not None:
@@ -364,59 +352,47 @@ class SchemaBuilder(ObjectVisitor[JsonSchema], ConversionsVisitor[Conv, JsonSche
         else:
             return json_schema(anyOf=results)
 
-    @with_schema
     def union(self, alternatives: Sequence[AnyType]) -> JsonSchema:
         return super().union([alt for alt in alternatives if alt is not UndefinedType])
 
-    def visit_with_schema(self, tp: AnyType, schema: Optional[Schema]) -> JsonSchema:
-        schema_save = self._schema
-        dynamic = self._apply_dynamic_conversions(tp)
-        tp, self._schema = (dynamic, None) if dynamic is not None else (tp, schema)
-        ref = get_type_name(tp).json_schema
-        if ref in self.refs:
-            if self._ignore_first_ref:
-                self._ignore_first_ref = False
-            else:
-                assert isinstance(ref, str)
-                return self._ref_schema(ref)
-        self._merge_schema(get_schema(tp))
-        try:
-            return super().visit(tp)
-        finally:
-            self._schema = schema_save
-
-    def visit(self, tp: AnyType) -> JsonSchema:
-        return self.visit_with_schema(tp, None)
+    def visit_conversion(
+        self, tp: AnyType, conversion: Optional[Conv], dynamic: bool
+    ) -> JsonSchema:
+        if dynamic:
+            with self._replace_schema(None):
+                return super().visit_conversion(tp, conversion, dynamic)
+        for ref_tp in self.resolve_conversions(tp):
+            ref_schema = self.ref_schema(get_type_name(ref_tp).json_schema)
+            if ref_schema is not None:
+                return ref_schema
+        schema = merge_schema(get_schema(tp), self._schema)
+        if get_origin(tp) == Annotated or hasattr(tp, "__supertype__"):
+            with self._replace_schema(schema):
+                return super().visit_conversion(tp, conversion, dynamic)
+        if get_args(tp):
+            schema = merge_schema(get_schema(get_origin(tp)), schema)
+        with self._replace_schema(None):
+            return full_schema(
+                super().visit_conversion(tp, conversion, dynamic), schema
+            )
 
     RefsExtractor: Type[RefsExtractor_]
 
 
 class DeserializationSchemaBuilder(
-    DeserializationObjectVisitor, DeserializationVisitor, SchemaBuilder[Deserialization]
+    SchemaBuilder[Deserialization],
+    DeserializationVisitor[JsonSchema],
+    DeserializationObjectVisitor[JsonSchema],
 ):
     RefsExtractor = DeserializationRefsExtractor
-    _visit_conversion = with_schema(DeserializationVisitor.visit_conversion)
-
-    def visit_conversion(
-        self, tp: AnyType, conversion: Deserialization, dynamic: bool
-    ) -> JsonSchema:
-        if not dynamic and get_origin(tp) is not None:
-            self._merge_schema(get_schema(get_origin(tp)))
-        return self._visit_conversion(tp, conversion, dynamic)
 
 
 class SerializationSchemaBuilder(
-    SerializationObjectVisitor, SerializationVisitor, SchemaBuilder[Serialization]
+    SchemaBuilder[Serialization],
+    SerializationVisitor[JsonSchema],
+    SerializationObjectVisitor[JsonSchema],
 ):
     RefsExtractor = SerializationRefsExtractor
-    _visit_conversion = with_schema(SerializationVisitor.visit_conversion)
-
-    def visit_conversion(
-        self, tp: AnyType, conversion: Serialization, dynamic: bool
-    ) -> JsonSchema:
-        if not dynamic and get_origin(tp) is not None:
-            self._merge_schema(get_schema(get_origin(tp)))
-        return self._visit_conversion(tp, conversion, dynamic)
 
     def object(self, cls: Type, fields: Sequence[ObjectField]) -> JsonSchema:
         result = super().object(cls, fields)
@@ -427,9 +403,9 @@ class SerializationSchemaBuilder(
             self._generic or cls
         ).items():
             ret = types["return"]
-            with self._replace_conversions(serialized.conversions):
+            with self._replace_schema(serialized.schema):
                 properties[alias] = json_schema(
-                    **self.visit_with_schema(ret, serialized.schema)
+                    **self.visit_with_conversions(ret, serialized.conversions)
                 )
             if not is_union_of(ret, UndefinedType):
                 required.append(alias)
@@ -512,8 +488,8 @@ def _schema(
     version, ref_factory, all_refs = _default_version(version, ref_factory, all_refs)
     refs = _extract_refs([(tp, conversions)], builder, all_refs)
     visitor = builder(ref_factory, refs, False, addtional_properties)
-    with visitor._replace_conversions(conversions):
-        json_schema = visitor.visit_with_schema(tp, schema)
+    with visitor._replace_schema(schema):
+        json_schema = visitor.visit_with_conversions(tp, conversions)
     if add_defs:
         defs = _refs_schema(builder, refs, ref_factory, addtional_properties)
         if defs:

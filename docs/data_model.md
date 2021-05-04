@@ -31,6 +31,8 @@ Dataclasses `__post_init__` and `field(init=False)` are fully supported. Implica
 !!! warning
     Before 3.8, `InitVar` is doing [type erasure](https://bugs.python.org/issue33569), that's why it's not possible for *apischema* to retrieve type information of init variables. To fix this behavior, a field metadata `init_var` can be used to put back the type of the field (`init_var` also accepts stringified type annotations).
 
+Dataclass-like types (*attrs*/*SQLAlchemy*/etc.) can also get support with a few lines of code, see [next section](#dataclass-like-types)
+
 ## Standard library types
 
 *apischema* handle natively most of the types provided by the standard library. They are sorted in the following categories:
@@ -91,7 +93,7 @@ For `Enum`, this is the value and not the attribute name that is serialized
 
 - `typing.TypedDict`
 
-: Hanlded as an object type, but it supports less fields metadata, as explained [here](); in particular, there is no aliasing
+: Hanlded as an object type, but it supports less fields metadata, as explained [here](json_schema.md#why-typeddict-doesnt-support-field-aliasing); in particular, there is no aliasing
 
 - `typing.Any`
 
@@ -194,7 +196,40 @@ That's why *apischema* defines a `NotNull` type; in fact, `NotNull = Union[T, An
 !!! note
     You can also use [`Undefined`](#null-vs-undefined), but it can be more convenient to directly manipulate an `Optional` field, especially in the rest of the code unrelated to (de)serialization.
 
-## Skip dataclass field
+## Custom types
+
+*apischema* can support almost all of your types in a few lines of code; see [below](#dataclass-like-types-aka-object-types) for dataclass-like types, and [conversion section](conversions.md) for the rest.
+
+Otherwise, when *apischema* encounters a type that it doesn't support, `Unsupported` exception will be raised.
+
+```python
+{!unsupported.py!}
+```
+
+### Dataclass-like types, aka object types
+
+Internally, *apischema* handle standard object types — dataclasses, named tuple and typed dictionary — the same way by mapping them to a set of `apischema.objects.ObjectField`, which has the following definition:
+
+```python
+@dataclass(frozen=True)
+class ObjectField:
+    name: str  # field's name
+    type: Any  # field's type
+    required: bool = True  # if the field is required
+    metadata: Mapping[str, Any] = field(default_factory=dict)  # field's metadata 
+    default: InitVar[Any] = ...  # field's default value
+    default_factory: Optional[Callable[[], Any]] = None  # field's default factory
+    aliased: bool = True  # if the fields will be aliased (TypedDict are not)
+    kind: FieldKind = FieldKind.NORMAL  # NORMAL/READ_ONLY/WRITE_ONLY
+```
+
+Thus, support of dataclass-like types (*attrs*, *SQLAlchemy* traditional mappers, etc.) can be achieved by mapping the concerned class to its own list of `ObjectField`s; this is done using `apischema.objects.set_object_fields`.
+
+```python
+{!set_object_fields.py!}
+```
+
+## Skip field
 
 Dataclass fields can be excluded from *apischema* processing by using `apischema.metadata.skip` in the field metadata
 
@@ -215,21 +250,6 @@ Dataclass fields which are themselves dataclass can be "merged" into the owning 
     This feature use JSON schema draft 2019-09 [`unevaluatedProperties` keyword](https://json-schema.org/draft/2019-09/json-schema-core.html#unevaluatedProperties). However, this keyword is removed when JSON schema is converted in a version that doesn't support it, like OpenAPI 3.0.
 
 This feature is very convenient for building model by composing smaller components. If some kind of reuse could also be achieved with inheritance, it can be less practical when it comes to use it in code, because there is no easy way to build an inherited class when you have an instance of the super class ; you have to copy all the fields by hand. On the other hand, using composition (of merged fields), it's easy to instantiate the class when the smaller component is just a field of it.
-    
-
-## Custom types / ORM
-
-See [conversion](conversions.md) in order to support every possible types in a few lines of code.
-
-## Unsupported types
-
-When *apischema* encounters a type that it doesn't support, `Unsupported` exception will be raised.
-
-```python
-{!unsupported.py!}
-```
-
-See [conversion](conversions.md) section to make *apischema* support all your classes.
 
 ## FAQ
 

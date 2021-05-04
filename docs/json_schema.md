@@ -17,7 +17,7 @@ Sometimes dataclass field names can clash with language keyword, sometimes the p
 ```
 
 !!! warning
-    `TypedDict` fields cannot have aliases, see [FAQ]()
+    `TypedDict` fields cannot have aliases, see [FAQ](#why-typeddict-doesnt-support-field-aliasing)
 
 ### Alias all fields
 

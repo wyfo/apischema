@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Collection as Collection_
-from dataclasses import dataclass, is_dataclass
+from dataclasses import dataclass
 from enum import Enum
 from functools import wraps
 from typing import (
@@ -46,6 +46,7 @@ from apischema.json_schema.schemas import Schema, get_schema
 from apischema.metadata.implem import ValidatorsMetadata
 from apischema.metadata.keys import SCHEMA_METADATA, VALIDATORS_METADATA
 from apischema.objects import AliasedStr, ObjectField
+from apischema.objects.fields import FieldKind
 from apischema.objects.visitor import DeserializationObjectVisitor
 from apischema.types import (
     AnyType,
@@ -60,7 +61,7 @@ from apischema.utils import get_origin_or_type, opt_or
 from apischema.validation.errors import ErrorKey, ValidationError, merge_errors
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validators import Validator, get_validators, validate
-from apischema.visitor import Unsupported, dataclass_types_and_fields
+from apischema.visitor import Unsupported
 
 DICT_TYPE = get_origin(Dict[Any, Any])
 LIST_TYPE = get_origin(List[Any])
@@ -222,13 +223,13 @@ class DeserializationMethodVisitor(
 
         self.aliaser = _aliaser
 
-    def _visit(self, tp: AnyType) -> DeserializationMethodFactory:
+    def _visit_not_generic(self, tp: AnyType) -> DeserializationMethodFactory:
         key = self._generic or tp, self._conversions
         if key in self._rec_sentinel:
             return cast(DeserializationMethodFactory, self._rec_sentinel[key])
         else:
             self._rec_sentinel[key] = RecDeserializerMethodFactory()
-            factory = super()._visit(tp)
+            factory = super()._visit_not_generic(tp)
             return self._rec_sentinel.pop(key).set_ref(factory)
 
     def method(self, cls) -> DeserializationMethod:
@@ -398,18 +399,16 @@ class DeserializationMethodVisitor(
             Tuple[str, DeserializationMethod, DefaultFallback]
         ] = None
         post_init_modified = {field.name for field in fields if field.post_init}
-        defaults: Dict[str, Callable[[], Any]] = {
-            f.name: f.default_factory for f in fields if not f.required  # type: ignore
-        }
         alias_by_name = {field.name: self.aliaser(field.alias) for field in fields}
         requiring: Dict[str, Set[str]] = defaultdict(set)
         for f, reqs in get_dependent_required(cls).items():
             for req in reqs:
                 requiring[req].add(alias_by_name[f])
-        if is_dataclass(cls):
-            _, _, init_vars = dataclass_types_and_fields(cls)  # type: ignore
-        else:
-            init_vars = ()
+        init_defaults = [
+            (f.name, f.default_factory)
+            for f in fields
+            if f.kind == FieldKind.WRITE_ONLY
+        ]
         for field in fields:
             field_factory = self.visit_with_conversions(
                 field.type, field.deserialization
@@ -546,14 +545,12 @@ class DeserializationMethodVisitor(
                 validators2: Sequence[Validator]
                 if validators:
                     init: Dict[str, Any] = {}
-                    for init_field in init_vars:
-                        if init_field.name in values:
-                            init[init_field.name] = values[init_field.name]
-                        if (
-                            init_field.name not in field_errors
-                            and init_field.name in defaults
-                        ):
-                            init[init_field.name] = defaults[init_field.name]()
+                    for name, default_factory in init_defaults:
+                        if name in values:
+                            init[name] = values[name]
+                        elif name not in field_errors:
+                            assert default_factory is not None
+                            init[name] = default_factory()
                     # Don't keep validators when all dependencies are default
                     validators2 = [
                         v for v in validators if v.dependencies & values.keys()
@@ -691,16 +688,13 @@ class DeserializationMethodVisitor(
 
         return factory
 
-    def visit_conversion(
+    def _visit_conversion(
         self, tp: AnyType, conversion: Deserialization, dynamic: bool
     ) -> DeserializationMethodFactory:
         assert conversion
         cls = get_origin_or_type(tp)
         factories = [
-            (
-                conv,
-                self.visit_with_conversions(conv.source, conv.sub_conversions),
-            )
+            (conv, self.visit_with_conversions(conv.source, conv.sub_conversions))
             for conv in conversion
         ]
 

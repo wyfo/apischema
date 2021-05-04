@@ -104,6 +104,7 @@ Return = TypeVar("Return", covariant=True)
 
 class Visitor(Generic[Return]):
     def __init__(self):
+        super().__init__()
         self._generic: Optional[AnyType] = None
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> Return:
@@ -131,7 +132,7 @@ class Visitor(Generic[Return]):
         _generic = self._generic
         self._generic = tp
         try:
-            return self._visit(get_origin(tp))
+            return self._visit_not_generic(get_origin(tp))
         finally:
             self._generic = _generic
 
@@ -196,7 +197,7 @@ class Visitor(Generic[Return]):
             return self.literal(args)
         return self.generic(tp)
 
-    def _visit(self, tp: AnyType) -> Return:
+    def _visit_not_generic(self, tp: AnyType) -> Return:
         if tp in PRIMITIVE_TYPES:
             return self.primitive(tp)
         if is_dataclass(tp):
@@ -251,6 +252,6 @@ class Visitor(Generic[Return]):
             _generic = self._generic
             self._generic = None
             try:
-                return self._visit(tp)
+                return self._visit_not_generic(tp)
             finally:
                 self._generic = _generic

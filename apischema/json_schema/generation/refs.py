@@ -1,11 +1,25 @@
-from contextlib import suppress
+from collections import defaultdict
 from enum import Enum
-from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple, Type
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TypeVar,
+)
 
+from apischema.conversions.conversions import ResolvedConversions
 from apischema.conversions.visitor import (
     ConversionsVisitor,
     DeserializationVisitor,
     SerializationVisitor,
+)
+from apischema.json_schema.generation.conversions_resolver import (
+    WithConversionsResolver,
 )
 from apischema.objects import ObjectField
 from apischema.objects.visitor import (
@@ -15,7 +29,7 @@ from apischema.objects.visitor import (
 )
 from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.types import AnyType, UndefinedType
-from apischema.utils import contains
+from apischema.utils import replace_builtins
 
 try:
     from apischema.typing import Annotated
@@ -29,18 +43,23 @@ class Recursive(Exception):
     pass
 
 
-class RefsExtractor(ObjectVisitor, ConversionsVisitor):
+T = TypeVar("T")
+
+
+class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
     def __init__(self, refs: Refs):
         super().__init__()
         self.refs = refs
-        self._rec_guard: Dict[AnyType, bool] = {}
+        self._rec_guard: Dict[Tuple[AnyType, ResolvedConversions], int] = defaultdict(
+            lambda: 1
+        )
 
     def _incr_ref(self, ref: Optional[str], tp: AnyType) -> bool:
         if ref is None:
             return False
         else:
             ref_cls, count = self.refs.get(ref, (tp, 0))
-            if ref_cls != tp:
+            if replace_builtins(ref_cls) != replace_builtins(tp):
                 raise ValueError(
                     f"Types {tp} and {self.refs[ref][0]} share same reference '{ref}'"
                 )
@@ -63,7 +82,7 @@ class RefsExtractor(ObjectVisitor, ConversionsVisitor):
         pass
 
     def collection(self, cls: Type[Iterable], value_type: AnyType):
-        return self.visit(value_type)
+        self.visit(value_type)
 
     def enum(self, cls: Type[Enum]):
         pass
@@ -99,31 +118,33 @@ class RefsExtractor(ObjectVisitor, ConversionsVisitor):
     def union(self, alternatives: Sequence[AnyType]):
         return super().union([alt for alt in alternatives if alt is not UndefinedType])
 
-    def visit(self, tp: AnyType):
-        dynamic = self._apply_dynamic_conversions(tp)
-        ref_tp = dynamic if dynamic is not None else tp
-        if not self._incr_ref(get_type_name(ref_tp).json_schema, ref_tp):
-            if contains(self._rec_guard, ref_tp) and self._rec_guard[ref_tp]:
-                raise TypeError(f"Recursive type {tp} need a ref")
-            with suppress(TypeError):
-                self._rec_guard[ref_tp] = ref_tp in self._rec_guard
-            try:
-                super().visit(ref_tp)
-            finally:
-                with suppress(TypeError):
-                    if self._rec_guard[ref_tp]:
-                        self._rec_guard[ref_tp] = False
-                    else:
-                        del self._rec_guard[ref_tp]
+    def visit_conversion(self, tp: AnyType, conversion: Optional[Any], dynamic: bool):
+        if not dynamic:
+            for ref_tp in self.resolve_conversions(tp):
+                if self._incr_ref(get_type_name(ref_tp).json_schema, ref_tp):
+                    return
+        try:
+            hash(tp)
+        except TypeError:
+            return super().visit_conversion(tp, conversion, dynamic)
+        # 2 because the first type encountered of the recursive cycle can have no ref
+        # (see test_recursive_by_conversion_schema)
+        if self._rec_guard[(tp, self._conversions)] > 2:
+            raise TypeError(f"Recursive type {tp} need a ref")
+        self._rec_guard[(tp, self._conversions)] += 1
+        try:
+            return super().visit_conversion(tp, conversion, dynamic)
+        finally:
+            self._rec_guard[(tp, self._conversions)] -= 1
 
 
 class DeserializationRefsExtractor(
-    DeserializationObjectVisitor, DeserializationVisitor, RefsExtractor
+    RefsExtractor, DeserializationVisitor, DeserializationObjectVisitor
 ):
     pass
 
 
 class SerializationRefsExtractor(
-    SerializationObjectVisitor, SerializationVisitor, RefsExtractor
+    RefsExtractor, SerializationVisitor, SerializationObjectVisitor
 ):
     pass

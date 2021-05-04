@@ -1,6 +1,5 @@
 import collections.abc
 import sys
-import typing
 from enum import Enum, auto
 from itertools import chain
 from types import MappingProxyType
@@ -22,8 +21,6 @@ from typing import (
     Type,
     Union,
 )
-
-from apischema.typing import get_origin
 
 AnyType = Any
 NoneType: Type[None] = type(None)
@@ -59,23 +56,6 @@ MAPPING_TYPES = {
     dict: dict,
     MappingProxyType: MappingProxyType,
 }
-
-
-if (3, 7) <= sys.version_info < (3, 9):  # pragma: no cover
-
-    def subscriptable_origin(tp: AnyType) -> AnyType:
-        if (
-            type(tp) == type(List[int])  # noqa: E721
-            and tp.__module__ == "typing"
-            and hasattr(tp, "_name")
-        ):
-            return getattr(typing, tp._name)
-        else:
-            return get_origin(tp)
-
-
-else:  # pragma: no cover
-    subscriptable_origin = get_origin  # type: ignore
 
 
 if sys.version_info >= (3, 7):  # pragma: no cover
