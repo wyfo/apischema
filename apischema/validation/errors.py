@@ -1,6 +1,7 @@
 import collections.abc
 import re
 import sys
+import warnings
 from dataclasses import dataclass, field
 from functools import reduce, wraps
 from inspect import isgeneratorfunction
@@ -56,6 +57,9 @@ class LocalizedError:
 class ValidationError(Exception):
     messages: Sequence[ErrorMsg] = field(default_factory=list)
     children: Mapping[ErrorKey, "ValidationError"] = field(default_factory=dict)
+
+    def __str__(self):
+        return repr(self)
 
     def flat(self) -> Iterator[Tuple[Tuple[ErrorKey, ...], Sequence[ErrorMsg]]]:
         if self.messages:
@@ -158,7 +162,11 @@ else:
     GeneratorOrigin = Generator  # pragma: no cover
 
 
-def yield_to_raise(func: Callable[..., ValidatorResult[T]]) -> Callable[..., T]:
+# Looking forward to PEP 612
+def gather_errors(func: Callable[..., ValidatorResult[T]]) -> Callable[..., T]:
+    if not isgeneratorfunction(func):
+        raise TypeError("func must be a generator returning a ValidatorResult")
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         result, errors = func(*args, **kwargs), []
@@ -170,14 +178,6 @@ def yield_to_raise(func: Callable[..., ValidatorResult[T]]) -> Callable[..., T]:
                     raise build_validation_error(errors)
                 return stop.value
 
-    return wrapper
-
-
-# Looking forward to PEP 612
-def with_validation_error(func: Callable[..., ValidatorResult[T]]) -> Callable[..., T]:
-    if not isgeneratorfunction(func):
-        raise TypeError("func must be a generator returning a ValidatorResult")
-    wrapper = yield_to_raise(func)
     if "return" in func.__annotations__:
         ret = func.__annotations__["return"]
         if isinstance(ret, str):
@@ -192,3 +192,11 @@ def with_validation_error(func: Callable[..., ValidatorResult[T]]) -> Callable[.
                     ret = Annotated[(ret, *annotations)]
         wrapper.__annotations__["return"] = ret
     return wrapper
+
+
+def with_validation_error(*args, **kwargs):
+    warnings.warn(
+        "with_validation_error is deprecated, use gather_errors instead",
+        DeprecationWarning,
+    )
+    return gather_errors(*args, **kwargs)
