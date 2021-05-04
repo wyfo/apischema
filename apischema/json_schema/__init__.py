@@ -1,5 +1,6 @@
 __all__ = [
     "JsonSchemaVersion",
+    "Schema",
     "definitions_schema",
     "deserialization_schema",
     "schema",
@@ -11,5 +12,5 @@ from .generation.schema import (
     deserialization_schema,
     serialization_schema,
 )
-from .schemas import schema
+from .schemas import Schema, schema
 from .versions import JsonSchemaVersion

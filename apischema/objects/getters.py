@@ -1,15 +1,4 @@
-from dataclasses import Field
-from typing import (
-    Any,
-    Iterable,
-    Mapping,
-    Sequence,
-    Type,
-    TypeVar,
-    Union,
-    cast,
-    overload,
-)
+from typing import Any, Mapping, Sequence, Type, TypeVar, Union, cast, overload
 
 from apischema.cache import cache
 from apischema.objects.fields import ObjectField
@@ -20,35 +9,21 @@ from apischema.visitor import Unsupported
 
 
 class GetFields(ObjectVisitor[Sequence[ObjectField]]):
-    def __init__(self, serialization: bool):
-        super().__init__()
-        self.serialization = serialization
-
-    def _fields(
-        self,
-        fields: Sequence[Field],
-        init_vars: Sequence[Field],
-    ) -> Iterable[Field]:
-        return fields if self.serialization else (*fields, *init_vars)
-
     def object(self, cls: Type, fields: Sequence[ObjectField]) -> Sequence[ObjectField]:
         return fields
 
 
 @cache
-def object_fields(
-    tp: AnyType, *, serialization: bool = False
-) -> Mapping[str, ObjectField]:
+def object_fields(tp: AnyType) -> Mapping[str, ObjectField]:
     try:
-        return OrderedDict((f.name, f) for f in GetFields(serialization).visit(tp))
+        return OrderedDict((f.name, f) for f in GetFields().visit(tp))
     except Unsupported:
         raise TypeError(f"{tp} doesn't have fields")
 
 
-def object_fields2(obj: Any, serialization: bool = False) -> Mapping[str, ObjectField]:
+def object_fields2(obj: Any) -> Mapping[str, ObjectField]:
     return object_fields(
-        obj if isinstance(obj, (type, _GenericAlias)) else obj.__class__,
-        serialization=serialization,
+        obj if isinstance(obj, (type, _GenericAlias)) else obj.__class__
     )
 
 

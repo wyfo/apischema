@@ -39,8 +39,10 @@ if TYPE_CHECKING:
 
 _deserializers: Dict[Type, List[ConvOrFunc]] = defaultdict(list)
 _serializers: Dict[Type, ConvOrFunc] = {}
-Deserializer = TypeVar("Deserializer", Callable, Conversion, staticmethod, type)
-Serializer = TypeVar("Serializer", Callable, Conversion, property, type)
+Deserializer = TypeVar(
+    "Deserializer", bound=Union[Callable, Conversion, staticmethod, type]
+)
+Serializer = TypeVar("Serializer", bound=Union[Callable, Conversion, property, type])
 
 
 def check_converter_type(tp: AnyType, side: str) -> Type:
@@ -94,8 +96,8 @@ def deserializer(
         elif isinstance(deserializer, LazyConversion):
             stop_signature_abuse()
         else:
-            resolved = resolve_conversion(deserializer)
-            _add_deserializer(deserializer, resolved.target)
+            resolved = resolve_conversion(deserializer)  # type: ignore
+            _add_deserializer(deserializer, resolved.target)  # type: ignore
             return deserializer
     elif lazy is not None and target is not None:
 

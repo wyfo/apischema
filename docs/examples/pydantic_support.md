@@ -1,12 +1,10 @@
 # Pydantic support
 
-It takes only 20 lines of code to support `pydantic.BaseModel` and all of its subclasses. You could add these lines to your project using *pydantic* and start to benefit of *apischema* features.
+It takes only 30 lines of code to support `pydantic.BaseModel` and all of its subclasses. You could add these lines to your project using *pydantic* and start to benefit of *apischema* features.
 
-!!! note
-    This support unfortunately doesn't include *GraphQL* schema feature.
+This example deliberately doesn't use `set_object_fields` but [conversions feature](../conversions.md) in order to roughly include *pydantic* "as is": it will reuse *pydantic* coercion, error messages, JSON schema, etc. This makes a full retro-compatible support.
 
-!!! note
-    *pydantic* pseudo-dataclasses are de facto supported but without *pydantic* extra features; they could be fully supported, but it would require some additional lines of code.  
+As a result, lot of *apischema* features like *GraphQL* schema generation or `NewType` validation cannot be supported using this method — but they could be by using `set_object_fields` instead. 
 
 ```python
 {!examples/pydantic_support.py!}

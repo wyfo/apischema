@@ -8,15 +8,7 @@ from dataclasses import (  # type: ignore
 )
 from functools import wraps
 from inspect import signature
-from typing import (
-    AbstractSet,
-    Any,
-    Collection,
-    Set,
-    Type,
-    TypeVar,
-    cast,
-)
+from typing import AbstractSet, Any, Collection, Set, Type, TypeVar, cast
 
 from apischema.objects.fields import get_field_name
 from apischema.objects.getters import object_fields2
@@ -113,7 +105,7 @@ def _field_names(fields: Collection) -> AbstractSet[str]:
 def _fields_set(obj: Any) -> Set[str]:
     if not hasattr(obj, FIELDS_SET_ATTR):
         try:
-            default_fields: Collection[str] = object_fields2(obj, serialization=True)
+            default_fields: Collection[str] = object_fields2(obj)
         except TypeError:
             default_fields = ()
         try:

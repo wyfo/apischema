@@ -178,7 +178,7 @@ A common pattern of conversion concerns class having a string constructor and a 
     Previously mentioned standard types are handled by *apischema* using `as_str`.
 
 
-## Object conversions — use any class as if it was a dataclass
+## Object fields — use any class as if it was a dataclass
 
 Conversions are a powerful tool, which allows to support every type you need. If it is particularly well suited for scalar types (`datetime.datetime`, `bson.ObjectId`, etc.), it's may seem cumbersome for object types. In fact, the conversion would often be a simple mapping of fields between the type and a custom dataclass.
 

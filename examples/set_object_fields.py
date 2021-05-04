@@ -1,6 +1,6 @@
 from apischema import deserialize, serialize
 from apischema.json_schema import deserialization_schema
-from apischema.objects import ObjectField, object_conversion
+from apischema.objects import ObjectField, set_object_fields
 
 
 class Foo:
@@ -8,14 +8,12 @@ class Foo:
         self.bar = bar
 
 
-foo_deserialization, foo_serialization = object_conversion(
-    Foo, [ObjectField(name="bar", type=int, required=True)]
-)
+set_object_fields(Foo, [ObjectField("bar", int)])
 
-foo = deserialize(Foo, {"bar": 0}, conversions=foo_deserialization)
+foo = deserialize(Foo, {"bar": 0})
 assert isinstance(foo, Foo) and foo.bar == 0
-assert serialize(Foo(0), conversions=foo_serialization) == {"bar": 0}
-assert deserialization_schema(Foo, conversions=foo_deserialization) == {
+assert serialize(Foo(0)) == {"bar": 0}
+assert deserialization_schema(Foo) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "type": "object",
     "properties": {"bar": {"type": "integer"}},

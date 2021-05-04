@@ -3,7 +3,7 @@ from typing import AbstractSet, Dict, List, Mapping, Set
 
 from pytest import mark
 
-from apischema.types import MetadataImplem, MetadataMixin, subscriptable_origin
+from apischema.types import MetadataImplem, MetadataMixin
 from apischema.utils import replace_builtins
 
 
@@ -22,20 +22,15 @@ def test_metadata_mixin():
     assert list(instance.items()) == [("key", instance)]
 
 
-LIST = subscriptable_origin(List[None])
-SET = subscriptable_origin(Set[None])
-DICT = subscriptable_origin(Dict[None, None])
-
-
 @mark.parametrize(
     "tp, expected",
     [
         (int, int),
-        (List[int], LIST[int]),
-        (Mapping[str, int], DICT[str, int]),
-        (AbstractSet[str], SET[str]),
+        (List[int], List[int]),
+        (Mapping[str, int], Dict[str, int]),
+        (AbstractSet[str], Set[str]),
         *(
-            [(dict[str, bool], DICT[str, bool])]  # type: ignore
+            [(dict[str, bool], Dict[str, bool])]  # type: ignore
             if sys.version_info >= (3, 9)
             else []
         ),

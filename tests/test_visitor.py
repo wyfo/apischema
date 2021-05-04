@@ -31,9 +31,9 @@ ARG = object()
 @fixture
 def visitor() -> Mock:
     mock = Mock()
-    Visitor.__init__(mock)
+    mock._generic = None
     mock._visit_generic = MethodType(Visitor._visit_generic, mock)
-    mock._visit = MethodType(Visitor._visit, mock)
+    mock._visit_not_generic = MethodType(Visitor._visit_not_generic, mock)
     return mock
 
 

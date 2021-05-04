@@ -1,12 +1,5 @@
 from dataclasses import dataclass
-from typing import (
-    Collection,
-    Generic,
-    List,
-    Optional,
-    Sequence,
-    TypeVar,
-)
+from typing import Collection, Generic, List, Optional, Sequence, TypeVar
 
 from _pytest.python_api import raises
 from pytest import mark
@@ -51,7 +44,7 @@ def test_find_refs():
     assert refs == {
         "B": (B, 1),
         "DD": (D, 1),
-        "Bs": (List[B], 1),
+        "Bs": (Collection[B], 1),
         "Bs2": (Annotated[List[B], type_name("Bs2")], 1),
         "Recursive": (Recursive, 2),
     }
