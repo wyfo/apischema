@@ -198,7 +198,7 @@ That's why *apischema* defines a `NotNull` type; in fact, `NotNull = Union[T, An
 
 ## Custom types
 
-*apischema* can support almost all of your types in a few lines of code; see [below](#dataclass-like-types-aka-object-types) for dataclass-like types, and [conversion section](conversions.md) for the rest.
+*apischema* can support almost all of your custom types in a few lines of code; see [below](#dataclass-like-types-aka-object-types) for dataclass-like types, and [conversion section](conversions.md) for the rest.
 
 Otherwise, when *apischema* encounters a type that it doesn't support, `Unsupported` exception will be raised.
 
@@ -228,6 +228,9 @@ Thus, support of dataclass-like types (*attrs*, *SQLAlchemy* traditional mappers
 ```python
 {!set_object_fields.py!}
 ```
+
+!!! note
+    `set_object_fields` argument can also be a factory function. 
 
 ## Skip field
 

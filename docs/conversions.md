@@ -178,37 +178,6 @@ A common pattern of conversion concerns class having a string constructor and a 
     Previously mentioned standard types are handled by *apischema* using `as_str`.
 
 
-## Object fields — use any class as if it was a dataclass
-
-Conversions are a powerful tool, which allows to support every type you need. If it is particularly well suited for scalar types (`datetime.datetime`, `bson.ObjectId`, etc.), it's may seem cumbersome for object types. In fact, the conversion would often be a simple mapping of fields between the type and a custom dataclass.
-
-That's why *apischema* provides a shortcut for this case: `apischema.objects.object_conversion`; it takes the class to convert and a collection of `apischema.objects.ObjectField` fields which will be used as if they were owned by the converted class, and return deserialization/serialization conversions.
-
-As you can guess, it requires the class constructor being callable with fields as keyword, and each field being available with `getattr`. 
-
-```python
-{!object_conversion.py!}
-```
-
-Using `apischema.objects.as_object` instead will directly register these conversions (and it can do it [lazily](#lazy-registered-conversions)).
-
-```python
-{!as_object.py!}
-```
-
-Object conversions have two differences with regular conversions :
-
-- Converted class is directly used, as if it was a dataclass with the provided fields. This means there is no converter call, and no intermediate object generated; object conversions are thus more performant.
-
-- As a consequence of having no intermediate, the converted class serialized methods are available in the serialization. 
-
-Object conversions are thus the best way to support dataclass-like classes, like ORM mappers. Here is an example of [basic support for 
-*SQLAlchemy*](examples/sqlalchemy_support.md):
-
-```python
-{!examples/sqlalchemy_support.py!}
-```
-
 ## Function parameters as dataclass
 
 `apischema.conversions.dataclass_input_wrapper` can convert a function into a new function taking a unique parameter, a dataclass whose fields are mapped from the original function parameters.
@@ -260,12 +229,6 @@ Lazy conversions can also be registered, but the deserialization target/serializ
 
 ```python
 {!lazy_registered_conversion.py!}
-```
-
-Object conversion also has a shortcut to be registered lazily, by wrapping the list of `ObjectField` in a function. It can be needed when wrapped classes are post-processed after their creation — *SQLAlchemy* tables with relations are a good example.
-
-```python
-{!lazy_object_wrapper.py!}
 ```
 
 ## FAQ

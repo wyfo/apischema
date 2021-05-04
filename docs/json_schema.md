@@ -151,7 +151,7 @@ However when the schema of the key has a `pattern`, it will give a `"patternProp
 
 ### With dataclass
 
-`additionalProperties`/`patternProperties` can be added to dataclasses by using  fields annotated with `properties` metadata. Properties not mapped on regular fields will be deserialized into this fields; they must have a `Mapping` type (or be [convertible](conversions.md) from `Mapping`) because they are instanciated with a mapping.
+`additionalProperties`/`patternProperties` can be added to dataclasses by using  fields annotated with `properties` metadata. Properties not mapped on regular fields will be deserialized into this fields; they must have a `Mapping` type, or be [deserializable](conversions.md) from a `Mapping`, because they are instantiated with a mapping.
  
 ```python
 {!properties.py!}

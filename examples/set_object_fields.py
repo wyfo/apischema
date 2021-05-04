@@ -9,6 +9,8 @@ class Foo:
 
 
 set_object_fields(Foo, [ObjectField("bar", int)])
+# Fields can also be passed in a factory
+set_object_fields(Foo, lambda: [ObjectField("bar", int)])
 
 foo = deserialize(Foo, {"bar": 0})
 assert isinstance(foo, Foo) and foo.bar == 0

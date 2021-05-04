@@ -117,8 +117,7 @@ Dataclasses `InitVar` are accessible in validators by using parameters the same 
 ```
 
 ### Validators are not run on default values
-If all validator dependencies are initialized with their defau
-lt values, they are not run; make sure your default values make sens.
+If all validator dependencies are initialized with their default values, they are not run.
 
 ```python
 {!validator_default.py!}
