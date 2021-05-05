@@ -90,15 +90,6 @@ max_props | maxProperties | `dict`
 
 !!! note
     `schema` function has an overloaded signature which prevents to mix incompatible keywords. 
-    
-Two other arguments give a finer control of the JSON schema generated: 
-
-- `extra`, either a mapping which will be merged in the schema, or a callable taking the schema dictionary to be modified in place.
-- `override=True` prevents *apischema* to use the annotated type schema, using only `schema` annotation, especially `extra` parameter.  
-
-```python
-{!schema_extra.py!}
-```
 
 ### `default` annotation
 
@@ -131,6 +122,14 @@ def default_schema(cls) -> Optional[Schema]:
 ``` 
 
 Default implementation returns `None` for every types.
+
+### Extra schema
+
+`schema` has two other arguments: `extra` and `override`, which give a finer control of the JSON schema generated: `extra` and `override`. It can be used for example to build "strict" unions (using `oneOf` instead of `anyOf`)
+
+```python
+{!strict_union.py!}
+```
 
 ## Required field with default value
 
