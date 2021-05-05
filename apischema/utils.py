@@ -1,6 +1,7 @@
 import collections.abc
 import re
 import sys
+from dataclasses import is_dataclass
 from enum import Enum, auto
 from functools import wraps
 from inspect import signature
@@ -25,10 +26,8 @@ from typing import (
     cast,
 )
 
-
 from apischema.types import AnyType, COLLECTION_TYPES, MAPPING_TYPES, OrderedDict
-from apischema.typing import _collect_type_vars, get_args, get_origin
-from dataclasses import is_dataclass
+from apischema.typing import _collect_type_vars, get_args, get_origin, is_annotated
 
 try:
     from apischema.typing import Annotated
@@ -140,21 +139,22 @@ def typed_wraps(wrapped: Func) -> Callable[[Callable], Func]:
     return cast(Func, wraps(wrapped))
 
 
+def _annotated(tp: AnyType) -> AnyType:
+    return get_args(tp)[0] if is_annotated(tp) else tp
+
+
 def get_origin2(tp: AnyType) -> Optional[Type]:
-    origin = get_origin(tp)
-    return get_origin(get_args(tp)[0]) if origin is Annotated else origin
+    return get_origin(_annotated(tp))
 
 
 def get_args2(tp: AnyType) -> Tuple[AnyType, ...]:
-    origin = get_origin(tp)
-    return get_args(get_args(tp)[0]) if origin is Annotated else get_args(tp)
+    return get_args(_annotated(tp))
 
 
 def get_origin_or_type(tp: AnyType) -> AnyType:
-    origin = get_origin(tp)
-    if origin is Annotated:
-        return get_origin_or_type(get_args(tp)[0])
-    return origin if origin is not None else tp
+    tp2 = _annotated(tp)
+    origin = get_origin(tp2)
+    return origin if origin is not None else tp2
 
 
 def with_parameters(tp: AnyType) -> AnyType:
@@ -296,7 +296,7 @@ def replace_builtins(tp: AnyType) -> AnyType:
     else:
         replacement = origin
     res = replacement[args] if args else replacement
-    return Annotated[(res, *get_args(tp)[1:])] if get_origin(tp) == Annotated else res
+    return Annotated[(res, *get_args(tp)[1:])] if is_annotated(tp) else res
 
 
 def sort_by_annotations_position(

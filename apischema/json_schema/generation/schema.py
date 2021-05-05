@@ -61,7 +61,7 @@ from apischema.serialization import serialize
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.types import AnyType, OrderedDict, UndefinedType
-from apischema.typing import get_args, get_origin
+from apischema.typing import get_args, get_origin, is_annotated, is_new_type
 from apischema.utils import is_union_of, sort_by_annotations_position
 
 try:
@@ -366,7 +366,7 @@ class SchemaBuilder(
             if ref_schema is not None:
                 return ref_schema
         schema = merge_schema(get_schema(tp), self._schema)
-        if get_origin(tp) == Annotated or hasattr(tp, "__supertype__"):
+        if is_new_type(tp) or is_annotated(tp):
             with self._replace_schema(schema):
                 return super().visit_conversion(tp, conversion, dynamic)
         if get_args(tp):

@@ -1,16 +1,10 @@
 from typing import Mapping
 
-
 from apischema.metadata.implem import ValidatorsMetadata
 from apischema.metadata.keys import SCHEMA_METADATA, VALIDATORS_METADATA
 from apischema.types import AnyType, ChainMap
-from apischema.typing import get_args, get_origin
+from apischema.typing import get_args, is_annotated
 from apischema.utils import empty_dict
-
-try:
-    from apischema.typing import Annotated
-except ImportError:
-    Annotated = ...  # type: ignore
 
 
 class AliasedStr(str):
@@ -25,7 +19,7 @@ ANNOTATED_METADATA = {
 
 
 def annotated_metadata(tp: AnyType) -> Mapping:
-    if get_origin(tp) == Annotated:
+    if is_annotated(tp):
         return ChainMap(
             ANNOTATED_METADATA,
             *(arg for arg in reversed(get_args(tp)[1:]) if isinstance(arg, Mapping)),

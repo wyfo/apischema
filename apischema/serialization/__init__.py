@@ -20,6 +20,7 @@ from apischema.objects.fields import FieldKind
 from apischema.objects.visitor import ObjectVisitor
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import PRIMITIVE_TYPES, Undefined, UndefinedType
+from apischema.typing import is_named_tuple
 from apischema.visitor import Unsupported
 
 T = TypeVar("T")
@@ -138,7 +139,7 @@ def serialization_method_factory(
                 ): get_method(value.__class__, conversions, aliaser)(value, exc_unset)
                 for key, value in obj.items()
             }
-        if issubclass(cls, tuple) and hasattr(cls, "_fields"):
+        if is_named_tuple(cls):
             return object_method(cls, aliaser)  # type: ignore
         if issubclass(cls, Collection):
             return lambda obj, exc_unset: [

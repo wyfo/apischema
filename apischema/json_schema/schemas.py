@@ -15,7 +15,7 @@ from typing import (
 
 from apischema.metadata.keys import SCHEMA_METADATA
 from apischema.types import AnyType, MetadataMixin, Number, Undefined
-from apischema.typing import get_origin
+from apischema.typing import is_annotated
 from apischema.utils import contains, merge_opts, replace_builtins, stop_signature_abuse
 from .annotations import Annotations, ContentEncoding, Deprecated
 from .constraints import (
@@ -46,7 +46,7 @@ class Schema(MetadataMixin):
     child: Optional["Schema"] = None
 
     def __call__(self, tp: T) -> T:
-        if get_origin(tp) is Annotated:
+        if is_annotated(tp):
             raise TypeError("Cannot register schema on Annotated type")
         _schemas[replace_builtins(tp)] = self
         return tp

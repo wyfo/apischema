@@ -2,7 +2,7 @@ __all__ = ["NotNull", "Skip"]
 from typing import TypeVar, Union
 
 from apischema.types import AnyType
-from apischema.typing import get_args, get_origin
+from apischema.typing import get_args, is_annotated
 
 
 class Skipped(Exception):
@@ -13,16 +13,10 @@ Skip = object()
 
 T = TypeVar("T")
 try:
-    from typing import Annotated  # type: ignore
-except ImportError:
-    try:
-        from typing_extensions import Annotated  # type: ignore
-    except ImportError:
-        Annotated = None  # type: ignore
+    from apischema.typing import Annotated
 
-if Annotated is not None:
     NotNull = Union[T, Annotated[None, Skip]]
-else:
+except ImportError:
 
     class _NotNull:
         def __getitem__(self, item):
@@ -32,4 +26,4 @@ else:
 
 
 def is_skipped(tp: AnyType) -> bool:
-    return get_origin(tp) is Annotated and (Skip in get_args(tp)[1:])
+    return is_annotated(tp) and (Skip in get_args(tp)[1:])
