@@ -23,7 +23,7 @@ from typing import (
     overload,
 )
 
-from apischema.typing import get_args, get_origin
+from apischema.typing import get_args, is_annotated
 from apischema.utils import get_args2, get_origin2, merge_opts
 
 try:
@@ -185,7 +185,7 @@ def gather_errors(func: Callable[..., ValidatorResult[T]]) -> Callable[..., T]:
             if match is not None:
                 ret = match.groupdict("ret")
         else:
-            annotations = get_args(ret)[1:] if get_origin(ret) == Annotated else ()
+            annotations = get_args(ret)[1:] if is_annotated(ret) else ()
             if get_origin2(ret) == GeneratorOrigin:
                 ret = get_args2(ret)[2]
                 if annotations:

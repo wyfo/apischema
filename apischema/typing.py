@@ -1,8 +1,8 @@
 """Kind of typing_extensions for this package"""
-__all__ = ["_LiteralMeta", "_TypedDictMeta", "get_args", "get_origin", "get_type_hints"]
+__all__ = ["get_args", "get_origin", "get_type_hints"]
 
 import sys
-from types import ModuleType
+from types import ModuleType, new_class
 from typing import (  # type: ignore
     Any,
     Callable,
@@ -209,9 +209,59 @@ except NameError:
     _LiteralMeta, _TypedDictMeta = _FakeType, _FakeType  # type: ignore
 
 
+def is_new_type(tp: Any) -> bool:
+    return hasattr(tp, "__supertype__")
+
+
+def is_annotated(tp: Any) -> bool:
+    try:
+        from typing import Annotated  # type: ignore
+
+        return get_origin(tp) == Annotated
+    except ImportError:
+        try:
+            from typing_extensions import Annotated  # type: ignore
+
+            return get_origin(tp) == Annotated
+        except ImportError:
+            return False
+
+
+def is_literal(tp: Any) -> bool:
+    try:
+        from typing import Literal
+
+        return get_origin(tp) == Literal or isinstance(tp, type(Literal))  # py36
+    except ImportError:
+        try:
+            from typing_extensions import Literal  # type: ignore
+
+            return get_origin(tp) == Literal or isinstance(tp, type(Literal))  # py36
+        except ImportError:
+            return False
+
+
+def is_named_tuple(tp: Any) -> bool:
+    return issubclass(tp, tuple) and hasattr(tp, "_fields")
+
+
+def is_typed_dict(tp: Any) -> bool:
+    try:
+        from typing import TypedDict
+
+        return isinstance(tp, type(new_class("_TypedDictImplem", (TypedDict,))))
+    except ImportError:
+        try:
+            from typing_extensions import TypedDict  # type: ignore
+
+            return isinstance(tp, type(new_class("_TypedDictImplem", (TypedDict,))))
+        except ImportError:
+            return False
+
+
 # Don't use sys.version_info because it can also depend of typing_extensions version
 def required_keys(typed_dict: Type) -> Collection[str]:
-    assert isinstance(typed_dict, _TypedDictMeta)
+    assert is_typed_dict(typed_dict)
     if hasattr(typed_dict, "__required_keys__"):
         return typed_dict.__required_keys__
     else:

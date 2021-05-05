@@ -59,7 +59,7 @@ from apischema.serialization import serialize
 from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.types import AnyType, NoneType, OrderedDict, Undefined, UndefinedType
-from apischema.typing import get_args, get_origin
+from apischema.typing import get_args, get_origin, is_annotated, is_new_type
 from apischema.utils import (
     get_args2,
     get_origin2,
@@ -67,11 +67,6 @@ from apischema.utils import (
     sort_by_annotations_position,
     to_camel_case,
 )
-
-try:
-    from apischema.typing import Annotated
-except ImportError:
-    Annotated = ...  # type: ignore
 
 JsonScalar = graphql.GraphQLScalarType(
     "JSON",
@@ -114,7 +109,7 @@ def exec_thunk(thunk: TypeThunk, *, non_null=None) -> Any:
 def merged_schema(
     schema: Optional[Schema], tp: Optional[AnyType]
 ) -> Tuple[Optional[Schema], Mapping[str, Any]]:
-    if tp is not None and get_origin(tp) == Annotated:
+    if is_annotated(tp):
         for annotation in reversed(get_args(tp)[1:]):
             if isinstance(annotation, TypeNameFactory):
                 break
@@ -185,7 +180,7 @@ UnionNameFactory = Callable[[Sequence[str]], str]
 
 def annotated_schema(tp: AnyType) -> Optional[Schema]:
     schema = None
-    if get_origin(tp) == Annotated:
+    if is_annotated(tp):
         for annotation in get_args(tp)[1:]:
             if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
                 schema = merge_schema(annotation[SCHEMA_METADATA], schema)
@@ -345,7 +340,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, TypeThunk], ObjectVisitor[TypeThunk
         name, schema = get_type_name(tp).graphql, get_schema(tp)
         if self._merge_next:
             name, schema = self._name or name, merge_schema(schema, self._schema)
-        if get_origin(tp) == Annotated or hasattr(tp, "__supertype__"):
+        if is_new_type(tp) or is_annotated(tp):
             with self._replace_name_and_schema(name, schema, True):
                 return super().visit_conversion(tp, conversion, dynamic)
         if get_args(tp):

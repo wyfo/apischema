@@ -30,12 +30,14 @@ from apischema.types import (
     PRIMITIVE_TYPES,
 )
 from apischema.typing import (
-    _LiteralMeta,
-    _TypedDictMeta,
     get_args,
     get_origin,
     get_type_hints,
     get_type_hints2,
+    is_annotated,
+    is_literal,
+    is_named_tuple,
+    is_typed_dict,
     required_keys,
 )
 from apischema.utils import (
@@ -45,11 +47,6 @@ from apischema.utils import (
     is_dataclass,
     is_type_var,
 )
-
-try:
-    from apischema.typing import Annotated, Literal
-except ImportError:
-    Annotated, Literal = ..., ...  # type: ignore
 
 TUPLE_TYPE = get_origin(Tuple[Any])
 
@@ -178,7 +175,7 @@ class Visitor(Generic[Return]):
     def _visit_generic(self, tp: AnyType) -> Return:
         origin, args = get_origin(tp), get_args(tp)
         assert origin is not None
-        if origin is Annotated:
+        if is_annotated(tp):
             return self.annotated(args[0], args[1:])
         if origin is Union:
             alternatives = tuple(arg for arg in args if not is_skipped(arg))
@@ -193,7 +190,7 @@ class Visitor(Generic[Return]):
             return self.collection(origin, args[0])
         if origin in MAPPING_TYPES:
             return self.mapping(origin, args[0], args[1])
-        if origin is Literal:  # pragma: no cover py37+
+        if is_literal(tp):  # pragma: no cover py37+
             return self.literal(args)
         return self.generic(tp)
 
@@ -223,18 +220,17 @@ class Visitor(Generic[Return]):
                 if issubclass(tp, primitive):
                     return self.subprimitive(tp, primitive)
             # NamedTuple
-            if issubclass(tp, tuple) and hasattr(tp, "_fields"):
+            if is_named_tuple(tp):
                 if hasattr(tp, "__annotations__"):
                     types = type_hints_cache(self._generic or tp)
                 elif hasattr(tp, "__field_types"):  # pragma: no cover
-                    types = tp._field_types  # type: ignore
+                    types = tp.__field_types  # type: ignore
                 else:  # pragma: no cover
                     types = OrderedDict((f, Any) for f in tp._fields)  # type: ignore
                 return self.named_tuple(tp, types, tp._field_defaults)  # type: ignore
-        if isinstance(tp, _LiteralMeta):  # pragma: no cover py36
+        if is_literal(tp):  # pragma: no cover py36
             return self.literal(tp.__values__)  # type: ignore
-        # cannot use issubclass(..., TypedDict)
-        if isinstance(tp, _TypedDictMeta):
+        if is_typed_dict(tp):
             return self.typed_dict(
                 tp, type_hints_cache(self._generic or tp), required_keys(tp)
             )
