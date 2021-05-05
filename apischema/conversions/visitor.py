@@ -13,7 +13,6 @@ from typing import (
     Union,
 )
 
-from apischema.type_names import type_name
 from apischema.cache import cache
 from apischema.conversions import LazyConversion
 from apischema.conversions.conversions import (
@@ -24,17 +23,22 @@ from apischema.conversions.conversions import (
     handle_identity_conversion,
     is_identity,
     resolve_conversions,
-    update_generics,
 )
 from apischema.conversions.converters import _deserializers, _serializers
 from apischema.conversions.dataclass_models import handle_dataclass_model
 from apischema.conversions.utils import INVALID_CONVERSION_TYPES
+from apischema.type_names import type_name
 from apischema.types import AnyType, Undefined, UndefinedType
 from apischema.typing import get_args
-from apischema.utils import get_origin_or_type, has_type_vars
+from apischema.utils import (
+    get_origin_or_type,
+    has_type_vars,
+    substitute_type_vars,
+    subtyping_substitution,
+)
 from apischema.visitor import Return, Visitor
 
-Deserialization = Tuple[ResolvedConversion, ...]  # tuple to be hashable
+Deserialization = ResolvedConversions
 Serialization = ResolvedConversion
 Conv = TypeVar("Conv")
 
@@ -168,11 +172,13 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
                     wrapper: AnyType = self_deserialization_wrapper(origin)
                     if get_args(tp):
                         wrapper = wrapper[get_args(tp)]
-                    result.append(ResolvedConversion(replace(conv, source=wrapper)))
-                else:
-                    result.append(conv)
-        result = list(map(handle_dataclass_model, result))
-        result = list(update_generics(conv, tp, as_target=True) for conv in result)
+                    conv = ResolvedConversion(replace(conv, source=wrapper))
+                conv = handle_dataclass_model(conv)
+                _, substitution = subtyping_substitution(tp, conv.target)
+                source = substitute_type_vars(conv.source, substitution)
+                result.append(
+                    ResolvedConversion(replace(conv, source=source, target=tp))
+                )
         if identity_conv and len(result) == 1:
             return Undefined
         else:
@@ -208,9 +214,10 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
                 if is_identity(conv):
                     return Undefined
                 else:
-                    return update_generics(
-                        handle_dataclass_model(conv), tp, as_source=True
-                    )
+                    conv = handle_dataclass_model(conv)
+                    substitution, _ = subtyping_substitution(conv.source, tp)
+                    target = substitute_type_vars(conv.target, substitution)
+                    return ResolvedConversion(replace(conv, source=tp, target=target))
         else:
             return None
 

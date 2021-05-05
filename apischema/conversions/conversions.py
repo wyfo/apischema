@@ -1,12 +1,9 @@
-import collections.abc
 from dataclasses import dataclass, fields
 from typing import (
     Any,
     Callable,
     Collection,
-    Container,
     Dict,
-    Iterable,
     List,
     NewType,
     Optional,
@@ -23,16 +20,8 @@ from apischema.conversions.utils import (
     identity,
 )
 from apischema.dataclasses import replace
-from apischema.types import AnyType, COLLECTION_TYPES, MAPPING_TYPES
-from apischema.typing import generic_mro, get_args
-from apischema.utils import (
-    get_origin_or_type,
-    is_method,
-    is_type_var,
-    method_class,
-    method_wrapper,
-    substitute_type_vars,
-)
+from apischema.types import AnyType
+from apischema.utils import is_method, method_class, method_wrapper
 
 if TYPE_CHECKING:
     from apischema.deserialization.coercion import Coercion
@@ -132,61 +121,3 @@ def is_identity(conversion: ResolvedConversion) -> bool:
         and conversion.default_fallback is None
         and conversion.exclude_unset is None
     )
-
-
-ITERABLE_TYPES = (
-    COLLECTION_TYPES.keys()
-    | MAPPING_TYPES.keys()
-    | {Iterable, collections.abc.Iterable, Container, collections.abc.Container}
-)
-
-
-def update_generics(
-    conversion: ResolvedConversion,
-    tp: AnyType,
-    as_source: bool = False,
-    as_target: bool = False,
-) -> ResolvedConversion:
-
-    assert as_source != as_target
-    if as_source:
-        subtype, supertype = tp, conversion.source
-    elif as_target:
-        subtype, supertype = conversion.target, tp
-    else:
-        raise NotImplementedError
-    super_origin = get_origin_or_type(supertype)
-    if getattr(subtype, "__parameters__", ()):
-        subtype = subtype[subtype.__parameters__]
-    if getattr(supertype, "__parameters__", ()):
-        supertype = supertype[supertype.__parameters__]
-    substitution = {}
-    for base in generic_mro(subtype):
-        base_origin = get_origin_or_type(base)
-        if base_origin == super_origin or (
-            base_origin in ITERABLE_TYPES and super_origin in ITERABLE_TYPES
-        ):
-            for base_arg, super_arg in zip(get_args(base), get_args(supertype)):
-                if as_source and is_type_var(super_arg):
-                    substitution[super_arg] = base_arg
-                elif as_target and is_type_var(base_arg):
-                    substitution[base_arg] = super_arg
-            break
-    if as_source:
-        return ResolvedConversion(
-            replace(
-                conversion,
-                source=tp,
-                target=substitute_type_vars(conversion.target, substitution),
-            )
-        )
-    elif as_target:
-        return ResolvedConversion(
-            replace(
-                conversion,
-                source=substitute_type_vars(conversion.source, substitution),
-                target=tp,
-            )
-        )
-    else:
-        raise NotImplementedError

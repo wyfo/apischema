@@ -10,6 +10,7 @@ from typing import (
     Any,
     Callable,
     Collection,
+    Container,
     Dict,
     Generic,
     Hashable,
@@ -24,10 +25,17 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    get_type_hints,
 )
 
 from apischema.types import AnyType, COLLECTION_TYPES, MAPPING_TYPES, OrderedDict
-from apischema.typing import _collect_type_vars, get_args, get_origin, is_annotated
+from apischema.typing import (
+    _collect_type_vars,
+    generic_mro,
+    get_args,
+    get_origin,
+    is_annotated,
+)
 
 try:
     from apischema.typing import Annotated
@@ -256,23 +264,29 @@ class MethodWrapper(Generic[T]):
 def method_registerer(
     arg: Optional[Callable],
     owner: Optional[Type],
-    register: Callable[[Callable, Optional[Type], str], None],
+    register: Callable[[Callable, Type, str], None],
 ):
     def decorator(method: MethodOrProperty):
         if owner is None and is_method(method) and method_class(method) is None:
 
-            class ResolverDescriptor(MethodWrapper[MethodOrProperty]):
+            class Descriptor(MethodWrapper[MethodOrProperty]):
                 def __set_name__(self, owner, name):
                     super().__set_name__(owner, name)
                     register(method_wrapper(method), owner, name)
 
-            return ResolverDescriptor(method)
+            return Descriptor(method)
         else:
             owner2 = owner
             if is_method(method):
                 if owner2 is None:
                     owner2 = method_class(method)
                 method = method_wrapper(method)
+            if owner2 is None:
+                try:
+                    hints = get_type_hints(method)
+                    owner2 = get_origin_or_type(hints[next(iter(hints))])
+                except (KeyError, StopIteration):
+                    raise TypeError("First parameter of method must be typed") from None
             assert not isinstance(method, property)
             register(cast(Callable, method), owner2, method.__name__)
             return method
@@ -314,3 +328,31 @@ def stop_signature_abuse() -> NoReturn:
 
 
 empty_dict: Mapping[str, Any] = {}
+ITERABLE_TYPES = (
+    COLLECTION_TYPES.keys()
+    | MAPPING_TYPES.keys()
+    | {Iterable, collections.abc.Iterable, Container, collections.abc.Container}
+)
+
+
+def subtyping_substitution(
+    supertype: AnyType, subtype: AnyType
+) -> Tuple[Mapping[AnyType, AnyType], Mapping[AnyType, AnyType]]:
+    super_origin = get_origin_or_type(supertype)
+    if getattr(subtype, "__parameters__", ()):
+        subtype = subtype[subtype.__parameters__]
+    if getattr(supertype, "__parameters__", ()):
+        supertype = supertype[supertype.__parameters__]
+    supertype_to_subtype, subtype_to_supertype = {}, {}
+    for base in generic_mro(subtype):
+        base_origin = get_origin_or_type(base)
+        if base_origin == super_origin or (
+            base_origin in ITERABLE_TYPES and super_origin in ITERABLE_TYPES
+        ):
+            for base_arg, super_arg in zip(get_args(base), get_args(supertype)):
+                if is_type_var(super_arg):
+                    supertype_to_subtype[super_arg] = base_arg
+                if is_type_var(base_arg):
+                    subtype_to_supertype[base_arg] = super_arg
+            break
+    return supertype_to_subtype, subtype_to_supertype

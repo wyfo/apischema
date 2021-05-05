@@ -23,11 +23,11 @@ from apischema.types import AnyType, Undefined, UndefinedType
 from apischema.typing import generic_mro, get_args, get_type_hints
 from apischema.utils import (
     get_args2,
-    get_origin2,
     get_origin_or_type,
     get_parameters,
     method_registerer,
     substitute_type_vars,
+    subtyping_substitution,
 )
 
 
@@ -61,8 +61,9 @@ class SerializedMethod:
                 raise TypeError("Function must be typed")
         types["return"] = self.return_type(types["return"])
         if get_args2(owner):
-            substitution = dict(
-                zip(get_parameters(get_origin2(owner)), get_args2(owner))
+            first_param = next(iter(signature(self.func).parameters))
+            substitution, _ = subtyping_substitution(
+                types.get(first_param, get_origin_or_type(owner)), owner
             )
             types = {
                 name: substitute_type_vars(tp, substitution)
@@ -134,7 +135,7 @@ def serialized(
     error_handler: ErrorHandler = Undefined,
     owner: Type = None,
 ):
-    def register(func: Callable, owner: Optional[Type], alias2: str):
+    def register(func: Callable, owner: Type, alias2: str):
         alias2 = alias or alias2
         parameters = list(signature(func).parameters.values())
         for param in parameters[1:]:
@@ -160,13 +161,6 @@ def serialized(
 
         assert not isinstance(error_handler2, UndefinedType)
         serialized = SerializedMethod(func, conversions, schema, error_handler2)
-        if owner is None:
-            try:
-                owner = get_origin_or_type(get_type_hints(func)[parameters[0].name])
-            except KeyError:
-                raise TypeError(
-                    "First parameter of serialized method must be typed"
-                ) from None
         _serialized_methods[owner][alias2] = serialized
 
     if isinstance(__arg, str):
