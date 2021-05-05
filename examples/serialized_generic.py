@@ -5,6 +5,7 @@ from apischema import serialized
 from apischema.json_schema import serialization_schema
 
 T = TypeVar("T")
+U = TypeVar("U")
 
 
 @dataclass
@@ -15,6 +16,11 @@ class Foo(Generic[T]):
 
 
 serialized(Foo.bar)
+
+
+@serialized
+def baz(foo: Foo[U]) -> U:
+    ...
 
 
 @dataclass
@@ -28,8 +34,8 @@ assert (
     == {
         "$schema": "http://json-schema.org/draft/2019-09/schema#",
         "type": "object",
-        "properties": {"bar": {"type": "integer"}},
-        "required": ["bar"],
+        "properties": {"bar": {"type": "integer"}, "baz": {"type": "integer"}},
+        "required": ["bar", "baz"],
         "additionalProperties": False,
     }
 )

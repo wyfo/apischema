@@ -152,9 +152,9 @@ def resolver(
     serialized: bool = False,
     owner: Type = None,
 ):
-    def register(func: Callable, owner: Optional[Type], alias2: str):
+    def register(func: Callable, owner: Type, alias2: str):
         alias2 = alias or alias2
-        first_param, *parameters = resolver_parameters(func, check_first=owner is None)
+        _, *parameters = resolver_parameters(func, check_first=owner is None)
         error_handler2 = error_handler
         if error_handler2 is None:
             error_handler2 = none_error_handler
@@ -168,11 +168,6 @@ def resolver(
             parameters,
             parameters_metadata or {},
         )
-        if owner is None:
-            try:
-                owner = get_origin_or_type(get_type_hints(func)[first_param.name])
-            except KeyError:
-                raise TypeError("First parameter of resolver must be typed") from None
         _resolvers[owner][alias2] = resolver
         if serialized:
             if is_async(func):

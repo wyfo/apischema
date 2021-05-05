@@ -61,10 +61,6 @@ def _add_deserializer(conversion: ConvOrFunc, target: AnyType):
 
 
 class DeserializerDescriptor(MethodWrapper[staticmethod]):
-    def __init__(self, method: staticmethod, **kwargs):
-        super().__init__(method)
-        self._kwargs = kwargs
-
     def __set_name__(self, owner, name):
         super().__set_name__(owner, name)
         method = self._method.__get__(None, object)
@@ -119,10 +115,6 @@ def _add_serializer(conversion: ConvOrFunc, source: AnyType):
 
 
 class SerializerDescriptor(MethodWrapper[MethodOrProperty]):
-    def __init__(self, method: MethodOrProperty, **kwargs):
-        super().__init__(method)
-        self._kwargs = kwargs
-
     def __set_name__(self, owner, name):
         super().__set_name__(owner, name)
         _add_serializer(self._method, source=owner)
