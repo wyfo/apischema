@@ -115,9 +115,7 @@ from apischema.json_schema.schemas import Schema
 
 @settings.default_schema
 def default_schema(cls) -> Optional[Schema]:
-    if not ...:
-        return None
-    return schema(...)
+    return schema(...) if ... else None
 
 ``` 
 

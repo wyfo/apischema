@@ -198,13 +198,9 @@ That's why *apischema* defines a `NotNull` type; in fact, `NotNull = Union[T, An
 
 ## Custom types
 
-*apischema* can support almost all of your custom types in a few lines of code; see [below](#dataclass-like-types-aka-object-types) for dataclass-like types, and [conversion section](conversions.md) for the rest.
+*apischema* can support almost all of your custom types in a few lines of code, using [conversion feature](conversions.md). However, it also provides a simple and direct way to support dataclass-like types, as presented [below](#dataclass-like-types-aka-object-types).
 
-Otherwise, when *apischema* encounters a type that it doesn't support, `Unsupported` exception will be raised.
-
-```python
-{!unsupported.py!}
-```
+Otherwise, when *apischema* encounters a type that it doesn't support, `apischema.Unsupported` exception will be raised.
 
 ### Dataclass-like types, aka object types
 
@@ -229,8 +225,26 @@ Thus, support of dataclass-like types (*attrs*, *SQLAlchemy* traditional mappers
 {!set_object_fields.py!}
 ```
 
+Another way to set object fields is to directly modify *apischema* default behavior, using `apischema.settings.default_object_fields`.
+
+```python
+from collections.abc import Sequence
+from typing import Optional
+from apischema import settings
+from apischema.objects import ObjectField
+
+previous_default_object_fields = settings.default_object_fields()
+
+
+@settings.default_object_fields
+def default_object_fields(cls) -> Optional[Sequence[ObjectField]]:
+    return [...] if ... else previous_default_object_fields(cls)
+``` 
+
 !!! note
-    `set_object_fields` argument can also be a factory function. 
+    *apischema* can be customized a lot using the `settings` module. It often uses overloaded function: without argument to get the current implementation, and as decorator to set the new implementation (which can reuse the current previous).
+
+Examples of [*SQLAlchemy* support](examples/sqlalchemy_support.md) and [attrs support](examples/attrs_support.md) illustrate both methods (which could also be combined).
 
 ## Skip field
 
@@ -239,7 +253,6 @@ Dataclass fields can be excluded from *apischema* processing by using `apischema
 ```python
 {!skip_field.py!}   
 ```
-    
     
 ## Composition over inheritance - composed dataclasses merging
 
