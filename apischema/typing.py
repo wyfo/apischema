@@ -231,7 +231,7 @@ def is_literal(tp: Any) -> bool:
     try:
         from typing import Literal
 
-        return get_origin(tp) == Literal
+        return get_origin(tp) == Literal or isinstance(tp, type(Literal))  # py36
     except ImportError:
         try:
             from typing_extensions import Literal  # type: ignore
