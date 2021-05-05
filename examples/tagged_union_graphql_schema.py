@@ -58,8 +58,5 @@ query_str = """
 }
 """
 assert graphql_sync(schema, query_str).data == {
-    "query": {
-        "bar": {"field": "value"},
-        "baz": None,
-    }
+    "query": {"bar": {"field": "value"}, "baz": None}
 }

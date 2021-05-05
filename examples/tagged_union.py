@@ -39,8 +39,5 @@ assert serialize(err.value) == [{"loc": ["unknown"], "err": ["unexpected propert
 with raises(ValidationError) as err:
     deserialize(Foo, {"bar": {"field": "value"}, "baz": 0})
 assert serialize(err.value) == [
-    {
-        "loc": [],
-        "err": ["size greater than 1 (maxProperties)"],
-    }
+    {"loc": [], "err": ["size greater than 1 (maxProperties)"]}
 ]

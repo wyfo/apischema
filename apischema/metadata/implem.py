@@ -35,8 +35,7 @@ class ConversionMetadata(MetadataMixin):
 if False:  # For Pycharm
 
     def conversion(
-        deserialization: "Conversions" = None,
-        serialization: "Conversions" = None,
+        deserialization: "Conversions" = None, serialization: "Conversions" = None
     ) -> ConversionMetadata:
         ...
 

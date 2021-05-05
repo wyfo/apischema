@@ -2,12 +2,7 @@ from dataclasses import dataclass, field
 
 from pytest import raises
 
-from apischema.fields import (
-    fields_set,
-    set_fields,
-    unset_fields,
-    with_fields_set,
-)
+from apischema.fields import fields_set, set_fields, unset_fields, with_fields_set
 
 
 @with_fields_set
@@ -55,7 +50,4 @@ def test_fields_set():
         "with_default_factory",
         "other",
     }
-    assert fields_set(DecoratedInherited(0, other=0)) == {
-        "without_default",
-        "other",
-    }
+    assert fields_set(DecoratedInherited(0, other=0)) == {"without_default", "other"}

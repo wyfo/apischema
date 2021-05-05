@@ -36,11 +36,7 @@ tmp = DataModel1
 
 @mark.parametrize(
     "d_conv, s_conv, alias",
-    [
-        (d_conv1, s_conv1, "a"),
-        (d_conv2, s_conv2, "b"),
-        (d_conv3, s_conv3, "a"),
-    ],
+    [(d_conv1, s_conv1, "a"), (d_conv2, s_conv2, "b"), (d_conv3, s_conv3, "a")],
 )
 def test_simple_dataclass_model(d_conv, s_conv, alias):
     assert deserialize(Data, {alias: 0}, conversions=d_conv) == Data(0)

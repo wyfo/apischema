@@ -26,8 +26,4 @@ assert serialize(RGB(0, 0, 0), conversions=identity) == {
 # Expended bypass form
 assert serialize(
     RGB(0, 0, 0), conversions=Conversion(identity, source=RGB, target=RGB)
-) == {
-    "red": 0,
-    "green": 0,
-    "blue": 0,
-}
+) == {"red": 0, "green": 0, "blue": 0}
