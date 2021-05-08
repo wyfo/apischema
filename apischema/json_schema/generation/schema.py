@@ -254,6 +254,10 @@ class SchemaBuilder(
                     f"Merged field {cls.__name__}.{field.name} must have an object type"
                 )
 
+    @staticmethod
+    def _field_required(field: ObjectField):
+        return field.required
+
     def object(self, cls: Type, fields: Sequence[ObjectField]) -> JsonSchema:
         self._check_constraints(ObjectConstraints)
         merged_schemas: List[JsonSchema] = []
@@ -276,7 +280,7 @@ class SchemaBuilder(
                 additional_properties = self._properties_schema(field)
             else:
                 properties[field.alias] = self.visit_field(field)
-                if field.required:
+                if self._field_required(field):
                     required.append(field.alias)
         alias_by_names = {f.name: f.alias for f in fields}.__getitem__
         dependent_required = get_dependent_required(cls)
@@ -393,6 +397,10 @@ class SerializationSchemaBuilder(
     SerializationObjectVisitor[JsonSchema],
 ):
     RefsExtractor = SerializationRefsExtractor
+
+    @staticmethod
+    def _field_required(field: ObjectField):
+        return field.required and not is_union_of(field.type, UndefinedType)
 
     def object(self, cls: Type, fields: Sequence[ObjectField]) -> JsonSchema:
         result = super().object(cls, fields)
