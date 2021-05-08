@@ -1,6 +1,6 @@
 from dataclasses import Field, MISSING, field, make_dataclass
 from functools import wraps
-from inspect import Parameter, iscoroutinefunction, signature
+from inspect import Parameter, signature
 from typing import (
     Awaitable,
     Callable,
@@ -17,14 +17,14 @@ from typing import (
 from graphql.pyutils import camel_to_snake
 
 from apischema.aliases import alias
-from apischema.graphql.resolvers import awaitable_origin
+from apischema.graphql.resolvers import is_async
 from apischema.graphql.schema import Mutation as Mutation_
 from apischema.json_schema.schemas import Schema
 from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.type_names import type_name
 from apischema.types import AnyType, Undefined
 from apischema.typing import get_type_hints
-from apischema.utils import get_origin_or_type, is_union_of
+from apischema.utils import is_union_of
 
 ClientMutationId = NewType("ClientMutationId", str)
 type_name(None)(ClientMutationId)
@@ -50,10 +50,7 @@ class Mutation:
         mutate = getattr(cls, "mutate")
         type_name(f"{cls.__name__}Payload")(cls)
         types = get_type_hints(mutate, localns={cls.__name__: cls}, include_extras=True)
-        async_mutate = (
-            iscoroutinefunction(mutate)
-            or get_origin_or_type(types.get("return")) == awaitable_origin
-        )
+        async_mutate = is_async(mutate, types)
         fields: List[Tuple[str, AnyType, Field]] = []
         cmi_param = None
         for param_name, param in signature(mutate).parameters.items():

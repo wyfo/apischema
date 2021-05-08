@@ -24,6 +24,7 @@ from apischema.typing import generic_mro, get_args, get_type_hints
 from apischema.utils import (
     get_args2,
     get_origin_or_type,
+    get_origin_or_type2,
     get_parameters,
     method_registerer,
     substitute_type_vars,
@@ -63,7 +64,7 @@ class SerializedMethod:
         if get_args2(owner):
             first_param = next(iter(signature(self.func).parameters))
             substitution, _ = subtyping_substitution(
-                types.get(first_param, get_origin_or_type(owner)), owner
+                types.get(first_param, get_origin_or_type2(owner)), owner
             )
             types = {
                 name: substitute_type_vars(tp, substitution)
