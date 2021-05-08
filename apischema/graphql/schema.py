@@ -222,10 +222,10 @@ class SchemaBuilder(ConversionsVisitor[Conv, TypeThunk], ObjectVisitor[TypeThunk
 
     @contextmanager
     def _replace_name_and_schema(
-        self, ref: Optional[str], schema: Optional[Schema], merge_next: bool
+        self, name: Optional[str], schema: Optional[Schema], merge_next: bool
     ):
         name_save, schema_save, merge_save = self._name, self._schema, self._merge_next
-        self._name, self._schema, self._merge_next = ref, schema, merge_next
+        self._name, self._schema, self._merge_next = name, schema, merge_next
         try:
             yield
         finally:
@@ -353,7 +353,7 @@ class SchemaBuilder(ConversionsVisitor[Conv, TypeThunk], ObjectVisitor[TypeThunk
             non_null = self._non_null
             return lambda: exec_thunk(result, non_null=non_null)
         except MissingName:
-            raise TypeError(f"Missing ref for type {tp}") from None
+            raise TypeError(f"Missing name for type {tp}") from None
         finally:
             self._non_null = non_null_save
 
