@@ -2,7 +2,6 @@ import collections.abc
 import re
 import sys
 from dataclasses import is_dataclass
-from enum import Enum, auto
 from functools import wraps
 from inspect import signature
 from types import FunctionType
@@ -151,6 +150,11 @@ def _annotated(tp: AnyType) -> AnyType:
     return get_args(tp)[0] if is_annotated(tp) else tp
 
 
+def get_origin_or_type(tp: AnyType) -> AnyType:
+    origin = get_origin(tp)
+    return origin if origin is not None else tp
+
+
 def get_origin2(tp: AnyType) -> Optional[Type]:
     return get_origin(_annotated(tp))
 
@@ -159,10 +163,14 @@ def get_args2(tp: AnyType) -> Tuple[AnyType, ...]:
     return get_args(_annotated(tp))
 
 
-def get_origin_or_type(tp: AnyType) -> AnyType:
+def get_origin_or_type2(tp: AnyType) -> AnyType:
     tp2 = _annotated(tp)
     origin = get_origin(tp2)
     return origin if origin is not None else tp2
+
+
+def keep_annotations(tp: AnyType, annotated: AnyType) -> AnyType:
+    return Annotated[(tp, *get_args(annotated)[1:])] if is_annotated(annotated) else tp
 
 
 def with_parameters(tp: AnyType) -> AnyType:
@@ -170,12 +178,7 @@ def with_parameters(tp: AnyType) -> AnyType:
 
 
 def is_union_of(tp: AnyType, of: AnyType) -> bool:
-    return tp == of or (get_origin_or_type(tp) == Union and of in get_args2(tp))
-
-
-class OperationKind(Enum):
-    DESERIALIZATION = auto()
-    SERIALIZATION = auto()
+    return tp == of or (get_origin_or_type2(tp) == Union and of in get_args2(tp))
 
 
 MethodOrProperty = Union[Callable, property]
@@ -284,7 +287,7 @@ def method_registerer(
             if owner2 is None:
                 try:
                     hints = get_type_hints(method)
-                    owner2 = get_origin_or_type(hints[next(iter(hints))])
+                    owner2 = get_origin_or_type2(hints[next(iter(hints))])
                 except (KeyError, StopIteration):
                     raise TypeError("First parameter of method must be typed") from None
             assert not isinstance(method, property)
@@ -295,9 +298,9 @@ def method_registerer(
 
 
 def replace_builtins(tp: AnyType) -> AnyType:
-    if get_origin2(tp) is None:
+    origin = get_origin2(tp)
+    if origin is None:
         return tp
-    origin = get_origin_or_type(tp)
     args = tuple(map(replace_builtins, get_args2(tp)))
     replacement: Any
     if origin in COLLECTION_TYPES:
@@ -310,7 +313,7 @@ def replace_builtins(tp: AnyType) -> AnyType:
     else:
         replacement = origin
     res = replacement[args] if args else replacement
-    return Annotated[(res, *get_args(tp)[1:])] if is_annotated(tp) else res
+    return keep_annotations(res, tp)
 
 
 def sort_by_annotations_position(
@@ -338,14 +341,11 @@ ITERABLE_TYPES = (
 def subtyping_substitution(
     supertype: AnyType, subtype: AnyType
 ) -> Tuple[Mapping[AnyType, AnyType], Mapping[AnyType, AnyType]]:
-    super_origin = get_origin_or_type(supertype)
-    if getattr(subtype, "__parameters__", ()):
-        subtype = subtype[subtype.__parameters__]
-    if getattr(supertype, "__parameters__", ()):
-        supertype = supertype[supertype.__parameters__]
+    supertype, subtype = with_parameters(supertype), with_parameters(subtype)
     supertype_to_subtype, subtype_to_supertype = {}, {}
+    super_origin = get_origin_or_type2(supertype)
     for base in generic_mro(subtype):
-        base_origin = get_origin_or_type(base)
+        base_origin = get_origin_or_type2(base)
         if base_origin == super_origin or (
             base_origin in ITERABLE_TYPES and super_origin in ITERABLE_TYPES
         ):

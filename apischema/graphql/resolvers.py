@@ -40,8 +40,9 @@ from apischema.types import AnyType, NoneType, Undefined
 from apischema.typing import get_origin, get_type_hints
 from apischema.utils import (
     get_args2,
-    get_origin_or_type,
+    get_origin_or_type2,
     is_union_of,
+    keep_annotations,
     method_registerer,
 )
 from apischema.validation.errors import ValidationError
@@ -64,20 +65,23 @@ def partial_serialize(
 awaitable_origin = get_origin(Awaitable[Any])
 
 
-def is_async(func: Callable) -> bool:
+def is_async(func: Callable, types: Mapping[str, AnyType] = None) -> bool:
+    if types is None:
+        try:
+            types = get_type_hints(func)
+        except Exception:
+            types = {}
     return (
         iscoroutinefunction(func)
-        or get_origin_or_type(get_type_hints(func).get("return")) == awaitable_origin
+        or get_origin_or_type2(types.get("return")) == awaitable_origin
     )
 
 
 def unwrap_awaitable(tp: AnyType) -> AnyType:
-    if get_origin_or_type(tp) != awaitable_origin:
+    if get_origin_or_type2(tp) == awaitable_origin:
+        return keep_annotations(get_args2(tp)[0] if get_args2(tp) else Any, tp)
+    else:
         return tp
-    try:
-        return get_args2(tp)[0]
-    except IndexError:
-        return Any
 
 
 @dataclass(frozen=True)
