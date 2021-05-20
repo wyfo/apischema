@@ -3,10 +3,11 @@ import re
 import sys
 from dataclasses import is_dataclass
 from functools import wraps
-from inspect import signature
+from inspect import signature, iscoroutinefunction
 from types import FunctionType
 from typing import (
     Any,
+    Awaitable,
     Callable,
     Collection,
     Container,
@@ -163,6 +164,28 @@ def get_args2(tp: AnyType) -> Tuple[AnyType, ...]:
     return get_args(_annotated(tp))
 
 
+awaitable_origin = get_origin(Awaitable[Any])
+
+
+def is_async(func: Callable, types: Mapping[str, AnyType] = None) -> bool:
+    if types is None:
+        try:
+            types = get_type_hints(func)
+        except Exception:
+            types = {}
+    return (
+        iscoroutinefunction(func)
+        or get_origin_or_type2(types.get("return")) == awaitable_origin
+    )
+
+
+def unwrap_awaitable(tp: AnyType) -> AnyType:
+    if get_origin_or_type2(tp) == awaitable_origin:
+        return keep_annotations(get_args2(tp)[0] if get_args2(tp) else Any, tp)
+    else:
+        return tp
+
+
 def get_origin_or_type2(tp: AnyType) -> AnyType:
     tp2 = _annotated(tp)
     origin = get_origin(tp2)
@@ -233,9 +256,14 @@ def method_wrapper(method: MethodOrProperty, name: str = None) -> Callable:
             return method
         name = name or method.__name__
 
-        @wraps(method)
-        def wrapper(self, *args, **kwargs):
-            return getattr(self, name)(*args, **kwargs)
+        if is_async(method):
+            @wraps(method)
+            async def wrapper(self, *args, **kwargs):
+                return await getattr(self, name)(*args, **kwargs)
+        else:
+            @wraps(method)
+            def wrapper(self, *args, **kwargs):
+                return getattr(self, name)(*args, **kwargs)
 
     setattr(wrapper, METHOD_WRAPPER_ATTR, True)
     return wrapper
