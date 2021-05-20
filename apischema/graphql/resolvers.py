@@ -269,7 +269,9 @@ def resolver_resolve(
         errors: Dict[str, ValidationError] = {}
         for alias, param_name, deserializer, opt_param, required in parameters:
             if alias in kwargs:
-                if not opt_param and kwargs[param_name] is None:
+                # If this parameter was required but not supplied we can ignore
+                # it as long as it has a default value
+                if not opt_param and kwargs[alias] is None:
                     assert not required
                     continue
                 try:
