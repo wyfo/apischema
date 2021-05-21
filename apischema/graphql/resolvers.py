@@ -269,8 +269,10 @@ def resolver_resolve(
         errors: Dict[str, ValidationError] = {}
         for alias, param_name, deserializer, opt_param, required in parameters:
             if alias in kwargs:
-                # If this parameter was required but not supplied we can ignore
-                # it as long as it has a default value
+                # It is possible for the parameter to be non-optional in Python
+                # type hints but optional in the generated schema. In this case
+                # we should ignore it.
+                # See: https://github.com/wyfo/apischema/pull/130#issuecomment-845497392
                 if not opt_param and kwargs[alias] is None:
                     assert not required
                     continue
