@@ -1,12 +1,13 @@
 import collections.abc
+import inspect
 import re
 import sys
 from dataclasses import is_dataclass
 from functools import wraps
-from inspect import signature
 from types import FunctionType
 from typing import (
     Any,
+    Awaitable,
     Callable,
     Collection,
     Container,
@@ -24,7 +25,6 @@ from typing import (
     TypeVar,
     Union,
     cast,
-    get_type_hints,
 )
 
 from apischema.types import AnyType, COLLECTION_TYPES, MAPPING_TYPES, OrderedDict
@@ -33,6 +33,7 @@ from apischema.typing import (
     generic_mro,
     get_args,
     get_origin,
+    get_type_hints,
     is_annotated,
 )
 
@@ -208,7 +209,7 @@ def is_method(method: MethodOrProperty) -> bool:
         isinstance(method, FunctionType)
         and method.__name__ != method.__qualname__
         and isinstance(_method_location(method), (type, type(None)))
-        and next(iter(signature(method).parameters), None) == "self"
+        and next(iter(inspect.signature(method).parameters), None) == "self"
     )
 
 
@@ -356,3 +357,20 @@ def subtyping_substitution(
                     subtype_to_supertype[base_arg] = super_arg
             break
     return supertype_to_subtype, subtype_to_supertype
+
+
+awaitable_origin = get_origin(Awaitable[Any])
+
+
+def is_async(func: Callable, types: Mapping[str, AnyType] = None) -> bool:
+    wrapped_func = func
+    while hasattr(wrapped_func, "__wrapped__"):
+        wrapped_func = wrapped_func.__wrapped__  # type: ignore
+    if inspect.iscoroutinefunction(wrapped_func):
+        return True
+    if types is None:
+        try:
+            types = get_type_hints(func)
+        except Exception:
+            types = {}
+    return get_origin_or_type2(types.get("return")) == awaitable_origin
