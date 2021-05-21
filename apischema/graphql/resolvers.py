@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import partial
-from inspect import Parameter, iscoroutinefunction, signature
+from inspect import Parameter, signature
 from typing import (
     Any,
     Awaitable,
@@ -37,10 +37,11 @@ from apischema.serialization.serialized_methods import (
     serialized as register_serialized,
 )
 from apischema.types import AnyType, NoneType, Undefined
-from apischema.typing import get_origin, get_type_hints
 from apischema.utils import (
+    awaitable_origin,
     get_args2,
     get_origin_or_type2,
+    is_async,
     is_union_of,
     keep_annotations,
     method_registerer,
@@ -60,21 +61,6 @@ def partial_serialize(
     obj: Any, *, conversions: HashableConversions = None, aliaser: Aliaser
 ) -> Any:
     return partial_serialization_method(obj.__class__, conversions, aliaser)(obj, False)
-
-
-awaitable_origin = get_origin(Awaitable[Any])
-
-
-def is_async(func: Callable, types: Mapping[str, AnyType] = None) -> bool:
-    if types is None:
-        try:
-            types = get_type_hints(func)
-        except Exception:
-            types = {}
-    return (
-        iscoroutinefunction(func)
-        or get_origin_or_type2(types.get("return")) == awaitable_origin
-    )
 
 
 def unwrap_awaitable(tp: AnyType) -> AnyType:

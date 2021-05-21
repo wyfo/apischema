@@ -17,14 +17,13 @@ from typing import (
 from graphql.pyutils import camel_to_snake
 
 from apischema.aliases import alias
-from apischema.graphql.resolvers import is_async
 from apischema.graphql.schema import Mutation as Mutation_
 from apischema.json_schema.schemas import Schema
 from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.type_names import type_name
 from apischema.types import AnyType, Undefined
 from apischema.typing import get_type_hints
-from apischema.utils import is_union_of
+from apischema.utils import is_async, is_union_of
 
 ClientMutationId = NewType("ClientMutationId", str)
 type_name(None)(ClientMutationId)
