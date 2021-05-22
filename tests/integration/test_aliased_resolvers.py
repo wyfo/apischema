@@ -1,17 +1,8 @@
-from dataclasses import dataclass
 from typing import Optional
-from unittest.mock import MagicMock
+
+from graphql import graphql_sync
 
 from apischema.graphql import graphql_schema
-from apischema.graphql.resolvers import (
-    resolver_resolve,
-    Resolver,
-    resolver_parameters,
-    resolver,
-    _resolvers,
-)
-from apischema.utils import to_camel_case
-from graphql import graphql_sync
 
 
 def foo(test: int) -> int:
