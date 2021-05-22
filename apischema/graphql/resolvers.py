@@ -208,7 +208,7 @@ def resolver_resolve(
                 aliaser=aliaser,
                 default_fallback=param_field.default_fallback or None,
             )
-            opt_param = is_union_of(param_type, NoneType)
+            opt_param = is_union_of(param_type, NoneType) or param.default is None
             parameters.append(
                 (
                     aliaser(param_field.alias),
