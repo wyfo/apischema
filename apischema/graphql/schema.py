@@ -70,7 +70,7 @@ from apischema.utils import (
 
 JsonScalar = graphql.GraphQLScalarType(
     "JSON",
-    specified_by_url="http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf",  # noqa: E501
+    specified_by_url="http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf",
 )
 GRAPHQL_PRIMITIVE_TYPES = {
     int: graphql.GraphQLInt,

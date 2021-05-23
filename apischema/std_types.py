@@ -57,8 +57,8 @@ if sys.version_info < (3, 7):
 
 if sys.version_info >= (3, 7):  # pragma: no cover
     for cls, format in [(date, "date"), (datetime, "date-time"), (time, "time")]:
-        deserializer(Conversion(cls.fromisoformat, source=str, target=cls))  # type: ignore # noqa: E501
-        serializer(Conversion(cls.isoformat, source=cls, target=str))  # type: ignore # noqa: E501
+        deserializer(Conversion(cls.fromisoformat, source=str, target=cls))  # type: ignore
+        serializer(Conversion(cls.isoformat, source=cls, target=str))  # type: ignore
         type_name(graphql=cls.__name__.capitalize())(cls)
         schema(format=format)(cls)
 

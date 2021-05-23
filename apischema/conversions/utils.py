@@ -37,7 +37,7 @@ def converter_types(
             and converter.__new__ is Generic.__new__ is not object.__new__
             and converter.__init__ is not object.__init__  # type: ignore
         ):
-            parameters = list(signature(converter.__init__).parameters.values())[1:]  # type: ignore # noqa: E501
+            parameters = list(signature(converter.__init__).parameters.values())[1:]  # type: ignore
         else:
             parameters = list(signature(converter).parameters.values())
     except ValueError:  # builtin types
