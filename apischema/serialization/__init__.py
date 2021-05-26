@@ -6,12 +6,7 @@ from typing import Any, Callable, Collection, Mapping, Optional, Type, TypeVar
 from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.cache import cache
-from apischema.conversions.conversions import (
-    Conversions,
-    HashableConversions,
-    resolve_conversions,
-    to_hashable_conversions,
-)
+from apischema.conversions.conversions import Conversions, resolve_conversions
 from apischema.conversions.dataclass_models import MODEL_ORIGIN_ATTR
 from apischema.conversions.visitor import SerializationVisitor, merge_prev_conversions
 from apischema.fields import FIELDS_SET_ATTR, fields_set
@@ -33,14 +28,14 @@ def serialize_object(cls: Type[T], aliaser: Aliaser) -> SerializationMethod[T]:
     for field in object_fields(cls).values():
         if field.kind == FieldKind.WRITE_ONLY:
             continue
-        conversions = to_hashable_conversions(field.serialization)
+        conversions = field.serialization
         if field.is_aggregate:
             aggregate_fields.append((field.name, conversions))
         else:
             normal_fields.append((field.name, aliaser(field.alias), conversions))
 
     serialized_fields = [
-        (aliaser(name), method.func, to_hashable_conversions(method.conversions))
+        (aliaser(name), method.func, method.conversions)
         for name, (method, _) in get_serialized_methods(cls).items()
     ]
 
@@ -89,13 +84,9 @@ def serialize_undefined(obj: Any, exc_unset: bool) -> Any:
 def serialization_method_factory(
     object_method: Callable[[Type[T], Aliaser], SerializationMethod[T]],
     undefined_method: SerializationMethod,
-) -> Callable[
-    [Type[T], Optional[HashableConversions], Aliaser], SerializationMethod[T]
-]:
+) -> Callable[[Type[T], Optional[Conversions], Aliaser], SerializationMethod[T]]:
     @cache
-    def get_method(
-        cls: Type[T], conversions: Optional[HashableConversions], aliaser: Aliaser
-    ):
+    def get_method(cls: Type[T], conversions: Optional[Conversions], aliaser: Aliaser):
         if cls is UndefinedType:
             return undefined_method
         conversion, dynamic = SerializationVisitor.get_conversions(
@@ -108,7 +99,7 @@ def serialization_method_factory(
             if hasattr(conversion.target, MODEL_ORIGIN_ATTR):
                 return get_method(conversion.target, None, aliaser)
             converter = conversion.converter
-            sub_conversions = to_hashable_conversions(conversion.sub_conversions)
+            sub_conversions = conversion.sub_conversions
             exclude_unset = conversion.exclude_unset
 
             def method(obj: T, exc_unset: bool) -> Any:

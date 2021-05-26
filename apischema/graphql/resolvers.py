@@ -20,11 +20,7 @@ from typing import (
 import graphql
 
 from apischema.aliases import Aliaser
-from apischema.conversions.conversions import (
-    Conversions,
-    HashableConversions,
-    to_hashable_conversions,
-)
+from apischema.conversions.conversions import Conversions
 from apischema.deserialization import deserialize
 from apischema.json_schema.schemas import Schema
 from apischema.objects import ObjectField
@@ -58,7 +54,7 @@ partial_serialization_method = serialization_method_factory(
 
 
 def partial_serialize(
-    obj: Any, *, conversions: HashableConversions = None, aliaser: Aliaser
+    obj: Any, *, conversions: Conversions = None, aliaser: Aliaser
 ) -> Any:
     return partial_serialization_method(obj.__class__, conversions, aliaser)(obj, False)
 
@@ -219,7 +215,7 @@ def resolver_resolve(
                 )
             )
     func, error_handler = resolver.func, resolver.error_handler
-    conversions = to_hashable_conversions(resolver.conversions)
+    conversions = resolver.conversions
 
     def no_serialize(result):
         return result

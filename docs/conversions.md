@@ -98,7 +98,7 @@ No matter if a conversion is registered or not for a given type, conversions can
 !!! note
     For `definitions_schema`, conversions can be added with types by using a tuple instead, for example `definitions_schema(serializations=[(list[Foo], foo_to_bar)])`. 
 
-`conversions` parameter can also take a list of conversions, when you have a `Union`, a `tuple` or when you want to have several deserializations for the same type
+`conversions` parameter can also take a tuple of conversions, when you have a `Union`, a `tuple` or when you want to have several deserializations for the same type.
 
 
 ### Dynamic conversions are local
@@ -213,7 +213,7 @@ Sub-conversions can also be used to [bypass registered conversions](#bypass-regi
 
 ## Lazy/recursive conversions
 
-Conversions can be defined lazily, i.e. using a function returning `Conversion` (single, or a collection of it); this function must be wrap into a `apischema.conversions.LazyConversion` instance.
+Conversions can be defined lazily, i.e. using a function returning `Conversion` (single, or a tuple of it); this function must be wrap into a `apischema.conversions.LazyConversion` instance.
 
 It allows creating recursive conversions or using a conversion object which can be modified after its definition (for example a conversion for a base class modified by `__init_subclass__`)
 
