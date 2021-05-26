@@ -27,7 +27,7 @@ import graphql
 
 from apischema.aliases import Aliaser
 from apischema.conversions import identity
-from apischema.conversions.conversions import Conversions, to_hashable_conversions
+from apischema.conversions.conversions import Conversions
 from apischema.conversions.visitor import (
     Conv,
     ConversionsVisitor,
@@ -479,7 +479,7 @@ class OutputSchemaBuilder(
 
     def _field(self, field: ObjectField) -> Lazy[graphql.GraphQLField]:
         field_name, aliaser = field.name, self.aliaser
-        conversions = to_hashable_conversions(field.serialization)
+        conversions = field.serialization
 
         @self._wrap_resolve
         def resolve(obj, _):
@@ -563,7 +563,7 @@ class OutputSchemaBuilder(
         )
 
     def _visit_merged(self, field: ObjectField) -> TypeThunk:
-        conversions = to_hashable_conversions(field.serialization)
+        conversions = field.serialization
         field_name, aliaser = field.name, self.aliaser
         get_prev_merged = self._get_merged if self._get_merged is not None else identity
 

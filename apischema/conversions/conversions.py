@@ -40,9 +40,6 @@ class Conversion:
     inherited: Optional[bool] = None
 
     def __post_init__(self):
-        object.__setattr__(
-            self, "sub_conversions", to_hashable_conversions(self.sub_conversions)
-        )
         # Cannot use astuple because of deepcopy bug with property in py36
         cached_hash = hash(tuple(getattr(self, f.name) for f in fields(self)))
         object.__setattr__(self, "_hash", cached_hash)
@@ -60,14 +57,7 @@ class LazyConversion:
 
 
 ConvOrFunc = Union[Conversion, Converter, property, LazyConversion]
-Conversions = Union[ConvOrFunc, Collection[ConvOrFunc]]
-HashableConversions = Union[ConvOrFunc, Tuple[ConvOrFunc, ...]]
-
-
-def to_hashable_conversions(
-    conversions: Optional[Conversions],
-) -> Optional[HashableConversions]:
-    return tuple(conversions) if isinstance(conversions, Collection) else conversions
+Conversions = Union[ConvOrFunc, Tuple[ConvOrFunc, ...]]
 
 
 ResolvedConversion = NewType("ResolvedConversion", Conversion)

@@ -26,7 +26,7 @@ from typing import (
 from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.cache import cache
-from apischema.conversions.conversions import Conversions, HashableConversions
+from apischema.conversions.conversions import Conversions
 from apischema.conversions.utils import Converter, identity
 from apischema.conversions.visitor import Deserialization, DeserializationVisitor
 from apischema.dataclasses import replace
@@ -757,7 +757,7 @@ class DeserializationMethodVisitor(
 
 @cache
 def get_method(
-    tp: AnyType, conversions: Optional[HashableConversions], aliaser: Aliaser
+    tp: AnyType, conversions: Optional[Conversions], aliaser: Aliaser
 ) -> DeserializationMethod:
     factory = DeserializationMethodVisitor(aliaser).visit_with_conversions(
         tp, conversions
