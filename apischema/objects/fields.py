@@ -26,11 +26,13 @@ from apischema.metadata.keys import (
     MERGED_METADATA,
     POST_INIT_METADATA,
     PROPERTIES_METADATA,
+    REQUIRED_METADATA,
     SCHEMA_METADATA,
     VALIDATORS_METADATA,
 )
 from apischema.objects.utils import AliasedStr
-from apischema.types import AnyType
+from apischema.types import AnyType, ChainMap
+from apischema.typing import get_args, is_annotated
 from apischema.utils import empty_dict
 
 if TYPE_CHECKING:
@@ -62,7 +64,8 @@ class ObjectField:
     kind: FieldKind = FieldKind.NORMAL
 
     def __post_init__(self, default: Any):
-        # TODO add metadata check
+        if REQUIRED_METADATA in self.full_metadata:
+            object.__setattr__(self, "required", True)
         if self.default_factory is MISSING:
             object.__setattr__(self, "default_factory", None)
         if not self.required and self.default_factory is None:
@@ -71,17 +74,30 @@ class ObjectField:
             object.__setattr__(self, "default_factory", lambda: default)
 
     @property
+    def full_metadata(self) -> Mapping[str, Any]:
+        if not is_annotated(self.type):
+            return self.metadata
+        return ChainMap(
+            self.metadata,
+            *(
+                arg
+                for arg in reversed(get_args(self.type)[1:])
+                if isinstance(arg, Mapping)
+            ),
+        )
+
+    @property
     def additional_properties(self) -> bool:
-        return self.metadata.get(PROPERTIES_METADATA, ...) is None
+        return self.full_metadata.get(PROPERTIES_METADATA, ...) is None
 
     @property
     def alias(self) -> str:
         str_class = AliasedStr if self.aliased else str
-        return str_class(self.metadata.get(ALIAS_METADATA, self.name))
+        return str_class(self.full_metadata.get(ALIAS_METADATA, self.name))
 
     @property
     def override_alias(self) -> bool:
-        return ALIAS_NO_OVERRIDE_METADATA not in self.metadata
+        return ALIAS_NO_OVERRIDE_METADATA not in self.full_metadata
 
     @property
     def _conversion(self) -> Optional[ConversionMetadata]:
@@ -89,11 +105,11 @@ class ObjectField:
 
     @property
     def default_as_set(self) -> bool:
-        return DEFAULT_AS_SET_METADATA in self.metadata
+        return DEFAULT_AS_SET_METADATA in self.full_metadata
 
     @property
     def default_fallback(self) -> bool:
-        return DEFAULT_FALLBACK_METADATA in self.metadata
+        return DEFAULT_FALLBACK_METADATA in self.full_metadata
 
     @property
     def deserialization(self) -> Optional[Conversions]:
@@ -102,15 +118,15 @@ class ObjectField:
 
     @property
     def merged(self) -> bool:
-        return MERGED_METADATA in self.metadata
+        return MERGED_METADATA in self.full_metadata
 
     @property
     def post_init(self) -> bool:
-        return POST_INIT_METADATA in self.metadata
+        return POST_INIT_METADATA in self.full_metadata
 
     @property
     def pattern_properties(self) -> Union[Pattern, "ellipsis", None]:  # noqa: F821
-        return self.metadata.get(PROPERTIES_METADATA, None)
+        return self.full_metadata.get(PROPERTIES_METADATA, None)
 
     @property
     def schema(self) -> Optional["Schema"]:

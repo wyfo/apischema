@@ -3,27 +3,29 @@ from typing import Any, Collection, Mapping, Optional, Sequence, Tuple, Type
 
 from apischema.aliases import Aliaser, get_class_aliaser
 from apischema.conversions.conversions import Conversions
-from apischema.metadata.keys import ALIAS_METADATA, REQUIRED_METADATA, SKIP_METADATA
+from apischema.metadata.keys import ALIAS_METADATA, SKIP_METADATA
 from apischema.objects.fields import (
     FieldKind,
     MISSING_DEFAULT,
     ObjectField,
     _class_fields,
 )
-from apischema.objects.utils import annotated_metadata
 from apischema.types import AnyType, Undefined
 from apischema.typing import get_args
-from apischema.utils import get_parameters, substitute_type_vars
+from apischema.utils import (
+    get_args2,
+    get_origin2,
+    get_origin_or_type2,
+    get_parameters,
+    substitute_type_vars,
+)
 from apischema.visitor import Return, Visitor
 
 
 def object_field_from_field(
     field: Field, field_type: AnyType, init_var: bool
 ) -> ObjectField:
-    metadata = {**annotated_metadata(field_type), **field.metadata}
-    required = REQUIRED_METADATA in metadata or (
-        field.default is MISSING and field.default_factory is MISSING  # type: ignore
-    )
+    required = field.default is MISSING and field.default_factory is MISSING  # type: ignore
     if init_var:
         kind = FieldKind.WRITE_ONLY
     elif not field.init:
@@ -34,7 +36,7 @@ def object_field_from_field(
         field.name,
         field_type,
         required,
-        metadata,
+        field.metadata,
         default=field.default,
         default_factory=field.default_factory,  # type: ignore
         kind=kind,
@@ -50,6 +52,11 @@ def _override_alias(field: ObjectField, aliaser: Aliaser) -> ObjectField:
         )
     else:
         return field
+
+
+def remove_annotations(tp: AnyType) -> AnyType:
+    origin = get_origin2(tp)
+    return origin[get_args2(tp)] if origin is not None else get_origin_or_type2(tp)
 
 
 class ObjectVisitor(Visitor[Return]):
@@ -98,13 +105,7 @@ class ObjectVisitor(Visitor[Return]):
         defaults: Mapping[str, Any],
     ) -> Return:
         fields = [
-            ObjectField(
-                name,
-                tp,
-                name not in defaults,
-                annotated_metadata(tp),
-                defaults.get(name),
-            )
+            ObjectField(name, tp, name not in defaults, default=defaults.get(name))
             for name, tp in types.items()
         ]
         return self._object(cls, fields)
@@ -116,7 +117,11 @@ class ObjectVisitor(Visitor[Return]):
         # at serialization
         fields = [
             ObjectField(
-                name, tp, name in required_keys, default=Undefined, aliased=False
+                name,
+                remove_annotations(tp),
+                name in required_keys,
+                default=Undefined,
+                aliased=False,
             )
             for name, tp in types.items()
         ]
