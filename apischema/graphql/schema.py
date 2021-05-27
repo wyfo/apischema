@@ -49,7 +49,6 @@ from apischema.graphql.resolvers import (
 from apischema.json_schema.schemas import Schema, get_schema, merge_schema
 from apischema.metadata.keys import SCHEMA_METADATA
 from apischema.objects import AliasedStr, ObjectField
-from apischema.objects.utils import annotated_metadata
 from apischema.objects.visitor import (
     DeserializationObjectVisitor,
     ObjectVisitor,
@@ -61,6 +60,7 @@ from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.types import AnyType, NoneType, OrderedDict, Undefined, UndefinedType
 from apischema.typing import get_args, get_origin, is_annotated, is_new_type
 from apischema.utils import (
+    empty_dict,
     get_args2,
     get_origin2,
     is_union_of,
@@ -512,14 +512,11 @@ class OutputSchemaBuilder(
                 param_type = field.types[param.name]
                 if is_union_of(param_type, graphql.GraphQLResolveInfo):
                     break
-                metadata = annotated_metadata(param_type)
-                if param.name in field.metadata:
-                    metadata = {**metadata, **field.metadata[param.name]}
                 param_field = ObjectField(
                     param.name,
                     param_type,
                     param.default is Parameter.empty,
-                    metadata,
+                    field.metadata.get(param.name, empty_dict),
                     default=param.default,
                 )
                 if param_field.required:
@@ -537,13 +534,7 @@ class OutputSchemaBuilder(
                         param_type = Optional[param_type]
                 with self._replace_conversions(param_field.deserialization):
                     arg_type = self.input_builder.visit(param_type)
-                description = get_description(
-                    merge_schema(
-                        metadata.get(SCHEMA_METADATA),
-                        field.metadata.get(param.name, {}).get(SCHEMA_METADATA),
-                    ),
-                    param_type,
-                )
+                description = get_description(param_field.schema, param_field.type)
 
                 def arg_thunk(
                     arg_type=arg_type, default=default, description=description

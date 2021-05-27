@@ -24,7 +24,6 @@ from apischema.conversions.conversions import Conversions
 from apischema.deserialization import deserialize
 from apischema.json_schema.schemas import Schema
 from apischema.objects import ObjectField
-from apischema.objects.utils import annotated_metadata
 from apischema.serialization import serialization_method_factory, serialize
 from apischema.serialization.serialized_methods import (
     ErrorHandler,
@@ -35,6 +34,7 @@ from apischema.serialization.serialized_methods import (
 from apischema.types import AnyType, NoneType, Undefined
 from apischema.utils import (
     awaitable_origin,
+    empty_dict,
     get_args2,
     get_origin_or_type2,
     is_async,
@@ -187,15 +187,12 @@ def resolver_resolve(
         if is_union_of(param_type, graphql.GraphQLResolveInfo):
             info_parameter = param.name
         else:
-            metadata = annotated_metadata(param_type)
-            if param.name in resolver.parameters_metadata:
-                metadata = {**metadata, **resolver.parameters_metadata[param.name]}
             param_field = ObjectField(
                 param.name,
                 param_type,
                 param.default is Parameter.empty,
-                metadata,
-                default=...,
+                resolver.parameters_metadata.get(param.name, empty_dict),
+                default=param.default,
             )
             deserializer = partial(
                 deserialize,
