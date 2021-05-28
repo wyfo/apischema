@@ -64,8 +64,7 @@ def dataclass_model(
     exclude_unset: Optional[bool] = None,
 ) -> Tuple[Conversion, Conversion]:
     warnings.warn(
-        "dataclass_model is deprecated, use object_wrapper/"
-        "register_object_wrapper instead",
+        "dataclass_model is deprecated, use set_object_fields instead",
         DeprecationWarning,
     )
     if isinstance(model, type):
