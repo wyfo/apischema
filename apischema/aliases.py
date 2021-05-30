@@ -1,11 +1,12 @@
 from typing import Callable, Dict, TypeVar, overload
 
 from apischema.types import Metadata, MetadataImplem
+from apischema.typing import type_dict_wrapper
 
 Aliaser = Callable[[str], str]
 Cls = TypeVar("Cls", bound=type)
 
-_class_aliasers: Dict[type, Aliaser] = {}
+_class_aliasers: Dict[type, Aliaser] = type_dict_wrapper({})
 
 get_class_aliaser = _class_aliasers.get
 

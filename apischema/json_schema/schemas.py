@@ -15,8 +15,8 @@ from typing import (
 
 from apischema.metadata.keys import SCHEMA_METADATA
 from apischema.types import AnyType, MetadataMixin, Number, Undefined
-from apischema.typing import is_annotated
-from apischema.utils import contains, merge_opts, replace_builtins, stop_signature_abuse
+from apischema.typing import is_annotated, type_dict_wrapper
+from apischema.utils import merge_opts, replace_builtins, stop_signature_abuse
 from .annotations import Annotations, ContentEncoding, Deprecated
 from .constraints import (
     ArrayConstraints,
@@ -192,12 +192,15 @@ def _default_schema(tp: AnyType) -> Optional[Schema]:
     return None
 
 
-_schemas: Dict[Any, Schema] = {}
+_schemas: Dict[AnyType, Schema] = type_dict_wrapper({})
 
 
 def get_schema(tp: AnyType) -> Optional[Schema]:
     tp = replace_builtins(tp)
-    return _schemas[tp] if contains(_schemas, tp) else _default_schema(tp)
+    try:
+        return _schemas[tp]
+    except (KeyError, TypeError):
+        return _default_schema(tp)
 
 
 @merge_opts

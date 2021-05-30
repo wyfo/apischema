@@ -16,6 +16,7 @@ if sys.version_info < (3, 9):
             return globals()[name] if name in globals() else MagicMock()
 
     sys.modules["collections.abc"] = CollectionABC()
+    del CollectionABC
 
 
 class Wrapper:
@@ -41,6 +42,8 @@ for cls in (Dict, List, Set, FrozenSet, Tuple, Type):  # noqa
     globals()[wrapper.implem.__name__] = wrapper
 
 Set = AbstractSet
+
+del Wrapper
 
 if sys.version_info < (3, 7):
     asyncio.run = lambda coro: asyncio.get_event_loop().run_until_complete(coro)

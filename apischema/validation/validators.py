@@ -21,7 +21,7 @@ from apischema.conversions.dataclass_models import get_model_origin, has_model_o
 from apischema.objects import object_fields
 from apischema.objects.fields import FieldOrName, check_field_or_name, get_field_name
 from apischema.types import AnyType
-from apischema.typing import get_type_hints
+from apischema.typing import get_type_hints, type_dict_wrapper
 from apischema.utils import get_origin_or_type2, is_method, method_class
 from apischema.validation.dependencies import find_all_dependencies
 from apischema.validation.errors import (
@@ -31,7 +31,7 @@ from apischema.validation.errors import (
 )
 from apischema.validation.mock import NonTrivialDependency
 
-_validators: Dict[Type, List["Validator"]] = defaultdict(list)
+_validators: Dict[Type, List["Validator"]] = type_dict_wrapper(defaultdict(list))
 
 
 def get_validators(tp: AnyType) -> Sequence["Validator"]:

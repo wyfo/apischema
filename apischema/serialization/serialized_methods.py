@@ -20,7 +20,7 @@ from apischema.conversions.conversions import Conversions
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
 from apischema.json_schema.schemas import Schema
 from apischema.types import AnyType, Undefined, UndefinedType
-from apischema.typing import generic_mro, get_args, get_type_hints
+from apischema.typing import generic_mro, get_args, get_type_hints, type_dict_wrapper
 from apischema.utils import (
     get_args2,
     get_origin_or_type,
@@ -73,7 +73,9 @@ class SerializedMethod:
         return types
 
 
-_serialized_methods: Dict[Type, Dict[str, SerializedMethod]] = defaultdict(dict)
+_serialized_methods: Dict[Type, Dict[str, SerializedMethod]] = type_dict_wrapper(
+    defaultdict(dict)
+)
 
 S = TypeVar("S", bound=SerializedMethod)
 

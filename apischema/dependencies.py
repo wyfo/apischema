@@ -13,8 +13,11 @@ from typing import (
 )
 
 from apischema.objects.fields import check_field_or_name, get_field_name
+from apischema.typing import type_dict_wrapper
 
-_dependent_requireds: Dict[type, List[Tuple[Any, Collection[Any]]]] = defaultdict(list)
+_dependent_requireds: Dict[type, List[Tuple[Any, Collection[Any]]]] = type_dict_wrapper(
+    defaultdict(list)
+)
 
 DependentRequired = Mapping[str, AbstractSet[str]]
 

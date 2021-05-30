@@ -1,10 +1,11 @@
 import warnings
+from contextlib import suppress
 from dataclasses import dataclass
 from typing import Callable, Dict, NamedTuple, Optional, TypeVar, Union
 
 from apischema.types import AnyType, PRIMITIVE_TYPES
-from apischema.typing import get_args, get_origin
-from apischema.utils import contains, has_type_vars, is_type_var, replace_builtins
+from apischema.typing import get_args, get_origin, type_dict_wrapper
+from apischema.utils import has_type_vars, is_type_var, replace_builtins
 
 
 class TypeName(NamedTuple):
@@ -19,7 +20,7 @@ def _apply_args(name_or_factory: NameOrFactory, *args) -> Optional[str]:
     return name_or_factory(*args) if callable(name_or_factory) else name_or_factory
 
 
-_type_names: Dict[AnyType, "TypeNameFactory"] = {}
+_type_names: Dict[AnyType, "TypeNameFactory"] = type_dict_wrapper({})
 
 T = TypeVar("T")
 
@@ -76,11 +77,12 @@ def _default_type_name(tp: AnyType) -> TypeName:
 
 def get_type_name(tp: AnyType) -> TypeName:
     tp = replace_builtins(tp)
-    if contains(_type_names, tp):
+    with suppress(KeyError, TypeError):
         return _type_names[tp].to_type_name(tp)
     origin, args = get_origin(tp), get_args(tp)
-    if args and not has_type_vars(tp) and contains(_type_names, origin):
-        return _type_names[origin].to_type_name(origin, *args)
+    if args and not has_type_vars(tp):
+        with suppress(KeyError, TypeError):
+            return _type_names[origin].to_type_name(origin, *args)
     return _default_type_name(tp)
 
 
