@@ -367,3 +367,16 @@ def is_async(func: Callable, types: Mapping[str, AnyType] = None) -> bool:
         except Exception:
             types = {}
     return get_origin_or_type2(types.get("return")) == awaitable_origin
+
+
+def wrap_generic_init_subclass(init_subclass: Func) -> Func:
+    if sys.version_info >= (3, 7):
+        return init_subclass
+
+    @wraps(init_subclass)
+    def wrapper(cls, **kwargs):
+        if getattr(cls, "__origin__", None) is not None:
+            return
+        init_subclass(cls, **kwargs)
+
+    return wrapper

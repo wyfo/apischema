@@ -1,4 +1,3 @@
-import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import (
@@ -16,12 +15,12 @@ from typing import (
 
 import graphql
 
-from apischema import deserialize, deserializer, serialize, serializer
+from apischema import deserialize, deserializer, serialize, serializer, type_name
 from apischema.graphql import ID, interface, resolver
 from apischema.metadata import skip
 from apischema.type_names import get_type_name
 from apischema.typing import generic_mro, get_args, get_origin
-from apischema.utils import PREFIX, has_type_vars
+from apischema.utils import PREFIX, has_type_vars, wrap_generic_init_subclass
 
 ID_TYPE_ATTR = f"{PREFIX}id_type"
 
@@ -71,6 +70,7 @@ def serialize_global_id(global_id: GlobalId) -> ID:
 Id = TypeVar("Id")
 
 
+@type_name(graphql=lambda *_: "Node")
 @interface
 @dataclass  # type: ignore
 class Node(Generic[Id], ABC):
@@ -110,10 +110,9 @@ class Node(Generic[Id], ABC):
             raise TypeError(f"Node {cls} has no type_name registered")
         return node_name
 
+    @wrap_generic_init_subclass
     def __init_subclass__(cls, not_a_node: bool = False, **kwargs):
         super().__init_subclass__(**kwargs)  # type: ignore
-        if sys.version_info < (3, 7) and cls.__origin__ == Node:
-            return
         if not not_a_node:
             _tmp_nodes.append(cls)
 
