@@ -32,7 +32,7 @@ from apischema.metadata.keys import (
 )
 from apischema.objects.utils import AliasedStr
 from apischema.types import AnyType, ChainMap
-from apischema.typing import get_args, is_annotated
+from apischema.typing import get_args, is_annotated, type_dict_wrapper
 from apischema.utils import empty_dict
 
 if TYPE_CHECKING:
@@ -192,7 +192,7 @@ def get_field_name(field_or_name: Any) -> str:
         _bad_field(field_or_name)
 
 
-_class_fields: Dict[type, Callable[[], Sequence[ObjectField]]] = {}
+_class_fields: Dict[type, Callable[[], Sequence[ObjectField]]] = type_dict_wrapper({})
 
 
 def set_object_fields(

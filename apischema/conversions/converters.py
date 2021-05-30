@@ -22,6 +22,7 @@ from apischema.conversions.conversions import (
 )
 from apischema.conversions.utils import Converter, INVALID_CONVERSION_TYPES
 from apischema.types import AnyType
+from apischema.typing import type_dict_wrapper
 from apischema.utils import (
     MethodOrProperty,
     MethodWrapper,
@@ -37,8 +38,8 @@ if TYPE_CHECKING:
     from apischema.deserialization.coercion import Coercion
 
 
-_deserializers: Dict[Type, List[ConvOrFunc]] = defaultdict(list)
-_serializers: Dict[Type, ConvOrFunc] = {}
+_deserializers: Dict[Type, List[ConvOrFunc]] = type_dict_wrapper(defaultdict(list))
+_serializers: Dict[Type, ConvOrFunc] = type_dict_wrapper({})
 Deserializer = TypeVar(
     "Deserializer", bound=Union[Callable, Conversion, staticmethod, type]
 )

@@ -73,9 +73,6 @@ Pseudo-inheritance could be achieved by registering a conversion (using for exam
 {!generic_conversions.py!}
 ```
 
-!!! warning
-    (De)serializer cannot decorate methods of `Generic` classes in Python 3.6, it has to be used outside of class.
-
 However, it's not allowed to register a conversion of a specialized generic type, like `Foo[int]`(see [FAQ](#why-conversion-can-only-be-applied-on-classes-and-not-on-others-types-newtype-fooint-etc)).
 
 ## Conversion object

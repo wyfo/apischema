@@ -32,6 +32,7 @@ from apischema.serialization.serialized_methods import (
     serialized as register_serialized,
 )
 from apischema.types import AnyType, NoneType, Undefined
+from apischema.typing import type_dict_wrapper
 from apischema.utils import (
     awaitable_origin,
     empty_dict,
@@ -78,7 +79,7 @@ class Resolver(SerializedMethod):
         return super().return_type(unwrap_awaitable(return_type))
 
 
-_resolvers: Dict[Type, Dict[str, Resolver]] = defaultdict(dict)
+_resolvers: Dict[Type, Dict[str, Resolver]] = type_dict_wrapper(defaultdict(dict))
 
 
 def get_resolvers(tp: AnyType) -> Mapping[str, Tuple[Resolver, Mapping[str, AnyType]]]:

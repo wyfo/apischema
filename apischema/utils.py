@@ -67,13 +67,6 @@ def to_hashable(data: Union[None, int, float, str, bool, list, dict]) -> Hashabl
     return data  # type: ignore
 
 
-def contains(collection: Collection[T], obj: T) -> bool:
-    try:
-        return obj in collection
-    except TypeError:
-        return False
-
-
 SNAKE_CASE_REGEX = re.compile(r"_([a-z\d])")
 
 

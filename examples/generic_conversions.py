@@ -13,14 +13,13 @@ class Wrapper(Generic[T]):
     def __init__(self, wrapped: T):
         self.wrapped = wrapped
 
-    # serializer decorator for methods of generic class is not supported in Python 3.6
+    @serializer
     def unwrap(self) -> T:
         return self.wrapped
 
 
-# Wrapper constructor can be used as a function too
+# Wrapper constructor can be used as a function too (so deserializer could work as decorator)
 deserializer(Wrapper)
-serializer(Wrapper.unwrap)
 
 
 assert deserialize(Wrapper[list[int]], [0, 1]).wrapped == [0, 1]

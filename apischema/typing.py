@@ -7,7 +7,11 @@ from typing import (  # type: ignore
     Any,
     Callable,
     Collection,
+    Dict,
     Generic,
+    Iterator,
+    List,
+    MutableMapping,
     Set,
     Tuple,
     Type,
@@ -275,3 +279,52 @@ def required_keys(typed_dict: Type) -> Collection[str]:
         if typed_dict.__total__:  # type: ignore
             required.update(typed_dict.__annotations__.keys() - bases_annotations)
         return required
+
+
+# Because hash of generic classes is changed by metaclass after __init_subclass__
+# classes registered in global dictionaries are no more accessible. Here is a dictionary
+# wrapper to fix this issue
+if sys.version_info < (3, 7):
+    K = TypeVar("K")
+    V = TypeVar("V")
+
+    class type_dict_wrapper(MutableMapping[K, V]):
+        def __init__(self, wrapped: Dict[K, V]):
+            self.wrapped = wrapped
+            self.tmp: List[Tuple[K, V]] = []
+
+        def _rehash(self):
+            # while + pop instead of for in order to be "atomic"
+            # (yes, it's only the case if self.wrapped is a builtin)
+            while self.tmp:
+                k, v = self.tmp.pop()
+                self.wrapped[k] = v
+
+        def __delitem__(self, key: K) -> None:
+            self._rehash()
+            del self.wrapped[key]
+
+        def __getitem__(self, key: K) -> V:
+            self._rehash()
+            return self.wrapped[key]
+
+        def __iter__(self) -> Iterator[K]:
+            self._rehash()
+            return iter(self.wrapped)
+
+        def __len__(self) -> int:
+            self._rehash()
+            return len(self.wrapped)
+
+        def __setitem__(self, key: K, value: V):
+            if hasattr(key, "__origin__"):
+                self.tmp.append((key, value))
+            else:
+                self.wrapped[key] = value
+
+
+else:
+    D = TypeVar("D", bound=dict)
+
+    def type_dict_wrapper(wrapped: D) -> D:
+        return wrapped
