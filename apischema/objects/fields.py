@@ -205,3 +205,7 @@ def set_object_fields(
         _class_fields[cls] = fields
     else:
         _class_fields[cls] = lambda fields=tuple(fields): fields  # type: ignore
+
+
+def default_object_fields(cls: type) -> Optional[Sequence[ObjectField]]:
+    return _class_fields[cls]() if cls in _class_fields else None

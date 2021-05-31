@@ -23,7 +23,6 @@ from typing import (
     overload,
 )
 
-from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import Conversions
@@ -814,14 +813,16 @@ def deserialize(
     coercion: Coercion = None,
     default_fallback: bool = None,
 ):
+    from apischema import settings
+
     if additional_properties is None:
-        additional_properties = settings.additional_properties
+        additional_properties = settings.deserialization.additional_properties
     if coercion is None:
-        coercion = settings.coercion
+        coercion = settings.deserialization.coercion
     if default_fallback is None:
-        default_fallback = settings.default_fallback
+        default_fallback = settings.deserialization.default_fallback
     if aliaser is None:
-        aliaser = settings.aliaser()
+        aliaser = settings.aliaser
     ctx = DeserializationContext(additional_properties, coercion, default_fallback)
     if schema is not None and schema.constraints is not None:
         schema.constraints.validate(

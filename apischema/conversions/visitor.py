@@ -16,7 +16,6 @@ from typing import (
 from apischema.cache import cache
 from apischema.conversions import LazyConversion
 from apischema.conversions.conversions import (
-    Conversion,
     Conversions,
     ResolvedConversion,
     ResolvedConversions,
@@ -24,7 +23,6 @@ from apischema.conversions.conversions import (
     is_identity,
     resolve_conversions,
 )
-from apischema.conversions.converters import _deserializers, _serializers
 from apischema.conversions.dataclass_models import handle_dataclass_model
 from apischema.conversions.utils import INVALID_CONVERSION_TYPES
 from apischema.type_names import type_name
@@ -184,7 +182,11 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
         else:
             return tuple(result) or None
 
-    _default_conversions = staticmethod(_deserializers.get)  # type: ignore
+    @staticmethod
+    def _default_conversions(tp: Type) -> Optional[Conversions]:
+        from apischema import settings
+
+        return settings.deserialization.default_conversions(tp)
 
     def _handle_container_sub_conversions(
         self, conversion: Deserialization
@@ -223,18 +225,9 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
 
     @staticmethod
     def _default_conversions(tp: Type) -> Optional[Conversions]:
-        for sub_cls in tp.__mro__:
-            if sub_cls in _serializers:
-                conversion = _serializers[sub_cls]
-                if (
-                    sub_cls == tp
-                    or not isinstance(conversion, Conversion)
-                    or conversion.inherited is None
-                    or conversion.inherited
-                ):
-                    return conversion
-        else:
-            return None
+        from apischema import settings
+
+        return settings.serialization.default_conversions(tp)
 
     def _handle_container_sub_conversions(
         self, conversion: Serialization

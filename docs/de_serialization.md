@@ -82,8 +82,8 @@ Validation error can happen when deserializing an ill-formed field. However, if 
 
 #### Strictness configuration
 
-*apischema* global configuration is managed through `apischema.settings` module.
-This module has, among other, three global variables `settings.additional_properties`, `settings.coercion` and `settings.default_fallback` whose values are used as default parameter values for the `deserialize` function.
+*apischema* global configuration is managed through `apischema.settings` object.
+It has, among other, three global variables `settings.deserializaton.additional_properties`, `settings.deserialization.coercion` and `settings.deserialization.default_fallback` whose values are used as default parameter values for the `deserialize`; by default, `additional_properties=False`, `coercion=False` and `default_fallback=False`.
 
 Global coercion function can be set with `settings.coercer` following this example:
 
@@ -93,7 +93,6 @@ from apischema import ValidationError, settings
 
 prev_coercer = settings.coercer()
 
-@settings.coercer
 def coercer(cls, data):
     """In case of coercion failures, try to deserialize json data"""
     try:
@@ -105,10 +104,9 @@ def coercer(cls, data):
             return json.loads(data)
         except json.JSONDecodeError:
             raise err
-```
 
-!!! note
-    Like all `settings` function, `coercer` has an overloaded signature. Without argument, it returns the current settings function, and with an argument, it set the settings function.
+settings.coercer = coercer
+```
 
 ## Fields set
 
@@ -189,7 +187,7 @@ Serialized methods of generic classes get the right type when their owning class
 ### Exclude unset fields
 
 When a class has a lot of optional fields, it can be convenient to not include all of them, to avoid a bunch of useless fields in your serialized data.
-Using the previous feature of [fields set tracking](#fields-set), `serialize` can exclude unset fields using its `exclude_unset` parameter or `settings.exclude_unset` (default is `True`).
+Using the previous feature of [fields set tracking](#fields-set), `serialize` can exclude unset fields using its `exclude_unset` parameter or `settings.serialization.exclude_unset` (default is `True`).
 
 ```python
 {!exclude_unset.py!}

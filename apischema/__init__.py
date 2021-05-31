@@ -8,7 +8,6 @@ __all__ = [
     "deserialization",
     "deserialize",
     "deserializer",
-    "objects",
     "properties",
     "reset_cache",
     "schema",
@@ -16,6 +15,7 @@ __all__ = [
     "serialize",
     "serialized",
     "serializer",
+    "settings",
     "type_name",
     "validator",
 ]
@@ -28,7 +28,6 @@ from . import (  # noqa: F401
     json_schema,
     metadata,
     objects,
-    settings,
     skip,
     tagged_unions,
     validation,
@@ -42,6 +41,7 @@ from .json_schema.schemas import schema
 from .metadata import properties
 from .serialization import serialize
 from .serialization.serialized_methods import serialized
+from .settings import settings
 from .type_names import schema_ref, type_name
 from .types import Undefined, UndefinedType
 from .validation import ValidationError, validator

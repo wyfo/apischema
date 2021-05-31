@@ -190,7 +190,7 @@ It can be used for example to build a deserialization conversion from an alterna
 
 ## Default conversions
 
-As almost every default behavior in *apischema*, default conversion can be configured using `apischema.settings.deserialization`/`apischema.settings.serialization`. The initial value of these settings are the function which retrieved conversions registered with `deserializer`/`serializer`.
+As almost every default behavior in *apischema*, default conversion can be configured using `apischema.settings.deserialization.default_conversions`/`apischema.settings.serialization.default_conversions`. The initial value of these settings are the function which retrieved conversions registered with `deserializer`/`serializer`.
 
 You can for example [support *attrs*](examples/attrs_support.md) classes with this feature:
 

@@ -4,12 +4,7 @@ from typing import Any, Collection, Mapping, Optional, Sequence, Tuple, Type
 from apischema.aliases import Aliaser, get_class_aliaser
 from apischema.conversions.conversions import Conversions
 from apischema.metadata.keys import ALIAS_METADATA, SKIP_METADATA
-from apischema.objects.fields import (
-    FieldKind,
-    MISSING_DEFAULT,
-    ObjectField,
-    _class_fields,
-)
+from apischema.objects.fields import FieldKind, MISSING_DEFAULT, ObjectField
 from apischema.types import AnyType, Undefined
 from apischema.typing import get_args
 from apischema.utils import (
@@ -127,13 +122,11 @@ class ObjectVisitor(Visitor[Return]):
         ]
         return self._object(cls, fields, class_aliasing=False)
 
-    @staticmethod
-    def _object_fields(cls: type) -> Optional[Sequence[ObjectField]]:
-        return _class_fields[cls]() if cls in _class_fields else None
-
     def unsupported(self, tp: AnyType) -> Return:
+        from apischema import settings
+
         if isinstance(tp, type):
-            fields = self._object_fields(tp)
+            fields = settings.default_object_fields(tp)
             if fields is not None:
                 if self._generic is not None:
                     sub = dict(

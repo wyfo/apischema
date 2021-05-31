@@ -9,8 +9,8 @@ from apischema.utils import has_type_vars, is_type_var, replace_builtins
 
 
 class TypeName(NamedTuple):
-    json_schema: Optional[str]
-    graphql: Optional[str]
+    json_schema: Optional[str] = None
+    graphql: Optional[str] = None
 
 
 NameOrFactory = Union[str, None, Callable[..., Optional[str]]]
@@ -63,7 +63,7 @@ def type_name(
     return TypeNameFactory(json_schema or ref, graphql or ref)
 
 
-def _default_type_name(tp: AnyType) -> TypeName:
+def default_type_name(tp: AnyType) -> Optional[TypeName]:
     if (
         hasattr(tp, "__name__")
         and not get_args(tp)
@@ -72,10 +72,12 @@ def _default_type_name(tp: AnyType) -> TypeName:
     ):
         return TypeName(tp.__name__, tp.__name__)
     else:
-        return TypeName(None, None)
+        return None
 
 
 def get_type_name(tp: AnyType) -> TypeName:
+    from apischema import settings
+
     tp = replace_builtins(tp)
     with suppress(KeyError, TypeError):
         return _type_names[tp].to_type_name(tp)
@@ -83,7 +85,7 @@ def get_type_name(tp: AnyType) -> TypeName:
     if args and not has_type_vars(tp):
         with suppress(KeyError, TypeError):
             return _type_names[origin].to_type_name(origin, *args)
-    return _default_type_name(tp)
+    return settings.default_type_name(tp) or TypeName()
 
 
 def schema_ref(ref: Optional[str]) -> Callable[[T], T]:
