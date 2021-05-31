@@ -16,14 +16,14 @@ class RGB:
         return f"#{self.red:02x}{self.green:02x}{self.blue:02x}"
 
 
-assert serialize(RGB(0, 0, 0)) == "#000000"
+assert serialize(RGB, RGB(0, 0, 0)) == "#000000"
 # dynamic conversion used to bypass the registered one
-assert serialize(RGB(0, 0, 0), conversions=identity) == {
+assert serialize(RGB, RGB(0, 0, 0), conversions=identity) == {
     "red": 0,
     "green": 0,
     "blue": 0,
 }
 # Expended bypass form
 assert serialize(
-    RGB(0, 0, 0), conversions=Conversion(identity, source=RGB, target=RGB)
+    RGB, RGB(0, 0, 0), conversions=Conversion(identity, source=RGB, target=RGB)
 ) == {"red": 0, "green": 0, "blue": 0}

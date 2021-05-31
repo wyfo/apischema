@@ -13,5 +13,5 @@ class Foo:
     bar: Optional[int] = field(default=None, metadata=default_as_set)
 
 
-assert serialize(Foo()) == {"bar": None}
-assert serialize(Foo(0)) == {"bar": 0}
+assert serialize(Foo, Foo()) == {"bar": None}
+assert serialize(Foo, Foo(0)) == {"bar": 0}

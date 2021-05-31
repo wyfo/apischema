@@ -2,11 +2,11 @@ from typing import Collection, Dict, List, Mapping, Sequence, Tuple
 
 from pytest import mark
 
-from apischema import serializer
+from apischema import serializer, settings
 from apischema.conversions import identity
 from apischema.conversions.conversions import Conversion, LazyConversion
 from apischema.conversions.visitor import SerializationVisitor
-from apischema.json_schema.generation.conversions_resolver import (
+from apischema.json_schema.conversions_resolver import (
     WithConversionsResolver,
     merge_results,
 )
@@ -44,7 +44,7 @@ tmp = rec_conversion
 
 
 @mark.parametrize(
-    "tp, conversions, result",
+    "tp, conversions, expected",
     [
         (int, None, [int]),
         (int, Conversion(str, int), []),
@@ -65,5 +65,8 @@ tmp = rec_conversion
         (A, rec_conversion, []),
     ],
 )
-def test_resolve_conversion(tp, conversions, result):
-    assert list(Visitor().visit_with_conversions(tp, conversions)) == list(result)
+def test_resolve_conversion(tp, conversions, expected):
+    result = Visitor(settings.serialization.default_conversions).visit_with_conv(
+        tp, conversions
+    )
+    assert list(result) == list(expected)

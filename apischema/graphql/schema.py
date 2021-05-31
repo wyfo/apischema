@@ -1,6 +1,6 @@
-from contextlib import contextmanager
-from dataclasses import InitVar, dataclass, field as field_
+from dataclasses import dataclass, field as field_, replace
 from enum import Enum
+from functools import wraps
 from inspect import Parameter, iscoroutinefunction
 from typing import (
     Any,
@@ -25,47 +25,51 @@ from typing import (
 
 import graphql
 
+from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.conversions import identity
-from apischema.conversions.conversions import Conversions
+from apischema.conversions.conversions import Conversions, DefaultConversions
 from apischema.conversions.visitor import (
+    CachedConversionsVisitor,
     Conv,
-    ConversionsVisitor,
     Deserialization,
     DeserializationVisitor,
     Serialization,
     SerializationVisitor,
 )
-from apischema.dataclasses import replace
 from apischema.graphql.interfaces import get_interfaces, is_interface
 from apischema.graphql.resolvers import (
     Resolver,
     get_resolvers,
     none_error_handler,
-    partial_serialization_method,
+    partial_serialization_method_factory,
     resolver_parameters,
     resolver_resolve,
 )
-from apischema.json_schema.schemas import Schema, get_schema, merge_schema
 from apischema.metadata.keys import SCHEMA_METADATA
-from apischema.objects import AliasedStr, ObjectField
+from apischema.objects import ObjectField
 from apischema.objects.visitor import (
     DeserializationObjectVisitor,
     ObjectVisitor,
     SerializationObjectVisitor,
 )
-from apischema.serialization import serialize
+from apischema.schemas import Schema, get_schema, merge_schema
+from apischema.serialization import SerializationMethod, serialize
 from apischema.serialization.serialized_methods import ErrorHandler
-from apischema.type_names import TypeNameFactory, get_type_name
+from apischema.type_names import TypeName, TypeNameFactory, get_type_name
 from apischema.types import AnyType, NoneType, OrderedDict, Undefined, UndefinedType
-from apischema.typing import get_args, get_origin, is_annotated, is_new_type
+from apischema.typing import get_args, get_origin, is_annotated
 from apischema.utils import (
+    Lazy,
     empty_dict,
     get_args2,
     get_origin2,
+    get_origin_or_type,
     is_union_of,
+    literal_values,
     sort_by_annotations_position,
     to_camel_case,
+    to_pascal_case,
 )
 
 JsonScalar = graphql.GraphQLScalarType(
@@ -91,7 +95,6 @@ class Nullable(Exception):
 
 
 T = TypeVar("T")
-Lazy = Callable[[], T]
 Thunk = Union[Callable[[], T], T]
 
 TypeThunk = Thunk[graphql.GraphQLType]
@@ -146,16 +149,12 @@ def get_deprecated(
 
 @dataclass(frozen=True)
 class ResolverField:
-    to_alias: InitVar[str]
-    alias: str = field_(init=False)
+    alias: str
     resolver: Resolver
     types: Mapping[str, AnyType]
     parameters: Sequence[Parameter]
     metadata: Mapping[str, Mapping]
     subscribe: Optional[Callable] = None
-
-    def __post_init__(self, to_alias: str):
-        object.__setattr__(self, "alias", AliasedStr(to_alias))
 
     @property
     def name(self) -> str:
@@ -178,190 +177,234 @@ IdPredicate = Callable[[AnyType], bool]
 UnionNameFactory = Callable[[Sequence[str]], str]
 
 
-def annotated_schema(tp: AnyType) -> Optional[Schema]:
-    schema = None
-    if is_annotated(tp):
-        for annotation in get_args(tp)[1:]:
-            if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
-                schema = merge_schema(annotation[SCHEMA_METADATA], schema)
-    return schema
+GraphQLTp = TypeVar("GraphQLTp", graphql.GraphQLInputType, graphql.GraphQLOutputType)
+
+FactoryFunction = Callable[[Optional[str], Optional[str]], GraphQLTp]
 
 
-class SchemaBuilder(ConversionsVisitor[Conv, TypeThunk], ObjectVisitor[TypeThunk]):
+@dataclass(frozen=True)
+class TypeFactory(Generic[GraphQLTp]):
+    factory: FactoryFunction[GraphQLTp]
+    name: Optional[str] = None
+    description: Optional[str] = None
+    # non_null cannot be a field because it can not be forward to factories called in
+    # wrapping factories (e.g. recursive wrapper)
+
+    def merge(
+        self, type_name: TypeName = TypeName(), schema: Optional[Schema] = None
+    ) -> "TypeFactory[GraphQLTp]":
+        if type_name == TypeName() and schema is None:
+            return self
+        return replace(
+            self,
+            name=type_name.graphql or self.name,
+            description=get_description(schema) or self.description,
+        )
+
+    @property
+    def type(self) -> GraphQLTp:
+        return self.factory(self.name, self.description)  # type: ignore
+
+    @property
+    def raw_type(self) -> GraphQLTp:
+        tp = self.type
+        return tp.of_type if isinstance(tp, graphql.GraphQLNonNull) else tp
+
+
+def unwrap_name(name: Optional[str], tp: AnyType) -> str:
+    if name is None:
+        raise TypeError(f"Missing name for {tp}")
+    return name
+
+
+Method = TypeVar("Method", bound=Callable[..., TypeFactory])
+
+
+def cache_type(method: Method) -> Method:
+    @wraps(method)
+    def wrapper(self: "SchemaBuilder", *args, **kwargs):
+        factory = method(self, *args, **kwargs)
+
+        @wraps(factory.factory)  # type: ignore
+        def name_cache(
+            name: Optional[str], description: Optional[str]
+        ) -> graphql.GraphQLNonNull:
+            if name is None:
+                return graphql.GraphQLNonNull(factory.factory(name, description))  # type: ignore
+            if name in self._cache_by_name:
+                tp, cached_call = self._cache_by_name[name]
+                if cached_call == (description, method, args, kwargs):
+                    return tp
+            tp = graphql.GraphQLNonNull(factory.factory(name, description))  # type: ignore
+            self._cache_by_name[name] = (tp, (description, method, args, kwargs))
+            return tp
+
+        return replace(factory, factory=name_cache)
+
+    return cast(Method, wrapper)
+
+
+class SchemaBuilder(
+    CachedConversionsVisitor[Conv, TypeFactory[GraphQLTp]],
+    ObjectVisitor[TypeFactory[GraphQLTp]],
+):
     def __init__(
         self,
         aliaser: Aliaser,
+        default_conversions: DefaultConversions,
         id_type: graphql.GraphQLScalarType,
         is_id: Optional[IdPredicate],
-        union_name_factory: Optional[UnionNameFactory],
     ):
-        super().__init__()
-
-        def _aliaser(s: str) -> str:
-            return aliaser(s) if isinstance(s, AliasedStr) else s
-
-        self.aliaser = _aliaser
+        super().__init__(default_conversions)
+        self.aliaser = aliaser
         self.id_type = id_type
         self.is_id = is_id or (lambda t: False)
-        self.union_name_factory = union_name_factory
-        self._cache: Dict[Any, TypeThunk] = {}
-        self._non_null = True
-        self._name: Optional[str] = None
-        self._schema: Optional[Schema] = None
-        self._merge_next: bool = False
+        self._cache_by_name: Dict[str, Tuple[GraphQLTp, Any]] = {}
 
-    @property
-    def _description(self) -> Optional[str]:
-        return get_description(self._schema)
-
-    @property
-    def _name_and_desc(self) -> Tuple[str, Optional[str]]:
-        if self._name is None:
-            raise MissingName
-        return self._name, self._description
-
-    @contextmanager
-    def _replace_name_and_schema(
-        self, name: Optional[str], schema: Optional[Schema], merge_next: bool
-    ):
-        name_save, schema_save, merge_save = self._name, self._schema, self._merge_next
-        self._name, self._schema, self._merge_next = name, schema, merge_next
-        try:
-            yield
-        finally:
-            self._name, self._schema, self._merge_next = (
-                name_save,
-                schema_save,
-                merge_save,
+    def _cache_result(
+        self, lazy: Lazy[TypeFactory[GraphQLTp]]
+    ) -> TypeFactory[GraphQLTp]:
+        def factory(name: Optional[str], description: Optional[str]) -> GraphQLTp:
+            cached_fact = lazy()
+            return cached_fact.factory(  # type: ignore
+                name or cached_fact.name, description or cached_fact.description
             )
 
-    def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> TypeThunk:
-        annotated_name, annotated_schema = self._name, self._schema
+        return TypeFactory(factory)
+
+    def annotated(
+        self, tp: AnyType, annotations: Sequence[Any]
+    ) -> TypeFactory[GraphQLTp]:
+        factory = super().annotated(tp, annotations)
+        type_name = False
         for annotation in reversed(annotations):
             if isinstance(annotation, TypeNameFactory):
-                annotated_name = annotated_name or annotation.to_type_name(tp).graphql
-            if isinstance(annotation, Mapping) and SCHEMA_METADATA in annotation:
-                if annotated_name is not None:
-                    annotated_schema = merge_schema(
-                        annotation[SCHEMA_METADATA], annotated_schema
-                    )
-        with self._replace_name_and_schema(annotated_name, annotated_schema, True):
-            return self.visit(tp)
+                if type_name:
+                    break
+                type_name = True
+                factory = factory.merge(annotation.to_type_name(tp))
+            if isinstance(annotation, Mapping):
+                if type_name:
+                    factory = factory.merge(schema=annotation.get(SCHEMA_METADATA))
+        return factory  # type: ignore
 
-    def any(self) -> TypeThunk:
-        return JsonScalar
+    @cache_type
+    def any(self) -> TypeFactory[GraphQLTp]:
+        def factory(
+            name: Optional[str], description: Optional[str]
+        ) -> graphql.GraphQLScalarType:
+            if name is None:
+                return JsonScalar
+            else:
+                return graphql.GraphQLScalarType(name, description=description)
 
-    def collection(self, cls: Type[Collection], value_type: AnyType) -> TypeThunk:
-        value_thunk = self.visit(value_type)
-        return lambda: graphql.GraphQLList(exec_thunk(value_thunk))
+        return TypeFactory(factory)
 
-    def _visit_merged(self, field: ObjectField) -> TypeThunk:
+    @cache_type
+    def collection(
+        self, cls: Type[Collection], value_type: AnyType
+    ) -> TypeFactory[GraphQLTp]:
+        return TypeFactory(lambda *_: graphql.GraphQLList(self.visit(value_type).type))
+
+    def _visit_merged(self, field: ObjectField) -> TypeFactory[GraphQLTp]:
         raise NotImplementedError
 
-    def enum(self, cls: Type[Enum]) -> TypeThunk:
-        return self.literal([elt.value for elt in cls])
-
-    def literal(self, values: Sequence[Any]) -> TypeThunk:
-        if not all(isinstance(v, str) for v in values):
+    @cache_type
+    def _literal(self, values: Sequence[Any], tp: AnyType) -> TypeFactory[GraphQLTp]:
+        if not all(isinstance(v, str) for v in literal_values(values)):
             raise TypeError("apischema GraphQL only support Enum/Literal of strings")
-        name, description = self._name_and_desc
-        return graphql.GraphQLEnumType(
-            name, dict(zip(values, values)), description=description
-        )
 
+        def factory(
+            name: Optional[str], description: Optional[str]
+        ) -> graphql.GraphQLEnumType:
+            return graphql.GraphQLEnumType(
+                unwrap_name(name, tp),
+                dict(zip(map(to_pascal_case, values), values)),
+                description=description,
+            )
+
+        return TypeFactory(factory)
+
+    def enum(self, cls: Type[Enum]) -> TypeFactory[GraphQLTp]:
+        return self._literal([elt.value for elt in cls], cls)
+
+    def literal(self, values: Sequence[Any]) -> TypeFactory[GraphQLTp]:
+        from apischema.typing import Literal
+
+        return self._literal(values, Literal[tuple(values)])  # type: ignore
+
+    @cache_type
     def mapping(
         self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType
-    ) -> TypeThunk:
-        try:
-            name, description = self._name_and_desc
-            return graphql.GraphQLScalarType(name, description=description)
-        except MissingName:
-            return JsonScalar
+    ) -> TypeFactory[GraphQLTp]:
+        def factory(
+            name: Optional[str], description: Optional[str]
+        ) -> graphql.GraphQLScalarType:
+            if name is not None:
+                return graphql.GraphQLScalarType(name, description=description)
+            else:
+                return JsonScalar
 
-    def object(self, cls: Type, fields: Sequence[ObjectField]) -> TypeThunk:
+        return TypeFactory(factory)
+
+    def object(
+        self, tp: AnyType, fields: Sequence[ObjectField]
+    ) -> TypeFactory[GraphQLTp]:
         raise NotImplementedError
 
-    def primitive(self, cls: Type) -> TypeThunk:
-        assert cls is not NoneType
-        try:
-            name, description = self._name_and_desc
-            return graphql.GraphQLScalarType(name, description=description)
-        except MissingName:
-            return GRAPHQL_PRIMITIVE_TYPES[cls]
+    @cache_type
+    def primitive(self, cls: Type) -> TypeFactory[GraphQLTp]:
+        def factory(
+            name: Optional[str], description: Optional[str]
+        ) -> graphql.GraphQLScalarType:
+            assert cls is not NoneType
+            if name is not None:
+                return graphql.GraphQLScalarType(name, description=description)
+            else:
+                return GRAPHQL_PRIMITIVE_TYPES[cls]
 
-    def tuple(self, types: Sequence[AnyType]) -> TypeThunk:
+        return TypeFactory(factory)
+
+    def tuple(self, types: Sequence[AnyType]) -> TypeFactory[GraphQLTp]:
         raise TypeError("Tuple are not supported")
 
-    def _use_cache(self, key: Any, thunk: Lazy[TypeThunk]) -> TypeThunk:
-        full_key = key, self._name, self._schema, self._conversions
-        if full_key not in self._cache:
-            cache = None
-
-            def rec_sentinel() -> graphql.GraphQLType:
-                nonlocal cache
-                assert cache is not None
-                if not isinstance(cache, graphql.GraphQLType):
-                    cache = exec_thunk(cache)
-                return cache
-
-            self._cache[full_key] = rec_sentinel
-            cache = thunk()
-
-        return self._cache[full_key]
-
-    def union(self, alternatives: Sequence[AnyType]) -> TypeThunk:
-        if UndefinedType in alternatives:
-            filtered = [alt for alt in alternatives if alt is not UndefinedType]
-            alternatives = [*filtered, NoneType]
-        results = []
-        non_null_alternatives = []
-        for alt in alternatives:
-            try:
-                results.append(self.visit(alt))
-                non_null_alternatives.append(alt)
-            except Nullable:
-                self._non_null = False
-        if not results:
+    def union(self, alternatives: Sequence[AnyType]) -> TypeFactory[GraphQLTp]:
+        factories = [
+            self.visit(alt)
+            for alt in alternatives
+            if alt not in (NoneType, UndefinedType)
+        ]
+        if not factories:
             raise TypeError("Empty union")
-        if len(results) == 1:
-            return results[0]
-        return self._use_cache(
-            tuple(non_null_alternatives), lambda: self._union_result(results)
-        )
+        if len(factories) == 1:
+            factory = factories[0]
+        else:
+            factory = self._union_result(factories)
+        if len(factories) != len(alternatives):
+
+            def nullable(name: Optional[str], description: Optional[str]) -> GraphQLTp:
+                res = factory.factory(name, description)  # type: ignore
+                return res.of_type if isinstance(res, graphql.GraphQLNonNull) else res
+
+            return replace(factory, factory=nullable)
+        else:
+            return factory
 
     def visit_conversion(
-        self, tp: AnyType, conversion: Optional[Conv], dynamic: bool
-    ) -> TypeThunk:
-        if dynamic:
-            with self._replace_name_and_schema(None, None, False):
-                return super().visit_conversion(tp, conversion, dynamic)
-        if self.is_id(tp) or tp == ID:
-            return graphql.GraphQLNonNull(self.id_type)
-        name, schema = get_type_name(tp).graphql, get_schema(tp)
-        if self._merge_next:
-            name, schema = self._name or name, merge_schema(schema, self._schema)
-        if is_new_type(tp) or is_annotated(tp):
-            with self._replace_name_and_schema(name, schema, True):
-                return super().visit_conversion(tp, conversion, dynamic)
-        if get_args(tp):
-            schema = merge_schema(get_schema(get_origin(tp)), schema)
-        non_null_save = self._non_null
-        self._non_null = True
-        try:
-            with self._replace_name_and_schema(name, schema, conversion is not None):
-                result = super().visit_conversion(tp, conversion, dynamic)
-            non_null = self._non_null
-            return lambda: exec_thunk(result, non_null=non_null)
-        except MissingName:
-            raise TypeError(f"Missing name for type {tp}") from None
-        finally:
-            self._non_null = non_null_save
-
-    def _visit_not_generic(self, tp: AnyType) -> TypeThunk:
-        if tp is NoneType:
-            raise Nullable
-        _visit = super()._visit_not_generic
-        return self._use_cache(self._generic or tp, lambda: _visit(tp))
+        self,
+        tp: AnyType,
+        conversion: Optional[Conv],
+        dynamic: bool,
+        next_conversions: Optional[Conversions] = None,
+    ) -> TypeFactory[GraphQLTp]:
+        if not dynamic and self.is_id(tp) or tp == ID:
+            return TypeFactory(lambda *_: graphql.GraphQLNonNull(self.id_type))
+        factory = super().visit_conversion(tp, conversion, dynamic, next_conversions)
+        if not dynamic:
+            factory = factory.merge(get_type_name(tp), get_schema(tp))
+            if get_args(tp):
+                factory = factory.merge(schema=get_schema(get_origin(tp)))
+        return factory  # type: ignore
 
 
 FieldType = TypeVar("FieldType", graphql.GraphQLInputField, graphql.GraphQLField)
@@ -370,11 +413,11 @@ FieldType = TypeVar("FieldType", graphql.GraphQLInputField, graphql.GraphQLField
 def merge_fields(
     cls: Type,
     fields: Mapping[str, Lazy[FieldType]],
-    merged_types: Mapping[str, TypeThunk],
+    merged_types: Mapping[str, TypeFactory],
 ) -> Dict[str, FieldType]:
     all_merged_fields: Dict[str, FieldType] = {}
-    for merged_name, merged_thunk in merged_types.items():
-        merged_type = exec_thunk(merged_thunk, non_null=False)
+    for merged_name, merged_factory in merged_types.items():
+        merged_type = merged_factory.raw_type
         if not isinstance(
             merged_type,
             (
@@ -394,13 +437,14 @@ def merge_fields(
 
 
 class InputSchemaBuilder(
-    SchemaBuilder[Deserialization],
-    DeserializationVisitor[TypeThunk],
-    DeserializationObjectVisitor[TypeThunk],
+    SchemaBuilder[Deserialization, graphql.GraphQLInputType],
+    DeserializationVisitor[TypeFactory[graphql.GraphQLInputType]],
+    DeserializationObjectVisitor[TypeFactory[graphql.GraphQLInputType]],
 ):
-    def _visit_merged(self, field: ObjectField) -> TypeThunk:
-        with self._replace_conversions(field.deserialization):
-            return self.visit(field.type)
+    def _visit_merged(
+        self, field: ObjectField
+    ) -> TypeFactory[graphql.GraphQLInputType]:
+        return self.visit_with_conv(field.type, field.deserialization)
 
     def _field(self, field: ObjectField) -> Lazy[graphql.GraphQLInputField]:
         field_type = field.type
@@ -412,34 +456,47 @@ class InputSchemaBuilder(
         elif field_default is not graphql.Undefined:
             try:
                 default = serialize(
+                    field_type,
                     field_default,
                     conversions=field.deserialization,
                     aliaser=self.aliaser,
                 )
             except Exception:
                 field_type = Optional[field_type]
-
-        with self._replace_conversions(field.deserialization):
-            type_thunk = self.visit(field_type)
-
+        factory = self.visit_with_conv(field_type, field.deserialization)
         return lambda: graphql.GraphQLInputField(
-            exec_thunk(type_thunk),
+            factory.type,  # type: ignore
             default_value=default,
             description=get_description(field.schema, field.type),
+            extensions={field.name: ""},
         )
 
-    def object(self, cls: Type, fields: Sequence[ObjectField]) -> TypeThunk:
-        name, description = self._name_and_desc
-        name = name if name.endswith("Input") else name + "Input"
+    @cache_type
+    def object(
+        self, tp: AnyType, fields: Sequence[ObjectField]
+    ) -> TypeFactory[graphql.GraphQLInputType]:
         visited_fields = {
             self.aliaser(f.alias): self._field(f) for f in fields if not f.is_aggregate
         }
         merged_types = {f.name: self._visit_merged(f) for f in fields if f.merged}
-        return lambda: graphql.GraphQLInputObjectType(
-            name, lambda: merge_fields(cls, visited_fields, merged_types), description
-        )
 
-    def _union_result(self, results: Iterable[TypeThunk]) -> TypeThunk:
+        def factory(
+            name: Optional[str], description: Optional[str]
+        ) -> graphql.GraphQLInputObjectType:
+            name = unwrap_name(name, tp)
+            if not name.endswith("Input"):
+                name += "Input"
+            return graphql.GraphQLInputObjectType(
+                name,
+                lambda: merge_fields(tp, visited_fields, merged_types),
+                description,
+            )
+
+        return TypeFactory(factory)
+
+    def _union_result(
+        self, results: Iterable[TypeFactory]
+    ) -> TypeFactory[graphql.GraphQLInputType]:
         results = list(results)
         # Check must be done here too because _union_result is used by visit_conversion
         if len(results) == 1:
@@ -448,50 +505,57 @@ class InputSchemaBuilder(
             raise TypeError("Union are not supported for input")
 
 
+Func = TypeVar("Func", bound=Callable)
+
+
 class OutputSchemaBuilder(
-    SchemaBuilder[Serialization],
-    SerializationVisitor[TypeThunk],
-    SerializationObjectVisitor[TypeThunk],
+    SchemaBuilder[Serialization, graphql.GraphQLOutputType],
+    SerializationVisitor[TypeFactory[graphql.GraphQLOutputType]],
+    SerializationObjectVisitor[TypeFactory[graphql.GraphQLOutputType]],
 ):
     def __init__(
         self,
         aliaser: Aliaser,
+        default_conversions: DefaultConversions,
         id_type: graphql.GraphQLScalarType,
         is_id: Optional[IdPredicate],
-        union_name_factory: Optional[UnionNameFactory],
+        union_name_factory: UnionNameFactory,
+        default_deserialization: DefaultConversions,
     ):
-        super().__init__(aliaser, id_type, is_id, union_name_factory)
+        super().__init__(aliaser, default_conversions, id_type, is_id)
+        self.union_name_factory = union_name_factory
         self.input_builder = InputSchemaBuilder(
-            aliaser, id_type, is_id, union_name_factory
+            self.aliaser, default_deserialization, self.id_type, self.is_id
         )
-        self._get_merged: Optional[Callable[[Any], Any]] = None
+        self.get_merged: Optional[Callable[[Any], Any]] = None
 
-    def _wrap_resolve(self, resolve: Callable):
-        if self._get_merged is None:
+    def _field_serialization_method(self, field: ObjectField) -> SerializationMethod:
+        return partial_serialization_method_factory(
+            self.aliaser, field.serialization, self.default_conversions
+        )(field.type)
+
+    def _wrap_resolve(self, resolve: Func) -> Func:
+        if self.get_merged is None:
             return resolve
         else:
-            get_merged = self._get_merged
+            get_merged = self.get_merged
 
             def resolve_wrapper(__obj, __info, **kwargs):
                 return resolve(get_merged(__obj), __info, **kwargs)
 
-            return resolve_wrapper
+            return cast(Func, resolve_wrapper)
 
     def _field(self, field: ObjectField) -> Lazy[graphql.GraphQLField]:
-        field_name, aliaser = field.name, self.aliaser
-        conversions = field.serialization
+        field_name = field.name
+        partial_serialize = self._field_serialization_method(field)
 
         @self._wrap_resolve
         def resolve(obj, _):
-            attr = getattr(obj, field_name)
-            return partial_serialization_method(attr.__class__, conversions, aliaser)(
-                attr, False
-            )
+            return partial_serialize(getattr(obj, field_name))
 
-        with self._replace_conversions(conversions):
-            type_thunk = self.visit(field.type)
+        factory = self.visit_with_conv(field.type, field.serialization)
         return lambda: graphql.GraphQLField(
-            exec_thunk(type_thunk),
+            factory.type,
             None,
             resolve,
             description=get_description(field.schema, field.type),
@@ -500,10 +564,14 @@ class OutputSchemaBuilder(
 
     def _resolver(self, field: ResolverField) -> Lazy[graphql.GraphQLField]:
         resolve = self._wrap_resolve(
-            resolver_resolve(field.resolver, field.types, self.aliaser)
+            resolver_resolve(
+                field.resolver,
+                field.types,
+                self.aliaser,
+                self.input_builder.default_conversions,
+                self.default_conversions,
+            )
         )
-        with self._replace_conversions(field.resolver.conversions):
-            type_thunk = self.visit(field.type)
         args = None
         if field.parameters is not None:
             args = {}
@@ -529,23 +597,30 @@ class OutputSchemaBuilder(
                 # even if it has a default
                 elif param.default not in {Parameter.empty, graphql.Undefined}:
                     try:
-                        default = serialize(param.default)
+                        default = serialize(
+                            param_type,
+                            param.default,
+                            check_type=True,
+                            any_fallback=True,
+                        )
                     except Exception:
                         param_type = Optional[param_type]
-                with self._replace_conversions(param_field.deserialization):
-                    arg_type = self.input_builder.visit(param_type)
+                arg_factory = self.input_builder.visit_with_conv(
+                    param_type, param_field.deserialization
+                )
                 description = get_description(param_field.schema, param_field.type)
 
                 def arg_thunk(
-                    arg_type=arg_type, default=default, description=description
+                    arg_factory=arg_factory, default=default, description=description
                 ) -> graphql.GraphQLArgument:
                     return graphql.GraphQLArgument(
-                        exec_thunk(arg_type), default, description
+                        arg_factory.type, default, description
                     )
 
                 args[self.aliaser(param_field.alias)] = arg_thunk
+        factory = self.visit_with_conv(field.type, field.resolver.conversions)
         return lambda: graphql.GraphQLField(
-            exec_thunk(type_thunk),
+            factory.type,  # type: ignore
             {name: arg() for name, arg in args.items()} if args else None,
             resolve,
             field.subscribe,
@@ -553,37 +628,36 @@ class OutputSchemaBuilder(
             field.deprecated,
         )
 
-    def _visit_merged(self, field: ObjectField) -> TypeThunk:
-        conversions = field.serialization
-        field_name, aliaser = field.name, self.aliaser
-        get_prev_merged = self._get_merged if self._get_merged is not None else identity
+    def _visit_merged(
+        self, field: ObjectField
+    ) -> TypeFactory[graphql.GraphQLOutputType]:
+        get_prev_merged = self.get_merged if self.get_merged is not None else identity
+        field_name = field.name
+        partial_serialize = self._field_serialization_method(field)
 
-        def get_merge(obj):
-            attr = getattr(get_prev_merged(obj), field_name)
-            return partial_serialization_method(attr.__class__, conversions, aliaser)(
-                attr, False
-            )
+        def get_merged(obj):
+            return partial_serialize(getattr(get_prev_merged(obj), field_name))
 
-        merged_save = self._get_merged
-        self._get_merged = get_merge
+        get_merged_save = self.get_merged
+        self.get_merged = get_merged
         try:
-            with self._replace_conversions(conversions):
-                return self.visit(field.type)
+            return self.visit_with_conv(field.type, field.serialization)
         finally:
-            self._get_merged = merged_save
+            self.get_merged = get_merged_save
 
+    @cache_type
     def object(
         self,
-        cls: Type,
+        tp: AnyType,
         fields: Sequence[ObjectField],
         resolvers: Sequence[ResolverField] = (),
-    ) -> TypeThunk:
-        name, description = self._name_and_desc
+    ) -> TypeFactory[graphql.GraphQLOutputType]:
+        cls = get_origin_or_type(tp)
         all_fields = {f.alias: self._field(f) for f in fields if not f.is_aggregate}
         name_by_aliases = {f.alias: f.name for f in fields}
         all_fields.update({r.alias: self._resolver(r) for r in resolvers})
         name_by_aliases.update({r.alias: r.resolver.func.__name__ for r in resolvers})
-        for alias, (resolver, types) in get_resolvers(self._generic or cls).items():
+        for alias, (resolver, types) in get_resolvers(tp).items():
             resolver_field = ResolverField(
                 alias,
                 resolver,
@@ -609,54 +683,56 @@ class OutputSchemaBuilder(
         if interfaces:
 
             def interface_thunk() -> Collection[graphql.GraphQLInterfaceType]:
-                result = {exec_thunk(i, non_null=False) for i in interfaces}
-                for merged_thunk in (merged_types).values():
+                result = {
+                    cast(graphql.GraphQLInterfaceType, i.raw_type) for i in interfaces
+                }
+                for merged_factory in merged_types.values():
                     merged = cast(
                         Union[graphql.GraphQLObjectType, graphql.GraphQLInterfaceType],
-                        exec_thunk(merged_thunk, non_null=False),
+                        merged_factory.raw_type,
                     )
                     result.update(merged.interfaces)
                 return sorted(result, key=lambda i: i.name)
 
-        if is_interface(cls):
-            return lambda: graphql.GraphQLInterfaceType(
-                name, field_thunk, interface_thunk, description=description
-            )
+        def factory(
+            name: Optional[str], description: Optional[str]
+        ) -> Union[graphql.GraphQLObjectType, graphql.GraphQLInterfaceType]:
+            name = unwrap_name(name, cls)
+            if is_interface(cls):
+                return graphql.GraphQLInterfaceType(
+                    name, field_thunk, interface_thunk, description=description
+                )
+            else:
+                return graphql.GraphQLObjectType(
+                    name,
+                    field_thunk,
+                    interface_thunk,
+                    is_type_of=lambda obj, _: isinstance(obj, cls),
+                    description=description,
+                )
 
-        else:
-            return lambda: graphql.GraphQLObjectType(
-                name,
-                field_thunk,
-                interface_thunk,
-                is_type_of=lambda obj, _: isinstance(obj, cls),
-                description=description,
-            )
+        return TypeFactory(factory)
 
     def typed_dict(
-        self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
-    ) -> TypeThunk:
-        raise TypeError("TyedDict are not supported in output schema")
+        self, tp: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
+    ) -> TypeFactory[graphql.GraphQLOutputType]:
+        raise TypeError("TypedDict are not supported in output schema")
 
-    def _union_result(self, results: Iterable[TypeThunk]) -> TypeThunk:
-        results = list(results)  # Execute the iteration (tuple to be hashable)
-        name, description = self._name, self._description
-        if name is None and self.union_name_factory is None:
-            raise MissingName
+    @cache_type
+    def _union_result(
+        self, factories: Iterable[TypeFactory]
+    ) -> TypeFactory[graphql.GraphQLOutputType]:
+        factories = list(factories)  # Execute the iteration (tuple to be hashable)
 
-        def thunk() -> graphql.GraphQLUnionType:
-            # No need to use a thunk here because union can only have class members,
-            # which use already thunks.
-            types = [exec_thunk(res, non_null=False) for res in results]
+        def factory(
+            name: Optional[str], description: Optional[str]
+        ) -> graphql.GraphQLOutputType:
+            types = [factory.raw_type for factory in factories]
             if name is None:
-                assert self.union_name_factory is not None
-                computed_name = self.union_name_factory([t.name for t in types])
-            else:
-                computed_name = name
-            return graphql.GraphQLUnionType(
-                computed_name, types, description=description
-            )
+                name = self.union_name_factory([t.name for t in types])
+            return graphql.GraphQLUnionType(name, types, description=description)
 
-        return thunk
+        return TypeFactory(factory)
 
 
 async_iterable_origins = set(map(get_origin, (AsyncIterable[Any], AsyncIterator[Any])))
@@ -735,7 +811,7 @@ def graphql_schema(
     directives: Optional[Collection[graphql.GraphQLDirective]] = None,
     description: Optional[str] = None,
     extensions: Optional[Dict[str, Any]] = None,
-    aliaser: Aliaser = to_camel_case,
+    aliaser: Optional[Aliaser] = to_camel_case,
     id_types: Union[Collection[AnyType], IdPredicate] = None,
     id_encoding: Tuple[
         Optional[Callable[[str], Any]], Optional[Callable[[Any], str]]
@@ -743,8 +819,15 @@ def graphql_schema(
     # TODO deprecate union_ref parameter
     union_ref: UnionNameFactory = "Or".join,
     union_name: UnionNameFactory = "Or".join,
+    default_deserialization: DefaultConversions = None,
+    default_serialization: DefaultConversions = None,
 ) -> graphql.GraphQLSchema:
-
+    if aliaser is None:
+        aliaser = settings.aliaser
+    if default_deserialization is None:
+        default_deserialization = settings.deserialization.default_conversions
+    if default_serialization is None:
+        default_serialization = settings.serialization.default_conversions
     query_fields: List[ResolverField] = []
     mutation_fields: List[ResolverField] = []
     subscription_fields: List[ResolverField] = []
@@ -781,7 +864,12 @@ def graphql_schema(
             sub_types = resolver.types()
             subscriber = replace(subscriber2, error_handler=None)
             subscribe = resolver_resolve(
-                subscriber, subscriber.types(), aliaser, serialized=False
+                subscriber,
+                subscriber.types(),
+                aliaser,
+                default_deserialization,
+                default_serialization,
+                serialized=False,
             )
         else:
             alias, subscriber2 = operation_resolver(sub_op, Subscription)
@@ -802,7 +890,12 @@ def graphql_schema(
                 )
             event_type = get_args2(sub_types["return"])[0]
             subscribe = resolver_resolve(
-                subscriber, sub_types, aliaser, serialized=False
+                subscriber,
+                sub_types,
+                aliaser,
+                default_deserialization,
+                default_serialization,
+                serialized=False,
             )
             sub_types = {**sub_types, "return": resolver.return_type(event_type)}
 
@@ -828,23 +921,29 @@ def graphql_schema(
             parse_literal=graphql.GraphQLID.parse_literal,
             description=graphql.GraphQLID.description,
         )
-    builder = OutputSchemaBuilder(aliaser, id_type, is_id, union_name or union_ref)
+
+    output_builder = OutputSchemaBuilder(
+        aliaser,
+        default_serialization,
+        id_type,
+        is_id,
+        union_name or union_ref,
+        default_deserialization,
+    )
 
     def root_type(
         name: str, fields: Sequence[ResolverField]
     ) -> Optional[graphql.GraphQLObjectType]:
         if not fields:
             return None
-        with builder._replace_name_and_schema(name, None, False):
-            return exec_thunk(
-                builder.object(type(name, (), {}), (), fields), non_null=False
-            )
+        tp, type_name = type(name, (), {}), TypeName(graphql=name)
+        return output_builder.object(tp, (), fields).merge(type_name, None).raw_type  # type: ignore
 
     return graphql.GraphQLSchema(
         query=root_type("Query", query_fields),
         mutation=root_type("Mutation", mutation_fields),
         subscription=root_type("Subscription", subscription_fields),
-        types=[exec_thunk(builder.visit(cls), non_null=False) for cls in types],
+        types=[output_builder.visit(cls).raw_type for cls in types],  # type: ignore
         directives=directives,
         description=description,
         extensions=extensions,

@@ -18,7 +18,7 @@ from graphql.pyutils import camel_to_snake
 
 from apischema.aliases import alias
 from apischema.graphql.schema import Mutation as Mutation_
-from apischema.json_schema.schemas import Schema
+from apischema.schemas import Schema
 from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.type_names import type_name
 from apischema.types import AnyType, Undefined

@@ -22,7 +22,7 @@ class Foo:
         raise RuntimeError("Some error")
 
 
-assert serialize(Foo()) == {"bar": None}  # Logs "Serialization error in Foo.bar"
+assert serialize(Foo, Foo()) == {"bar": None}  # Logs "Serialization error in Foo.bar"
 assert serialization_schema(Foo) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "type": "object",

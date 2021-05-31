@@ -20,7 +20,7 @@ uuid = str(uuid4())
 def bijection(cls, data, expected):
     obj = deserialize(cls, data)
     assert obj == expected
-    assert serialize(obj) == data
+    assert serialize(cls, obj) == data
 
 
 def error(data, cls):

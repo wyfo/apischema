@@ -23,9 +23,8 @@ from pathlib import (
 from typing import Deque, List, TypeVar
 from uuid import UUID
 
-from apischema.conversions import Conversion, as_str, deserializer, serializer
-from apischema.json_schema.schemas import schema
-from apischema.type_names import type_name
+from apischema import deserializer, schema, serializer, type_name
+from apischema.conversions import Conversion, as_str
 
 T = TypeVar("T")
 

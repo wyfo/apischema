@@ -13,7 +13,8 @@ from apischema import (
     settings,
 )
 from apischema.conversions import Conversion, Conversions
-from apischema.json_schema import Schema, deserialization_schema
+from apischema.json_schema import deserialization_schema
+from apischema.schemas import Schema
 from apischema.validation.errors import LocalizedError
 
 #################### Pydantic support code starts here
@@ -21,12 +22,12 @@ from apischema.validation.errors import LocalizedError
 prev_deserialization = settings.deserialization.default_conversions
 
 
-def default_deserialization(cls: type) -> Optional[Conversions]:
-    if issubclass(cls, pydantic.BaseModel):
+def default_deserialization(tp: Any) -> Optional[Conversions]:
+    if isinstance(tp, type) and issubclass(tp, pydantic.BaseModel):
 
         def deserialize_pydantic(data):
             try:
-                return cls.parse_obj(data)
+                return tp.parse_obj(data)
             except pydantic.ValidationError as error:
                 raise ValidationError.deserialize(
                     [LocalizedError(err["loc"], [err["msg"]]) for err in error.errors()]
@@ -34,11 +35,11 @@ def default_deserialization(cls: type) -> Optional[Conversions]:
 
         return Conversion(
             deserialize_pydantic,
-            source=cls.__annotations__.get("__root__", Mapping[str, Any]),
-            target=cls,
+            source=tp.__annotations__.get("__root__", Mapping[str, Any]),
+            target=tp,
         )
     else:
-        return prev_deserialization(cls)
+        return prev_deserialization(tp)
 
 
 settings.deserialization.default_conversions = default_deserialization
@@ -71,7 +72,7 @@ class Foo(pydantic.BaseModel):
 
 
 assert deserialize(Foo, {"bar": 0}) == Foo(bar=0)
-assert serialize(Foo(bar=0)) == {"bar": 0}
+assert serialize(Foo, Foo(bar=0)) == {"bar": 0}
 assert deserialization_schema(Foo) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "title": "Foo",  # pydantic title

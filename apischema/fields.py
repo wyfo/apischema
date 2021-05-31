@@ -15,11 +15,9 @@ from apischema.objects.getters import object_fields2
 from apischema.utils import PREFIX
 
 FIELDS_SET_ATTR = f"{PREFIX}fields_set"
-
+_ALREADY_SET = f"{PREFIX}already_set"
 
 Cls = TypeVar("Cls", bound=Type)
-
-_ALREADY_SET = f"{PREFIX}already_set"
 
 
 def with_fields_set(cls: Cls) -> Cls:

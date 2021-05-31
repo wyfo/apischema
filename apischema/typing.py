@@ -263,6 +263,10 @@ def is_typed_dict(tp: Any) -> bool:
             return False
 
 
+def is_type_var(tp: Any) -> bool:
+    return isinstance(tp, TypeVar)  # type: ignore
+
+
 # Don't use sys.version_info because it can also depend of typing_extensions version
 def required_keys(typed_dict: Type) -> Collection[str]:
     assert is_typed_dict(typed_dict)

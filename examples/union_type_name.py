@@ -21,7 +21,7 @@ def foo_or_bar() -> Union[Foo, Bar]:
 
 
 # union_ref default value is made explicit here
-schema = graphql_schema(query=[foo_or_bar], union_ref="Or".join)
+schema = graphql_schema(query=[foo_or_bar], union_name="Or".join)
 schema_str = """\
 type Query {
   fooOrBar: FooOrBar!

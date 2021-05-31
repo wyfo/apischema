@@ -15,7 +15,7 @@ class Foo2(Foo):
 
 
 # Deserializer is inherited
-assert serialize(Foo()) == serialize(Foo2()) == 0
+assert serialize(Foo, Foo()) == serialize(Foo2, Foo2()) == 0
 
 
 class Bar:
@@ -30,4 +30,4 @@ class Bar2(Bar):
 
 
 # Deserializer is inherited and overridden
-assert serialize(Bar()) == 0 != serialize(Bar2()) == 1
+assert serialize(Bar, Bar()) == 0 != serialize(Bar2, Bar2()) == 1

@@ -27,8 +27,11 @@ with raises(ValidationError) as err:  # pytest check exception is raised
 assert serialize(err.value) == [
     {
         "loc": ["tags"],
-        "err": ["size greater than 3 (maxItems)", "duplicate items (uniqueItems)"],
+        "err": [
+            "item count greater than 3 (maxItems)",
+            "duplicate items (uniqueItems)",
+        ],
     },
-    {"loc": ["tags", 3], "err": ["'^\\w*$' not matched (pattern)"]},
-    {"loc": ["tags", 4], "err": ["length less than 3 (minLength)"]},
+    {"loc": ["tags", 3], "err": ["not matching '^\\w*$' (pattern)"]},
+    {"loc": ["tags", 4], "err": ["string length lower than 3 (minLength)"]},
 ]

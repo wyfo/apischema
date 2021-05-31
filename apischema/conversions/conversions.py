@@ -1,4 +1,4 @@
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from typing import (
     Any,
     Callable,
@@ -9,7 +9,6 @@ from typing import (
     Optional,
     TYPE_CHECKING,
     Tuple,
-    Type,
     Union,
 )
 
@@ -34,18 +33,12 @@ class Conversion:
     target: AnyType = None
     sub_conversions: Optional["Conversions"] = None
     additional_properties: Optional[bool] = None
+    any_fallback: Optional[bool] = None
+    check_type: Optional[bool] = None
     coercion: Optional["Coercion"] = None
     default_fallback: Optional[bool] = None
     exclude_unset: Optional[bool] = None
     inherited: Optional[bool] = None
-
-    def __post_init__(self):
-        # Cannot use astuple because of deepcopy bug with property in py36
-        cached_hash = hash(tuple(getattr(self, f.name) for f in fields(self)))
-        object.__setattr__(self, "_hash", cached_hash)
-
-    def __hash__(self):
-        return self._hash  # type: ignore
 
     def __call__(self, *args, **kwargs):
         return self.converter(*args, **kwargs)
@@ -58,6 +51,7 @@ class LazyConversion:
 
 ConvOrFunc = Union[Conversion, Converter, property, LazyConversion]
 Conversions = Union[ConvOrFunc, Tuple[ConvOrFunc, ...]]
+DefaultConversions = Callable[[AnyType], Optional[Conversions]]
 
 
 ResolvedConversion = NewType("ResolvedConversion", Conversion)
@@ -93,10 +87,10 @@ def resolve_conversions(conversions: Optional[Conversions]) -> ResolvedConversio
 
 
 def handle_identity_conversion(
-    conversion: ResolvedConversion, cls: Type
+    conversion: ResolvedConversion, tp: AnyType
 ) -> ResolvedConversion:
     if is_identity(conversion) and conversion.source == IdentityT:
-        return ResolvedConversion(replace(conversion, source=cls, target=cls))
+        return ResolvedConversion(replace(conversion, source=tp, target=tp))
     else:
         return conversion
 

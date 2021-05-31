@@ -15,7 +15,9 @@ from typing import (
     cast,
 )
 
+from apischema.conversions import Conversion, serializer
 from apischema.types import NoneType, Number, Undefined
+from apischema.validation.errors import ValidationError
 
 
 class JsonType(str, Enum):
@@ -43,8 +45,19 @@ class JsonType(str, Enum):
             raise TypeError(f"Invalid JSON type {cls}")
 
 
+def bad_type(data: Any, expected: type) -> ValidationError:
+    msg = (
+        f"expected type {JsonType.from_type(expected)},"
+        f" found {JsonType.from_type(data.__class__)}"
+    )
+    return ValidationError([msg])
+
+
 class JsonSchema(Dict[str, Any]):
     pass
+
+
+serializer(Conversion(dict, source=JsonSchema))
 
 
 Func = TypeVar("Func", bound=Callable)

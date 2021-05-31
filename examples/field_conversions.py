@@ -27,7 +27,7 @@ class Foo:
 assert deserialize(Foo, {"some_date": 0, "other_date": "2019-10-13"}) == Foo(
     datetime(1970, 1, 1), datetime(2019, 10, 13)
 )
-assert serialize(Foo(datetime(1970, 1, 1), datetime(2019, 10, 13))) == {
+assert serialize(Foo, Foo(datetime(1970, 1, 1), datetime(2019, 10, 13))) == {
     "some_date": 0,
     "other_date": "2019-10-13T00:00:00",
 }

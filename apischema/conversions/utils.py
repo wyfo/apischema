@@ -14,7 +14,8 @@ from typing import (
 )
 
 from apischema.types import AnyType
-from apischema.typing import get_type_hints
+from apischema.typing import get_type_hints, is_new_type
+from apischema.utils import get_origin_or_type
 
 try:
     from apischema.typing import Annotated, Literal
@@ -82,7 +83,15 @@ def converter_types(
     return source, target
 
 
-INVALID_CONVERSION_TYPES = (Union, Annotated, Literal, NoReturn)
+INVALID_CONVERSION_TYPES = {Union, Annotated, Literal, NoReturn}
+
+
+def is_convertible(tp: AnyType) -> bool:
+    origin = get_origin_or_type(tp)
+    return is_new_type(tp) or (
+        isinstance(origin, type) and origin not in INVALID_CONVERSION_TYPES
+    )
+
 
 T = TypeVar("T")
 

@@ -28,7 +28,7 @@ def from_hexa(hexa: str) -> RGB:
 
 
 assert deserialize(RGB, "#000000") == RGB(0, 0, 0)
-assert serialize(RGB(0, 0, 42)) == "#00002a"
+assert serialize(RGB, RGB(0, 0, 42)) == "#00002a"
 assert (
     deserialization_schema(RGB)
     == serialization_schema(RGB)

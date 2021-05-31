@@ -33,7 +33,7 @@ Schema types are named the same way they are in generated JSON schema: type name
 However, in *GraphQL* schema, unions must be named, so `typing.Union` used should be annotated with `apischema.type_name`. `graphql_schema` also provides a `union_ref` parameter which can be passed as a function to generate a type name from the union argument. Default `union_ref` is `"Or".join` meaning `typing.Union[Foo, Bar]` will result in `union FooOrBar = Foo | Bar`
 
 ```python
-{!union_ref.py!}
+{!union_type_name.py!}
 ```
 
 

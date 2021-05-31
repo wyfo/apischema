@@ -35,7 +35,7 @@ root_schema = RootJsonSchema(
     json_schema=JsonSchema(title="merged example"),
 )
 assert deserialize(RootJsonSchema, data) == root_schema
-assert serialize(root_schema) == data
+assert serialize(RootJsonSchema, root_schema) == data
 assert deserialization_schema(RootJsonSchema) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "$defs": {

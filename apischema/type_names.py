@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from typing import Callable, Dict, NamedTuple, Optional, TypeVar, Union
 
 from apischema.types import AnyType, PRIMITIVE_TYPES
-from apischema.typing import get_args, get_origin, type_dict_wrapper
-from apischema.utils import has_type_vars, is_type_var, replace_builtins
+from apischema.typing import get_args, get_origin, is_type_var, type_dict_wrapper
+from apischema.utils import has_type_vars, merge_opts, replace_builtins
 
 
 class TypeName(NamedTuple):
@@ -86,6 +86,13 @@ def get_type_name(tp: AnyType) -> TypeName:
         with suppress(KeyError, TypeError):
             return _type_names[origin].to_type_name(origin, *args)
     return settings.default_type_name(tp) or TypeName()
+
+
+@merge_opts
+def merge_type_name(default: TypeName, override: TypeName) -> TypeName:
+    return TypeName(
+        override.json_schema or default.json_schema, override.graphql or default.graphql
+    )
 
 
 def schema_ref(ref: Optional[str]) -> Callable[[T], T]:

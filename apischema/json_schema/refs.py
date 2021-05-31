@@ -12,15 +12,13 @@ from typing import (
     TypeVar,
 )
 
-from apischema.conversions.conversions import ResolvedConversions
+from apischema.conversions.conversions import Conversions, DefaultConversions
 from apischema.conversions.visitor import (
     ConversionsVisitor,
     DeserializationVisitor,
     SerializationVisitor,
 )
-from apischema.json_schema.generation.conversions_resolver import (
-    WithConversionsResolver,
-)
+from apischema.json_schema.conversions_resolver import WithConversionsResolver
 from apischema.objects import ObjectField
 from apischema.objects.visitor import (
     DeserializationObjectVisitor,
@@ -29,7 +27,7 @@ from apischema.objects.visitor import (
 )
 from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.types import AnyType, UndefinedType
-from apischema.utils import replace_builtins
+from apischema.utils import is_hashable, replace_builtins
 
 try:
     from apischema.typing import Annotated
@@ -47,11 +45,11 @@ T = TypeVar("T")
 
 
 class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
-    def __init__(self, refs: Refs):
-        super().__init__()
+    def __init__(self, default_conversions: DefaultConversions, refs: Refs):
+        super().__init__(default_conversions)
         self.refs = refs
-        self._rec_guard: Dict[Tuple[AnyType, ResolvedConversions], int] = defaultdict(
-            lambda: 1
+        self._rec_guard: Dict[Tuple[AnyType, Optional[Conversions]], int] = defaultdict(
+            lambda: 0
         )
 
     def _incr_ref(self, ref: Optional[str], tp: AnyType) -> bool:
@@ -76,7 +74,7 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
                 annotated = Annotated[(tp, *ref_annotations)]  # type: ignore
                 if self._incr_ref(ref, annotated):
                     return
-        return self.visit(tp)
+        return super().annotated(tp, annotations)
 
     def any(self):
         pass
@@ -94,18 +92,12 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
         self.visit(key_type)
         self.visit(value_type)
 
-    def new_type(self, tp: AnyType, super_type: AnyType):
-        self.visit(super_type)
-
-    def object(self, cls: Type, fields: Sequence[ObjectField]):
+    def object(self, tp: AnyType, fields: Sequence[ObjectField]):
         for field in fields:
-            self.visit_with_conversions(field.type, self._field_conversion(field))
+            self.visit_with_conv(field.type, self._field_conversion(field))
 
     def primitive(self, cls: Type):
         pass
-
-    def subprimitive(self, cls: Type, superclass: Type):
-        self.visit(superclass)
 
     def tuple(self, types: Sequence[AnyType]):
         for cls in types:
@@ -118,22 +110,26 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
     def union(self, alternatives: Sequence[AnyType]):
         return super().union([alt for alt in alternatives if alt is not UndefinedType])
 
-    def visit_conversion(self, tp: AnyType, conversion: Optional[Any], dynamic: bool):
+    def visit_conversion(
+        self,
+        tp: AnyType,
+        conversion: Optional[Any],
+        dynamic: bool,
+        next_conversions: Optional[Conversions] = None,
+    ):
         if not dynamic:
             for ref_tp in self.resolve_conversions(tp):
                 if self._incr_ref(get_type_name(ref_tp).json_schema, ref_tp):
                     return
-        try:
-            hash(tp)
-        except TypeError:
-            return super().visit_conversion(tp, conversion, dynamic)
+        if not is_hashable(tp):
+            return super().visit_conversion(tp, conversion, dynamic, next_conversions)
         # 2 because the first type encountered of the recursive cycle can have no ref
         # (see test_recursive_by_conversion_schema)
         if self._rec_guard[(tp, self._conversions)] > 2:
             raise TypeError(f"Recursive type {tp} need a ref")
         self._rec_guard[(tp, self._conversions)] += 1
         try:
-            return super().visit_conversion(tp, conversion, dynamic)
+            super().visit_conversion(tp, conversion, dynamic, next_conversions)
         finally:
             self._rec_guard[(tp, self._conversions)] -= 1
 

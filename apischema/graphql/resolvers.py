@@ -1,6 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from functools import partial
+from functools import lru_cache
 from inspect import Parameter, signature
 from typing import (
     Any,
@@ -19,12 +19,18 @@ from typing import (
 
 import graphql
 
+from apischema import UndefinedType
 from apischema.aliases import Aliaser
-from apischema.conversions.conversions import Conversions
-from apischema.deserialization import deserialize
-from apischema.json_schema.schemas import Schema
+from apischema.cache import cache
+from apischema.conversions.conversions import Conversions, DefaultConversions
+from apischema.deserialization import deserialization_method
 from apischema.objects import ObjectField
-from apischema.serialization import serialization_method_factory, serialize
+from apischema.schemas import Schema
+from apischema.serialization import (
+    SerializationMethod,
+    SerializationMethodVisitor,
+    serialize,
+)
 from apischema.serialization.serialized_methods import (
     ErrorHandler,
     SerializedMethod,
@@ -32,7 +38,6 @@ from apischema.serialization.serialized_methods import (
     serialized as register_serialized,
 )
 from apischema.types import AnyType, NoneType, Undefined
-from apischema.typing import type_dict_wrapper
 from apischema.utils import (
     awaitable_origin,
     empty_dict,
@@ -45,19 +50,36 @@ from apischema.utils import (
 )
 from apischema.validation.errors import ValidationError
 
-T = TypeVar("T")
+
+class PartialSerializationMethodVisitor(SerializationMethodVisitor):
+    @property
+    def _any_method(self) -> Callable[[type], SerializationMethod]:
+        return partial_serialization_method_factory(
+            self.aliaser, self._conversions, self.default_conversions
+        )
+
+    def object(self, tp: Type, fields: Sequence[ObjectField]) -> SerializationMethod:
+        return lambda obj: obj
+
+    def unsupported(self, tp: AnyType) -> SerializationMethod:
+        if tp is UndefinedType:
+            return lambda obj: None
+        return super().unsupported(tp)
 
 
-partial_serialization_method = serialization_method_factory(
-    lambda cls, aliaser: lambda obj, exc_unset: obj,  # type: ignore
-    lambda obj, exc_unset: None,  # type: ignore
-)
+@cache
+def partial_serialization_method_factory(
+    aliaser: Aliaser,
+    conversions: Optional[Conversions],
+    default_conversions: DefaultConversions,
+) -> Callable[[AnyType], SerializationMethod]:
+    @lru_cache()
+    def factory(tp: AnyType) -> SerializationMethod:
+        return PartialSerializationMethodVisitor(
+            aliaser, False, False, default_conversions, False
+        ).visit_with_conv(tp, conversions)
 
-
-def partial_serialize(
-    obj: Any, *, conversions: Conversions = None, aliaser: Aliaser
-) -> Any:
-    return partial_serialization_method(obj.__class__, conversions, aliaser)(obj, False)
+    return factory
 
 
 def unwrap_awaitable(tp: AnyType) -> AnyType:
@@ -79,7 +101,7 @@ class Resolver(SerializedMethod):
         return super().return_type(unwrap_awaitable(return_type))
 
 
-_resolvers: Dict[Type, Dict[str, Resolver]] = type_dict_wrapper(defaultdict(dict))
+_resolvers: Dict[Type, Dict[str, Resolver]] = defaultdict(dict)
 
 
 def get_resolvers(tp: AnyType) -> Mapping[str, Tuple[Resolver, Mapping[str, AnyType]]]:
@@ -176,10 +198,23 @@ def resolver(
     return method_registerer(__arg, owner, register)
 
 
+T = TypeVar("T")
+U = TypeVar("U")
+
+
+def as_async(func: Callable[[T], U]) -> Callable[[Awaitable[T]], Awaitable[U]]:
+    async def wrapper(arg: Awaitable[T]) -> U:
+        return func(await arg)
+
+    return wrapper
+
+
 def resolver_resolve(
     resolver: Resolver,
     types: Mapping[str, AnyType],
     aliaser: Aliaser,
+    default_deserialization: DefaultConversions,
+    default_serialization: DefaultConversions,
     serialized: bool = True,
 ) -> Callable:
     parameters, info_parameter = [], None
@@ -193,14 +228,17 @@ def resolver_resolve(
                 param_type,
                 param.default is Parameter.empty,
                 resolver.parameters_metadata.get(param.name, empty_dict),
-                default=param.default,
+                param.default,
             )
-            deserializer = partial(
-                deserialize,
+            deserializer = deserialization_method(
                 param_type,
-                conversions=param_field.deserialization,
+                additional_properties=False,
                 aliaser=aliaser,
-                default_fallback=param_field.default_fallback or None,
+                coercion=False,
+                conversions=param_field.deserialization,
+                default_conversions=default_deserialization,
+                default_fallback=False,
+                schema=param_field.schema,
             )
             opt_param = is_union_of(param_type, NoneType) or param.default is None
             parameters.append(
@@ -214,35 +252,24 @@ def resolver_resolve(
             )
     func, error_handler = resolver.func, resolver.error_handler
     conversions = resolver.conversions
-
-    def no_serialize(result):
-        return result
-
-    async def async_serialize(result: Awaitable):
-        awaited = await result
-        return partial_serialization_method(awaited.__class__, conversions, aliaser)(
-            awaited, False
-        )
-
-    def sync_serialize(result):
-        return partial_serialization_method(result.__class__, conversions, aliaser)(
-            result, False
-        )
+    method_factory = partial_serialization_method_factory(
+        aliaser, conversions, default_serialization
+    )
 
     serialize_result: Callable[[Any], Any]
     if not serialized:
-        serialize_result = no_serialize
+        serialize_result = lambda res: res
     elif is_async(resolver.func):
-        serialize_result = async_serialize
+        serialize_result = as_async(method_factory(types["return"]))
     else:
-        serialize_result = sync_serialize
+        serialize_result = method_factory(types["return"])
     serialize_error: Optional[Callable[[Any], Any]]
     if error_handler is None:
         serialize_error = None
     elif is_async(error_handler):
-        serialize_error = async_serialize
+        serialize_error = as_async(method_factory(resolver.error_type()))
     else:
-        serialize_error = sync_serialize
+        serialize_error = method_factory(resolver.error_type())
 
     def resolve(__self, __info, **kwargs):
         values = {}
@@ -264,7 +291,11 @@ def resolver_resolve(
                 values[param_name] = None
 
         if errors:
-            raise TypeError(serialize(ValidationError(children=errors)))
+            raise TypeError(
+                serialize(
+                    ValidationError, ValidationError(children=errors), aliaser=aliaser
+                )
+            )
         if info_parameter:
             values[info_parameter] = __info
         try:

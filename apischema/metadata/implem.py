@@ -32,17 +32,7 @@ class ConversionMetadata(MetadataMixin):
     serialization: Optional["Conversions"] = None
 
 
-if False:  # For Pycharm
-
-    def conversion(
-        deserialization: "Conversions" = None, serialization: "Conversions" = None
-    ) -> ConversionMetadata:
-        ...
-
-
-else:
-    conversion = ConversionMetadata
-
+conversion = ConversionMetadata
 
 default_as_set = simple_metadata(DEFAULT_AS_SET_METADATA)
 

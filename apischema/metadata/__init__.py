@@ -14,7 +14,7 @@ __all__ = [
 ]
 
 from apischema.aliases import alias
-from apischema.json_schema.schemas import schema
+from apischema.schemas import schema
 from .implem import (
     conversion,
     default_as_set,

@@ -9,17 +9,11 @@ Let start again with the [overview example](index.md#example)
 
 ## Deserialization
 
-Deserialization is done through the function `apischema.deserialize` with the following simplified signature:
-```python
-def deserialize(cls: Type[T], data: Any) -> T:
-    ...
-```
-- `cls` can be a `dataclass` as well as a `list[int]` a `NewType`, or whatever you want (see [conversions](conversions.md) to extend deserialization support to every type you want).
-- `data` must be a JSON-like serialized data: `dict`/`list`/`str`/`int`/`float`/`bool`/`None`, in short, what you get when you execute `json.loads`.
+`apischema.deserialize` deserializes Python types from JSON-like data: `dict`/`list`/`str`/`int`/`float`/`bool`/`None` — in short, what you get when you execute `json.loads`. Types can be dataclasses as well as `list[int]`, `NewType`s, or whatever you want (see [conversions](conversions.md) to extend deserialization support to every type you want).
+  
+{!deserialization.py!}
 
 Deserialization performs a validation of data, based on typing annotations and other information (see [schema](json_schema.md) and [validation](validation.md)).
-
-{!deserialization.py!}
 
 ### Strictness
 
@@ -91,7 +85,7 @@ Global coercion function can be set with `settings.coercer` following this examp
 import json
 from apischema import ValidationError, settings
 
-prev_coercer = settings.coercer()
+prev_coercer = settings.coercer
 
 def coercer(cls, data):
     """In case of coercion failures, try to deserialize json data"""
@@ -127,14 +121,26 @@ Because *apischema* use vanilla dataclasses, this feature is not enabled by defa
 
 ## Serialization
 
-Serialization is simpler than deserialization; `serialize(obj)` will generate a JSON-like serialized `obj`.
-
-There is no validation, objects provided are trusted — they are supposed to be statically type-checked. When there
+`apischema.serialize` is used to serialize Python objects to JSON-like data. Contrary to `apischema.deserialize`, Python type can be omitted; in this case, the object will be serialized with an `typing.Any` type, i.e. the class of the serialized object will be used.
 
 ```python
 {!serialization.py!}
 ```
 
+!!! note
+    Omitting type with `serialize` can have unwanted side effects, as it makes loose any type annotations of the serialized object. In fact, generic specialization as well as PEP 593 annotations cannot be retrieved from an object instance; [conversions](conversions.md) can also be impacted
+
+    That's why it's advisable to pass the type when it is available.
+
+### Type checking
+
+Serialization can be configured using `check_type` (default to `False`) and `any_fallback` (default to `False`) parameters. If `check_type` is `True`, serialized object type will be checked to match the serialized type.
+If it doesn't, `any_fallback` allows bypassing serialized type to use `typing.Any` instead, i.e. to use the serialized object class.
+
+The default values of these parameters can be modified through `apischema.settings.serialization.check_type` and `apischema.settings.serialization.any_fallback`.
+
+!!! note
+    *apischema* relies on typing annotations, and assumes that the code is well statically type-checked. That's why it doesn't add the overhead of type checking by default (it's more than 10% performance impact).
     
 ### Serialized methods/properties
 
@@ -208,7 +214,7 @@ Sometimes, some fields must be serialized, even with their default value; this b
 ## FAQ
 
 #### Why coercion is not default behavior?
-Because ill-formed data can be symptomatic of problems, and it has been decided that highlighting them would be better than hiding them. By the way, this is easily globally configurable.
+Because ill-formed data can be symptomatic of deeper issues, it has been decided that highlighting them would be better than hiding them. By the way, this is easily globally configurable.
 
 #### Why `with_fields_set` feature is not enable by default?
 It's true that this feature has the little cost of adding a decorator everywhere. However, keeping dataclass decorator allows IDEs/linters/type checkers/etc. to handle the class as such, so there is no need to develop a plugin for them. Standard compliance can be worth the additional decorator. (And little overhead can be avoided when not useful)

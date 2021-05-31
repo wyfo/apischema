@@ -55,7 +55,7 @@ def get_data() -> Data:
 def test_merged_dataclass_model():
     data = deserialize(Data, {"attr": 0})
     assert isinstance(data.data_field, Field) and data.data_field.attr == 0
-    assert serialize(data) == {"attr": 0}
+    assert serialize(Data, data) == {"attr": 0}
     assert (
         deserialization_schema(Data)
         == serialization_schema(Data)
@@ -123,7 +123,7 @@ def get_data2() -> Data2:
 def test_merged_converted():
     data2 = deserialize(Data2, {"attr": 0})
     assert isinstance(data2.data_field2, Field2) and data2.data_field2.attr == 0
-    assert serialize(data2) == {"attr": 0}
+    assert serialize(Data2, data2) == {"attr": 0}
     assert (
         deserialization_schema(Data)
         == serialization_schema(Data)
@@ -173,7 +173,7 @@ def test_merged_converted_error():
     with raises(TypeError):
         deserialize(Data3, {"attr": 0})
     with raises(TypeError):
-        serialize(Data3(Field2(0)))
+        serialize(Data3, Data3(Field2(0)))
     with raises(TypeError):
         deserialization_schema(Data3)
     with raises(TypeError):

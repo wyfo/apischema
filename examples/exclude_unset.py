@@ -13,5 +13,5 @@ class Foo:
     baz: Optional[str] = None
 
 
-assert serialize(Foo(0)) == {"bar": 0}
-assert serialize(Foo(0), exclude_unset=False) == {"bar": 0, "baz": None}
+assert serialize(Foo, Foo(0)) == {"bar": 0}
+assert serialize(Foo, Foo(0), exclude_unset=False) == {"bar": 0, "baz": None}

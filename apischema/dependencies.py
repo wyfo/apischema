@@ -23,7 +23,6 @@ DependentRequired = Mapping[str, AbstractSet[str]]
 
 
 def get_dependent_required(cls: type) -> DependentRequired:
-
     result: Dict[str, Set[str]] = defaultdict(set)
     for sub_cls in cls.__mro__:
         for field, required in _dependent_requireds[sub_cls]:

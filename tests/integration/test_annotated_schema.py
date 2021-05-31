@@ -14,7 +14,7 @@ class A:
         int,
         schema(max=10),
         schema(description="type description"),
-        type_name("some_int"),
+        type_name("someInt"),
         schema(description="field description"),
     ] = field(metadata=schema(min=0))
 
@@ -53,7 +53,7 @@ def test_annotated_schema():
                     "additionalProperties": False,
                     "properties": {
                         "a": {
-                            "$ref": "#/$defs/some_int",
+                            "$ref": "#/$defs/someInt",
                             "description": "field description",
                             "minimum": 0,
                         }
@@ -61,7 +61,7 @@ def test_annotated_schema():
                     "required": ["a"],
                     "type": "object",
                 },
-                "some_int": {
+                "someInt": {
                     "description": "type description",
                     "maximum": 10,
                     "type": "integer",
@@ -78,10 +78,10 @@ type Query {
 
 type A {
   """field description"""
-  a: some_int!
+  a: someInt!
 }
 
 """type description"""
-scalar some_int
+scalar someInt
 '''
     )

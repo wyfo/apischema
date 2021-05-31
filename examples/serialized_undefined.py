@@ -12,7 +12,7 @@ class Foo:
         return Undefined
 
 
-assert serialize(Foo()) == {}
+assert serialize(Foo, Foo()) == {}
 assert serialization_schema(Foo) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "type": "object",

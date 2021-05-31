@@ -29,7 +29,7 @@ def function(foo: Foo) -> int:
     return 3
 
 
-assert serialize(Foo()) == {"bar": 0, "baz": 1, "aliased": 2, "function": 3}
+assert serialize(Foo, Foo()) == {"bar": 0, "baz": 1, "aliased": 2, "function": 3}
 assert serialization_schema(Foo) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "type": "object",

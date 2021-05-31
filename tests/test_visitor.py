@@ -2,7 +2,6 @@ import collections
 import sys
 from dataclasses import dataclass, fields
 from enum import Enum
-from types import MethodType
 from typing import (
     Any,
     Collection,
@@ -30,11 +29,7 @@ ARG = object()
 
 @fixture
 def visitor() -> Mock:
-    mock = Mock()
-    mock._generic = None
-    mock._visit_generic = MethodType(Visitor._visit_generic, mock)
-    mock._visit_not_generic = MethodType(Visitor._visit_not_generic, mock)
-    return mock
+    return Mock()
 
 
 class NamedTupleExample(NamedTuple):

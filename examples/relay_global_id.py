@@ -1,5 +1,6 @@
-import graphql
 from dataclasses import dataclass
+
+import graphql
 
 from apischema import serialize
 from apischema.graphql import graphql_schema, relay
@@ -27,5 +28,5 @@ query factionName($id: ID!) {
 }
 """
 assert graphql.graphql_sync(  # ... and use it in a query
-    schema, query, variable_values={"id": serialize(some_global_id)}
+    schema, query, variable_values={"id": serialize(relay.GlobalId, some_global_id)}
 ).data == {"node": {"name": "Empire"}}

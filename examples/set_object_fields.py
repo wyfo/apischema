@@ -14,7 +14,7 @@ set_object_fields(Foo, lambda: [ObjectField("bar", int)])
 
 foo = deserialize(Foo, {"bar": 0})
 assert isinstance(foo, Foo) and foo.bar == 0
-assert serialize(Foo(0)) == {"bar": 0}
+assert serialize(Foo, Foo(0)) == {"bar": 0}
 assert deserialization_schema(Foo) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "type": "object",

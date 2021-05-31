@@ -17,4 +17,4 @@ serializer(
 )
 
 assert deserialize(Foo, 0) == Foo(0)
-assert serialize(Foo(0)) == 0
+assert serialize(Foo, Foo(0)) == 0

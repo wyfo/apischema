@@ -23,6 +23,7 @@ from typing import (
     overload,
 )
 
+from apischema.objects import AliasedStr
 from apischema.typing import get_args, is_annotated
 from apischema.utils import get_args2, get_origin2, merge_opts
 
@@ -35,7 +36,7 @@ ErrorMsg = str
 Error = Union[ErrorMsg, Tuple[Any, ErrorMsg]]
 # where  Any = Union[Field, int, str, Iterable[Union[Field, int, str,]]]
 # but Field being kind of magic not understood by type checkers, it's hidden behind Any
-ErrorKey = Union[str, int]
+ErrorKey = Union[AliasedStr, str, int]
 T = TypeVar("T")
 ValidatorResult = Generator[Error, None, T]
 
