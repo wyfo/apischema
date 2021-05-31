@@ -1,9 +1,16 @@
+from collections import defaultdict
 from typing import Generic, TypeVar
 from unittest.mock import Mock
 
 from pytest import mark
 
-from apischema.typing import _TypedDictMeta, generic_mro, get_type_hints2, required_keys
+from apischema.typing import (
+    _TypedDictMeta,
+    generic_mro,
+    get_type_hints2,
+    required_keys,
+    type_dict_wrapper,
+)
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -62,3 +69,30 @@ def test_required_keys():
     assert required_keys(td1) == set()
     assert required_keys(td2) == {"other"}
     assert required_keys(td3) == {"other"}
+
+
+@mark.parametrize("wrapped", [{}, defaultdict(list)])
+def test_type_dict_wrapper(wrapped):
+    wrapper = type_dict_wrapper(wrapped)
+
+    class A:
+        def __init_subclass__(cls, **kwargs):
+            super().__init_subclass__(**kwargs)
+            if getattr(cls, "__origin__", None) is not None:
+                return
+            wrapper.setdefault(cls, []).append(cls)
+
+    class B(A):
+        pass
+
+    class C(A, Generic[T]):
+        pass
+
+    class D(C[int]):
+        pass
+
+    assert sorted(wrapper.items(), key=lambda i: i[0].__name__) == [
+        (B, [B]),
+        (C, [C]),
+        (D, [D]),
+    ]

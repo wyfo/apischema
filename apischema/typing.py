@@ -10,13 +10,13 @@ from typing import (  # type: ignore
     Dict,
     Generic,
     Iterator,
-    List,
     MutableMapping,
     Set,
     Tuple,
     Type,
     TypeVar,
     _eval_type,
+    cast,
 )
 
 
@@ -288,39 +288,38 @@ if sys.version_info < (3, 7):
     K = TypeVar("K")
     V = TypeVar("V")
 
+    class KeyWrapper:
+        def __init__(self, key):
+            self.key = key
+
+        def __eq__(self, other):
+            return self.key == self.key
+
+        def __hash__(self):
+            return hash(
+                id(self.key)
+                if getattr(self.key, "__origin__", ...) is None
+                else self.key
+            )
+
     class type_dict_wrapper(MutableMapping[K, V]):
         def __init__(self, wrapped: Dict[K, V]):
-            self.wrapped = wrapped
-            self.tmp: List[Tuple[K, V]] = []
-
-        def _rehash(self):
-            # while + pop instead of for in order to be "atomic"
-            # (yes, it's only the case if self.wrapped is a builtin)
-            while self.tmp:
-                k, v = self.tmp.pop()
-                self.wrapped[k] = v
+            self.wrapped = cast(Dict[KeyWrapper, V], wrapped)
 
         def __delitem__(self, key: K) -> None:
-            self._rehash()
-            del self.wrapped[key]
+            del self.wrapped[KeyWrapper(key)]
 
         def __getitem__(self, key: K) -> V:
-            self._rehash()
-            return self.wrapped[key]
+            return self.wrapped[KeyWrapper(key)]
 
         def __iter__(self) -> Iterator[K]:
-            self._rehash()
-            return iter(self.wrapped)
+            return iter(wrapper.key for wrapper in list(self.wrapped))
 
         def __len__(self) -> int:
-            self._rehash()
             return len(self.wrapped)
 
         def __setitem__(self, key: K, value: V):
-            if hasattr(key, "__origin__"):
-                self.tmp.append((key, value))
-            else:
-                self.wrapped[key] = value
+            self.wrapped[KeyWrapper(key)] = value
 
 
 else:
