@@ -188,7 +188,7 @@ def schema(extra: Extra = None, override=False, **kwargs) -> Schema:
     return Schema(annotations, constraints, extra, override)
 
 
-def _default_schema(tp: AnyType) -> Optional[Schema]:
+def default_schema(tp: AnyType) -> Optional[Schema]:
     return None
 
 
@@ -196,11 +196,13 @@ _schemas: Dict[AnyType, Schema] = type_dict_wrapper({})
 
 
 def get_schema(tp: AnyType) -> Optional[Schema]:
+    from apischema import settings
+
     tp = replace_builtins(tp)
     try:
         return _schemas[tp]
     except (KeyError, TypeError):
-        return _default_schema(tp)
+        return settings.default_schema(tp)
 
 
 @merge_opts

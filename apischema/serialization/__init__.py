@@ -3,7 +3,6 @@ from dataclasses import is_dataclass
 from enum import Enum
 from typing import Any, Callable, Collection, Mapping, Optional, Type, TypeVar
 
-from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import Conversions, resolve_conversions
@@ -12,7 +11,6 @@ from apischema.conversions.visitor import SerializationVisitor, merge_prev_conve
 from apischema.fields import FIELDS_SET_ATTR, fields_set
 from apischema.objects import AliasedStr, object_fields
 from apischema.objects.fields import FieldKind
-from apischema.objects.visitor import ObjectVisitor
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import PRIMITIVE_TYPES, Undefined, UndefinedType
 from apischema.typing import is_named_tuple
@@ -87,6 +85,8 @@ def serialization_method_factory(
 ) -> Callable[[Type[T], Optional[Conversions], Aliaser], SerializationMethod[T]]:
     @cache
     def get_method(cls: Type[T], conversions: Optional[Conversions], aliaser: Aliaser):
+        from apischema import settings
+
         if cls is UndefinedType:
             return undefined_method
         conversion, dynamic = SerializationVisitor.get_conversions(
@@ -137,7 +137,7 @@ def serialization_method_factory(
                 get_method(elt.__class__, conversions, aliaser)(elt, exc_unset)
                 for elt in obj
             ]
-        if ObjectVisitor._object_fields(cls) is not None:
+        if settings.default_object_fields(cls) is not None:
             return object_method(cls, aliaser)
         raise Unsupported(cls)
 
@@ -156,10 +156,12 @@ def serialize(
     aliaser: Aliaser = None,
     exclude_unset: bool = None,
 ) -> Any:
+    from apischema import settings
+
     if aliaser is None:
-        aliaser = settings.aliaser()
+        aliaser = settings.aliaser
     if exclude_unset is None:
-        exclude_unset = settings.exclude_unset
+        exclude_unset = settings.serialization.exclude_unset
     if conversions is not None and isinstance(conversions, Collection_):
         conversions = tuple(conversions)
     return serialization_method(obj.__class__, conversions, aliaser)(obj, exclude_unset)

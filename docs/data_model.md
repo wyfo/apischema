@@ -236,13 +236,15 @@ from apischema.objects import ObjectField
 previous_default_object_fields = settings.default_object_fields()
 
 
-@settings.default_object_fields
 def default_object_fields(cls) -> Optional[Sequence[ObjectField]]:
     return [...] if ... else previous_default_object_fields(cls)
+
+
+settings.default_object_fields = default_object_fields
 ``` 
 
 !!! note
-    *apischema* can be customized a lot using the `settings` module. It often uses overloaded function: without argument to get the current implementation, and as decorator to set the new implementation (which can reuse the current previous).
+    Almost every default behavior of apischema can be customized using `apischema.settings`.
 
 Examples of [*SQLAlchemy* support](examples/sqlalchemy_support.md) and [attrs support](examples/attrs_support.md) illustrate both methods (which could also be combined).
 

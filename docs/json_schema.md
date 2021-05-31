@@ -42,7 +42,7 @@ Otherwise, it's used the same way than [`settings.coercer`](de_serialization.md#
 ```python
 from apischema import settings
 
-settings.aliaser(camel_case=True)
+settings.camel_case = True
 ```
 
 !!! note
@@ -113,10 +113,10 @@ from apischema import schema, settings
 from apischema.json_schema.schemas import Schema
 
 
-@settings.default_schema
 def default_schema(cls) -> Optional[Schema]:
     return schema(...) if ... else None
 
+settings.default_schema = default_schema
 ``` 
 
 Default implementation returns `None` for every types.
@@ -211,16 +211,6 @@ Generic aliases can have a type name, but they need to be specialized; `Foo[T, i
 ```
 
 The default behavior can also be customized using `apischema.settings.default_type_name`:
-
-```python
-from typing import Optional
-from apischema import settings
-
-
-@settings.default_type_name
-def default_ref(tp) -> Optional[str]:
-    ...
-``` 
 
 
 ### Reference factory

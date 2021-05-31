@@ -6,11 +6,9 @@ from apischema import deserialize, serialize, settings
 from apischema.json_schema import deserialization_schema
 from apischema.objects import ObjectField
 
+prev_default_object_fields = settings.default_object_fields
 
-prev_default_object_fields = settings.default_object_fields()
 
-
-@settings.default_object_fields
 def attrs_fields(cls: type) -> Optional[Sequence[ObjectField]]:
     if hasattr(cls, "__attrs_attrs__"):
         return [
@@ -21,6 +19,9 @@ def attrs_fields(cls: type) -> Optional[Sequence[ObjectField]]:
         ]
     else:
         return prev_default_object_fields(cls)
+
+
+settings.default_object_fields = attrs_fields
 
 
 @attr.s

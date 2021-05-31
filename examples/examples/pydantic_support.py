@@ -18,11 +18,10 @@ from apischema.validation.errors import LocalizedError
 
 #################### Pydantic support code starts here
 
-prev_deserialization = settings.deserialization()
+prev_deserialization = settings.deserialization.default_conversions
 
 
-@settings.deserialization
-def deserialization(cls: type) -> Optional[Conversions]:
+def default_deserialization(cls: type) -> Optional[Conversions]:
     if issubclass(cls, pydantic.BaseModel):
 
         def deserialize_pydantic(data):
@@ -42,16 +41,19 @@ def deserialization(cls: type) -> Optional[Conversions]:
         return prev_deserialization(cls)
 
 
-prev_schema = settings.default_schema()
+settings.deserialization.default_conversions = default_deserialization
+
+prev_schema = settings.default_schema
 
 
-@settings.default_schema
 def default_schema(tp: Any) -> Optional[Schema]:
     if isinstance(tp, type) and issubclass(tp, pydantic.BaseModel):
         return schema(extra=tp.schema(), override=True)
     else:
         return prev_schema(tp)
 
+
+settings.default_schema = default_schema
 
 # No need to use settings.serialization because serializer is inherited
 @serializer

@@ -1,3 +1,4 @@
+import sys
 import warnings
 from collections import defaultdict
 from dataclasses import replace
@@ -44,6 +45,31 @@ Deserializer = TypeVar(
     "Deserializer", bound=Union[Callable, Conversion, staticmethod, type]
 )
 Serializer = TypeVar("Serializer", bound=Union[Callable, Conversion, property, type])
+
+default_deserialization: Callable[[type], Optional[Conversions]]
+# defaultdict.get is not hashable in 3.6
+if sys.version_info < (3, 7):
+
+    def default_deserialization(tp):
+        return _deserializers.get(tp)
+
+
+else:
+    default_deserialization = _deserializers.get  # type: ignore
+
+
+def default_serialization(tp: Type) -> Optional[Conversions]:
+    for sub_cls in getattr(tp, "__mro__", [tp]):
+        if sub_cls in _serializers:
+            conversion = _serializers[sub_cls]
+            if (
+                sub_cls == tp
+                or not isinstance(conversion, Conversion)
+                or conversion.inherited in (None, True)
+            ):
+                return conversion
+    else:
+        return None
 
 
 def check_converter_type(tp: AnyType, side: str) -> Type:

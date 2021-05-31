@@ -17,7 +17,6 @@ from typing import (
     Union,
 )
 
-from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.conversions.conversions import Conversions
 from apischema.conversions.visitor import (
@@ -442,6 +441,8 @@ def _default_version(
     ref_factory: Optional[RefFactory],
     all_refs: Optional[bool],
 ) -> Tuple[JsonSchemaVersion, RefFactory, bool]:
+    from apischema import settings
+
     if version is None:
         version = settings.json_schema_version
     if ref_factory is None:
@@ -488,11 +489,13 @@ def _schema(
     with_schema: bool,
     addtional_properties: Optional[bool],
 ) -> Mapping[str, Any]:
+    from apischema import settings
+
     add_defs = ref_factory is None
     if aliaser is None:
-        aliaser = settings.aliaser()
+        aliaser = settings.aliaser
     if addtional_properties is None:
-        addtional_properties = settings.additional_properties
+        addtional_properties = settings.deserialization.additional_properties
     version, ref_factory, all_refs = _default_version(version, ref_factory, all_refs)
     refs = _extract_refs([(tp, conversions)], builder, all_refs)
     visitor = builder(ref_factory, refs, False, addtional_properties)
@@ -635,10 +638,12 @@ def definitions_schema(
     all_refs: bool = None,
     addtional_properties: bool = None,
 ) -> Mapping[str, Mapping[str, Any]]:
+    from apischema import settings
+
     if addtional_properties is None:
-        addtional_properties = settings.additional_properties
+        addtional_properties = settings.deserialization.additional_properties
     if aliaser is None:
-        aliaser = settings.aliaser()
+        aliaser = settings.aliaser
     version, ref_factory, all_refs = _default_version(version, ref_factory, all_refs)
     deserialization_schemas = _defs_schema(
         deserialization,
