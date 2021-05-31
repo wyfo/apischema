@@ -47,3 +47,46 @@ del Wrapper
 
 if sys.version_info < (3, 7):
     asyncio.run = lambda coro: asyncio.get_event_loop().run_until_complete(coro)
+
+
+def hack_relay_nodes():
+    import graphql
+    from apischema.graphql import relay
+
+    class relay_wrapper:
+        def __getattribute__(self, name):
+            if name == "node":
+                nodes = relay.nodes.copy()
+
+                def node(
+                    id: apischema.graphql.ID, info: graphql.GraphQLResolveInfo
+                ) -> relay.Node:
+                    from apischema.graphql.relay.global_identification import (
+                        GlobalId,
+                        InvalidGlobalId,
+                        NotANode,
+                    )
+
+                    try:
+                        node_key, id_ = id.split(":")
+                    except ValueError:
+                        raise InvalidGlobalId(id) from None
+                    for cls in nodes:
+                        if cls._node_key() == node_key:
+                            return cls.get_by_id(
+                                cls.id_from_global(GlobalId(id_, cls)), info
+                            )
+                    raise NotANode(node_key)
+
+                return node
+            else:
+                return getattr(relay, name)
+
+    import apischema
+
+    apischema.graphql.relay = relay_wrapper()
+    relay.nodes.clear()
+
+
+hack_relay_nodes()
+del hack_relay_nodes

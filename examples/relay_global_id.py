@@ -1,5 +1,6 @@
-import graphql
 from dataclasses import dataclass
+
+import graphql
 
 from apischema import serialize
 from apischema.graphql import graphql_schema, relay
@@ -14,7 +15,7 @@ class Faction(relay.Node[int]):
         return [Faction(0, "Empire"), Faction(1, "Rebels")][id]
 
 
-schema = graphql_schema(query=[relay.node], types=relay.nodes())
+schema = graphql_schema(query=[relay.node], types=relay.nodes)
 some_global_id = Faction.get_by_id(0).global_id  # Let's pick a global id ...
 assert some_global_id == relay.GlobalId("0", Faction)
 query = """

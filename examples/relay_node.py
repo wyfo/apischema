@@ -1,7 +1,7 @@
+from dataclasses import dataclass
 from uuid import UUID
 
 import graphql
-from dataclasses import dataclass
 from graphql.utilities import print_schema
 
 from apischema.graphql import graphql_schema, relay
@@ -25,7 +25,7 @@ class Faction(relay.Node[int]):  # Nodes can have different id types
         ...
 
 
-schema = graphql_schema(query=[relay.node], types=relay.nodes())
+schema = graphql_schema(query=[relay.node], types=relay.nodes)
 schema_str = """\
 type Ship implements Node {
   id: ID!
