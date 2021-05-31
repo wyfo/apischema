@@ -9,7 +9,6 @@ __all__ = [
     "deserialize",
     "deserializer",
     "properties",
-    "reset_cache",
     "schema",
     "schema_ref",
     "serialization_method",
@@ -23,6 +22,7 @@ __all__ = [
 
 
 from . import (  # noqa: F401
+    cache,
     conversions,
     dataclasses,
     fields,
@@ -34,7 +34,6 @@ from . import (  # noqa: F401
     validation,
 )
 from .aliases import alias
-from .cache import reset_cache
 from .conversions import deserializer, serializer
 from .dependencies import dependent_required
 from .deserialization import deserialization_method, deserialize
@@ -74,3 +73,14 @@ def register_default_conversions():
 
 
 register_default_conversions()
+
+
+def reset_cache():
+    import warnings
+
+    warnings.warn(
+        "apischema.reset_cache is deprecated,"
+        " use apischema.cache.reset_cache instead",
+        DeprecationWarning,
+    )
+    return cache.reset_cache()

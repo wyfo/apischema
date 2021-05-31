@@ -1,7 +1,7 @@
 from typing import Callable, Optional, Sequence, Type
 
-from apischema import reset_cache
 from apischema.aliases import Aliaser
+from apischema.cache import reset_cache
 from apischema.conversions import Conversions
 from apischema.conversions.converters import (
     default_deserialization,
