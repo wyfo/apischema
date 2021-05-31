@@ -25,7 +25,7 @@ deserializer(Wrapper)
 assert deserialize(Wrapper[list[int]], [0, 1]).wrapped == [0, 1]
 with raises(ValidationError):
     deserialize(Wrapper[int], "wrapped")
-assert serialize(Wrapper("wrapped")) == "wrapped"
+assert serialize(Wrapper[str], Wrapper("wrapped")) == "wrapped"
 assert (
     deserialization_schema(Wrapper[int])
     == {"$schema": "http://json-schema.org/draft/2019-09/schema#", "type": "integer"}

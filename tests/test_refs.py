@@ -4,10 +4,10 @@ from typing import Collection, Generic, List, Optional, Sequence, TypeVar
 from _pytest.python_api import raises
 from pytest import mark
 
-from apischema import type_name
+from apischema import settings, type_name
 from apischema.conversions import Conversion, LazyConversion
 from apischema.json_schema import deserialization_schema, serialization_schema
-from apischema.json_schema.generation.schema import DeserializationSchemaBuilder
+from apischema.json_schema.schema import DeserializationSchemaBuilder
 from apischema.type_names import get_type_name
 from apischema.typing import Annotated
 
@@ -39,8 +39,12 @@ class Recursive:
 
 def test_find_refs():
     refs = {}
-    DeserializationSchemaBuilder.RefsExtractor(refs).visit(D)
-    DeserializationSchemaBuilder.RefsExtractor(refs).visit(Recursive)
+    DeserializationSchemaBuilder.RefsExtractor(
+        settings.deserialization.default_conversions, refs
+    ).visit(D)
+    DeserializationSchemaBuilder.RefsExtractor(
+        settings.deserialization.default_conversions, refs
+    ).visit(Recursive)
     assert refs == {
         "B": (B, 1),
         "DD": (D, 1),

@@ -24,7 +24,7 @@ class Foo:
 
 
 assert deserialize(Foo, {"bar": 0, "init_only": 1}) == Foo(0, 1)
-assert serialize(Foo(0, 1)) == {"bar": 0, "no_init": 1}
+assert serialize(Foo, Foo(0, 1)) == {"bar": 0, "no_init": 1}
 with raises(ValidationError) as err:
     deserialize(Foo, {"bar": 0})
 assert definitions_schema(

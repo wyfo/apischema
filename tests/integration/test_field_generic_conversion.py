@@ -25,7 +25,7 @@ class Foo(Generic[V]):
 
 
 def test_field_generic_conversion():
-    assert serialize(Foo({1: "a", 0: "b"})) == {"values": ["b", "a"]}
+    assert serialize(Foo[str], Foo({1: "a", 0: "b"})) == {"values": ["b", "a"]}
     assert serialization_schema(Foo[str]) == {
         "type": "object",
         "properties": {"values": {"type": "array", "items": {"type": "string"}}},

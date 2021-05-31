@@ -39,8 +39,12 @@ def test_inherited_serialized():
         == serialization_schema(InheritedOverriden)
         == base_schema
     )
-    assert serialize(Base()) == serialize(Inherited()) == {"serialized": 0}
-    assert serialize(InheritedOverriden()) == {"serialized": 1}
+    assert (
+        serialize(Base, Base())
+        == serialize(Inherited, Inherited())
+        == {"serialized": 0}
+    )
+    assert serialize(InheritedOverriden, InheritedOverriden()) == {"serialized": 1}
 
 
 class WithMerged(Base):
@@ -49,4 +53,8 @@ class WithMerged(Base):
 
 def test_merged_serialized():
     assert serialization_schema(Base) == serialization_schema(WithMerged) == base_schema
-    assert serialize(Base()) == serialize(WithMerged()) == {"serialized": 0}
+    assert (
+        serialize(Base, Base())
+        == serialize(WithMerged, WithMerged())
+        == {"serialized": 0}
+    )

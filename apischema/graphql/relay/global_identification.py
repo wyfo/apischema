@@ -94,7 +94,7 @@ class Node(Generic[Id], ABC):
 
     @classmethod
     def id_to_global(cls: Type[Node_], id: Id) -> GlobalId[Node_]:
-        return GlobalId(str(serialize(id)), cls)
+        return GlobalId(str(serialize(getattr(cls, ID_TYPE_ATTR), id)), cls)
 
     @classmethod
     @abstractmethod

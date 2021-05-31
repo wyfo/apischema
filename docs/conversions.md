@@ -100,7 +100,7 @@ No matter if a conversion is registered or not for a given type, conversions can
 
 ### Dynamic conversions are local
 
-Dynamic conversions are discarded after having been applied (or after class without conversion having been encountered). For example, you can't apply directly a dynamic conversion to a dataclass field when calling  `serialize` on an instance of this dataclass. Reasons of this design are detailed in the [FAQ](#why-dynamic-conversion-cannot-apply-on-the-whole-data-model). 
+Dynamic conversions are discarded after having been applied (or after class without conversion having been encountered). For example, you can't apply directly a dynamic conversion to a dataclass field when calling `serialize` on an instance of this dataclass. Reasons of this design are detailed in the [FAQ](#whats-the-difference-between-conversions-and-default_conversions-parameters). 
 
 ```python
 {!local_conversions.py!}
@@ -190,13 +190,15 @@ It can be used for example to build a deserialization conversion from an alterna
 
 ## Default conversions
 
-As almost every default behavior in *apischema*, default conversion can be configured using `apischema.settings.deserialization.default_conversions`/`apischema.settings.serialization.default_conversions`. The initial value of these settings are the function which retrieved conversions registered with `deserializer`/`serializer`.
+As almost every default behavior in *apischema*, default conversions can be configured using `apischema.settings.deserialization.default_conversions`/`apischema.settings.serialization.default_conversions`. The initial value of these settings are the function which retrieved conversions registered with `deserializer`/`serializer`.
 
 You can for example [support *attrs*](examples/attrs_support.md) classes with this feature:
 
 ```python
 {!examples/attrs_support.py!}
 ```
+
+*apischema* functions (`deserialize`/`serialize`/`deserialization_schema`/`serialization_schema`/`definitions_schema`) also have a `default_conversions` parameter to dynamically modify default conversions. See [FAQ](#whats-the-difference-between-conversions-and-default_conversions-parameters) for the difference between `conversions` and `default_conversions` parameters.
 
 ## Sub-conversions
 
@@ -230,24 +232,12 @@ Lazy conversions can also be registered, but the deserialization target/serializ
 
 ## FAQ
 
-#### Why conversion can only be applied on classes?
+#### What's the difference between `conversions` and `default_conversions` parameters?
 
-Serialization doesn't have access to annotations (it's way less performant to use model annotations, and things like `Union` are useless in a serialization point of view), it uses instead the class of the object serialized; so `NewType` and other things that don't exist at runtime are simply unavailable.
+Dynamic conversions (`conversions` parameter) exists to ensure consistency and reuse of subschemas referenced (with a `$ref`) in the JSON/*OpenAPI* schema. 
 
-Also, generic specialization like `Foo[int]` cannot be retrieved by serialization, that's why their registration is not allowed. 
+In fact, different global conversions (`default_conversions` parameter) could lead to have a field with different schemas depending on global conversions, so class would not be able to be referenced consistently. Because dynamic conversions are local, they cannot mess with an objet field schema.
 
-On the other hand, deserialization use annotations, so it could indeed apply conversions to other types (and it was in fact the case in the firsts versions).
+Schema generation use the same default conversions for all definitions (which can have associated dynamic conversion).
 
-However, it has been judged better to get the same restriction on both operation for simplicity and because the main need of deserialization customization is validation, which can already be registered for `NewType` or embedded in `Annotated`, etc.
-
-#### Why `Annotated` cannot be used to specified conversions in a container, like `list[Annotated[MyType, conversion(...)]]` ?
-
-Same reason than above, because serialization doesn't use type annotations, so conversions would be lost. 
-
-However, fields annotations are available in serialization, because they are retrieved from the serialized object class, that's why field annotations are supported for named tuples/dataclasses, the same way than dataclass field metadata are.   
-
-
-#### Why dynamic conversion cannot apply on the whole data model?
-
-To ensure consistency and reuse of subschemas with a `$ref`. Indeed, if dynamic conversions were global, different endpoints with or without conversions could have different result for nested classes (because one of its field could be impacted), so these classes could not be referenced consistently with their `$ref`.
-
+`default_conversions` parameter allows having different (de)serialization contexts, for example to map date to string between frontend and backend, and to timestamp between backend services.

@@ -33,12 +33,12 @@ from apischema.metadata.keys import (
 from apischema.objects.utils import AliasedStr
 from apischema.types import AnyType, ChainMap
 from apischema.typing import get_args, is_annotated, type_dict_wrapper
-from apischema.utils import empty_dict
+from apischema.utils import LazyValue, empty_dict
 
 if TYPE_CHECKING:
-    from apischema.json_schema.schemas import Schema
-    from apischema.json_schema.annotations import Annotations
-    from apischema.json_schema.constraints import Constraints
+    from apischema.schemas import Schema
+    from apischema.schemas.annotations import Annotations
+    from apischema.schemas.constraints import Constraints
     from apischema.validation.validators import Validator
 
 
@@ -60,7 +60,6 @@ class ObjectField:
     metadata: Mapping[str, Any] = field(default_factory=lambda: empty_dict)
     default: InitVar[Any] = MISSING_DEFAULT
     default_factory: Optional[Callable[[], Any]] = None
-    aliased: bool = True
     kind: FieldKind = FieldKind.NORMAL
 
     def __post_init__(self, default: Any):
@@ -71,7 +70,7 @@ class ObjectField:
         if not self.required and self.default_factory is None:
             if default is MISSING_DEFAULT:
                 raise ValueError("Missing default for required ObjectField")
-            object.__setattr__(self, "default_factory", lambda: default)
+            object.__setattr__(self, "default_factory", LazyValue(default))
 
     @property
     def full_metadata(self) -> Mapping[str, Any]:
@@ -92,8 +91,7 @@ class ObjectField:
 
     @property
     def alias(self) -> str:
-        str_class = AliasedStr if self.aliased else str
-        return str_class(self.full_metadata.get(ALIAS_METADATA, self.name))
+        return AliasedStr(self.full_metadata.get(ALIAS_METADATA, self.name))
 
     @property
     def override_alias(self) -> bool:

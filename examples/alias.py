@@ -17,4 +17,4 @@ assert deserialization_schema(Foo) == {
     "type": "object",
 }
 assert deserialize(Foo, {"class": "bar"}) == Foo("bar")
-assert serialize(Foo("bar")) == {"class": "bar"}
+assert serialize(Foo, Foo("bar")) == {"class": "bar"}

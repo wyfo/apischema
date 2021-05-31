@@ -1,20 +1,15 @@
-from dataclasses import Field, MISSING, replace
-from typing import Any, Collection, Mapping, Optional, Sequence, Tuple, Type
+from dataclasses import Field, MISSING
+from typing import Any, Collection, Mapping, Optional, Sequence
 
 from apischema.aliases import Aliaser, get_class_aliaser
 from apischema.conversions.conversions import Conversions
+from apischema.dataclasses import replace
 from apischema.metadata.keys import ALIAS_METADATA, SKIP_METADATA
 from apischema.objects.fields import FieldKind, MISSING_DEFAULT, ObjectField
 from apischema.types import AnyType, Undefined
 from apischema.typing import get_args
-from apischema.utils import (
-    get_args2,
-    get_origin2,
-    get_origin_or_type2,
-    get_parameters,
-    substitute_type_vars,
-)
-from apischema.visitor import Return, Visitor
+from apischema.utils import get_origin_or_type, get_parameters, substitute_type_vars
+from apischema.visitor import Result, Visitor
 
 
 def object_field_from_field(
@@ -49,34 +44,26 @@ def _override_alias(field: ObjectField, aliaser: Aliaser) -> ObjectField:
         return field
 
 
-def remove_annotations(tp: AnyType) -> AnyType:
-    origin = get_origin2(tp)
-    return origin[get_args2(tp)] if origin is not None else get_origin_or_type2(tp)
-
-
-class ObjectVisitor(Visitor[Return]):
-    _dataclass_field_kind_filtered: Optional[FieldKind] = None
+class ObjectVisitor(Visitor[Result]):
+    _field_kind_filtered: Optional[FieldKind] = None
 
     def _field_conversion(self, field: ObjectField) -> Optional[Conversions]:
         return NotImplementedError
 
-    def _object(
-        self, cls: Type, fields: Sequence[ObjectField], class_aliasing: bool = True
-    ) -> Return:
+    def _object(self, tp: AnyType, fields: Sequence[ObjectField]) -> Result:
         fields = [field for field in fields if SKIP_METADATA not in field.metadata]
-        if class_aliasing:
-            aliaser = get_class_aliaser(cls)
-            if aliaser is not None:
-                fields = [_override_alias(f, aliaser) for f in fields]
-        return self.object(cls, fields)
+        aliaser = get_class_aliaser(get_origin_or_type(tp))
+        if aliaser is not None:
+            fields = [_override_alias(f, aliaser) for f in fields]
+        return self.object(tp, fields)
 
     def dataclass(
         self,
-        cls: Type,
+        tp: AnyType,
         types: Mapping[str, AnyType],
         fields: Sequence[Field],
         init_vars: Sequence[Field],
-    ) -> Return:
+    ) -> Result:
         by_name = {
             f.name: object_field_from_field(f, types[f.name], init_var)
             for field_group, init_var in [(fields, False), (init_vars, True)]
@@ -85,71 +72,58 @@ class ObjectVisitor(Visitor[Return]):
         object_fields = [
             by_name[name]
             for name in types
-            if name in by_name
-            and by_name[name].kind != self._dataclass_field_kind_filtered
+            if name in by_name and by_name[name].kind != self._field_kind_filtered
         ]
-        return self._object(cls, object_fields)
+        return self._object(tp, object_fields)
 
-    def object(self, cls: Type, fields: Sequence[ObjectField]) -> Return:
+    def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> Result:
         raise NotImplementedError
 
     def named_tuple(
-        self,
-        cls: Type[Tuple],
-        types: Mapping[str, AnyType],
-        defaults: Mapping[str, Any],
-    ) -> Return:
+        self, tp: AnyType, types: Mapping[str, AnyType], defaults: Mapping[str, Any]
+    ) -> Result:
         fields = [
-            ObjectField(name, tp, name not in defaults, default=defaults.get(name))
-            for name, tp in types.items()
+            ObjectField(name, type_, name not in defaults, default=defaults.get(name))
+            for name, type_ in types.items()
         ]
-        return self._object(cls, fields)
+        return self._object(tp, fields)
 
     def typed_dict(
-        self, cls: Type, types: Mapping[str, AnyType], required_keys: Collection[str]
-    ) -> Return:
-        # Fields cannot have Annotated metadata because they would not be available
-        # at serialization
+        self, tp: AnyType, types: Mapping[str, AnyType], required_keys: Collection[str]
+    ) -> Result:
         fields = [
-            ObjectField(
-                name,
-                remove_annotations(tp),
-                name in required_keys,
-                default=Undefined,
-                aliased=False,
-            )
-            for name, tp in types.items()
+            ObjectField(name, type_, name in required_keys, default=Undefined)
+            for name, type_ in types.items()
         ]
-        return self._object(cls, fields, class_aliasing=False)
+        return self._object(tp, fields)
 
-    def unsupported(self, tp: AnyType) -> Return:
+    def unsupported(self, tp: AnyType) -> Result:
         from apischema import settings
 
-        if isinstance(tp, type):
-            fields = settings.default_object_fields(tp)
+        origin = get_origin_or_type(tp)
+        if isinstance(origin, type):
+            fields = settings.default_object_fields(origin)
             if fields is not None:
-                if self._generic is not None:
-                    sub = dict(
-                        zip(get_parameters(self._generic), get_args(self._generic))
-                    )
+                if get_args(tp):
+                    sub = dict(zip(get_parameters(origin), get_args(tp)))
                     fields = [
                         replace(f, type=substitute_type_vars(f.type, sub))
                         for f in fields
                     ]
-                return self._object(tp, fields)
+                return self._object(origin, fields)
         return super().unsupported(tp)
 
 
-class DeserializationObjectVisitor(ObjectVisitor[Return]):
-    _dataclass_field_kind_filtered = FieldKind.READ_ONLY
+class DeserializationObjectVisitor(ObjectVisitor[Result]):
+    _field_kind_filtered = FieldKind.READ_ONLY
 
     @staticmethod
     def _field_conversion(field: ObjectField) -> Optional[Conversions]:
         return field.deserialization
 
 
-class SerializationObjectVisitor(ObjectVisitor[Return]):
-    _dataclass_field_kind_filtered = FieldKind.WRITE_ONLY
+class SerializationObjectVisitor(ObjectVisitor[Result]):
+    _field_kind_filtered = FieldKind.WRITE_ONLY
 
     @staticmethod
     def _field_conversion(field: ObjectField) -> Optional[Conversions]:

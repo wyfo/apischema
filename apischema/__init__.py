@@ -5,13 +5,14 @@ __all__ = [
     "ValidationError",
     "alias",
     "dependent_required",
-    "deserialization",
+    "deserialization_method",
     "deserialize",
     "deserializer",
     "properties",
     "reset_cache",
     "schema",
     "schema_ref",
+    "serialization_method",
     "serialize",
     "serialized",
     "serializer",
@@ -36,10 +37,10 @@ from .aliases import alias
 from .cache import reset_cache
 from .conversions import deserializer, serializer
 from .dependencies import dependent_required
-from .deserialization import deserialize
-from .json_schema.schemas import schema
+from .deserialization import deserialization_method, deserialize
 from .metadata import properties
-from .serialization import serialize
+from .schemas import schema
+from .serialization import serialization_method, serialize
 from .serialization.serialized_methods import serialized
 from .settings import settings
 from .type_names import schema_ref, type_name

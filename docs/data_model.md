@@ -93,7 +93,7 @@ For `Enum`, this is the value and not the attribute name that is serialized
 
 - `typing.TypedDict`
 
-: Hanlded as an object type, but it supports less fields metadata, as explained [here](json_schema.md#why-typeddict-doesnt-support-field-aliasing); in particular, there is no aliasing
+: Hanlded as an object type, but with a dictionary shape; fields metadata can be passed using `Annotated`
 
 - `typing.Any`
 
@@ -215,7 +215,6 @@ class ObjectField:
     metadata: Mapping[str, Any] = field(default_factory=dict)  # field's metadata 
     default: InitVar[Any] = ...  # field's default value
     default_factory: Optional[Callable[[], Any]] = None  # field's default factory
-    aliased: bool = True  # if the fields will be aliased (TypedDict are not)
     kind: FieldKind = FieldKind.NORMAL  # NORMAL/READ_ONLY/WRITE_ONLY
 ```
 
@@ -233,7 +232,7 @@ from typing import Optional
 from apischema import settings
 from apischema.objects import ObjectField
 
-previous_default_object_fields = settings.default_object_fields()
+previous_default_object_fields = settings.default_object_field
 
 
 def default_object_fields(cls) -> Optional[Sequence[ObjectField]]:
@@ -275,4 +274,4 @@ This feature is very convenient for building model by composing smaller componen
 Iterable could be handled (actually, it was at the beginning), however, this doesn't really make sense from a data point of view. Iterable are computation objects, they can be infinite, etc. They don't correspond to a serialized data; `Collection` is way more appropriate in this context.
 
 #### What happens if I override dataclass `__init__`?
-*apischema* always assumes that dataclass `__init__` can be called with with all its fields as kwargs parameters. If that's no more the case after a modification of `__init__` (what means if an exception is thrown when the constructor is called because of bad parameters), *apischema* treats then the class as [not supported](#unsupported-types).
+*apischema* always assumes that dataclass `__init__` can be called with all its fields as kwargs parameters. If that's no more the case after a modification of `__init__` (what means if an exception is thrown when the constructor is called because of bad parameters), *apischema* treats then the class as [not supported](#unsupported-types).

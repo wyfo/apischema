@@ -1,26 +1,11 @@
-from functools import wraps
-from typing import Any, Callable, Dict, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union
 
-from apischema.json_schema.types import JsonType
+from apischema.json_schema.types import bad_type
 from apischema.types import NoneType
-from apischema.validation.errors import ValidationError
 
 T = TypeVar("T")
 
 Coercer = Callable[[Type[T], Any], T]
-
-
-def no_coercion(expected: Type[T], data: Any) -> T:
-    if not isinstance(data, expected):
-        if expected is float and isinstance(data, int):
-            return float(data)  # type: ignore
-        msg = (
-            f"expected type {JsonType.from_type(expected)},"
-            f" found {JsonType.from_type(type(data))}"
-        )
-        raise ValidationError([msg])
-    return data
-
 
 _bool_pairs = (
     ("0", "1"),
@@ -38,14 +23,6 @@ for false, true in _bool_pairs:
 STR_NONE_VALUES = {""}
 
 
-def coercion_error(cls: Type, data) -> ValidationError:
-    msg = (
-        f"cannot coerce {JsonType.from_type(cls)}"
-        f" from {JsonType.from_type(type(data))}"
-    )
-    return ValidationError([msg])
-
-
 def coerce(cls: Type[T], data: Any) -> T:
     try:
         if isinstance(data, cls):
@@ -60,7 +37,7 @@ def coerce(cls: Type[T], data: Any) -> T:
             raise ValueError
         return cls(data)  # type: ignore
     except (ValueError, TypeError, KeyError):
-        raise coercion_error(cls, data) from None
+        raise bad_type(data, cls)
 
 
 _coercer: Coercer = coerce
@@ -68,26 +45,10 @@ _coercer: Coercer = coerce
 Coercion = Union[bool, Coercer]
 
 
-def wrap_coercer(coercer: Coercer) -> Coercer:
-    @wraps(coercer)
-    def wrapper(cls, data):
-        try:
-            result = coercer(cls, data)
-        except AssertionError:
-            raise
-        except Exception:
-            raise coercion_error(cls, data)
-        if not isinstance(result, cls):
-            raise coercion_error(cls, data)
-        return result
-
-    return wrapper
-
-
-def get_coercer(coercion: Coercion) -> Coercer:
+def get_coercer(coercion: Coercion) -> Optional[Coercer]:
     if callable(coercion):
-        return wrap_coercer(coercion)
+        return coercion
     elif coercion:
         return _coercer
     else:
-        return no_coercion
+        return None

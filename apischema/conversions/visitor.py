@@ -1,22 +1,25 @@
 from contextlib import contextmanager
 from dataclasses import replace
+from functools import lru_cache
 from types import new_class
 from typing import (
+    Any,
     Collection,
+    Dict,
     Generic,
+    Hashable,
     Iterable,
     Optional,
     Sequence,
     Tuple,
     Type,
     TypeVar,
-    Union,
 )
 
-from apischema.cache import cache
 from apischema.conversions import LazyConversion
 from apischema.conversions.conversions import (
     Conversions,
+    DefaultConversions,
     ResolvedConversion,
     ResolvedConversions,
     handle_identity_conversion,
@@ -24,109 +27,114 @@ from apischema.conversions.conversions import (
     resolve_conversions,
 )
 from apischema.conversions.dataclass_models import handle_dataclass_model
-from apischema.conversions.utils import INVALID_CONVERSION_TYPES
+from apischema.conversions.utils import is_convertible
+from apischema.metadata.implem import ConversionMetadata
 from apischema.type_names import type_name
-from apischema.types import AnyType, Undefined, UndefinedType
+from apischema.types import AnyType
 from apischema.typing import get_args
 from apischema.utils import (
+    Lazy,
+    context_setter,
     get_origin_or_type,
     has_type_vars,
+    is_hashable,
+    is_subclass,
     substitute_type_vars,
     subtyping_substitution,
 )
-from apischema.visitor import Return, Visitor
+from apischema.visitor import Result, Visitor
 
 Deserialization = ResolvedConversions
 Serialization = ResolvedConversion
 Conv = TypeVar("Conv")
 
 
-class ConversionsVisitor(Visitor[Return], Generic[Conv, Return]):
-    def __init__(self):
-        super().__init__()
-        self._conversions: ResolvedConversions = ()
+class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
+    def __init__(self, default_conversions: DefaultConversions):
+        self.default_conversions = default_conversions
+        self._conversions: Optional[Conversions] = None
 
-    @staticmethod
-    def _get_conversions(
-        tp: AnyType, conversions: ResolvedConversions
-    ) -> Union[Conv, None, UndefinedType]:
+    def _has_conversion(
+        self, tp: AnyType, conversions: Optional[Conversions]
+    ) -> Tuple[bool, Optional[Conv]]:
         raise NotImplementedError
 
-    @staticmethod
-    def _default_conversions(tp: Type) -> Optional[Conversions]:
+    def _annotated_conversion(
+        self, annotation: ConversionMetadata
+    ) -> Optional[Conversions]:
         raise NotImplementedError
 
-    def _handle_container_sub_conversions(self, conversion: Conv) -> Conv:
+    def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> Result:
+        for annotation in reversed(annotations):
+            if isinstance(annotation, ConversionMetadata):
+                with self._replace_conversions(self._annotated_conversion(annotation)):
+                    return super().annotated(tp, annotations)
+        return super().annotated(tp, annotations)
+
+    def _union_result(self, results: Iterable[Result]) -> Result:
         raise NotImplementedError
 
-    @classmethod
-    def get_conversions(
-        cls, tp: AnyType, conversions: ResolvedConversions
-    ) -> Tuple[Optional[Conv], bool]:
-        conv, dynamic = None, False
-        if conversions is not None:
-            conv = cls._get_conversions(tp, conversions)
-        if conv is not None:
-            dynamic = True
-        else:
-            default = cls._default_conversions(get_origin_or_type(tp))
-            if default:
-                conv = cls._get_conversions(tp, resolve_conversions(default))
-        return (conv if conv is not Undefined else None), dynamic
-
-    def _union_result(self, results: Iterable[Return]) -> Return:
-        raise NotImplementedError
-
-    def union(self, alternatives: Sequence[AnyType]) -> Return:
+    def union(self, alternatives: Sequence[AnyType]) -> Result:
         return self._union_result(map(self.visit, alternatives))
-
-    def _visit_conversion(self, tp: AnyType, conversion: Conv, dynamic: bool) -> Return:
-        raise NotImplementedError
-
-    def _visit_not_conversion(self, tp: AnyType, dynamic: bool) -> Return:
-        return super().visit(tp)
-
-    def visit_conversion(
-        self, tp: AnyType, conversion: Optional[Conv], dynamic: bool
-    ) -> Return:
-        if conversion is not None:
-            return self._visit_conversion(tp, conversion, dynamic)
-        else:
-            return self._visit_not_conversion(tp, dynamic)
 
     @contextmanager
     def _replace_conversions(self, conversions: Optional[Conversions]):
-        conversions_save = self._conversions
-        self._conversions = resolve_conversions(conversions)
-        try:
+        with context_setter(self) as setter:
+            setter._conversions = resolve_conversions(conversions)
             yield
-        finally:
-            self._conversions = conversions_save
 
-    def visit(self, tp: AnyType) -> Return:
-        origin = get_origin_or_type(tp)
-        if origin in INVALID_CONVERSION_TYPES or not isinstance(origin, type):
-            return self.visit_conversion(tp, None, False)
-        conversion, dynamic = self.get_conversions(tp, self._conversions)
-        reuse_conversions = not dynamic and issubclass(origin, Collection)
-        if conversion is not None:
-            if reuse_conversions:
-                conversion = self._handle_container_sub_conversions(conversion)
-            return self.visit_conversion(tp, conversion, dynamic)
-        elif reuse_conversions:
-            return self.visit_conversion(tp, None, dynamic)
-        else:
-            with self._replace_conversions(None):
-                return self.visit_conversion(tp, None, dynamic)
-
-    def visit_with_conversions(
+    def visit_with_conv(
         self, tp: AnyType, conversions: Optional[Conversions]
-    ) -> Return:
+    ) -> Result:
         with self._replace_conversions(conversions):
             return self.visit(tp)
 
+    def _visit_conversion(
+        self,
+        tp: AnyType,
+        conversion: Conv,
+        dynamic: bool,
+        next_conversions: Optional[Conversions],
+    ) -> Result:
+        raise NotImplementedError
 
-@cache
+    def visit_conversion(
+        self,
+        tp: AnyType,
+        conversion: Optional[Conv],
+        dynamic: bool,
+        next_conversions: Optional[Conversions] = None,
+    ) -> Result:
+        if conversion is not None:
+            return self._visit_conversion(tp, conversion, dynamic, next_conversions)
+        else:
+            with self._replace_conversions(next_conversions):
+                return super().visit(tp)
+
+    def visit(self, tp: AnyType) -> Result:
+        if not is_convertible(tp):
+            return self.visit_conversion(tp, None, False, self._conversions)
+        dynamic, conversion = self._has_conversion(tp, self._conversions)
+        if not dynamic:
+            _, conversion = self._has_conversion(
+                tp, self.default_conversions(get_origin_or_type(tp))  # type: ignore
+            )
+        next_conversions = None
+        if not dynamic and is_subclass(tp, Collection):
+            next_conversions = self._conversions
+        return self.visit_conversion(tp, conversion, dynamic, next_conversions)
+
+
+def sub_conversions(
+    conversion: ResolvedConversion, next_conversions: Optional[Conversions]
+) -> Optional[Conversions]:
+    return (
+        LazyConversion(lambda: conversion.sub_conversions),
+        LazyConversion(lambda: next_conversions),
+    )
+
+
+@lru_cache(maxsize=0)
 def self_deserialization_wrapper(cls: Type) -> Type:
     wrapper = new_class(
         f"{cls.__name__}SelfDeserializer",
@@ -138,36 +146,22 @@ def self_deserialization_wrapper(cls: Type) -> Type:
     return type_name(None)(wrapper)
 
 
-def merge_prev_conversions(
-    conversion: ResolvedConversion, prev_conversions: Conversions
-) -> ResolvedConversion:
-    if not conversion.sub_conversions:
-        return conversion
-    else:
-        # Use lazy conversions to "flat" Conversions inside a Conversions list
-        sub_conversions = (
-            LazyConversion(lambda: conversion.sub_conversions),
-            LazyConversion(lambda: prev_conversions),
-        )
-        return ResolvedConversion(replace(conversion, sub_conversions=sub_conversions))
-
-
-class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
+class DeserializationVisitor(ConversionsVisitor[Deserialization, Result]):
     @staticmethod
-    def _get_conversions(
-        tp: AnyType, conversions: ResolvedConversions
-    ) -> Union[Deserialization, None, UndefinedType]:
-        origin = get_origin_or_type(tp)
-        identity_conv = False
-        result = []
-        for conv in conversions:
+    def _has_conversion(
+        tp: AnyType, conversions: Optional[Conversions]
+    ) -> Tuple[bool, Optional[Deserialization]]:
+        identity_conv, result = False, []
+        for conv in resolve_conversions(conversions):
             conv = handle_identity_conversion(conv, tp)
-            if issubclass(get_origin_or_type(conv.target), origin):
+            if is_subclass(conv.target, tp):
                 if is_identity(conv):
                     if identity_conv:
                         continue
                     identity_conv = True
-                    wrapper: AnyType = self_deserialization_wrapper(origin)
+                    wrapper: AnyType = self_deserialization_wrapper(
+                        get_origin_or_type(tp)
+                    )
                     if get_args(tp):
                         wrapper = wrapper[get_args(tp)]
                     conv = ResolvedConversion(replace(conv, source=wrapper))
@@ -178,65 +172,90 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Return]):
                     ResolvedConversion(replace(conv, source=source, target=tp))
                 )
         if identity_conv and len(result) == 1:
-            return Undefined
+            return True, None
         else:
-            return tuple(result) or None
+            return bool(result), tuple(result) or None
 
-    @staticmethod
-    def _default_conversions(tp: Type) -> Optional[Conversions]:
-        from apischema import settings
-
-        return settings.deserialization.default_conversions(tp)
-
-    def _handle_container_sub_conversions(
-        self, conversion: Deserialization
-    ) -> Deserialization:
-        return tuple(
-            merge_prev_conversions(conv, self._conversions) for conv in conversion
-        )
+    def _annotated_conversion(
+        self, annotation: ConversionMetadata
+    ) -> Optional[Conversions]:
+        return annotation.deserialization
 
     def _visit_conversion(
-        self, tp: AnyType, conversion: Deserialization, dynamic: bool
-    ) -> Return:
+        self,
+        tp: AnyType,
+        conversion: Deserialization,
+        dynamic: bool,
+        next_conversions: Optional[Conversions],
+    ) -> Result:
         return self._union_result(
-            self.visit_with_conversions(conv.source, conv.sub_conversions)
+            self.visit_with_conv(conv.source, sub_conversions(conv, next_conversions))
             for conv in conversion
         )
 
 
-class SerializationVisitor(ConversionsVisitor[Serialization, Return]):
+class SerializationVisitor(ConversionsVisitor[Serialization, Result]):
     @staticmethod
-    def _get_conversions(
-        tp: AnyType, conversions: ResolvedConversions
-    ) -> Union[Serialization, None, UndefinedType]:
-        origin = get_origin_or_type(tp)
-        for conv in conversions:
+    def _has_conversion(
+        tp: AnyType, conversions: Optional[Conversions]
+    ) -> Tuple[bool, Optional[Serialization]]:
+        for conv in resolve_conversions(conversions):
             conv = handle_identity_conversion(conv, tp)
-            if issubclass(origin, get_origin_or_type(conv.source)):
+            if is_subclass(tp, conv.source):
                 if is_identity(conv):
-                    return Undefined
-                else:
-                    conv = handle_dataclass_model(conv)
-                    substitution, _ = subtyping_substitution(conv.source, tp)
-                    target = substitute_type_vars(conv.target, substitution)
-                    return ResolvedConversion(replace(conv, source=tp, target=target))
+                    return True, None
+                conv = handle_dataclass_model(conv)
+                substitution, _ = subtyping_substitution(conv.source, tp)
+                target = substitute_type_vars(conv.target, substitution)
+                return True, ResolvedConversion(replace(conv, source=tp, target=target))
         else:
-            return None
+            return False, None
 
-    @staticmethod
-    def _default_conversions(tp: Type) -> Optional[Conversions]:
-        from apischema import settings
-
-        return settings.serialization.default_conversions(tp)
-
-    def _handle_container_sub_conversions(
-        self, conversion: Serialization
-    ) -> Serialization:
-        return merge_prev_conversions(conversion, self._conversions)
+    def _annotated_conversion(
+        self, annotation: ConversionMetadata
+    ) -> Optional[Conversions]:
+        return annotation.serialization
 
     def _visit_conversion(
-        self, tp: AnyType, conversion: Serialization, dynamic: bool
-    ) -> Return:
-        return self.visit_with_conversions(
-            conversion.target, conversion.sub_conversions
+        self,
+        tp: AnyType,
+        conversion: Serialization,
+        dynamic: bool,
+        next_conversions: Optional[Conversions],
+    ) -> Result:
+        return self.visit_with_conv(
+            conversion.target, sub_conversions(conversion, next_conversions)
         )
+
+
+class CachedConversionsVisitor(ConversionsVisitor[Conv, Result]):
+    def __init__(self, default_conversions: DefaultConversions):
+        super().__init__(default_conversions)
+        self._visit_cache: Dict[
+            Tuple[AnyType, Optional[Conversions], Hashable], Result
+        ] = {}
+
+    def _cache_key(self) -> Hashable:
+        return None
+
+    def _cache_result(self, lazy: Lazy[Result]) -> Result:
+        raise NotImplementedError
+
+    def visit(self, tp: AnyType) -> Result:
+        if not is_hashable(tp):
+            return super().visit(tp)
+        cache_key = (tp, self._conversions, self._cache_key())
+        if cache_key in self._visit_cache:
+            return self._visit_cache[cache_key]
+        result = None
+
+        def lazy_result():
+            assert result is not None
+            return result
+
+        self._visit_cache[cache_key] = self._cache_result(lazy_result)
+        try:
+            result = super().visit(tp)
+        finally:
+            del self._visit_cache[cache_key]
+        return result

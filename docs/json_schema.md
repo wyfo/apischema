@@ -16,9 +16,6 @@ Sometimes dataclass field names can clash with language keyword, sometimes the p
 {!alias.py!}
 ```
 
-!!! warning
-    `TypedDict` fields cannot have aliases, see [FAQ](#why-typeddict-doesnt-support-field-aliasing)
-
 ### Alias all fields
 
 Field aliasing can also be done at class level by specifying an aliasing function. This aliaser is applied to field alias if defined or field name, or not applied if `override=False` is specified.
@@ -46,11 +43,7 @@ settings.camel_case = True
 ```
 
 !!! note
-    `NamedTuple` fields are also aliased, but not TypedDict ones; in fact, TypedDict is not a true class, so it is never encountered in serialization, then aliaser cannot be applied to its fields. 
-
-!!! note
     Dynamic aliaser ignores `override=False`
-    
 
 ## Schema annotations
 
@@ -89,11 +82,7 @@ min_props | minProperties | `dict`
 max_props | maxProperties | `dict`
 
 !!! note
-    `schema` function has an overloaded signature which prevents to mix incompatible keywords. 
-
-### `default` annotation
-
-`default` annotation is not added automatically when a field has a default value (see [FAQ](#why-field-default-value-is-not-used-by-default-to-to-generate-json-schema)); `schema` `default` parameter must be used in order to make it appear in the schema. However `...` can be used as a placeholder to make *apischema* use field default value; this one will be serialized — if serialization fails, error will be ignored as well as `default` annotation.
+    In case of field schema, field default value will be serialized (if possible) to add `default` keyword to the schema.
 
 ### Constraints validation
 
@@ -110,7 +99,7 @@ When no schema are defined, a default schema can be computed using `settings.def
 ```python
 from typing import Optional
 from apischema import schema, settings
-from apischema.json_schema.schemas import Schema
+from apischema.schemas import Schema
 
 
 def default_schema(cls) -> Optional[Schema]:
@@ -248,13 +237,3 @@ JSON schema has several versions — *OpenAPI* is treated as a JSON schema versi
 Dataclasses `InitVar` and `field(init=False)` fields will be flagged respectively with `"writeOnly": true` and `"readOnly": true` in the generated schema.
 
 In [definitions schema](#definitions-schema), if a type appears both in deserialization and serialization,  properties are merged and the resulting schema contains then `readOnly` and `writeOnly` properties. By the way, the `required` is not merged because it can't (it would mess up validation if some not-init field was required), so deserialization `required` is kept because it's more important as it can be used in validation (*OpenAPI* 3.0 semantic which allows the merge [has been dropped](https://www.openapis.org/blog/2020/06/18/openapi-3-1-0-rc0-its-here) in 3.1, so it has not been judged useful to be supported)
-
-## FAQ
-
-#### Why `TypedDict` doesn't support field aliasing?
-
-`TypedDict` subclasses are not real classes, they are static annotations with no runtime existence, there are only `dict` (or other mappings) at runtime. However, serialization is implemented using runtime classes, as explained [here](conversions.md#why-conversion-can-only-be-applied-on-classes), so `TypedDict` fields are not available during serialization. As a consequence, `TypedDict` field's aliases would not be able to be retrieved by serialization, so they are not supported at all instead of having them at deserialization and not at serialization.  
-
-#### Why field default value is not used by default to generate JSON schema?
-
-Actually, default value is not always the usable in the schema, for example `NotNull` fields with a `None` default value. Because `default` keyword is kind of facultative in the schema, it has been decided to not put it by default in order to not put wrong default by accident.

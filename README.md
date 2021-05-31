@@ -61,7 +61,7 @@ data = {"id": str(uuid), "name": "wyfo", "tags": ["some_tag"]}
 resource = deserialize(Resource, data)
 assert resource == Resource(uuid, "wyfo", {"some_tag"})
 # Serialize objects
-assert serialize(resource) == data
+assert serialize(Resource, resource) == data
 # Validate during deserialization
 with raises(ValidationError) as err:  # pytest checks exception is raised
     deserialize(Resource, {"id": "42", "name": "wyfo"})

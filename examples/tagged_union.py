@@ -30,7 +30,7 @@ assert get_tagged(tagged_bar) == ("bar", Bar("value"))
 
 # (De)serialization works as expected
 assert deserialize(Foo, {"bar": {"field": "value"}}) == tagged_bar
-assert serialize(tagged_bar) == {"bar": {"field": "value"}}
+assert serialize(Foo, tagged_bar) == {"bar": {"field": "value"}}
 
 with raises(ValidationError) as err:
     deserialize(Foo, {"unknown": 42})
@@ -39,5 +39,5 @@ assert serialize(err.value) == [{"loc": ["unknown"], "err": ["unexpected propert
 with raises(ValidationError) as err:
     deserialize(Foo, {"bar": {"field": "value"}, "baz": 0})
 assert serialize(err.value) == [
-    {"loc": [], "err": ["size greater than 1 (maxProperties)"]}
+    {"loc": [], "err": ["property count greater than 1 (maxProperties)"]}
 ]

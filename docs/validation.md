@@ -54,9 +54,9 @@ However, *apischema* provides a way or raising as many errors as needed by using
 
 In the example, validator yield a tuple of an "error path" and the error message. Error path can be:
 
+- a field alias (obtained with `apischema.objects.get_alias`);
 - an integer, for list indices;
 - a raw string, for dict key (or field);
-- a field alias (obtained with `apischema.objects.get_alias`), preferred for field;
 - an `apischema.objects.AliasedStr`, a string subclass which will be aliased by serialization aliaser;
 - an iterable, e.g. a tuple, of this 4 components.
 
@@ -143,4 +143,4 @@ Last but not least, validators can be embedded directly into `Annotated` argumen
 *apischema* uses type annotations, so every objects used can already be statically type-checked (with *Mypy*/*Pycharm*/etc.) at instantiation but also at modification.
 
 #### Why use validators for dataclasses instead of doing validation in `__post_init__`?
-Actually, validation can completly be done in `__post_init__`, there is not problem with that. However, validators offers one thing that cannot be achieved with `__post_init__`: they are run before `__init__`, so they can validate incomplete data. Moreover, they are only run during deserialization, so they don't add overhead to normal class instantiation.
+Actually, validation can completely be done in `__post_init__`, there is no problem with that. However, validators offers one thing that cannot be achieved with `__post_init__`: they are run before `__init__`, so they can validate incomplete data. Moreover, they are only run during deserialization, so they don't add overhead to normal class instantiation.

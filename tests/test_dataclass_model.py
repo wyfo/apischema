@@ -40,7 +40,7 @@ tmp = DataModel1
 )
 def test_simple_dataclass_model(d_conv, s_conv, alias):
     assert deserialize(Data, {alias: 0}, conversions=d_conv) == Data(0)
-    assert serialize(Data(0), conversions=s_conv) == {alias: 0}
+    assert serialize(Data, Data(0), conversions=s_conv) == {alias: 0}
     assert (
         deserialization_schema(Data, conversions=d_conv)
         == serialization_schema(Data, conversions=s_conv)

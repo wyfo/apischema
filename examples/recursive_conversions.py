@@ -19,6 +19,9 @@ tmp = None
 conversion = Conversion(foo_elements, sub_conversions=LazyConversion(lambda: tmp))
 tmp = conversion
 
-assert serialize(Foo([0, Foo([1])]), conversions=conversion) == [0, [1]]
+assert serialize(Foo, Foo([0, Foo([1])]), conversions=conversion) == [0, [1]]
 # Without the recursive sub-conversion, it would have been:
-assert serialize(Foo([0, Foo([1])]), conversions=foo_elements) == [0, {"elements": [1]}]
+assert serialize(Foo, Foo([0, Foo([1])]), conversions=foo_elements) == [
+    0,
+    {"elements": [1]},
+]

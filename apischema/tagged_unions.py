@@ -16,7 +16,6 @@ from typing import (
 
 from apischema.aliases import alias as alias_metadata
 from apischema.conversions.conversions import ConvOrFunc
-from apischema.json_schema.schemas import Schema, schema
 from apischema.metadata import conversion
 from apischema.metadata.keys import (
     DEFAULT_AS_SET_METADATA,
@@ -28,6 +27,7 @@ from apischema.metadata.keys import (
     REQUIRED_METADATA,
     SKIP_METADATA,
 )
+from apischema.schemas import Schema, schema
 from apischema.types import Metadata, MetadataImplem, Undefined, UndefinedType
 from apischema.typing import get_type_hints
 from apischema.utils import PREFIX, get_args2, get_origin2, wrap_generic_init_subclass

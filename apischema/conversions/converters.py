@@ -21,16 +21,15 @@ from apischema.conversions.conversions import (
     Conversions,
     resolve_conversion,
 )
-from apischema.conversions.utils import Converter, INVALID_CONVERSION_TYPES
+from apischema.conversions.utils import Converter, is_convertible
 from apischema.types import AnyType
-from apischema.typing import type_dict_wrapper
+from apischema.typing import is_type_var, type_dict_wrapper
 from apischema.utils import (
     MethodOrProperty,
     MethodWrapper,
     get_args2,
     get_origin_or_type,
     is_method,
-    is_type_var,
     method_class,
     stop_signature_abuse,
 )
@@ -39,16 +38,16 @@ if TYPE_CHECKING:
     from apischema.deserialization.coercion import Coercion
 
 
-_deserializers: Dict[Type, List[ConvOrFunc]] = type_dict_wrapper(defaultdict(list))
-_serializers: Dict[Type, ConvOrFunc] = type_dict_wrapper({})
+_deserializers: Dict[AnyType, List[ConvOrFunc]] = type_dict_wrapper(defaultdict(list))
+_serializers: Dict[AnyType, ConvOrFunc] = type_dict_wrapper({})
 Deserializer = TypeVar(
     "Deserializer", bound=Union[Callable, Conversion, staticmethod, type]
 )
 Serializer = TypeVar("Serializer", bound=Union[Callable, Conversion, property, type])
 
 default_deserialization: Callable[[type], Optional[Conversions]]
-# defaultdict.get is not hashable in 3.6
-if sys.version_info < (3, 7):
+# defaultdict.get is not hashable in 3.7
+if sys.version_info < (3, 8):
 
     def default_deserialization(tp):
         return _deserializers.get(tp)
@@ -72,17 +71,17 @@ def default_serialization(tp: Type) -> Optional[Conversions]:
         return None
 
 
-def check_converter_type(tp: AnyType, side: str) -> Type:
+def check_converter_type(tp: AnyType) -> AnyType:
+    origin = get_origin_or_type(tp)
+    if not is_convertible(tp):
+        raise TypeError(f"{origin} is not convertible")
     if not all(map(is_type_var, get_args2(tp))):
         raise TypeError("Generic conversion doesn't support specialization")
-    origin = get_origin_or_type(tp)
-    if not isinstance(origin, type) or origin in INVALID_CONVERSION_TYPES:
-        raise TypeError(f"{side.capitalize()} must be a class")
     return origin
 
 
 def _add_deserializer(conversion: ConvOrFunc, target: AnyType):
-    target = check_converter_type(target, "deserializer target")
+    target = check_converter_type(target)
     if conversion not in _deserializers[target]:
         _deserializers[target].append(conversion)
 
@@ -137,7 +136,7 @@ def deserializer(
 
 
 def _add_serializer(conversion: ConvOrFunc, source: AnyType):
-    source = check_converter_type(source, "serializer source")
+    source = check_converter_type(source)
     _serializers[source] = conversion
 
 

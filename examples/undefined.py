@@ -13,7 +13,7 @@ class Foo:
 
 assert deserialize(Foo, {"bar": 0, "baz": None}) == Foo(0, None)
 assert deserialize(Foo, {}) == Foo(Undefined, Undefined)
-assert serialize(Foo(Undefined, 42)) == {"baz": 42}
+assert serialize(Foo, Foo(Undefined, 42)) == {"baz": 42}
 # Foo.bar and Foo.baz are not required
 assert deserialization_schema(Foo) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",

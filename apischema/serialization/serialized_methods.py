@@ -18,9 +18,15 @@ from typing import (
 
 from apischema.conversions.conversions import Conversions
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
-from apischema.json_schema.schemas import Schema
+from apischema.schemas import Schema
 from apischema.types import AnyType, Undefined, UndefinedType
-from apischema.typing import generic_mro, get_args, get_type_hints, type_dict_wrapper
+from apischema.typing import (
+    generic_mro,
+    get_args,
+    get_origin,
+    get_type_hints,
+    type_dict_wrapper,
+)
 from apischema.utils import (
     get_args2,
     get_origin_or_type,
@@ -89,8 +95,8 @@ def _get_methods(
             result[name] = (method, method.types(base))
     if has_model_origin(tp):
         origin = get_model_origin(tp)
-        if get_args2(tp):
-            substitution = dict(zip(get_parameters(tp), get_args(tp)))
+        if get_args(tp):
+            substitution = dict(zip(get_parameters(get_origin(tp)), get_args(tp)))
             origin = substitute_type_vars(origin, substitution)
         result.update(_get_methods(origin, all_methods))
     return result

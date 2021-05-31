@@ -8,10 +8,10 @@ from apischema.conversions.converters import (
     default_serialization,
 )
 from apischema.deserialization.coercion import Coercer, coerce
-from apischema.json_schema import JsonSchemaVersion, Schema
-from apischema.json_schema.schemas import default_schema as default_schema_
+from apischema.json_schema import JsonSchemaVersion
 from apischema.objects import ObjectField
 from apischema.objects.fields import default_object_fields as default_object_fields_
+from apischema.schemas import Schema, default_schema as default_schema_
 from apischema.type_names import TypeName, default_type_name as default_type_name_
 from apischema.types import AnyType
 from apischema.utils import to_camel_case

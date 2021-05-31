@@ -21,4 +21,4 @@ class Foo:
         return datetime(1970, 1, 1)
 
 
-assert serialize(Foo()) == {"some_date": 0}
+assert serialize(Foo, Foo()) == {"some_date": 0}

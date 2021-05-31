@@ -21,7 +21,7 @@ class A:
 class B:
     b: int
 
-    @serializer
+    @serializer  # type: ignore
     @property
     def as_int(self) -> int:
         return self.b
@@ -29,4 +29,4 @@ class B:
 
 def test_descriptor_converters():
     assert deserialize(A, 0) == A(0)
-    assert serialize(A(0)) == serialize(B(0)) == 0
+    assert serialize(A, A(0)) == serialize(B(0)) == 0

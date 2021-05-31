@@ -64,7 +64,7 @@ with raises(ValidationError):
 result = deserialize(Result[int], data)
 assert result == Result(0)
 assert result.get() == 0
-assert serialize(result) == {"result": 0}
+assert serialize(Result[int], result) == {"result": 0}
 
 error = deserialize(Result, {"error": {"code": 42, "description": "..."}})
 with raises(Error) as err:

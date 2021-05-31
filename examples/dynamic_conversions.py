@@ -2,8 +2,10 @@ import os
 import time
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Annotated
 
 from apischema import deserialize, serialize
+from apischema.metadata import conversion
 
 # Set UTC timezone for example
 os.environ["TZ"] = "UTC"
@@ -31,6 +33,8 @@ class Foo:
         return int(self.bar - self.baz)
 
 
-assert serialize(Foo(0, 1)) == {"bar": 0, "baz": 1}
-assert serialize(Foo(0, 1), conversions=Foo.sum) == 1
-assert serialize(Foo(0, 1), conversions=Foo.diff) == -1
+assert serialize(Foo, Foo(0, 1)) == {"bar": 0, "baz": 1}
+assert serialize(Foo, Foo(0, 1), conversions=Foo.sum) == 1
+assert serialize(Foo, Foo(0, 1), conversions=Foo.diff) == -1
+# conversions can be specified using Annotated
+assert serialize(Annotated[Foo, conversion(serialization=Foo.sum)], Foo(0, 1)) == 1

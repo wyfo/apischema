@@ -1,6 +1,5 @@
 from collections import defaultdict
-from collections.abc import Collection as Collection_
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from functools import wraps
 from typing import (
@@ -8,6 +7,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Hashable,
     Iterable,
     List,
     Mapping,
@@ -19,34 +19,31 @@ from typing import (
     Type,
     TypeVar,
     Union,
-    cast,
     overload,
 )
 
 from apischema.aliases import Aliaser
 from apischema.cache import cache
-from apischema.conversions.conversions import Conversions
-from apischema.conversions.utils import Converter, identity
-from apischema.conversions.visitor import Deserialization, DeserializationVisitor
-from apischema.dataclasses import replace
-from apischema.dependencies import get_dependent_required
-from apischema.deserialization.coercion import Coercion, get_coercer
-from apischema.deserialization.merged import get_deserialization_merged_aliases
-from apischema.json_schema.constraints import (
-    ArrayConstraints,
-    Constraints,
-    NumberConstraints,
-    ObjectConstraints,
-    StringConstraints,
-    merge_constraints,
+from apischema.conversions.conversions import Conversions, DefaultConversions
+from apischema.conversions.utils import identity
+from apischema.conversions.visitor import (
+    CachedConversionsVisitor,
+    Deserialization,
+    DeserializationVisitor,
+    sub_conversions,
 )
+from apischema.dependencies import get_dependent_required
+from apischema.deserialization.coercion import Coercer, Coercion, get_coercer
+from apischema.deserialization.merged import get_deserialization_merged_aliases
 from apischema.json_schema.patterns import infer_pattern
-from apischema.json_schema.schemas import Schema, get_schema
+from apischema.json_schema.types import bad_type
 from apischema.metadata.implem import ValidatorsMetadata
 from apischema.metadata.keys import SCHEMA_METADATA, VALIDATORS_METADATA
-from apischema.objects import AliasedStr, ObjectField
+from apischema.objects import ObjectField
 from apischema.objects.fields import FieldKind
 from apischema.objects.visitor import DeserializationObjectVisitor
+from apischema.schemas import Schema, get_schema
+from apischema.schemas.constraints import Constraints, merge_constraints
 from apischema.types import (
     AnyType,
     COLLECTION_TYPES,
@@ -55,11 +52,19 @@ from apischema.types import (
     OrderedDict,
     UndefinedType,
 )
-from apischema.typing import get_origin
-from apischema.utils import get_origin_or_type, opt_or
+from apischema.typing import get_args, get_origin
+from apischema.utils import (
+    Lazy,
+    PREFIX,
+    context_setter,
+    get_origin_or_type,
+    literal_values,
+    opt_or,
+)
+from apischema.validation import get_validators
 from apischema.validation.errors import ErrorKey, ValidationError, merge_errors
 from apischema.validation.mock import ValidatorMock
-from apischema.validation.validators import Validator, get_validators, validate
+from apischema.validation.validators import Validator, validate
 from apischema.visitor import Unsupported
 
 DICT_TYPE = get_origin(Dict[Any, Any])
@@ -68,405 +73,347 @@ LIST_TYPE = get_origin(List[Any])
 MISSING_PROPERTY = ValidationError(["missing property"])
 UNEXPECTED_PROPERTY = ValidationError(["unexpected property"])
 
+NOT_NONE = object()
+
+INIT_VARS_ATTR = f"{PREFIX}_init_vars"
+
 T = TypeVar("T")
 
 
-@dataclass
-class DeserializationContext:
-    additional_properties: bool
-    coercion: Coercion
-    default_fallback: bool
-
-    def __post_init__(self):
-        self.coercer = get_coercer(self.coercion)
-
-    def merge(
-        self,
-        additional_properties: bool = None,
-        coercion: Coercion = None,
-        default_fallback: bool = None,
-    ) -> "DeserializationContext":
-        if any(
-            arg is not None
-            for arg in (additional_properties, coercion, default_fallback)
-        ):
-            return replace(
-                self,
-                additional_properties=opt_or(
-                    additional_properties, self.additional_properties
-                ),
-                coercion=opt_or(coercion, self.coercion),
-                default_fallback=opt_or(default_fallback, self.default_fallback),
-            )
-        else:
-            return self
-
-
-def get_constraints(tp: AnyType) -> Optional[Constraints]:
-    schema = get_schema(tp)
-    return schema.constraints if schema is not None else None
-
-
-DeserializationMethod = Callable[[DeserializationContext, Any], Any]
-Factory = Callable[[Optional[Constraints], Sequence[Validator]], DeserializationMethod]
+DeserializationMethod = Callable[[Any], T]
 
 
 @dataclass(frozen=True)
 class DeserializationMethodFactory:
-    factory: Factory
+    factory: Callable[
+        [Optional[Constraints], Sequence[Validator]], DeserializationMethod
+    ]
+    data_type: Optional[Type] = None
+    coercer: Optional[Coercer] = None
     constraints: Optional[Constraints] = None
     validators: Sequence[Validator] = ()
 
-    @property
-    def method(self) -> DeserializationMethod:
-        return self.factory(self.constraints, self.validators)  # type: ignore
-
-    @staticmethod
-    def from_type(tp: AnyType) -> Callable[[Factory], "DeserializationMethodFactory"]:
-        return lambda factory: DeserializationMethodFactory(
-            factory, get_constraints(tp), get_validators(tp)
-        )
-
     def merge(
-        self,
-        constraints: Optional[Constraints] = None,
-        validators: Sequence[Validator] = (),
+        self, constraints: Optional[Constraints], validators: Sequence[Validator]
     ) -> "DeserializationMethodFactory":
         if constraints is None and not validators:
             return self
         return replace(
             self,
             constraints=merge_constraints(self.constraints, constraints),
-            validators=(*self.validators, *validators),
+            validators=(*validators, *self.validators),
         )
 
-
-class RecDeserializerMethodFactory:
-    def __init__(self):
-        self._ref: Optional[DeserializationMethodFactory] = None
-        self._constraints: Optional[Constraints] = None
-        self._validators: Sequence[Validator] = ()
-        self._children: List[RecDeserializerMethodFactory] = []
-        self._method: Optional[DeserializationMethod] = None
-
-    def __hash__(self):
-        return object.__hash__(self)
-
-    def set_ref(
-        self, factory: DeserializationMethodFactory
-    ) -> DeserializationMethodFactory:
-        self._ref = factory.merge(self._constraints, self._validators)
-        for child in self._children:
-            child.set_ref(factory)
-        return factory
-
-    def merge(
-        self,
-        constraints: Optional[Constraints] = None,
-        validators: Sequence[Validator] = (),
-    ) -> "RecDeserializerMethodFactory":
-        child = RecDeserializerMethodFactory()
-        if self._ref is not None:
-            child._ref = self._ref.merge(constraints, validators)
-        else:
-            child._constraints = merge_constraints(self._constraints, constraints)
-            child._validators = (*self._validators, *validators)
-        self._children.append(child)
-        return child
-
-    @property  # type: ignore
+    @property
     def method(self) -> DeserializationMethod:
-        if self._method is None:
+        method = self.factory(self.constraints, self.validators)  # type: ignore
 
-            def method(ctx: DeserializationContext, data: Any) -> Any:
-                if self._method is None:
-                    assert self._ref is not None
-                    self._method = self._ref.method
-                return self._method(ctx, data)
+        if self.data_type is not None and self.coercer is not None:
+            wrapped_for_coercion, coercer, cls = method, self.coercer, self.data_type
 
-            return method
-        else:
-            return self._method
+            @wraps(method)
+            def method(data: Any) -> Any:
+                return wrapped_for_coercion(coercer(cls, data))
+
+        return method
 
 
-DefaultFallback = Optional[bool]
+DefaultFallback = bool
 Required = Union[bool, AbstractSet[str]]
 
 
+def get_constraints(schema: Optional[Schema]) -> Optional[Constraints]:
+    return schema.constraints if schema is not None else None
+
+
 def with_validators(
-    validators: Sequence[Validator],
-) -> Callable[[DeserializationMethod], DeserializationMethod]:
+    method: DeserializationMethod, validators: Sequence[Validator]
+) -> DeserializationMethod:
     if not validators:
-        return lambda method: method
+        return method
 
-    def decorator(method: DeserializationMethod) -> DeserializationMethod:
-        @wraps(method)
-        def wrapper(ctx: DeserializationContext, data: Any) -> Any:
-            return validate(method(ctx, data), validators)
+    @wraps(method)
+    def wrapper(data: Any) -> Any:
+        return validate(method(data), validators)
 
-        return wrapper
+    return wrapper
 
-    return decorator
+
+def get_constraint_errors(
+    constraints: Optional[Constraints], cls: type
+) -> Optional[Callable[[Any], Sequence[str]]]:
+    return None if constraints is None else constraints.errors_by_type.get(cls)
 
 
 class DeserializationMethodVisitor(
-    DeserializationObjectVisitor[DeserializationMethodFactory],
+    CachedConversionsVisitor[Deserialization, DeserializationMethodFactory],
     DeserializationVisitor[DeserializationMethodFactory],
+    DeserializationObjectVisitor[DeserializationMethodFactory],
 ):
-    def __init__(self, aliaser: Aliaser):
-        super().__init__()
-        self._rec_sentinel: Dict[Any, RecDeserializerMethodFactory] = {}
+    def __init__(
+        self,
+        additional_properties: bool,
+        aliaser: Aliaser,
+        coercer: Optional[Coercer],
+        default_conversions: DefaultConversions,
+        default_fallback: bool,
+    ):
+        super().__init__(default_conversions)
+        self._additional_properties = additional_properties
+        self.aliaser = aliaser
+        self._coercer = coercer
+        self._default_fallback = default_fallback
 
-        def _aliaser(s: str) -> str:
-            return aliaser(s) if isinstance(s, AliasedStr) else s
+    def _cache_key(self) -> Hashable:
+        return self._coercer
 
-        self.aliaser = _aliaser
+    def _cache_result(
+        self, lazy: Lazy[DeserializationMethodFactory]
+    ) -> DeserializationMethodFactory:
+        def factory(
+            constraints: Optional[Constraints], validators: Sequence[Validator]
+        ) -> DeserializationMethod:
+            rec_method = None
 
-    def _visit_not_generic(self, tp: AnyType) -> DeserializationMethodFactory:
-        key = self._generic or tp, self._conversions
-        if key in self._rec_sentinel:
-            return cast(DeserializationMethodFactory, self._rec_sentinel[key])
-        else:
-            self._rec_sentinel[key] = RecDeserializerMethodFactory()
-            factory = super()._visit_not_generic(tp)
-            return self._rec_sentinel.pop(key).set_ref(factory)
+            def method(data: Any) -> Any:
+                nonlocal rec_method
+                if rec_method is None:
+                    rec_method = lazy().merge(constraints, validators).method
+                return rec_method(data)
 
-    def method(self, cls) -> DeserializationMethod:
-        return self.visit(cls).method
+            return method
+
+        return DeserializationMethodFactory(factory)
 
     def annotated(
         self, tp: AnyType, annotations: Sequence[Any]
     ) -> DeserializationMethodFactory:
-        factory = self.visit(tp)
+        factory = super().annotated(tp, annotations)
         for annotation in reversed(annotations):
             if isinstance(annotation, Mapping):
-                if SCHEMA_METADATA in annotation:
-                    schema: Schema = annotation[SCHEMA_METADATA]
-                    factory = factory.merge(constraints=schema.constraints)
-                if VALIDATORS_METADATA in annotation:
-                    validators: ValidatorsMetadata = annotation[VALIDATORS_METADATA]
-                    factory = factory.merge(validators=validators.validators)
+                factory = factory.merge(
+                    get_constraints(annotation.get(SCHEMA_METADATA)),
+                    annotation.get(
+                        VALIDATORS_METADATA, ValidatorsMetadata(())
+                    ).validators,
+                )
         return factory
 
     def any(self) -> DeserializationMethodFactory:
-        @DeserializationMethodFactory
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            @with_validators(validators)
-            def method(ctx: DeserializationContext, data: Any) -> Any:
-                return data if constraints is None else constraints.validate(data)
+            def method(data: Any) -> Any:
+                if constraints is not None:
+                    cls = type(data)
+                    if cls in constraints.errors_by_type:
+                        errors = constraints.errors_by_type[cls](data)
+                        if errors:
+                            raise ValidationError(errors)
+                return data
 
-            return method
+            return with_validators(method, validators)
 
-        return factory
+        return DeserializationMethodFactory(factory)
 
     def collection(
         self, cls: Type[Iterable], value_type: AnyType
     ) -> DeserializationMethodFactory:
-        deserialize_value = self.method(value_type)
+        value_factory = self.visit(value_type)
 
-        @DeserializationMethodFactory
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            @with_validators(validators)
-            def method(ctx: DeserializationContext, data: Any) -> Any:
-                data = ctx.coercer(list, data)
+            deserialize_value = value_factory.method
+            constraint_errors = get_constraint_errors(constraints, list)
+
+            def method(data: Any) -> Any:
+                if not isinstance(data, list):
+                    raise bad_type(data, list)
                 elts = []
                 elt_errors: Dict[ErrorKey, ValidationError] = {}
                 for i, elt in enumerate(data):
                     try:
-                        elts.append(deserialize_value(ctx, elt))
+                        elts.append(deserialize_value(elt))
                     except ValidationError as err:
                         elt_errors[i] = err
-                errors = () if constraints is None else constraints.errors(data)
+                errors = constraint_errors(data) if constraint_errors else ()
                 if elt_errors or errors:
                     raise ValidationError(errors, elt_errors)
                 return elts if cls is LIST_TYPE else COLLECTION_TYPES[cls](elts)
 
-            return method
+            return with_validators(method, validators)
 
-        return factory
+        return DeserializationMethodFactory(factory, list)
 
     def enum(self, cls: Type[Enum]) -> DeserializationMethodFactory:
-        deserialize_literal = self.literal([elt.value for elt in cls]).method
+        literal_factory = self.literal([elt.value for elt in cls])
 
-        @DeserializationMethodFactory.from_type(cls)
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            @with_validators(validators)
-            def method(ctx: DeserializationContext, data: Any) -> Any:
-                try:
-                    result = cls(data)
-                except ValueError:
-                    result = cls(deserialize_literal(ctx, data))
-                if constraints is not None:
-                    constraints.validate(data)
-                return result
+            deserialize_literal = literal_factory.merge(constraints, validators).method
+
+            def method(data: Any) -> Any:
+                return cls(deserialize_literal(data))
 
             return method
 
-        return factory
+        return DeserializationMethodFactory(factory)
 
     def literal(self, values: Sequence[Any]) -> DeserializationMethodFactory:
-        values_deserializers = [(value, self.method(type(value))) for value in values]
+        primitive_values = literal_values(values)
+        any_factory = self.any()
 
-        @DeserializationMethodFactory
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            @with_validators(validators)
-            def method(ctx: DeserializationContext, data: Any) -> Any:
-                if data in values:
-                    result = data
-                else:
-                    for value, deserialize_value in values_deserializers:
-                        try:
-                            # Literal can contain Enum values which has to be visited
-                            if (
-                                deserialize_value(ctx, ctx.coercer(type(value), data))
-                                == value
-                            ):
-                                result = value
-                                break
-                        except Exception:
-                            continue
-                    else:
-                        allowed_values = [
-                            value if not isinstance(value, Enum) else value.value
-                            for value in values
-                        ]
-                        raise ValidationError([f"not one of {allowed_values}"])
-                if constraints is not None:
-                    constraints.validate(result)
+            deserialize_any = any_factory.merge(constraints, validators).method
+
+            def method(data: Any) -> Any:
+                try:
+                    result = values[primitive_values.index(data)]
+                except ValueError:
+                    raise ValidationError([f"not one of {primitive_values}"])
+                deserialize_any(data)  # for validation
                 return result
 
             return method
 
-        return factory
+        return DeserializationMethodFactory(factory)
 
     def mapping(
         self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType
     ) -> DeserializationMethodFactory:
-        deserialize_key = self.method(key_type)
-        deserialize_value = self.method(value_type)
+        key_factory, value_factory = self.visit(key_type), self.visit(value_type)
 
-        @DeserializationMethodFactory
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            @with_validators(validators)
-            def method(ctx: DeserializationContext, data: Any) -> Any:
-                data = ctx.coercer(dict, data)
+            deserialize_key = key_factory.method
+            deserialize_value = value_factory.method
+            constraint_errors = get_constraint_errors(constraints, dict)
+
+            def method(data: Any) -> Any:
+                if not isinstance(data, dict):
+                    raise bad_type(data, dict)
                 items = {}
                 item_errors: Dict[ErrorKey, ValidationError] = {}
                 for key, value in data.items():
                     assert isinstance(key, str)
                     try:
-                        items[deserialize_key(ctx, key)] = deserialize_value(ctx, value)
+                        items[deserialize_key(key)] = deserialize_value(value)
                     except ValidationError as err:
                         item_errors[key] = err
-                errors = () if constraints is None else constraints.errors(data)
+                errors = constraint_errors(data) if constraint_errors else ()
                 if item_errors or errors:
                     raise ValidationError(errors, item_errors)
                 return items if cls is DICT_TYPE else MAPPING_TYPES[cls](items)
 
-            return method
+            return with_validators(method, validators)
 
-        return factory
-
-    def new_type(
-        self, tp: AnyType, super_type: AnyType
-    ) -> DeserializationMethodFactory:
-        return self.visit(super_type).merge(get_constraints(tp), get_validators(tp))
+        return DeserializationMethodFactory(factory, dict)
 
     def object(
-        self, cls: Type, fields: Sequence[ObjectField]
+        self, tp: Type, fields: Sequence[ObjectField]
     ) -> DeserializationMethodFactory:
-        normal_fields: List[
-            Tuple[str, str, DeserializationMethod, Required, DefaultFallback]
-        ] = []
-        merged_fields: List[
-            Tuple[str, AbstractSet[str], DeserializationMethod, DefaultFallback]
-        ] = []
-        pattern_fields: List[
-            Tuple[str, Pattern, DeserializationMethod, DefaultFallback]
-        ] = []
-        additional_field: Optional[
-            Tuple[str, DeserializationMethod, DefaultFallback]
-        ] = None
-        post_init_modified = {field.name for field in fields if field.post_init}
-        alias_by_name = {field.name: self.aliaser(field.alias) for field in fields}
-        requiring: Dict[str, Set[str]] = defaultdict(set)
-        for f, reqs in get_dependent_required(cls).items():
-            for req in reqs:
-                requiring[req].add(alias_by_name[f])
-        init_defaults = [
-            (f.name, f.default_factory)
-            for f in fields
-            if f.kind == FieldKind.WRITE_ONLY
-        ]
-        for field in fields:
-            field_factory = self.visit_with_conversions(
-                field.type, field.deserialization
+        field_factories = [
+            self.visit_with_conv(f.type, f.deserialization).merge(
+                get_constraints(f.schema), f.validators
             )
-            field_method = field_factory.merge(
-                field.constraints, field.validators
-            ).method
-            default_fallback = None if field.required else field.default_fallback
-            if field.merged:
-                merged_aliases = get_deserialization_merged_aliases(cls, field)
-                merged_fields.append(
-                    (
-                        field.name,
-                        set(map(self.aliaser, merged_aliases)),
-                        field_method,
-                        default_fallback,
-                    )
-                )
-            elif field.pattern_properties is ...:
-                pattern_fields.append(
-                    (
-                        field.name,
-                        infer_pattern(field.type),
-                        field_method,
-                        default_fallback,
-                    )
-                )
-            elif field.pattern_properties is not None:
-                assert isinstance(field.pattern_properties, Pattern)
-                pattern_fields.append(
-                    (
-                        field.name,
-                        field.pattern_properties,
-                        field_method,
-                        default_fallback,
-                    )
-                )
-            elif field.additional_properties:
-                additional_field = (field.name, field_method, default_fallback)
-            else:
-                normal_fields.append(
-                    (
-                        field.name,
-                        self.aliaser(field.alias),
-                        field_method,
-                        field.required or requiring[field.name],
-                        default_fallback,
-                    )
-                )
+            for f in fields
+        ]
+        additional_properties = self._additional_properties
+        default_fallback = self._default_fallback
 
-        @DeserializationMethodFactory.from_type(cls)
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            def method(ctx: DeserializationContext, data: Any) -> Any:
-                data = ctx.coercer(dict, data)
+            cls = get_origin_or_type(tp)
+            normal_fields: List[
+                Tuple[str, str, DeserializationMethod, Required, DefaultFallback]
+            ] = []
+            merged_fields: List[
+                Tuple[str, AbstractSet[str], DeserializationMethod, DefaultFallback]
+            ] = []
+            pattern_fields: List[
+                Tuple[str, Pattern, DeserializationMethod, DefaultFallback]
+            ] = []
+            additional_field: Optional[
+                Tuple[str, DeserializationMethod, DefaultFallback]
+            ] = None
+            post_init_modified = {field.name for field in fields if field.post_init}
+            alias_by_name = {field.name: self.aliaser(field.alias) for field in fields}
+            requiring: Dict[str, Set[str]] = defaultdict(set)
+            for f, reqs in get_dependent_required(cls).items():
+                for req in reqs:
+                    requiring[req].add(alias_by_name[f])
+            init_defaults = [
+                (f.name, f.default_factory)
+                for f in fields
+                if f.kind == FieldKind.WRITE_ONLY
+            ]
+            for field, field_factory in zip(fields, field_factories):
+                deserialize_field = field_factory.method
+                field_default_fallback = field.default_fallback or default_fallback
+                if field.merged:
+                    merged_aliases = get_deserialization_merged_aliases(
+                        cls, field, self.default_conversions
+                    )
+                    merged_fields.append(
+                        (
+                            field.name,
+                            set(map(self.aliaser, merged_aliases)),
+                            deserialize_field,
+                            field_default_fallback,
+                        )
+                    )
+                elif field.pattern_properties is ...:
+                    pattern_fields.append(
+                        (
+                            field.name,
+                            infer_pattern(field.type, self.default_conversions),
+                            deserialize_field,
+                            field_default_fallback,
+                        )
+                    )
+                elif field.pattern_properties is not None:
+                    assert isinstance(field.pattern_properties, Pattern)
+                    pattern_fields.append(
+                        (
+                            field.name,
+                            field.pattern_properties,
+                            deserialize_field,
+                            field_default_fallback,
+                        )
+                    )
+                elif field.additional_properties:
+                    additional_field = (
+                        field.name,
+                        deserialize_field,
+                        field_default_fallback,
+                    )
+                else:
+                    normal_fields.append(
+                        (
+                            field.name,
+                            self.aliaser(field.alias),
+                            deserialize_field,
+                            field.required or requiring[field.name],
+                            field_default_fallback,
+                        )
+                    )
+            has_aggregate_field = (
+                merged_fields or pattern_fields or (additional_field is not None)
+            )
+            constraint_errors = get_constraint_errors(constraints, dict)
+
+            def method(data: Any) -> Any:
+                if not isinstance(data, dict):
+                    raise bad_type(data, dict)
                 values: Dict[str, Any] = {}
                 aliases: List[str] = []
-                errors = [] if constraints is None else constraints.errors(data)
+                errors = list(constraint_errors(data)) if constraint_errors else []
                 field_errors: Dict[ErrorKey, ValidationError] = OrderedDict()
                 for (
                     name,
@@ -478,11 +425,9 @@ class DeserializationMethodVisitor(
                     if alias in data:
                         aliases.append(alias)
                         try:
-                            values[name] = field_method(ctx, data[alias])
+                            values[name] = field_method(data[alias])
                         except ValidationError as err:
-                            if default_fallback is None or not (
-                                default_fallback or ctx.default_fallback
-                            ):
+                            if not default_fallback:
                                 field_errors[alias] = err
                     elif not required:
                         pass
@@ -494,53 +439,57 @@ class DeserializationMethodVisitor(
                         if requiring:
                             msg = f"missing property (required by {sorted(requiring)})"
                             field_errors[alias] = ValidationError([msg])
-                for (
-                    name,
-                    merged_alias,
-                    field_method,
-                    default_fallback,
-                ) in merged_fields:
-                    merged = {
-                        alias: data[alias] for alias in merged_alias if alias in data
-                    }
-                    aliases.extend(merged)
-                    try:
-                        values[name] = field_method(ctx, merged)
-                    except ValidationError as err:
-                        if default_fallback is None or not (
-                            default_fallback or ctx.default_fallback
-                        ):
-                            errors.extend(err.messages)
-                            field_errors.update(err.children)
-                if len(data) != len(aliases):
-                    remain = data.keys() - set(aliases)
-                else:
-                    remain = set()
-                for name, pattern, field_method, default_fallback in pattern_fields:
-                    matched = {key: data[key] for key in remain if pattern.match(key)}
-                    remain -= matched.keys()
-                    try:
-                        values[name] = field_method(ctx, matched)
-                    except ValidationError as err:
-                        if default_fallback is None or not (
-                            default_fallback or ctx.default_fallback
-                        ):
-                            errors.extend(err.messages)
-                            field_errors.update(err.children)
-                if additional_field is not None:
-                    name, field_method, default_fallback = additional_field
-                    additional = {key: data[key] for key in remain}
-                    try:
-                        values[name] = field_method(ctx, additional)
-                    except ValidationError as err:
-                        if default_fallback is None or not (
-                            default_fallback or ctx.default_fallback
-                        ):
-                            errors.extend(err.messages)
-                            field_errors.update(err.children)
-                elif remain and not ctx.additional_properties:
-                    for key in remain:
+                if has_aggregate_field:
+                    for (
+                        name,
+                        merged_alias,
+                        field_method,
+                        default_fallback,
+                    ) in merged_fields:
+
+                        merged = {
+                            alias: data[alias]
+                            for alias in merged_alias
+                            if alias in data
+                        }
+                        aliases.extend(merged)
+                        try:
+                            values[name] = field_method(merged)
+                        except ValidationError as err:
+                            if not default_fallback:
+                                errors.extend(err.messages)
+                                field_errors.update(err.children)
+                    if len(data) != len(aliases):
+                        remain = data.keys() - set(aliases)
+                    else:
+                        remain = set()
+                    for name, pattern, field_method, default_fallback in pattern_fields:
+                        matched = {
+                            key: data[key] for key in remain if pattern.match(key)
+                        }
+                        remain -= matched.keys()
+                        try:
+                            values[name] = field_method(matched)
+                        except ValidationError as err:
+                            if not default_fallback:
+                                errors.extend(err.messages)
+                                field_errors.update(err.children)
+                    if additional_field is not None:
+                        name, field_method, default_fallback = additional_field
+                        additional = {key: data[key] for key in remain}
+                        try:
+                            values[name] = field_method(additional)
+                        except ValidationError as err:
+                            if not default_fallback:
+                                errors.extend(err.messages)
+                                field_errors.update(err.children)
+                    elif remain and not additional_properties:
+                        for key in remain:
+                            field_errors[key] = UNEXPECTED_PROPERTY
+                elif len(data) != len(aliases) and not additional_properties:
+                    for key in data.keys() - set(aliases):
                         field_errors[key] = UNEXPECTED_PROPERTY
+
                 validators2: Sequence[Validator]
                 if validators:
                     init: Dict[str, Any] = {}
@@ -570,7 +519,7 @@ class DeserializationMethodVisitor(
                 elif field_errors or errors:
                     raise ValidationError(errors, field_errors)
                 else:
-                    validators2, init = ..., ...  # type: ignore # only for linter
+                    validators2, init = (), ...  # type: ignore # only for linter
                 try:
                     res = cls(**values)
                 except (AssertionError, ValidationError):
@@ -582,160 +531,170 @@ class DeserializationMethodVisitor(
                         raise ValidationError([str(err)])
                 except Exception as err:
                     raise ValidationError([str(err)])
-                return validate(res, validators2, **init) if validators else res
+                if validators2:
+                    validate(res, validators2, **init)
+                return res
 
             return method
 
-        return factory
+        return DeserializationMethodFactory(factory, dict)
 
     def primitive(self, cls: Type) -> DeserializationMethodFactory:
-        @DeserializationMethodFactory
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            if constraints is None:
+            if constraints is not None and cls in constraints.errors_by_type:
+                constraint_errors = constraints.errors_by_type[cls]
 
-                def method(ctx: DeserializationContext, data: Any) -> Any:
-                    return ctx.coercer(cls, data)
+                def method(data: Any) -> Any:
+                    if not isinstance(data, cls) and not (
+                        cls == float and isinstance(data, int)
+                    ):
+                        raise bad_type(data, cls)
+                    if data is not None:
+                        errors = constraint_errors(data)
+                        if errors:
+                            raise ValidationError(errors)
+                    return data
 
             else:
 
-                def method(ctx: DeserializationContext, data: Any) -> Any:
-                    data = ctx.coercer(cls, data)
-                    assert constraints is not None
-                    if data is not None:
-                        constraints.validate(data)
+                def method(data: Any) -> Any:
+                    if not isinstance(data, cls) and not (
+                        cls == float and isinstance(data, int)
+                    ):
+                        raise bad_type(data, cls)
                     return data
 
-            return with_validators(validators)(method)
+            return with_validators(method, validators)
 
-        return factory
+        return DeserializationMethodFactory(factory, cls)
 
     def subprimitive(self, cls: Type, superclass: Type) -> DeserializationMethodFactory:
-        super_factory = self.primitive(superclass)
+        primitive_factory = self.primitive(superclass)
 
-        @DeserializationMethodFactory.from_type(cls)
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            method = super_factory.merge(constraints, validators).method
-            return lambda ctx, data: cls(method(ctx, data))
+            deserialize_primitive = primitive_factory.merge(
+                constraints, validators
+            ).method
 
-        return factory
+            def method(data: Any) -> Any:
+                return superclass(deserialize_primitive(data))
+
+            return method
+
+        return DeserializationMethodFactory(factory)
 
     def tuple(self, types: Sequence[AnyType]) -> DeserializationMethodFactory:
-        elts_deserializers = [self.method(cls) for cls in types]
+        nb_elts, elt_factories = len(types), [self.visit(tp) for tp in types]
 
-        @DeserializationMethodFactory
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            @with_validators(validators)
-            def method(ctx: DeserializationContext, data: Any) -> Any:
-                data = ctx.coercer(list, data)
+            elt_deserializers = [elt_factory.method for elt_factory in elt_factories]
+            tuple_constraints = merge_constraints(
+                constraints, Constraints(min_items=nb_elts, max_items=nb_elts)
+            )
+            constraint_errors = get_constraint_errors(tuple_constraints, list)
+
+            def method(data: Any) -> Any:
+                if not isinstance(data, list):
+                    raise bad_type(data, list)
                 elts: List[Any] = []
                 elt_errors: Dict[ErrorKey, ValidationError] = {}
                 for i, (deserialize_elt, elt) in enumerate(
-                    zip(elts_deserializers, data)
+                    zip(elt_deserializers, data)
                 ):
                     try:
-                        elts.append(deserialize_elt(ctx, elt))
+                        elts.append(deserialize_elt(elt))
                     except ValidationError as err:
                         elt_errors[i] = err
-                errors = () if constraints is None else constraints.errors(data)
+                errors = constraint_errors(data) if constraint_errors else ()
                 if elt_errors or errors:
                     raise ValidationError(errors, elt_errors)
                 return tuple(elts)
 
-            return method
+            return with_validators(method, validators)
 
-        return factory.merge(
-            constraints=ArrayConstraints(min_items=len(types), max_items=len(types))
-        )
+        return DeserializationMethodFactory(factory, list)
 
     def union(self, alternatives: Sequence[AnyType]) -> DeserializationMethodFactory:
-        factories = [
-            self.visit(alt) for alt in alternatives if alt is not UndefinedType
+        none_check = None if NoneType in alternatives else NOT_NONE
+        alt_factories = [
+            self.visit(alt) for alt in alternatives if alt not in (None, UndefinedType)
         ]
-        optional = NoneType in alternatives
 
-        @DeserializationMethodFactory
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
             alt_deserializers = [
-                fact.merge(constraints, validators).method for fact in factories
+                factory.merge(constraints, validators).method
+                for factory in alt_factories
             ]
 
-            def method(ctx: DeserializationContext, data: Any) -> Any:
+            def method(data: Any) -> Any:
                 # Optional optimization
-                if data is None and optional:
+                if data is none_check:
                     return None
                 error: Optional[ValidationError] = None
                 for deserialize_alt in alt_deserializers:
                     try:
-                        return deserialize_alt(ctx, data)
+                        return deserialize_alt(data)
                     except ValidationError as err:
                         error = merge_errors(error, err)
+                if none_check is None:
+                    error = merge_errors(error, bad_type(data, NoneType))
+                if error is None:  # empty union
+                    return data
                 else:
-                    if error is None:  # empty union
-                        return data
-                    else:
-                        raise error
+                    raise error
 
             return method
 
-        return factory
+        return DeserializationMethodFactory(factory)
 
     def _visit_conversion(
-        self, tp: AnyType, conversion: Deserialization, dynamic: bool
+        self,
+        tp: AnyType,
+        conversion: Deserialization,
+        dynamic: bool,
+        next_conversions: Optional[Conversions],
     ) -> DeserializationMethodFactory:
         assert conversion
-        cls = get_origin_or_type(tp)
-        factories = [
-            (conv, self.visit_with_conversions(conv.source, conv.sub_conversions))
-            for conv in conversion
-        ]
+        conv_factories = []
+        for conv in conversion:
+            with context_setter(self) as setter:
+                if conv.additional_properties is not None:
+                    setter._additional_properties = conv.additional_properties
+                if conv.default_fallback is not None:
+                    setter._default_fallback = conv.default_fallback
+                if conv.coercion is not None:
+                    setter._coercer = get_coercer(conv.coercion)
+                sub_conv = sub_conversions(conv, next_conversions)
+                conv_factories.append(self.visit_with_conv(conv.source, sub_conv))
 
-        @DeserializationMethodFactory.from_type(cls)
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            alt_deserializers = [
-                (
-                    fact.merge(constraints if not dynamic else None).method,
-                    cast(Converter, conv.converter),
-                    (conv.additional_properties, conv.coercion, conv.default_fallback),
-                )
-                for conv, fact in factories
+            conv_factories2 = conv_factories
+            if not dynamic:
+                conv_factories2 = [
+                    fact.merge(constraints, validators) for fact in conv_factories
+                ]
+            conv_deserializers = [
+                (fact.method, conv.converter)
+                for conv, fact in zip(conversion, conv_factories2)
             ]
-            if len(alt_deserializers) == 1:
-                deserialize_alt, converter, conv_ctx = alt_deserializers[0]
-                if converter is identity:
-                    method = deserialize_alt
-                else:
+            method: DeserializationMethod
+            if len(conv_deserializers) > 1:
 
-                    def method(ctx: DeserializationContext, data: Any) -> Any:
-                        try:
-                            return converter(deserialize_alt(ctx, data))
-                        except (ValidationError, AssertionError):
-                            raise
-                        except Exception as err:
-                            raise ValidationError([str(err)])
-
-                if conv_ctx != (None, None, None):
-                    wrapped = method
-
-                    def method(ctx: DeserializationContext, data: Any) -> Any:
-                        return wrapped(ctx.merge(*conv_ctx), data)
-
-            else:
-
-                def method(ctx: DeserializationContext, data: Any) -> Any:
+                def method(data: Any) -> Any:
                     error: Optional[ValidationError] = None
-                    for deserialize_alt, converter, conv_ctx in alt_deserializers:
+                    for deserialize_conv, converter in conv_deserializers:
                         try:
-                            value = deserialize_alt(ctx.merge(*conv_ctx), data)
+                            value = deserialize_conv(data)
                             break
                         except ValidationError as err:
                             error = merge_errors(error, err)
@@ -743,91 +702,160 @@ class DeserializationMethodVisitor(
                         assert error is not None
                         raise error
                     try:
-                        return converter(value)
+                        return converter(value)  # type: ignore
                     except (ValidationError, AssertionError):
                         raise
                     except Exception as err:
                         raise ValidationError([str(err)])
 
-            return with_validators(validators)(method)
+            elif conv_deserializers[0][1] is identity:
+                method, _ = conv_deserializers[0]
+            else:
+                conv_deserializer, converter = conv_deserializers[0]
 
+                def method(data: Any) -> Any:
+                    try:
+                        return converter(conv_deserializer(data))  # type: ignore
+                    except (ValidationError, AssertionError):
+                        raise
+                    except Exception as err:
+                        raise ValidationError([str(err)])
+
+            return method
+
+        return DeserializationMethodFactory(factory)
+
+    def visit_conversion(
+        self,
+        tp: AnyType,
+        conversion: Optional[Deserialization],
+        dynamic: bool,
+        next_conversions: Optional[Conversions] = None,
+    ) -> DeserializationMethodFactory:
+        factory = super().visit_conversion(tp, conversion, dynamic, next_conversions)
+        if factory.coercer is None and self._coercer is not None:
+            factory = replace(factory, coercer=self._coercer)
+        if not dynamic:
+            factory = factory.merge(get_constraints(get_schema(tp)), get_validators(tp))
+            if get_args(tp):
+                factory = factory.merge(
+                    get_constraints(get_schema(get_origin(tp))),
+                    get_validators(get_origin(tp)),
+                )
         return factory
 
 
-@cache
-def get_method(
-    tp: AnyType, conversions: Optional[Conversions], aliaser: Aliaser
+@overload
+def deserialization_method(
+    type: Type[T],
+    *,
+    additional_properties: bool = None,
+    aliaser: Aliaser = None,
+    coercion: Coercion = None,
+    conversions: Conversions = None,
+    default_conversions: DefaultConversions = None,
+    default_fallback: bool = None,
+    schema: Schema = None,
+) -> DeserializationMethod[T]:
+    ...
+
+
+@overload
+def deserialization_method(
+    type: AnyType,
+    *,
+    additional_properties: bool = None,
+    aliaser: Aliaser = None,
+    coercion: Coercion = None,
+    conversions: Conversions = None,
+    default_conversions: DefaultConversions = None,
+    default_fallback: bool = None,
+    schema: Schema = None,
 ) -> DeserializationMethod:
-    factory = DeserializationMethodVisitor(aliaser).visit_with_conversions(
-        tp, conversions
+    ...
+
+
+@cache
+def deserialization_method(
+    type: AnyType,
+    *,
+    additional_properties: bool = None,
+    aliaser: Aliaser = None,
+    coercion: Coercion = None,
+    conversions: Conversions = None,
+    default_conversions: DefaultConversions = None,
+    default_fallback: bool = None,
+    schema: Schema = None,
+) -> DeserializationMethod:
+    from apischema import settings
+
+    return (
+        DeserializationMethodVisitor(
+            opt_or(
+                additional_properties, settings.deserialization.additional_properties
+            ),
+            opt_or(aliaser, settings.aliaser),
+            get_coercer(opt_or(coercion, settings.deserialization.coercion)),
+            opt_or(default_conversions, settings.deserialization.default_conversions),
+            opt_or(default_fallback, settings.deserialization.default_fallback),
+        )
+        .visit_with_conv(type, conversions)
+        .merge(get_constraints(schema), ())
+        .method
     )
-    return factory.method
-
-
-constraints_type: Mapping[Type[Constraints], Type] = {
-    NumberConstraints: float,
-    StringConstraints: str,
-    ArrayConstraints: list,
-    ObjectConstraints: dict,
-}
 
 
 @overload
 def deserialize(
-    tp: Type[T],
+    type: Type[T],
     data: Any,
     *,
-    conversions: Conversions = None,
-    schema: Schema = None,
-    aliaser: Aliaser = None,
     additional_properties: bool = None,
+    aliaser: Aliaser = None,
     coercion: Coercion = None,
+    conversions: Conversions = None,
+    default_conversions: DefaultConversions = None,
     default_fallback: bool = None,
+    schema: Schema = None,
 ) -> T:
     ...
 
 
 @overload
 def deserialize(
-    tp: AnyType,
+    type: AnyType,
     data: Any,
     *,
-    conversions: Conversions = None,
-    schema: Schema = None,
-    aliaser: Aliaser = None,
     additional_properties: bool = None,
+    aliaser: Aliaser = None,
     coercion: Coercion = None,
+    conversions: Conversions = None,
+    default_conversions: DefaultConversions = None,
     default_fallback: bool = None,
+    schema: Schema = None,
 ) -> Any:
     ...
 
 
 def deserialize(
-    tp: AnyType,
+    type: AnyType,
     data: Any,
     *,
-    conversions: Conversions = None,
-    schema: Schema = None,
-    aliaser: Aliaser = None,
     additional_properties: bool = None,
+    aliaser: Aliaser = None,
     coercion: Coercion = None,
+    conversions: Conversions = None,
+    default_conversions: DefaultConversions = None,
     default_fallback: bool = None,
-):
-    from apischema import settings
-
-    if additional_properties is None:
-        additional_properties = settings.deserialization.additional_properties
-    if coercion is None:
-        coercion = settings.deserialization.coercion
-    if default_fallback is None:
-        default_fallback = settings.deserialization.default_fallback
-    if aliaser is None:
-        aliaser = settings.aliaser
-    ctx = DeserializationContext(additional_properties, coercion, default_fallback)
-    if schema is not None and schema.constraints is not None:
-        schema.constraints.validate(
-            ctx.coercer(constraints_type[type(schema.constraints)], data)
-        )
-    if conversions is not None and isinstance(conversions, Collection_):
-        conversions = tuple(conversions)
-    return get_method(tp, conversions, aliaser)(ctx, data)
+    schema: Schema = None,
+) -> Any:
+    return deserialization_method(
+        type,
+        additional_properties=additional_properties,
+        aliaser=aliaser,
+        coercion=coercion,
+        conversions=conversions,
+        default_conversions=default_conversions,
+        default_fallback=default_fallback,
+        schema=schema,
+    )(data)

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Callable, Dict, Optional, Sequence, Union
 
-from apischema.types import Undefined
 from apischema.utils import to_camel_case
 
 Deprecated = Union[bool, str]
@@ -17,7 +16,7 @@ except ImportError:
 class Annotations:
     title: Optional[str] = None
     description: Optional[str] = None
-    default: Optional[Any] = Undefined
+    default: Optional[Callable[[], Any]] = None
     examples: Optional[Sequence[Any]] = None
     format: Optional[str] = None
     deprecated: Optional[Deprecated] = None
@@ -33,5 +32,5 @@ class Annotations:
         for k in ("media_type", "encoding"):
             if getattr(self, k) is not None:
                 base_schema[to_camel_case("content_" + k)] = getattr(self, k)
-        if self.default is not Undefined:
-            base_schema["default"] = self.default
+        if self.default is not None:
+            base_schema["default"] = self.default()

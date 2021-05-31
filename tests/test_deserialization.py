@@ -3,6 +3,7 @@ from typing import Generic, TypeVar
 
 from pytest import raises
 
+from apischema import settings
 from apischema.deserialization import get_deserialization_merged_aliases
 from apischema.metadata import init_var, merged
 from apischema.objects import object_fields
@@ -42,9 +43,10 @@ class Data:
 
 
 def test_merged_aliases():
-    assert set(
-        get_deserialization_merged_aliases(Data, object_fields(Data)["field"])
-    ) == {"a", "g", "h", "i", "e"}
+    aliases = get_deserialization_merged_aliases(
+        Data, object_fields(Data)["field"], settings.deserialization.default_conversions
+    )
+    assert set(aliases) == {"a", "g", "h", "i", "e"}
 
 
 @dataclass

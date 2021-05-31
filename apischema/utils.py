@@ -2,9 +2,11 @@ import collections.abc
 import inspect
 import re
 import sys
-from dataclasses import is_dataclass
+from contextlib import contextmanager
+from dataclasses import dataclass, is_dataclass
+from enum import Enum
 from functools import wraps
-from types import FunctionType
+from types import FunctionType, MappingProxyType
 from typing import (
     Any,
     Awaitable,
@@ -15,10 +17,12 @@ from typing import (
     Generic,
     Hashable,
     Iterable,
+    Iterator,
     List,
     Mapping,
     NoReturn,
     Optional,
+    Sequence,
     Set,
     Tuple,
     Type,
@@ -27,7 +31,13 @@ from typing import (
     cast,
 )
 
-from apischema.types import AnyType, COLLECTION_TYPES, MAPPING_TYPES, OrderedDict
+from apischema.types import (
+    AnyType,
+    COLLECTION_TYPES,
+    MAPPING_TYPES,
+    OrderedDict,
+    PRIMITIVE_TYPES,
+)
 from apischema.typing import (
     _collect_type_vars,
     generic_mro,
@@ -35,6 +45,7 @@ from apischema.typing import (
     get_origin,
     get_type_hints,
     is_annotated,
+    is_type_var,
 )
 
 try:
@@ -47,12 +58,31 @@ PREFIX = "_apischema_"
 T = TypeVar("T")
 U = TypeVar("U")
 
+Lazy = Callable[[], T]
+
+
+@dataclass(frozen=True)  # dataclass enable equality check
+class LazyValue(Generic[T]):
+    default: T
+
+    def __call__(self) -> T:
+        return self.default
+
 
 if sys.version_info <= (3, 7):  # pragma: no cover
     is_dataclass_ = is_dataclass
 
     def is_dataclass(obj) -> bool:
         return is_dataclass_(obj) and getattr(obj, "__origin__", None) is None
+
+
+def is_hashable(obj: Any) -> bool:
+    try:
+        hash(obj)
+    except TypeError:
+        return False
+    else:
+        return True
 
 
 def opt_or(opt: Optional[T], default: U) -> Union[T, U]:
@@ -68,10 +98,20 @@ def to_hashable(data: Union[None, int, float, str, bool, list, dict]) -> Hashabl
 
 
 SNAKE_CASE_REGEX = re.compile(r"_([a-z\d])")
+CAMEL_CASE_REGEX = re.compile(r"[a-z\d]([A-Z])")
 
 
-def to_camel_case(s: str):
+def to_camel_case(s: str) -> str:
     return SNAKE_CASE_REGEX.sub(lambda m: m.group(1).upper(), s)
+
+
+def to_snake_case(s: str) -> str:
+    return SNAKE_CASE_REGEX.sub(lambda m: "_" + m.group(1).lower(), s)
+
+
+def to_pascal_case(s: str) -> str:
+    camel = to_camel_case(s)
+    return camel[0].upper() + camel[1:] if camel else camel
 
 
 MakeDataclassField = Union[Tuple[str, AnyType], Tuple[str, AnyType, Any]]
@@ -99,10 +139,6 @@ def merge_opts_mapping(m1: Mapping[K, V], m2: Mapping[K, V]) -> Mapping[K, V]:
     return {**m1, **m2}
 
 
-def is_type_var(tp: AnyType) -> bool:
-    return isinstance(tp, TypeVar)  # type: ignore
-
-
 def has_type_vars(tp: AnyType) -> bool:
     return is_type_var(tp) or bool(getattr(tp, "__parameters__", ()))
 
@@ -117,6 +153,8 @@ def get_parameters(tp: AnyType) -> Iterable[TV]:
         return tp.__parameters__
     elif hasattr(tp, "__orig_bases__"):
         return _collect_type_vars(tp.__orig_bases__)
+    elif is_type_var(tp):
+        return (tp,)
     else:
         return _type_vars
 
@@ -138,6 +176,13 @@ Func = TypeVar("Func", bound=Callable)
 
 def typed_wraps(wrapped: Func) -> Callable[[Callable], Func]:
     return cast(Func, wraps(wrapped))
+
+
+def is_subclass(tp: AnyType, base: AnyType) -> bool:
+    tp, base = get_origin_or_type(tp), get_origin_or_type(base)
+    return tp == base or (
+        isinstance(tp, type) and isinstance(base, type) and issubclass(tp, base)
+    )
 
 
 def _annotated(tp: AnyType) -> AnyType:
@@ -300,6 +345,8 @@ def replace_builtins(tp: AnyType) -> AnyType:
     if origin in COLLECTION_TYPES:
         if issubclass(origin, collections.abc.Set):
             replacement = Set
+        elif issubclass(origin, tuple) and (len(args) < 2 or args[1] is not ...):
+            replacement = Tuple
         else:
             replacement = List
     elif origin in MAPPING_TYPES:
@@ -324,7 +371,8 @@ def stop_signature_abuse() -> NoReturn:
     raise TypeError("Stop signature abuse")
 
 
-empty_dict: Mapping[str, Any] = {}
+empty_dict: Mapping[str, Any] = MappingProxyType({})
+
 ITERABLE_TYPES = (
     COLLECTION_TYPES.keys()
     | MAPPING_TYPES.keys()
@@ -352,6 +400,12 @@ def subtyping_substitution(
     return supertype_to_subtype, subtype_to_supertype
 
 
+def literal_values(values: Sequence[Any]) -> Sequence[Any]:
+    if any(type(v) not in PRIMITIVE_TYPES and not isinstance(v, Enum) for v in values):
+        raise TypeError("Only primitive types are supported for Literal/Enum")
+    return [v.value if isinstance(v, Enum) else v for v in values]
+
+
 awaitable_origin = get_origin(Awaitable[Any])
 
 
@@ -367,6 +421,27 @@ def is_async(func: Callable, types: Mapping[str, AnyType] = None) -> bool:
         except Exception:
             types = {}
     return get_origin_or_type2(types.get("return")) == awaitable_origin
+
+
+@contextmanager
+def context_setter(obj: T) -> Iterator[T]:
+    prev_values = {}
+
+    class AttrSetter:
+        def __getattribute__(self, name):
+            return getattr(obj, name)
+
+        def __setattr__(self, name, value):
+            if name not in prev_values:
+                prev_values[name] = getattr(obj, name)
+            setattr(obj, name, value)
+
+    setter = AttrSetter()
+    try:
+        yield cast(T, setter)
+    finally:
+        for attr, prev_value in prev_values.items():
+            setattr(obj, attr, prev_value)
 
 
 def wrap_generic_init_subclass(init_subclass: Func) -> Func:

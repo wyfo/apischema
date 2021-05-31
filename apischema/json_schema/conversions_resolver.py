@@ -1,9 +1,11 @@
+from contextlib import suppress
 from typing import (
     Any,
     Collection,
     Iterable,
     Iterator,
     Mapping,
+    Optional,
     Sequence,
     Set,
     Tuple,
@@ -11,6 +13,7 @@ from typing import (
     Union,
 )
 
+from apischema.conversions.conversions import Conversions, DefaultConversions
 from apischema.conversions.visitor import (
     Conv,
     ConversionsVisitor,
@@ -18,6 +21,7 @@ from apischema.conversions.visitor import (
     SerializationVisitor,
 )
 from apischema.types import AnyType
+from apischema.utils import is_hashable
 from apischema.visitor import Unsupported
 
 try:
@@ -42,13 +46,15 @@ def merge_results(
 
 
 class ConversionsResolver(ConversionsVisitor[Conv, Sequence[AnyType]]):
-    def __init__(self):
-        super().__init__()
-        self._skip_after_conversion: bool = True
+    def __init__(self, default_conversions: DefaultConversions):
+        super().__init__(default_conversions)
+        self._skip_conversion = True
         self._rec_guard: Set[Tuple[AnyType, Conv]] = set()
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> Sequence[AnyType]:
-        return [Annotated[(res, *annotations)] for res in self.visit(tp)]
+        return [
+            Annotated[(res, *annotations)] for res in super().annotated(tp, annotations)
+        ]
 
     def collection(
         self, cls: Type[Collection], value_type: AnyType
@@ -66,27 +72,32 @@ class ConversionsResolver(ConversionsVisitor[Conv, Sequence[AnyType]]):
     def _union_result(self, results: Iterable[Sequence[AnyType]]) -> Sequence[AnyType]:
         return merge_results(results, Union)
 
-    def _visit_not_conversion(self, tp: AnyType, dynamic: bool) -> Sequence[AnyType]:
-        self._skip_after_conversion = False
-        try:
-            return super()._visit_not_conversion(tp, dynamic)
-        except (NotImplementedError, Unsupported):
-            return [] if dynamic else [tp]
-
-    def _visit_conversion(
-        self, tp: AnyType, conversion: Conv, dynamic: bool
+    def visit_conversion(
+        self,
+        tp: AnyType,
+        conversion: Any,
+        dynamic: bool,
+        next_conversions: Optional[Conversions] = None,
     ) -> Sequence[AnyType]:
-        if self._skip_after_conversion:
+        if conversion is not None and self._skip_conversion:
             return [] if dynamic else [tp]
-        if (tp, conversion) not in self._rec_guard:
+        self._skip_conversion = False
+        results: Sequence[AnyType] = []
+        if not is_hashable(tp):
+            with suppress(NotImplementedError, Unsupported):
+                results = super().visit_conversion(
+                    tp, conversion, dynamic, next_conversions
+                )
+        elif (tp, conversion) not in self._rec_guard:
             self._rec_guard.add((tp, conversion))
-            try:
-                results = super()._visit_conversion(tp, conversion, dynamic)
-            finally:
-                self._rec_guard.remove((tp, conversion))
-        else:
-            results = []
-        return results if dynamic else [tp, *results]
+            with suppress(NotImplementedError, Unsupported):
+                results = super().visit_conversion(
+                    tp, conversion, dynamic, next_conversions
+                )
+            self._rec_guard.remove((tp, conversion))
+        if not dynamic and (conversion is not None or not results):
+            results = [tp, *results]
+        return results
 
 
 class WithConversionsResolver:
@@ -111,7 +122,9 @@ class WithConversionsResolver:
         def resolve_conversions(
             self: ConversionsVisitor, tp: AnyType
         ) -> Sequence[AnyType]:
-            return Resolver().visit_with_conversions(tp, self._conversions)
+            return Resolver(self.default_conversions).visit_with_conv(
+                tp, self._conversions
+            )
 
         assert issubclass(cls, WithConversionsResolver)
         cls.resolve_conversions = resolve_conversions  # type: ignore

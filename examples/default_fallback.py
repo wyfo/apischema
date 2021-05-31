@@ -15,5 +15,4 @@ class Foo:
 with raises(ValidationError):
     deserialize(Foo, {"bar": 0})
 assert deserialize(Foo, {"bar": 0}, default_fallback=True) == Foo()
-
 assert deserialize(Foo, {"baz": 0}) == Foo()

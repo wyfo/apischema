@@ -50,9 +50,9 @@ with raises(RecoverableRaw) as err:
     _ = deserialize(Recoverable[int], "bad").value
 assert err.value.raw == "bad"
 
-assert serialize(Recoverable(0)) == 0
+assert serialize(Recoverable[int], Recoverable(0)) == 0
 with raises(RecoverableRaw) as err:
-    serialize(Recoverable(RecoverableRaw("bad")))
+    serialize(Recoverable[int], Recoverable(RecoverableRaw("bad")))
 assert err.value.raw == "bad"
 
 assert (
