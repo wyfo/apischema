@@ -72,7 +72,7 @@ else:  # pragma: no cover
             if hasattr(tp, "_subs_tree"):
                 tp = _assemble_tree(tp._subs_tree())
             if isinstance(tp, _AnnotatedAlias):
-                return Annotated
+                return None if tp.__args__ is None else Annotated
             if tp is Generic:
                 return Generic
             return getattr(tp, "__origin__", None)
@@ -82,7 +82,7 @@ else:  # pragma: no cover
             if hasattr(tp, "_subs_tree"):
                 tp = _assemble_tree(tp._subs_tree())
             if isinstance(tp, _AnnotatedAlias):
-                return (tp.__args__[0], *tp.__metadata__)
+                return () if tp.__args__ is None else (tp.__args__[0], *tp.__metadata__)
             # __args__ can be None in 3.6 inside __set_name__
             res = getattr(tp, "__args__", ()) or ()
             if get_origin(tp) is Callable and res[0] is not Ellipsis:

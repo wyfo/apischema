@@ -35,6 +35,7 @@ assert deserialization_schema(Resource) == {
             "maxItems": 3,
             "type": "array",
             "uniqueItems": True,
+            "default": [],
         },
     },
     "required": ["id"],

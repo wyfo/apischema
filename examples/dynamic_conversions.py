@@ -5,9 +5,9 @@ from datetime import datetime
 from typing import Annotated
 
 from apischema import deserialize, serialize
-# Set UTC timezone for example
 from apischema.metadata import conversion
 
+# Set UTC timezone for example
 os.environ["TZ"] = "UTC"
 time.tzset()
 

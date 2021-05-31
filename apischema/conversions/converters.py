@@ -46,8 +46,8 @@ Deserializer = TypeVar(
 Serializer = TypeVar("Serializer", bound=Union[Callable, Conversion, property, type])
 
 default_deserialization: Callable[[type], Optional[Conversions]]
-# defaultdict.get is not hashable in 3.6
-if sys.version_info < (3, 7):
+# defaultdict.get is not hashable in 3.7
+if sys.version_info < (3, 8):
 
     def default_deserialization(tp):
         return _deserializers.get(tp)

@@ -40,7 +40,12 @@ assert deserialization_schema(Resource) == {
     "properties": {
         "id": {"type": "string", "format": "uuid"},
         "name": {"type": "string"},
-        "tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
+        "tags": {
+            "type": "array",
+            "items": {"type": "string"},
+            "uniqueItems": True,
+            "default": [],
+        },
     },
     "required": ["id", "name"],
     "additionalProperties": False,

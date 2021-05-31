@@ -33,7 +33,7 @@ assert deserialization_schema(Foo, all_refs=True) == {
             "type": "object",
             "properties": {
                 "baz": {"type": ["integer", "null"]},
-                "constant": {"type": "integer", "const": 0},
+                "constant": {"type": "integer", "const": 0, "default": 0},
             },
             "required": ["baz"],
             "additionalProperties": False,
@@ -57,7 +57,7 @@ assert deserialization_schema(
             "type": "object",
             "properties": {
                 "baz": {"type": ["integer", "null"]},
-                "constant": {"type": "integer", "const": 0},
+                "constant": {"type": "integer", "const": 0, "default": 0},
             },
             "required": ["baz"],
             "additionalProperties": False,
@@ -82,7 +82,7 @@ assert definitions_schema(
         # "nullable" instead of "type": "null"
         "properties": {
             "baz": {"type": "integer", "nullable": True},
-            "constant": {"type": "integer", "enum": [0]},
+            "constant": {"type": "integer", "enum": [0], "default": 0},
         },
         "required": ["baz"],
         "additionalProperties": False,

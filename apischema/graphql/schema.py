@@ -601,7 +601,7 @@ class OutputSchemaBuilder(
                             param_type,
                             param.default,
                             check_type=True,
-                            any_fallback=True,
+                            any_fallback=False,
                         )
                     except Exception:
                         param_type = Optional[param_type]

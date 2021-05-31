@@ -22,7 +22,7 @@ assert definitions_schema(deserialization=[list[Foo]], all_refs=True) == {
     },
     "Bar": {
         "type": "object",
-        "properties": {"baz": {"type": "integer"}},
+        "properties": {"baz": {"type": "integer", "default": 0}},
         "additionalProperties": False,
     },
 }

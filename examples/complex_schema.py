@@ -18,7 +18,10 @@ assert deserialization_schema(Node) == {
             "type": "object",
             "properties": {
                 "value": {"type": "integer"},
-                "child": {"anyOf": [{"$ref": "#/$defs/Node"}, {"type": "null"}]},
+                "child": {
+                    "anyOf": [{"$ref": "#/$defs/Node"}, {"type": "null"}],
+                    "default": None,
+                },
             },
             "required": ["value"],
             "additionalProperties": False,

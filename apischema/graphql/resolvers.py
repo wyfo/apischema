@@ -1,6 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import lru_cache, wraps
 from inspect import Parameter, signature
 from typing import (
     Any,
@@ -61,6 +61,18 @@ class PartialSerializationMethodVisitor(SerializationMethodVisitor):
     def object(self, tp: Type, fields: Sequence[ObjectField]) -> SerializationMethod:
         return lambda obj: obj
 
+    def union(self, alternatives: Sequence[AnyType]) -> SerializationMethod:
+        method = super().union([alt for alt in alternatives if alt != UndefinedType])
+        if UndefinedType in alternatives:
+
+            @wraps(method)
+            def wrapper(obj: Any) -> Any:
+                return obj if obj is Undefined else method(obj)
+
+            return wrapper
+        else:
+            return method
+
     def unsupported(self, tp: AnyType) -> SerializationMethod:
         if tp is UndefinedType:
             return lambda obj: None
@@ -76,7 +88,7 @@ def partial_serialization_method_factory(
     @lru_cache()
     def factory(tp: AnyType) -> SerializationMethod:
         return PartialSerializationMethodVisitor(
-            aliaser, False, False, default_conversions, False
+            aliaser, False, False, default_conversions, False, False
         ).visit_with_conv(tp, conversions)
 
     return factory

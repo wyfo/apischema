@@ -52,7 +52,10 @@ assert serialize(Foo, foo) == {"bar": 0, "baz": None}
 assert serialization_schema(Foo) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "type": "object",
-    "properties": {"bar": {"type": "integer"}, "baz": {"type": ["string", "null"]}},
+    "properties": {
+        "bar": {"type": "integer"},
+        "baz": {"type": ["string", "null"], "default": None},
+    },
     "required": ["bar"],
     "additionalProperties": False,
 }

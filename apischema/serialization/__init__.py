@@ -37,8 +37,10 @@ from apischema.utils import (
     get_origin_or_type2,
     opt_or,
 )
+from apischema.visitor import Unsupported
 
 NEITHER_NONE_NOR_UNDEFINED = object()
+NOT_NONE = object()
 
 
 SerializationMethod = Callable[[Any], Any]
@@ -68,12 +70,14 @@ class SerializationMethodVisitor(
         check_type: bool,
         default_conversions: DefaultConversions,
         exclude_unset: bool,
+        allow_undefined: bool,
     ):
         super().__init__(default_conversions)
         self.aliaser = aliaser
         self._any_fallback = any_fallback
         self._check_type = check_type
         self._exclude_unset = exclude_unset
+        self._allow_undefined = allow_undefined
 
     def _cache_result(self, lazy: Lazy[SerializationMethod]) -> SerializationMethod:
         rec_method = None
@@ -95,6 +99,7 @@ class SerializationMethodVisitor(
             self._conversions,
             self.default_conversions,
             self._exclude_unset,
+            allow_undefined=self._allow_undefined,
         )
 
     def _wrap_type_check(
@@ -157,24 +162,26 @@ class SerializationMethodVisitor(
         return self._wrap_type_check(cls, method)
 
     def object(self, tp: Type, fields: Sequence[ObjectField]) -> SerializationMethod:
-        normal_fields, aggregate_fields = [], []
-        for field in fields:
-            serialize_field = self.visit_with_conv(field.type, field.serialization)
-            if field.is_aggregate:
-                aggregate_fields.append((field.name, serialize_field))
-            else:
-                normal_fields.append(
-                    (field.name, self.aliaser(field.alias), serialize_field)
+        with context_setter(self) as setter:
+            setter._allow_undefined = True
+            normal_fields, aggregate_fields = [], []
+            for field in fields:
+                serialize_field = self.visit_with_conv(field.type, field.serialization)
+                if field.is_aggregate:
+                    aggregate_fields.append((field.name, serialize_field))
+                else:
+                    normal_fields.append(
+                        (field.name, self.aliaser(field.alias), serialize_field)
+                    )
+            serialized_methods = [
+                (
+                    self.aliaser(name),
+                    method.func,
+                    self.visit_with_conv(types["return"], method.conversions),
                 )
-        serialized_methods = [
-            (
-                self.aliaser(name),
-                method.func,
-                self.visit_with_conv(types["return"], method.conversions),
-            )
-            for name, (method, types) in get_serialized_methods(tp).items()
-        ]
-        exclude_unset = self._exclude_unset
+                for name, (method, types) in get_serialized_methods(tp).items()
+            ]
+            exclude_unset = self._exclude_unset
 
         def method(obj: Any) -> Any:
             normal_fields2, aggregate_fields2 = normal_fields, aggregate_fields
@@ -247,15 +254,13 @@ class SerializationMethodVisitor(
             for alt in alternatives
             if alt not in (None, UndefinedType)
         ]
-        optimized_check = (
-            None if NoneType in alternatives else NEITHER_NONE_NOR_UNDEFINED,
-            Undefined if UndefinedType in alternatives else NEITHER_NONE_NOR_UNDEFINED,
-        )
+        none_check = None if NoneType in alternatives else NOT_NONE
+        undefined_allowed = UndefinedType in alternatives and self._allow_undefined
         any_fallback, any_method = self._any_fallback, self._any_method
 
         def method(obj: Any) -> Any:
             # Optional/Undefined optimization
-            if obj in optimized_check:
+            if obj is none_check:
                 return obj
             error = None
             for alt_method, instance_check in method_and_checks:
@@ -265,6 +270,8 @@ class SerializationMethodVisitor(
                     return alt_method(obj)
                 except Exception as err:
                     error = err
+            if obj is Undefined and undefined_allowed:
+                return obj
             if any_fallback:
                 try:
                     return any_method(obj.__class__)(obj)
@@ -275,6 +282,33 @@ class SerializationMethodVisitor(
             )
 
         return method
+
+    def unsupported(self, tp: AnyType) -> SerializationMethod:
+        try:
+            return super().unsupported(tp)
+        except Unsupported:
+            if self._any_fallback and isinstance(tp, type):
+                any_method = self._any_method
+                if issubclass(tp, Mapping):
+
+                    def method(obj: Any) -> Any:
+                        return {
+                            any_method(key.__class__)(key): any_method(value.__class__)(
+                                value
+                            )
+                            for key, value in obj.items()
+                        }
+
+                    return method
+
+                elif issubclass(tp, Collection):
+
+                    def method(obj: Any) -> Any:
+                        return [any_method(elt.__class__)(elt) for elt in obj]
+
+                    return method
+
+            raise
 
     def _visit_conversion(
         self,
@@ -316,8 +350,9 @@ def serialization_method_factory(
     conversions: Optional[Conversions],
     default_conversions: Optional[DefaultConversions],
     exclude_unset: Optional[bool],
+    allow_undefined: bool = False,
 ) -> Callable[[AnyType], SerializationMethod]:
-    @lru_cache
+    @lru_cache()
     def factory(tp: AnyType) -> SerializationMethod:
         from apischema import settings
 
@@ -327,6 +362,7 @@ def serialization_method_factory(
             opt_or(check_type, settings.serialization.check_type),
             opt_or(default_conversions, settings.serialization.default_conversions),
             opt_or(exclude_unset, settings.serialization.exclude_unset),
+            allow_undefined,
         ).visit_with_conv(tp, conversions)
 
     return factory

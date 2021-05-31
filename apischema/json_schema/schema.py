@@ -1,3 +1,4 @@
+from contextlib import suppress
 from enum import Enum
 from functools import reduce
 from itertools import chain
@@ -21,6 +22,7 @@ from typing import (
 )
 
 from apischema.aliases import Aliaser
+from apischema.conversions import converters
 from apischema.conversions.conversions import Conversions, DefaultConversions
 from apischema.conversions.visitor import (
     Conv,
@@ -165,18 +167,22 @@ class SchemaBuilder(
             self.visit_with_conv(field.type, self._field_conversion(field)),
             field.schema,
         )
-        if "default" not in result:
+        if (
+            not field.merged
+            and not field.pattern_properties
+            and not field.additional_properties
+            and not field.required
+            and "default" not in result
+        ):
             result = JsonSchema(result)
-            try:
+            with suppress(Exception):
                 result["default"] = serialize(
                     field.type,
                     field.get_default(),
                     conversions=field.serialization,
-                    any_fallback=True,
+                    any_fallback=False,
                     check_type=True,
                 )
-            except Exception:
-                del result["default"]
         return result
 
     def _properties_schema(self, field: ObjectField) -> JsonSchema:
@@ -467,7 +473,13 @@ def _schema(
         if defs:
             json_schema["$defs"] = defs
     result = serialize(
-        JsonSchema, json_schema, conversions=version.conversion, aliaser=aliaser
+        JsonSchema,
+        json_schema,
+        conversions=version.conversion,
+        default_conversions=converters.default_serialization,
+        aliaser=aliaser,
+        check_type=True,
+        any_fallback=True,
     )
     if with_schema and version.schema is not None:
         result["$schema"] = version.schema
@@ -662,7 +674,13 @@ def definitions_schema(
             )
     return {
         ref: serialize(
-            JsonSchema, schema, conversions=version.conversion, aliaser=aliaser
+            JsonSchema,
+            schema,
+            conversions=version.conversion,
+            default_conversions=converters.default_serialization,
+            aliaser=aliaser,
+            check_type=True,
+            any_fallback=True,
         )
         for ref, schema in schemas.items()
     }

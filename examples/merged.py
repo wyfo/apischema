@@ -57,7 +57,11 @@ assert deserialization_schema(RootJsonSchema) == {
             "type": "object",
             "properties": {
                 "$schema": {"type": "string"},
-                "$defs": {"type": "array", "items": {"$ref": "#/$defs/JsonSchema"}},
+                "$defs": {
+                    "type": "array",
+                    "items": {"$ref": "#/$defs/JsonSchema"},
+                    "default": [],
+                },
             },
             "additionalProperties": False,
         },

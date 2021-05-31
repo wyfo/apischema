@@ -25,7 +25,10 @@ assert deserialize(Foo, {"baz": "oo", "prefix": "f"}, conversions=wrapper) == Fo
 assert deserialization_schema(Foo, conversions=wrapper) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "type": "object",
-    "properties": {"baz": {"type": "string"}, "prefix": {"type": "string"}},
+    "properties": {
+        "baz": {"type": "string"},
+        "prefix": {"type": "string", "default": ""},
+    },
     "required": ["baz"],
     "additionalProperties": False,
 }

@@ -30,7 +30,7 @@ assert deserialize(
 assert deserialization_schema(Config) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "type": "object",
-    "properties": {"active": {"type": "boolean"}},
+    "properties": {"active": {"type": "boolean", "default": True}},
     "additionalProperties": {"type": "boolean"},
     "patternProperties": {
         "^server_": {"type": "boolean"},
