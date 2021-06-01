@@ -210,7 +210,20 @@ Sometimes, some fields must be serialized, even with their default value; this b
 
 !!! note
     This metadata has effect only in combination with `with_fields_set` decorator.
-    
+
+
+## Performances
+
+*apischema* is [among the fastest](benchmark.md) (if not the fastest) Python library in its domain. These performances are achieved by pre-computing (de)serialization methods depending on the (de)serialized type (and other parameters): all the type annotations processing is done in this pre-computation. The methods are then cached using `functools.lru_cache`, so `deserialize` and `serialize` don't recompute them every time. 
+
+However, if `lru_cache` is fast, using the methods directly is faster, so *apischema* provides `apischema.deserialization_method` and `apischema.serialization_method`. These functions share the same parameters than `deserialize`/`serialize`, except the data/object parameter to (de)serialize. Using the computed methods directly can increase performances by 10%.
+
+```python
+{!de_serialization_methods.py!}
+```
+
+Also, *apischema* cache size can be modified using `apischema.cache.set_size`, and it can be reset using `apischema.cache.reset` (it happens automatically when `apischema.settings` is modified), but you should not need it.
+
 ## FAQ
 
 #### Why coercion is not default behavior?
