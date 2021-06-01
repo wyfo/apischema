@@ -35,7 +35,7 @@ from apischema.utils import (
 )
 
 if TYPE_CHECKING:
-    from apischema.deserialization.coercion import Coercion
+    from apischema.deserialization.coercion import Coerce
 
 
 _deserializers: Dict[AnyType, List[ConvOrFunc]] = type_dict_wrapper(defaultdict(list))
@@ -226,8 +226,8 @@ def inherited_deserializer(
     *,
     sub_conversions: Conversions = None,
     additional_properties: Optional[bool] = None,
-    coercion: Optional["Coercion"] = None,
-    default_fallback: Optional[bool] = None,
+    coercion: Optional["Coerce"] = None,
+    fall_back_on_default: Optional[bool] = None,
 ) -> Callable[[ClsMethod], ClsMethod]:
     ...
 

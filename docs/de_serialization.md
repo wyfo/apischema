@@ -44,7 +44,7 @@ However, in some cases, data has to be be coerced, for example when parsing acon
     
     There is also a global `set[str]` named `apischema.data.coercion.STR_NONE_VALUES` for `None` coercion.
     
-`coercion` parameter can also receive a coercion function which will then be used instead of default one.
+`coerce` parameter can also receive a coercion function which will then be used instead of default one.
 
 ```python
 {!coercion_function.py!}
@@ -66,18 +66,18 @@ This behavior can be controlled by `additional_properties` parameter. When set t
 {!additional_properties.py!}
 ```
 
-#### Default fallback
+#### Fall back on default
 
-Validation error can happen when deserializing an ill-formed field. However, if this field has a default value/factory, deserialization can fallback to this default; this is enabled by `default_fallback` parameter. This behavior can also be configured for each field using metadata. 
+Validation error can happen when deserializing an ill-formed field. However, if this field has a default value/factory, deserialization can fallback on this default; this is enabled by `fall_back_on_default` parameter. This behavior can also be configured for each field using metadata. 
 
 ```python
-{!default_fallback.py!}
+{!fall_back_on_default.py!}
 ```
 
 #### Strictness configuration
 
 *apischema* global configuration is managed through `apischema.settings` object.
-It has, among other, three global variables `settings.deserializaton.additional_properties`, `settings.deserialization.coercion` and `settings.deserialization.default_fallback` whose values are used as default parameter values for the `deserialize`; by default, `additional_properties=False`, `coercion=False` and `default_fallback=False`.
+It has, among other, three global variables `settings.deserializaton.additional_properties`, `settings.deserialization.coerce` and `settings.deserialization.fall_back_on_default` whose values are used as default parameter values for the `deserialize`; by default, `additional_properties=False`, `coerce=False` and `fall_back_on_default=False`.
 
 Global coercion function can be set with `settings.coercer` following this example:
 
@@ -134,10 +134,10 @@ Because *apischema* use vanilla dataclasses, this feature is not enabled by defa
 
 ### Type checking
 
-Serialization can be configured using `check_type` (default to `False`) and `any_fallback` (default to `False`) parameters. If `check_type` is `True`, serialized object type will be checked to match the serialized type.
-If it doesn't, `any_fallback` allows bypassing serialized type to use `typing.Any` instead, i.e. to use the serialized object class.
+Serialization can be configured using `check_type` (default to `False`) and `fall_back_on_any` (default to `False`) parameters. If `check_type` is `True`, serialized object type will be checked to match the serialized type.
+If it doesn't, `fall_back_on_any` allows bypassing serialized type to use `typing.Any` instead, i.e. to use the serialized object class.
 
-The default values of these parameters can be modified through `apischema.settings.serialization.check_type` and `apischema.settings.serialization.any_fallback`.
+The default values of these parameters can be modified through `apischema.settings.serialization.check_type` and `apischema.settings.serialization.fall_back_on_any`.
 
 !!! note
     *apischema* relies on typing annotations, and assumes that the code is well statically type-checked. That's why it doesn't add the overhead of type checking by default (it's more than 10% performance impact).

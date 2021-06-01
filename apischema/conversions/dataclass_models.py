@@ -10,7 +10,7 @@ from apischema.dataclasses import replace
 from apischema.utils import PREFIX
 
 if TYPE_CHECKING:
-    from apischema.deserialization.coercion import Coercion
+    from apischema.deserialization.coercion import Coerce
 
 Model = Union[Type, Callable[[], Type]]
 
@@ -59,8 +59,8 @@ def dataclass_model(
     *,
     fields_only: bool = False,
     additional_properties: Optional[bool] = None,
-    coercion: Optional["Coercion"] = None,
-    default_fallback: Optional[bool] = None,
+    coercion: Optional["Coerce"] = None,
+    fall_back_on_default: Optional[bool] = None,
     exclude_unset: Optional[bool] = None,
 ) -> Tuple[Conversion, Conversion]:
     warnings.warn(
@@ -74,8 +74,8 @@ def dataclass_model(
     conversion = Conversion(
         identity,
         additional_properties=additional_properties,
-        coercion=coercion,
-        default_fallback=default_fallback,
+        coerce=coercion,
+        fall_back_on_default=fall_back_on_default,
         exclude_unset=exclude_unset,
     )
     d_conv = replace(conversion, source=model_type, target=origin)

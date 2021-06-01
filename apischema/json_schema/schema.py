@@ -180,7 +180,7 @@ class SchemaBuilder(
                     field.type,
                     field.get_default(),
                     conversions=field.serialization,
-                    any_fallback=False,
+                    fall_back_on_any=False,
                     check_type=True,
                 )
         return result
@@ -479,7 +479,7 @@ def _schema(
         default_conversions=converters.default_serialization,
         aliaser=aliaser,
         check_type=True,
-        any_fallback=True,
+        fall_back_on_any=True,
     )
     if with_schema and version.schema is not None:
         result["$schema"] = version.schema
@@ -680,7 +680,7 @@ def definitions_schema(
             default_conversions=converters.default_serialization,
             aliaser=aliaser,
             check_type=True,
-            any_fallback=True,
+            fall_back_on_any=True,
         )
         for ref, schema in schemas.items()
     }

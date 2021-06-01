@@ -5,7 +5,7 @@ from typing import Callable, Optional, Pattern, TYPE_CHECKING, Tuple, Union
 from apischema.metadata.keys import (
     CONVERSION_METADATA,
     DEFAULT_AS_SET_METADATA,
-    DEFAULT_FALLBACK_METADATA,
+    FALL_BACK_ON_DEFAULT_METADATA,
     INIT_VAR_METADATA,
     MERGED_METADATA,
     POST_INIT_METADATA,
@@ -36,7 +36,7 @@ conversion = ConversionMetadata
 
 default_as_set = simple_metadata(DEFAULT_AS_SET_METADATA)
 
-default_fallback = simple_metadata(DEFAULT_FALLBACK_METADATA)
+fall_back_on_default = simple_metadata(FALL_BACK_ON_DEFAULT_METADATA)
 
 
 def init_var(tp: AnyType) -> Metadata:

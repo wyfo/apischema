@@ -22,7 +22,7 @@ from apischema.metadata.keys import (
     ALIAS_NO_OVERRIDE_METADATA,
     CONVERSION_METADATA,
     DEFAULT_AS_SET_METADATA,
-    DEFAULT_FALLBACK_METADATA,
+    FALL_BACK_ON_DEFAULT_METADATA,
     MERGED_METADATA,
     POST_INIT_METADATA,
     PROPERTIES_METADATA,
@@ -106,8 +106,8 @@ class ObjectField:
         return DEFAULT_AS_SET_METADATA in self.full_metadata
 
     @property
-    def default_fallback(self) -> bool:
-        return DEFAULT_FALLBACK_METADATA in self.full_metadata
+    def fall_back_on_default(self) -> bool:
+        return FALL_BACK_ON_DEFAULT_METADATA in self.full_metadata
 
     @property
     def deserialization(self) -> Optional[Conversions]:

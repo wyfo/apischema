@@ -1,3 +1,4 @@
+import warnings
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from enum import Enum
@@ -33,7 +34,7 @@ from apischema.conversions.visitor import (
     sub_conversions,
 )
 from apischema.dependencies import get_dependent_required
-from apischema.deserialization.coercion import Coercer, Coercion, get_coercer
+from apischema.deserialization.coercion import Coerce, Coercer, get_coercer
 from apischema.deserialization.merged import get_deserialization_merged_aliases
 from apischema.json_schema.patterns import infer_pattern
 from apischema.json_schema.types import bad_type
@@ -156,13 +157,13 @@ class DeserializationMethodVisitor(
         aliaser: Aliaser,
         coercer: Optional[Coercer],
         default_conversions: DefaultConversions,
-        default_fallback: bool,
+        fall_back_on_default: bool,
     ):
         super().__init__(default_conversions)
         self._additional_properties = additional_properties
         self.aliaser = aliaser
         self._coercer = coercer
-        self._default_fallback = default_fallback
+        self._fall_back_on_default = fall_back_on_default
 
     def _cache_key(self) -> Hashable:
         return self._coercer
@@ -324,7 +325,7 @@ class DeserializationMethodVisitor(
             for f in fields
         ]
         additional_properties = self._additional_properties
-        default_fallback = self._default_fallback
+        fall_back_on_default = self._fall_back_on_default
 
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
@@ -355,7 +356,9 @@ class DeserializationMethodVisitor(
             ]
             for field, field_factory in zip(fields, field_factories):
                 deserialize_field = field_factory.method
-                field_default_fallback = field.default_fallback or default_fallback
+                field_fall_back_on_default = (
+                    field.fall_back_on_default or fall_back_on_default
+                )
                 if field.merged:
                     merged_aliases = get_deserialization_merged_aliases(
                         cls, field, self.default_conversions
@@ -365,7 +368,7 @@ class DeserializationMethodVisitor(
                             field.name,
                             set(map(self.aliaser, merged_aliases)),
                             deserialize_field,
-                            field_default_fallback,
+                            field_fall_back_on_default,
                         )
                     )
                 elif field.pattern_properties is ...:
@@ -374,7 +377,7 @@ class DeserializationMethodVisitor(
                             field.name,
                             infer_pattern(field.type, self.default_conversions),
                             deserialize_field,
-                            field_default_fallback,
+                            field_fall_back_on_default,
                         )
                     )
                 elif field.pattern_properties is not None:
@@ -384,14 +387,14 @@ class DeserializationMethodVisitor(
                             field.name,
                             field.pattern_properties,
                             deserialize_field,
-                            field_default_fallback,
+                            field_fall_back_on_default,
                         )
                     )
                 elif field.additional_properties:
                     additional_field = (
                         field.name,
                         deserialize_field,
-                        field_default_fallback,
+                        field_fall_back_on_default,
                     )
                 else:
                     normal_fields.append(
@@ -400,7 +403,7 @@ class DeserializationMethodVisitor(
                             self.aliaser(field.alias),
                             deserialize_field,
                             field.required or requiring[field.name],
-                            field_default_fallback,
+                            field_fall_back_on_default,
                         )
                     )
             has_aggregate_field = (
@@ -420,14 +423,14 @@ class DeserializationMethodVisitor(
                     alias,
                     field_method,
                     required,
-                    default_fallback,
+                    fall_back_on_default,
                 ) in normal_fields:
                     if alias in data:
                         aliases.append(alias)
                         try:
                             values[name] = field_method(data[alias])
                         except ValidationError as err:
-                            if not default_fallback:
+                            if not fall_back_on_default:
                                 field_errors[alias] = err
                     elif not required:
                         pass
@@ -444,7 +447,7 @@ class DeserializationMethodVisitor(
                         name,
                         merged_alias,
                         field_method,
-                        default_fallback,
+                        fall_back_on_default,
                     ) in merged_fields:
 
                         merged = {
@@ -456,14 +459,19 @@ class DeserializationMethodVisitor(
                         try:
                             values[name] = field_method(merged)
                         except ValidationError as err:
-                            if not default_fallback:
+                            if not fall_back_on_default:
                                 errors.extend(err.messages)
                                 field_errors.update(err.children)
                     if len(data) != len(aliases):
                         remain = data.keys() - set(aliases)
                     else:
                         remain = set()
-                    for name, pattern, field_method, default_fallback in pattern_fields:
+                    for (
+                        name,
+                        pattern,
+                        field_method,
+                        fall_back_on_default,
+                    ) in pattern_fields:
                         matched = {
                             key: data[key] for key in remain if pattern.match(key)
                         }
@@ -471,16 +479,16 @@ class DeserializationMethodVisitor(
                         try:
                             values[name] = field_method(matched)
                         except ValidationError as err:
-                            if not default_fallback:
+                            if not fall_back_on_default:
                                 errors.extend(err.messages)
                                 field_errors.update(err.children)
                     if additional_field is not None:
-                        name, field_method, default_fallback = additional_field
+                        name, field_method, fall_back_on_default = additional_field
                         additional = {key: data[key] for key in remain}
                         try:
                             values[name] = field_method(additional)
                         except ValidationError as err:
-                            if not default_fallback:
+                            if not fall_back_on_default:
                                 errors.extend(err.messages)
                                 field_errors.update(err.children)
                     elif remain and not additional_properties:
@@ -668,10 +676,10 @@ class DeserializationMethodVisitor(
             with context_setter(self) as setter:
                 if conv.additional_properties is not None:
                     setter._additional_properties = conv.additional_properties
-                if conv.default_fallback is not None:
-                    setter._default_fallback = conv.default_fallback
-                if conv.coercion is not None:
-                    setter._coercer = get_coercer(conv.coercion)
+                if conv.fall_back_on_default is not None:
+                    setter._fall_back_on_default = conv.fall_back_on_default
+                if conv.coerce is not None:
+                    setter._coercer = get_coercer(conv.coerce)
                 sub_conv = sub_conversions(conv, next_conversions)
                 conv_factories.append(self.visit_with_conv(conv.source, sub_conv))
 
@@ -751,10 +759,10 @@ def deserialization_method(
     *,
     additional_properties: bool = None,
     aliaser: Aliaser = None,
-    coercion: Coercion = None,
+    coerce: Coerce = None,
     conversions: Conversions = None,
     default_conversions: DefaultConversions = None,
-    default_fallback: bool = None,
+    fall_back_on_default: bool = None,
     schema: Schema = None,
 ) -> DeserializationMethod[T]:
     ...
@@ -766,10 +774,10 @@ def deserialization_method(
     *,
     additional_properties: bool = None,
     aliaser: Aliaser = None,
-    coercion: Coercion = None,
+    coerce: Coerce = None,
     conversions: Conversions = None,
     default_conversions: DefaultConversions = None,
-    default_fallback: bool = None,
+    fall_back_on_default: bool = None,
     schema: Schema = None,
 ) -> DeserializationMethod:
     ...
@@ -781,10 +789,10 @@ def deserialization_method(
     *,
     additional_properties: bool = None,
     aliaser: Aliaser = None,
-    coercion: Coercion = None,
+    coerce: Coerce = None,
     conversions: Conversions = None,
     default_conversions: DefaultConversions = None,
-    default_fallback: bool = None,
+    fall_back_on_default: bool = None,
     schema: Schema = None,
 ) -> DeserializationMethod:
     from apischema import settings
@@ -795,9 +803,9 @@ def deserialization_method(
                 additional_properties, settings.deserialization.additional_properties
             ),
             opt_or(aliaser, settings.aliaser),
-            get_coercer(opt_or(coercion, settings.deserialization.coercion)),
+            get_coercer(opt_or(coerce, settings.deserialization.coerce)),
             opt_or(default_conversions, settings.deserialization.default_conversions),
-            opt_or(default_fallback, settings.deserialization.default_fallback),
+            opt_or(fall_back_on_default, settings.deserialization.fall_back_on_default),
         )
         .visit_with_conv(type, conversions)
         .merge(get_constraints(schema), ())
@@ -812,10 +820,10 @@ def deserialize(
     *,
     additional_properties: bool = None,
     aliaser: Aliaser = None,
-    coercion: Coercion = None,
+    coerce: Coerce = None,
     conversions: Conversions = None,
     default_conversions: DefaultConversions = None,
-    default_fallback: bool = None,
+    fall_back_on_default: bool = None,
     schema: Schema = None,
 ) -> T:
     ...
@@ -828,10 +836,10 @@ def deserialize(
     *,
     additional_properties: bool = None,
     aliaser: Aliaser = None,
-    coercion: Coercion = None,
+    coerce: Coerce = None,
     conversions: Conversions = None,
     default_conversions: DefaultConversions = None,
-    default_fallback: bool = None,
+    fall_back_on_default: bool = None,
     schema: Schema = None,
 ) -> Any:
     ...
@@ -843,19 +851,28 @@ def deserialize(
     *,
     additional_properties: bool = None,
     aliaser: Aliaser = None,
-    coercion: Coercion = None,
+    coerce: Coerce = None,
+    coercion: Coerce = None,
     conversions: Conversions = None,
     default_conversions: DefaultConversions = None,
     default_fallback: bool = None,
+    fall_back_on_default: bool = None,
     schema: Schema = None,
 ) -> Any:
+    if default_fallback is not None:
+        warnings.warn(
+            "default_fallback is deprecated, use fall_back_on_default instead",
+            DeprecationWarning,
+        )
+    if coercion is not None:
+        warnings.warn("coercion is deprecated, use coerce instead", DeprecationWarning)
     return deserialization_method(
         type,
         additional_properties=additional_properties,
         aliaser=aliaser,
-        coercion=coercion,
+        coerce=opt_or(coerce, coercion),
         conversions=conversions,
         default_conversions=default_conversions,
-        default_fallback=default_fallback,
+        fall_back_on_default=opt_or(fall_back_on_default, default_fallback),
         schema=schema,
     )(data)
