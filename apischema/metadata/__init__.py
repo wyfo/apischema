@@ -2,7 +2,7 @@ __all__ = [
     "alias",
     "conversion",
     "default_as_set",
-    "default_fallback",
+    "fall_back_on_default",
     "init_var",
     "merged",
     "post_init",
@@ -18,7 +18,7 @@ from apischema.schemas import schema
 from .implem import (
     conversion,
     default_as_set,
-    default_fallback,
+    fall_back_on_default,
     init_var,
     merged,
     post_init,

@@ -90,7 +90,7 @@ class Node(Generic[Id], ABC):
             )
         id_type = getattr(cls, ID_TYPE_ATTR)
         # Use coercion to handle integer id
-        return cast(Id, deserialize(id_type, global_id.id, coercion=True))
+        return cast(Id, deserialize(id_type, global_id.id, coerce=True))
 
     @classmethod
     def id_to_global(cls: Type[Node_], id: Id) -> GlobalId[Node_]:

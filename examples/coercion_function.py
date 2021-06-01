@@ -18,5 +18,5 @@ def coerce(cls: type[T], data) -> T:
 with raises(ValidationError):
     deserialize(bool, 0)
 with raises(ValidationError):
-    assert deserialize(bool, "ok", coercion=coerce)
-assert deserialize(bool, 1, coercion=coerce)
+    assert deserialize(bool, "ok", coerce=coerce)
+assert deserialize(bool, 1, coerce=coerce)

@@ -1,3 +1,4 @@
+from functools import wraps
 from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union
 
 from apischema.json_schema.types import bad_type
@@ -42,13 +43,29 @@ def coerce(cls: Type[T], data: Any) -> T:
 
 _coercer: Coercer = coerce
 
-Coercion = Union[bool, Coercer]
+Coerce = Union[bool, Coercer]
 
 
-def get_coercer(coercion: Coercion) -> Optional[Coercer]:
-    if callable(coercion):
-        return coercion
-    elif coercion:
+def wrap_coercer(coercer: Coercer) -> Coercer:
+    @wraps(coercer)
+    def wrapper(cls, data):
+        try:
+            result = coercer(cls, data)
+        except AssertionError:
+            raise
+        except Exception:
+            raise bad_type(data, cls)
+        if not isinstance(result, cls):
+            raise bad_type(data, cls)
+        return result
+
+    return wrapper
+
+
+def get_coercer(coerce: Coerce) -> Optional[Coercer]:
+    if callable(coerce):
+        return wrap_coercer(coerce)
+    elif coerce:
         return _coercer
     else:
         return None

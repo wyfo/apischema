@@ -66,7 +66,7 @@ class SerializationMethodVisitor(
     def __init__(
         self,
         aliaser: Aliaser,
-        any_fallback: bool,
+        fall_back_on_any: bool,
         check_type: bool,
         default_conversions: DefaultConversions,
         exclude_unset: bool,
@@ -74,7 +74,7 @@ class SerializationMethodVisitor(
     ):
         super().__init__(default_conversions)
         self.aliaser = aliaser
-        self._any_fallback = any_fallback
+        self._fall_back_on_any = fall_back_on_any
         self._check_type = check_type
         self._exclude_unset = exclude_unset
         self._allow_undefined = allow_undefined
@@ -94,7 +94,7 @@ class SerializationMethodVisitor(
     def _any_method(self) -> Callable[[type], SerializationMethod]:
         return serialization_method_factory(
             self.aliaser,
-            self._any_fallback,
+            self._fall_back_on_any,
             self._check_type,
             self._conversions,
             self.default_conversions,
@@ -107,13 +107,13 @@ class SerializationMethodVisitor(
     ) -> SerializationMethod:
         if not self._check_type:
             return method
-        any_fallback, any_method = self._any_fallback, self._any_method
+        fall_back_on_any, any_method = self._fall_back_on_any, self._any_method
 
         @wraps(method)
         def wrapper(obj: Any) -> Any:
             if isinstance(obj, cls):
                 return method(obj)
-            elif any_fallback:
+            elif fall_back_on_any:
                 return any_method(obj.__class__)(obj)
             else:
                 raise TypeError(f"Expected {cls}, found {obj.__class__}")
@@ -233,12 +233,12 @@ class SerializationMethodVisitor(
 
         if self._check_type:
             wrapped = method
-            any_fallback, as_list = self._any_fallback, self._any_method(list)
+            fall_back_on_any, as_list = self._fall_back_on_any, self._any_method(list)
 
             def method(obj: Any) -> Any:
                 if len(obj) == len(elt_deserializers):
                     return wrapped(obj)
-                elif any_fallback:
+                elif fall_back_on_any:
                     return as_list(obj)
                 else:
                     raise TypeError(
@@ -256,7 +256,7 @@ class SerializationMethodVisitor(
         ]
         none_check = None if NoneType in alternatives else NOT_NONE
         undefined_allowed = UndefinedType in alternatives and self._allow_undefined
-        any_fallback, any_method = self._any_fallback, self._any_method
+        fall_back_on_any, any_method = self._fall_back_on_any, self._any_method
 
         def method(obj: Any) -> Any:
             # Optional/Undefined optimization
@@ -272,7 +272,7 @@ class SerializationMethodVisitor(
                     error = err
             if obj is Undefined and undefined_allowed:
                 return obj
-            if any_fallback:
+            if fall_back_on_any:
                 try:
                     return any_method(obj.__class__)(obj)
                 except Exception as err:
@@ -287,7 +287,7 @@ class SerializationMethodVisitor(
         try:
             return super().unsupported(tp)
         except Unsupported:
-            if self._any_fallback and isinstance(tp, type):
+            if self._fall_back_on_any and isinstance(tp, type):
                 any_method = self._any_method
                 if issubclass(tp, Mapping):
 
@@ -318,8 +318,8 @@ class SerializationMethodVisitor(
         next_conversions: Optional[Conversions],
     ) -> SerializationMethod:
         with context_setter(self) as setter:
-            if conversion.any_fallback is not None:
-                setter._any_fallback = conversion.any_fallback
+            if conversion.fall_back_on_any is not None:
+                setter._fall_back_on_any = conversion.fall_back_on_any
             if conversion.exclude_unset is not None:
                 setter._exclude_unset = conversion.exclude_unset
             serialize_conv = self.visit_with_conv(
@@ -345,7 +345,7 @@ class SerializationMethodVisitor(
 @cache
 def serialization_method_factory(
     aliaser: Optional[Aliaser],
-    any_fallback: Optional[bool],
+    fall_back_on_any: Optional[bool],
     check_type: Optional[bool],
     conversions: Optional[Conversions],
     default_conversions: Optional[DefaultConversions],
@@ -358,7 +358,7 @@ def serialization_method_factory(
 
         return SerializationMethodVisitor(
             opt_or(aliaser, settings.aliaser),
-            opt_or(any_fallback, settings.serialization.any_fallback),
+            opt_or(fall_back_on_any, settings.serialization.fall_back_on_any),
             opt_or(check_type, settings.serialization.check_type),
             opt_or(default_conversions, settings.serialization.default_conversions),
             opt_or(exclude_unset, settings.serialization.exclude_unset),
@@ -372,7 +372,7 @@ def serialization_method(
     type: AnyType,
     *,
     aliaser: Aliaser = None,
-    any_fallback: bool = None,
+    fall_back_on_any: bool = None,
     check_type: bool = None,
     conversions: Conversions = None,
     default_conversions: DefaultConversions = None,
@@ -380,7 +380,7 @@ def serialization_method(
 ) -> SerializationMethod:
     return serialization_method_factory(
         aliaser,
-        any_fallback,
+        fall_back_on_any,
         check_type,
         conversions,
         default_conversions,
@@ -397,7 +397,7 @@ def serialize(
     obj: Any,
     *,
     aliaser: Aliaser = None,
-    any_fallback: bool = None,
+    fall_back_on_any: bool = None,
     check_type: bool = None,
     conversions: Conversions = None,
     default_conversions: DefaultConversions = None,
@@ -411,7 +411,7 @@ def serialize(
     obj: Any,
     *,
     aliaser: Aliaser = None,
-    any_fallback: bool = True,
+    fall_back_on_any: bool = True,
     check_type: bool = None,
     conversions: Conversions = None,
     default_conversions: DefaultConversions = None,
@@ -425,7 +425,7 @@ def serialize(  # type: ignore
     obj: Any = NO_OBJ,
     *,
     aliaser: Aliaser = None,
-    any_fallback: bool = None,
+    fall_back_on_any: bool = None,
     check_type: bool = None,
     conversions: Conversions = None,
     default_conversions: DefaultConversions = None,
@@ -434,11 +434,11 @@ def serialize(  # type: ignore
     # Handle overloaded signature without type
     if obj is NO_OBJ:
         type, obj = Any, type
-        if any_fallback is None:
-            any_fallback = True
+        if fall_back_on_any is None:
+            fall_back_on_any = True
     return serialization_method_factory(
         aliaser=aliaser,
-        any_fallback=any_fallback,
+        fall_back_on_any=fall_back_on_any,
         check_type=check_type,
         conversions=conversions,
         default_conversions=default_conversions,

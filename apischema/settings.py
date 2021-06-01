@@ -7,7 +7,7 @@ from apischema.conversions.converters import (
     default_deserialization,
     default_serialization,
 )
-from apischema.deserialization.coercion import Coercer, coerce
+from apischema.deserialization.coercion import Coercer, coerce as coerce_
 from apischema.json_schema import JsonSchemaVersion
 from apischema.objects import ObjectField
 from apischema.objects.fields import default_object_fields as default_object_fields_
@@ -46,13 +46,13 @@ class settings(metaclass=MetaSettings):
 
     class deserialization(metaclass=ResetCache):
         additional_properties: bool = False
-        coercion: bool = False
-        coercer: Coercer = coerce
-        default_fallback: bool = False
+        coerce: bool = False
+        coercer: Coercer = coerce_
+        fall_back_on_default: bool = False
         default_conversions: DefaultConversions = default_deserialization
 
     class serialization(metaclass=ResetCache):
         check_type: bool = False
-        any_fallback: bool = False
+        fall_back_on_any: bool = False
         default_conversions: DefaultConversions = default_serialization
         exclude_unset: bool = True
