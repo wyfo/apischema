@@ -1,4 +1,4 @@
-__all__ = ["cache", "reset_cache", "set_cache_size"]
+__all__ = ["cache", "reset", "set_size"]
 import sys
 from functools import lru_cache
 from typing import Any, Callable, List, TypeVar, cast
@@ -16,12 +16,12 @@ def cache(func: Func) -> Func:
     return cast(Func, cached)
 
 
-def reset_cache():
+def reset():
     for cached in _cached:
         cached.cache_clear()
 
 
-def set_cache_size(size: int):
+def set_size(size: int):
     for cached in _cached:
         wrapped = cached.__wrapped__
         setattr(

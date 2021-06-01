@@ -73,14 +73,3 @@ def register_default_conversions():
 
 
 register_default_conversions()
-
-
-def reset_cache():
-    import warnings
-
-    warnings.warn(
-        "apischema.reset_cache is deprecated,"
-        " use apischema.cache.reset_cache instead",
-        DeprecationWarning,
-    )
-    return cache.reset_cache()

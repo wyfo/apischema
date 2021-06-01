@@ -1,7 +1,7 @@
 from typing import Callable, Optional, Sequence, Type
 
 from apischema.aliases import Aliaser
-from apischema.cache import reset_cache
+from apischema.cache import reset
 from apischema.conversions import Conversions
 from apischema.conversions.converters import (
     default_deserialization,
@@ -22,7 +22,7 @@ DefaultConversions = Callable[[Type], Optional[Conversions]]
 class ResetCache(type):
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
-        reset_cache()
+        reset()
 
 
 class MetaSettings(ResetCache):
