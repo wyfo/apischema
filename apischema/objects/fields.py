@@ -32,8 +32,8 @@ from apischema.metadata.keys import (
 )
 from apischema.objects.utils import AliasedStr
 from apischema.types import AnyType, ChainMap
-from apischema.typing import get_args, is_annotated, type_dict_wrapper
-from apischema.utils import LazyValue, empty_dict
+from apischema.typing import get_args, is_annotated
+from apischema.utils import LazyValue, empty_dict, type_dict_wrapper
 
 if TYPE_CHECKING:
     from apischema.schemas import Schema

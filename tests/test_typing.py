@@ -4,13 +4,8 @@ from unittest.mock import Mock
 
 from pytest import mark
 
-from apischema.typing import (
-    _TypedDictMeta,
-    generic_mro,
-    get_type_hints2,
-    required_keys,
-    type_dict_wrapper,
-)
+from apischema.typing import _TypedDictMeta, generic_mro, get_type_hints2, required_keys
+from apischema.utils import type_dict_wrapper
 
 T = TypeVar("T")
 U = TypeVar("U")

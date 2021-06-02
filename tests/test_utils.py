@@ -1,11 +1,24 @@
+import collections.abc
+import sys
 from functools import lru_cache, wraps
 from itertools import repeat
-from typing import Awaitable
+from typing import (
+    AbstractSet,
+    Awaitable,
+    Collection,
+    Dict,
+    Generic,
+    List,
+    Mapping,
+    Set,
+    Tuple,
+    TypeVar,
+)
 
 from pytest import mark
 
-from apischema.typing import Annotated
-from apischema.utils import is_async, to_camel_case, to_hashable
+from apischema.typing import Annotated, typing_origin
+from apischema.utils import is_async, replace_builtins, to_camel_case, to_hashable
 
 
 def test_to_hashable():
@@ -68,3 +81,60 @@ def test_is_async(func, expected):
 )
 def test_is_async_with_types(types, expected):
     assert is_async(lambda: ..., types) == expected
+
+
+T = TypeVar("T")
+
+
+class GenericClass(Generic[T]):
+    pass
+
+
+if sys.version_info < (3, 7):
+    typing_origin_cases = [(List, List), (Collection, Collection)]
+elif (3, 7) <= sys.version_info < (3, 9):
+    typing_origin_cases = [(list, List), (collections.abc.Collection, Collection)]
+else:
+    typing_origin_cases = [
+        (list, list),
+        (collections.abc.Collection, collections.abc.Collection),
+        (List, List),
+        (Collection, Collection),
+    ]
+
+
+@mark.parametrize("tp, expected", [*typing_origin_cases, (GenericClass, GenericClass)])
+def test_typing_origin(tp, expected):
+    assert typing_origin(tp) == expected
+
+
+if sys.version_info < (3, 9):
+    replace_builtins_cases = [
+        (Collection[int], List[int]),
+        (AbstractSet[int], Set[int]),
+        (Tuple[int], Tuple[int]),
+        (Mapping[int, int], Dict[int, int]),
+    ]
+else:
+    replace_builtins_cases = [
+        (Collection[int], list[int]),
+        (AbstractSet[int], set[int]),
+        (Tuple[int], tuple[int]),
+        (Mapping[int, int], dict[int, int]),
+        (collections.abc.Collection[int], list[int]),
+        (set[int], set[int]),
+        (tuple[int], tuple[int]),
+        (dict[int, int], dict[int, int]),
+    ]
+
+
+@mark.parametrize("annotated", [False, True])  # type: ignore
+@mark.parametrize("wrapped", [False, True])  # type: ignore
+@mark.parametrize("tp, expected", replace_builtins_cases)
+def test_replace_builtins(tp, expected, annotated, wrapped):
+    if wrapped:
+        tp = Collection[tp]
+        expected = (list if sys.version_info >= (3, 9) else List)[expected]
+    if annotated:
+        tp, expected = Annotated[tp, 0], Annotated[expected, 0]
+    assert replace_builtins(tp) == expected

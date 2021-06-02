@@ -23,7 +23,7 @@ from apischema.conversions.conversions import (
 )
 from apischema.conversions.utils import Converter, is_convertible
 from apischema.types import AnyType
-from apischema.typing import is_type_var, type_dict_wrapper
+from apischema.typing import is_type_var
 from apischema.utils import (
     MethodOrProperty,
     MethodWrapper,
@@ -32,6 +32,7 @@ from apischema.utils import (
     is_method,
     method_class,
     stop_signature_abuse,
+    type_dict_wrapper,
 )
 
 if TYPE_CHECKING:

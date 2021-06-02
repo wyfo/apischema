@@ -4,8 +4,13 @@ from dataclasses import dataclass
 from typing import Callable, Dict, NamedTuple, Optional, TypeVar, Union
 
 from apischema.types import AnyType, PRIMITIVE_TYPES
-from apischema.typing import get_args, get_origin, is_type_var, type_dict_wrapper
-from apischema.utils import has_type_vars, merge_opts, replace_builtins
+from apischema.typing import get_args, get_origin, is_type_var
+from apischema.utils import (
+    has_type_vars,
+    merge_opts,
+    replace_builtins,
+    type_dict_wrapper,
+)
 
 
 class TypeName(NamedTuple):
