@@ -296,3 +296,8 @@ if (3, 7) <= sys.version_info < (3, 9):
 
 else:
     typing_origin = lambda tp: tp
+
+
+def is_type(tp: Any) -> bool:
+    """isinstance is not enough because in py39: isinstance(list[int], type) == True"""
+    return isinstance(tp, type) and not get_args(tp)

@@ -1,6 +1,7 @@
 # flake8: noqa
 # type: ignore
 import asyncio
+import inspect
 import sys
 import typing
 from typing import *
@@ -47,3 +48,5 @@ del Wrapper
 
 if sys.version_info < (3, 7):
     asyncio.run = lambda coro: asyncio.get_event_loop().run_until_complete(coro)
+
+inspect.isclass = lambda tp: isinstance(tp, type) and not get_args(tp)

@@ -1,3 +1,4 @@
+import inspect
 from collections.abc import Mapping
 from typing import Any, Optional
 
@@ -23,7 +24,7 @@ prev_deserialization = settings.deserialization.default_conversions
 
 
 def default_deserialization(tp: Any) -> Optional[Conversions]:
-    if isinstance(tp, type) and issubclass(tp, pydantic.BaseModel):
+    if inspect.isclass(tp) and issubclass(tp, pydantic.BaseModel):
 
         def deserialize_pydantic(data):
             try:
@@ -48,7 +49,7 @@ prev_schema = settings.default_schema
 
 
 def default_schema(tp: Any) -> Optional[Schema]:
-    if isinstance(tp, type) and issubclass(tp, pydantic.BaseModel):
+    if inspect.isclass(tp) and issubclass(tp, pydantic.BaseModel):
         return schema(extra=tp.schema(), override=True)
     else:
         return prev_schema(tp)
