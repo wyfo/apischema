@@ -174,19 +174,27 @@ A common pattern of conversion concerns class having a string constructor and a 
 !!! note
     Previously mentioned standard types are handled by *apischema* using `as_str`.
 
+## Object deserialization — transform function into a dataclass deserializer
 
-## Function parameters as dataclass
-
-`apischema.conversions.dataclass_input_wrapper` can convert a function into a new function taking a unique parameter, a dataclass whose fields are mapped from the original function parameters.
+`apischema.objects.object_deserialization` can convert a function into a new function taking a unique parameter, a dataclass whose fields are mapped from the original function parameters.
 
 It can be used for example to build a deserialization conversion from an alternative constructor.
 
+
 ```python
-{!dataclass_input_wrapper.py!}
+{!object_deserialization.py!}
 ```
 
 !!! note
-    Metadata can also be passed with `parameters_metadata` parameter; it takes a mapping of parameter names as key and mapped metadata as value.
+    Metadata are specified using `typing.Annotated`, but they can also be passed with `parameters_metadata` parameter; it takes a mapping of parameter names as key and mapped metadata as value.
+
+## Object serialization — select only a subset of fields
+
+`apischema.objects.object_serialization` can be used to serialize only a subset of an object fields and methods.
+
+```python
+{!object_serialization.py!}
+```
 
 ## Default conversions
 
@@ -229,6 +237,7 @@ Lazy conversions can also be registered, but the deserialization target/serializ
 ```python
 {!lazy_registered_conversion.py!}
 ```
+
 
 ## FAQ
 
