@@ -1,12 +1,13 @@
 # flake8: noqa
 # type: ignore
 import asyncio
+import inspect
 import sys
 import typing
 from typing import *
 from unittest.mock import MagicMock
 
-from apischema.typing import Annotated, Literal, TypedDict
+from apischema.typing import Annotated, Literal, TypedDict, get_args
 
 typing.Annotated, typing.Literal, typing.TypedDict = Annotated, Literal, TypedDict
 if sys.version_info < (3, 9):
@@ -47,3 +48,5 @@ del Wrapper
 
 if sys.version_info < (3, 7):
     asyncio.run = lambda coro: asyncio.get_event_loop().run_until_complete(coro)
+
+inspect.isclass = lambda tp: isinstance(tp, type) and not get_args(tp)

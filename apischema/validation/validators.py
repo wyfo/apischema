@@ -21,8 +21,13 @@ from apischema.conversions.dataclass_models import get_model_origin, has_model_o
 from apischema.objects import object_fields
 from apischema.objects.fields import FieldOrName, check_field_or_name, get_field_name
 from apischema.types import AnyType
-from apischema.typing import get_type_hints, type_dict_wrapper
-from apischema.utils import get_origin_or_type2, is_method, method_class
+from apischema.typing import get_type_hints
+from apischema.utils import (
+    get_origin_or_type2,
+    is_method,
+    method_class,
+    type_dict_wrapper,
+)
 from apischema.validation.dependencies import find_all_dependencies
 from apischema.validation.errors import (
     ValidationError,

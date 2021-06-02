@@ -20,6 +20,7 @@ from typing import (
     Iterator,
     List,
     Mapping,
+    MutableMapping,
     NoReturn,
     Optional,
     Sequence,
@@ -46,6 +47,7 @@ from apischema.typing import (
     get_type_hints,
     is_annotated,
     is_type_var,
+    typing_origin,
 )
 
 try:
@@ -336,6 +338,18 @@ def method_registerer(
     return decorator if arg is None else decorator(arg)
 
 
+if sys.version_info < (3, 7):
+    LIST_ORIGIN = List
+    SET_ORIGIN = Set
+    TUPLE_ORIGIN = Tuple
+    DICT_ORIGIN = Dict
+else:
+    LIST_ORIGIN = typing_origin(list)
+    SET_ORIGIN = typing_origin(set)
+    TUPLE_ORIGIN = typing_origin(tuple)
+    DICT_ORIGIN = typing_origin(dict)
+
+
 def replace_builtins(tp: AnyType) -> AnyType:
     origin = get_origin2(tp)
     if origin is None:
@@ -344,15 +358,15 @@ def replace_builtins(tp: AnyType) -> AnyType:
     replacement: Any
     if origin in COLLECTION_TYPES:
         if issubclass(origin, collections.abc.Set):
-            replacement = Set
+            replacement = SET_ORIGIN
         elif issubclass(origin, tuple) and (len(args) < 2 or args[1] is not ...):
-            replacement = Tuple
+            replacement = TUPLE_ORIGIN
         else:
-            replacement = List
+            replacement = LIST_ORIGIN
     elif origin in MAPPING_TYPES:
-        replacement = Dict
+        replacement = DICT_ORIGIN
     else:
-        replacement = origin
+        replacement = typing_origin(origin)
     res = replacement[args] if args else replacement
     return keep_annotations(res, tp)
 
@@ -455,3 +469,51 @@ def wrap_generic_init_subclass(init_subclass: Func) -> Func:
         init_subclass(cls, **kwargs)
 
     return wrapper
+
+
+# # Because hash of generic classes is changed by metaclass after __init_subclass__
+# # classes registered in global dictionaries are no more accessible. Here is a dictionary
+# # wrapper to fix this issue
+if sys.version_info < (3, 7):
+    K = TypeVar("K")
+    V = TypeVar("V")
+
+    class KeyWrapper:
+        def __init__(self, key):
+            self.key = key
+
+        def __eq__(self, other):
+            return self.key == self.key
+
+        def __hash__(self):
+            return hash(
+                id(self.key)
+                if getattr(self.key, "__origin__", ...) is None
+                else self.key
+            )
+
+    class type_dict_wrapper(MutableMapping[K, V]):
+        def __init__(self, wrapped: Dict[K, V]):
+            self.wrapped = cast(Dict[KeyWrapper, V], wrapped)
+
+        def __delitem__(self, key: K) -> None:
+            del self.wrapped[KeyWrapper(key)]
+
+        def __getitem__(self, key: K) -> V:
+            return self.wrapped[KeyWrapper(key)]
+
+        def __iter__(self) -> Iterator[K]:
+            return iter(wrapper.key for wrapper in list(self.wrapped))
+
+        def __len__(self) -> int:
+            return len(self.wrapped)
+
+        def __setitem__(self, key: K, value: V):
+            self.wrapped[KeyWrapper(key)] = value
+
+
+else:
+    D = TypeVar("D", bound=dict)
+
+    def type_dict_wrapper(wrapped: D) -> D:
+        return wrapped

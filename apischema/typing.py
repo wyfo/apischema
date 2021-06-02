@@ -7,16 +7,12 @@ from typing import (  # type: ignore
     Any,
     Callable,
     Collection,
-    Dict,
     Generic,
-    Iterator,
-    MutableMapping,
     Set,
     Tuple,
     Type,
     TypeVar,
     _eval_type,
-    cast,
 )
 
 
@@ -285,49 +281,23 @@ def required_keys(typed_dict: Type) -> Collection[str]:
         return required
 
 
-# Because hash of generic classes is changed by metaclass after __init_subclass__
-# classes registered in global dictionaries are no more accessible. Here is a dictionary
-# wrapper to fix this issue
-if sys.version_info < (3, 7):
-    K = TypeVar("K")
-    V = TypeVar("V")
+# py37/py38 get_origin of builtin wrapped generics return the unsubscriptable builtin
+# type.
+if (3, 7) <= sys.version_info < (3, 9):
+    import typing
 
-    class KeyWrapper:
-        def __init__(self, key):
-            self.key = key
+    TYPING_ALIASES = {
+        getattr(elt, "__origin__", None): elt for elt in typing.__dict__.values()
+    }
 
-        def __eq__(self, other):
-            return self.key == self.key
-
-        def __hash__(self):
-            return hash(
-                id(self.key)
-                if getattr(self.key, "__origin__", ...) is None
-                else self.key
-            )
-
-    class type_dict_wrapper(MutableMapping[K, V]):
-        def __init__(self, wrapped: Dict[K, V]):
-            self.wrapped = cast(Dict[KeyWrapper, V], wrapped)
-
-        def __delitem__(self, key: K) -> None:
-            del self.wrapped[KeyWrapper(key)]
-
-        def __getitem__(self, key: K) -> V:
-            return self.wrapped[KeyWrapper(key)]
-
-        def __iter__(self) -> Iterator[K]:
-            return iter(wrapper.key for wrapper in list(self.wrapped))
-
-        def __len__(self) -> int:
-            return len(self.wrapped)
-
-        def __setitem__(self, key: K, value: V):
-            self.wrapped[KeyWrapper(key)] = value
+    def typing_origin(origin: Any) -> Any:
+        return TYPING_ALIASES.get(origin, origin)
 
 
 else:
-    D = TypeVar("D", bound=dict)
+    typing_origin = lambda tp: tp
 
-    def type_dict_wrapper(wrapped: D) -> D:
-        return wrapped
+
+def is_type(tp: Any) -> bool:
+    """isinstance is not enough because in py39: isinstance(list[int], type) == True"""
+    return isinstance(tp, type) and not get_args(tp)
