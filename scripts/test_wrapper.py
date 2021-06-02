@@ -7,7 +7,7 @@ import typing
 from typing import *
 from unittest.mock import MagicMock
 
-from apischema.typing import Annotated, Literal, TypedDict
+from apischema.typing import Annotated, Literal, TypedDict, get_args
 
 typing.Annotated, typing.Literal, typing.TypedDict = Annotated, Literal, TypedDict
 if sys.version_info < (3, 9):
