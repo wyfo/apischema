@@ -119,7 +119,7 @@ class DeserializationMethodFactory:
         return method
 
 
-DefaultFallback = bool
+FallBakOnDefault = bool
 Required = Union[bool, AbstractSet[str]]
 
 
@@ -332,16 +332,16 @@ class DeserializationMethodVisitor(
         ) -> DeserializationMethod:
             cls = get_origin_or_type(tp)
             normal_fields: List[
-                Tuple[str, str, DeserializationMethod, Required, DefaultFallback]
+                Tuple[str, str, DeserializationMethod, Required, FallBakOnDefault]
             ] = []
             merged_fields: List[
-                Tuple[str, AbstractSet[str], DeserializationMethod, DefaultFallback]
+                Tuple[str, AbstractSet[str], DeserializationMethod, FallBakOnDefault]
             ] = []
             pattern_fields: List[
-                Tuple[str, Pattern, DeserializationMethod, DefaultFallback]
+                Tuple[str, Pattern, DeserializationMethod, FallBakOnDefault]
             ] = []
             additional_field: Optional[
-                Tuple[str, DeserializationMethod, DefaultFallback]
+                Tuple[str, DeserializationMethod, FallBakOnDefault]
             ] = None
             post_init_modified = {field.name for field in fields if field.post_init}
             alias_by_name = {field.name: self.aliaser(field.alias) for field in fields}

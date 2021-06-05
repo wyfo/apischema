@@ -68,7 +68,7 @@ This behavior can be controlled by `additional_properties` parameter. When set t
 
 #### Fall back on default
 
-Validation error can happen when deserializing an ill-formed field. However, if this field has a default value/factory, deserialization can fallback on this default; this is enabled by `fall_back_on_default` parameter. This behavior can also be configured for each field using metadata. 
+Validation error can happen when deserializing an ill-formed field. However, if this field has a default value/factory, deserialization can fall back on this default; this is enabled by `fall_back_on_default` parameter. This behavior can also be configured for each field using metadata. 
 
 ```python
 {!fall_back_on_default.py!}
