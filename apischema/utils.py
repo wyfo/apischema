@@ -287,15 +287,15 @@ class MethodWrapper(Generic[T]):
         self._method = method
 
     def getter(self, func):
-        self._method.getter(func)
+        self._method = self._method.getter(func)
         return self
 
     def setter(self, func):
-        self._method.setter(func)
+        self._method = self._method.setter(func)
         return self
 
     def deleter(self, func):
-        self._method.deleter(func)
+        self._method = self._method.deleter(func)
         return self
 
     def __set_name__(self, owner, name):
