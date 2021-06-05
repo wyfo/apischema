@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
-from apischema import alias, serialize
+from apischema import alias, serialize, type_name
 from apischema.json_schema import JsonSchemaVersion, definitions_schema
 from apischema.objects import get_field, object_serialization
 
@@ -20,7 +20,9 @@ class Data:
 
 
 # Serialization fields can be a str/field or a function/method/property
-size_only = object_serialization(Data, [get_field(Data).id, Data.size], "DataSize")
+size_only = object_serialization(
+    Data, [get_field(Data).id, Data.size], type_name("DataSize")
+)
 # ["id", Data.size] would also work
 
 
