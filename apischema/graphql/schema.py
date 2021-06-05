@@ -61,6 +61,7 @@ from apischema.types import AnyType, NoneType, OrderedDict, Undefined, Undefined
 from apischema.typing import get_args, get_origin, is_annotated
 from apischema.utils import (
     Lazy,
+    context_setter,
     empty_dict,
     get_args2,
     get_origin2,
@@ -306,7 +307,7 @@ class SchemaBuilder(
     ) -> TypeFactory[GraphQLTp]:
         return TypeFactory(lambda *_: graphql.GraphQLList(self.visit(value_type).type))
 
-    def _visit_merged(self, field: ObjectField) -> TypeFactory[GraphQLTp]:
+    def _visit_flattened(self, field: ObjectField) -> TypeFactory[GraphQLTp]:
         raise NotImplementedError
 
     @cache_type
@@ -413,13 +414,13 @@ FieldType = TypeVar("FieldType", graphql.GraphQLInputField, graphql.GraphQLField
 def merge_fields(
     cls: Type,
     fields: Mapping[str, Lazy[FieldType]],
-    merged_types: Mapping[str, TypeFactory],
+    flattened_types: Mapping[str, TypeFactory],
 ) -> Dict[str, FieldType]:
-    all_merged_fields: Dict[str, FieldType] = {}
-    for merged_name, merged_factory in merged_types.items():
-        merged_type = merged_factory.raw_type
+    all_flattened_fields: Dict[str, FieldType] = {}
+    for flattened_name, flattened_factory in flattened_types.items():
+        flattened_type = flattened_factory.raw_type
         if not isinstance(
-            merged_type,
+            flattened_type,
             (
                 graphql.GraphQLObjectType,
                 graphql.GraphQLInterfaceType,
@@ -427,13 +428,13 @@ def merge_fields(
             ),
         ):
             raise TypeError(
-                f"Merged field {cls.__name__}.{merged_name} must have an object type"
+                f"Flattened field {cls.__name__}.{flattened_name} must have an object type"
             )
-        merged_fields: Mapping[str, FieldType] = merged_type.fields
-        if merged_fields.keys() & all_merged_fields.keys() & fields.keys():
-            raise TypeError(f"Conflict in merged fields of {cls}")
-        all_merged_fields.update(merged_fields)
-    return {**{name: field() for name, field in fields.items()}, **all_merged_fields}
+        flattened_fields: Mapping[str, FieldType] = flattened_type.fields
+        if flattened_fields.keys() & all_flattened_fields.keys() & fields.keys():
+            raise TypeError(f"Conflict in flattened fields of {cls}")
+        all_flattened_fields.update(flattened_fields)
+    return {**{name: field() for name, field in fields.items()}, **all_flattened_fields}
 
 
 class InputSchemaBuilder(
@@ -441,7 +442,7 @@ class InputSchemaBuilder(
     DeserializationVisitor[TypeFactory[graphql.GraphQLInputType]],
     DeserializationObjectVisitor[TypeFactory[graphql.GraphQLInputType]],
 ):
-    def _visit_merged(
+    def _visit_flattened(
         self, field: ObjectField
     ) -> TypeFactory[graphql.GraphQLInputType]:
         return self.visit_with_conv(field.type, field.deserialization)
@@ -478,7 +479,9 @@ class InputSchemaBuilder(
         visited_fields = {
             self.aliaser(f.alias): self._field(f) for f in fields if not f.is_aggregate
         }
-        merged_types = {f.name: self._visit_merged(f) for f in fields if f.merged}
+        flattened_types = {
+            f.name: self._visit_flattened(f) for f in fields if f.flattened
+        }
 
         def factory(
             name: Optional[str], description: Optional[str]
@@ -488,7 +491,7 @@ class InputSchemaBuilder(
                 name += "Input"
             return graphql.GraphQLInputObjectType(
                 name,
-                lambda: merge_fields(tp, visited_fields, merged_types),
+                lambda: merge_fields(tp, visited_fields, flattened_types),
                 description,
             )
 
@@ -527,7 +530,7 @@ class OutputSchemaBuilder(
         self.input_builder = InputSchemaBuilder(
             self.aliaser, default_deserialization, self.id_type, self.is_id
         )
-        self.get_merged: Optional[Callable[[Any], Any]] = None
+        self.get_flattened: Optional[Callable[[Any], Any]] = None
 
     def _field_serialization_method(self, field: ObjectField) -> SerializationMethod:
         return partial_serialization_method_factory(
@@ -535,13 +538,13 @@ class OutputSchemaBuilder(
         )(field.type)
 
     def _wrap_resolve(self, resolve: Func) -> Func:
-        if self.get_merged is None:
+        if self.get_flattened is None:
             return resolve
         else:
-            get_merged = self.get_merged
+            get_flattened = self.get_flattened
 
             def resolve_wrapper(__obj, __info, **kwargs):
-                return resolve(get_merged(__obj), __info, **kwargs)
+                return resolve(get_flattened(__obj), __info, **kwargs)
 
             return cast(Func, resolve_wrapper)
 
@@ -628,22 +631,21 @@ class OutputSchemaBuilder(
             field.deprecated,
         )
 
-    def _visit_merged(
+    def _visit_flattened(
         self, field: ObjectField
     ) -> TypeFactory[graphql.GraphQLOutputType]:
-        get_prev_merged = self.get_merged if self.get_merged is not None else identity
+        get_prev_flattened = (
+            self.get_flattened if self.get_flattened is not None else identity
+        )
         field_name = field.name
         partial_serialize = self._field_serialization_method(field)
 
-        def get_merged(obj):
-            return partial_serialize(getattr(get_prev_merged(obj), field_name))
+        def get_flattened(obj):
+            return partial_serialize(getattr(get_prev_flattened(obj), field_name))
 
-        get_merged_save = self.get_merged
-        self.get_merged = get_merged
-        try:
+        with context_setter(self) as setter:
+            setter.get_flattened = get_flattened
             return self.visit_with_conv(field.type, field.serialization)
-        finally:
-            self.get_merged = get_merged_save
 
     @cache_type
     def object(
@@ -673,10 +675,12 @@ class OutputSchemaBuilder(
         visited_fields = OrderedDict(
             (self.aliaser(a), all_fields[a]) for a in sorted_fields
         )
-        merged_types = {f.name: self._visit_merged(f) for f in fields if f.merged}
+        flattened_types = {
+            f.name: self._visit_flattened(f) for f in fields if f.flattened
+        }
 
         def field_thunk() -> graphql.GraphQLFieldMap:
-            return merge_fields(cls, visited_fields, merged_types)
+            return merge_fields(cls, visited_fields, flattened_types)
 
         interfaces = list(map(self.visit, get_interfaces(cls)))
         interface_thunk = None
@@ -686,12 +690,12 @@ class OutputSchemaBuilder(
                 result = {
                     cast(graphql.GraphQLInterfaceType, i.raw_type) for i in interfaces
                 }
-                for merged_factory in merged_types.values():
-                    merged = cast(
+                for flattened_factory in flattened_types.values():
+                    flattened = cast(
                         Union[graphql.GraphQLObjectType, graphql.GraphQLInterfaceType],
-                        merged_factory.raw_type,
+                        flattened_factory.raw_type,
                     )
-                    result.update(merged.interfaces)
+                    result.update(flattened.interfaces)
                 return sorted(result, key=lambda i: i.name)
 
         def factory(

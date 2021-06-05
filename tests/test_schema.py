@@ -46,7 +46,7 @@ class WithSchema:
     attr2: MoreThanTwo = field(metadata=schema(min=1))
 
 
-def test_merged_schema():
+def test_flattened_schema():
     assert deserialization_schema(WithSchema) == {
         "$schema": "http://json-schema.org/draft/2019-09/schema#",
         "type": "object",

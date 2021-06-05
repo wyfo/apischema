@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from apischema import serialize, serialized
 from apischema.json_schema import serialization_schema
-from apischema.metadata import merged
+from apischema.metadata import flattened
 
 
 @dataclass
@@ -47,14 +47,16 @@ def test_inherited_serialized():
     assert serialize(InheritedOverriden, InheritedOverriden()) == {"serialized": 1}
 
 
-class WithMerged(Base):
-    base: Base = field(metadata=merged)
+class WithFlattened(Base):
+    base: Base = field(metadata=flattened)
 
 
-def test_merged_serialized():
-    assert serialization_schema(Base) == serialization_schema(WithMerged) == base_schema
+def test_flattened_serialized():
+    assert (
+        serialization_schema(Base) == serialization_schema(WithFlattened) == base_schema
+    )
     assert (
         serialize(Base, Base())
-        == serialize(WithMerged, WithMerged())
+        == serialize(WithFlattened, WithFlattened())
         == {"serialized": 0}
     )

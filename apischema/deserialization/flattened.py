@@ -9,7 +9,7 @@ from apischema.utils import get_origin_or_type
 from apischema.visitor import Unsupported
 
 
-class InitMergedAliasVisitor(
+class InitFlattenedAliasVisitor(
     DeserializationObjectVisitor[Iterator[str]], DeserializationVisitor[Iterator[str]]
 ):
     def mapping(
@@ -19,8 +19,8 @@ class InitMergedAliasVisitor(
 
     def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> Iterator[str]:
         for field in fields:
-            if field.merged:
-                yield from get_deserialization_merged_aliases(
+            if field.flattened:
+                yield from get_deserialization_flattened_aliases(
                     get_origin_or_type(tp), field, self.default_conversion
                 )
             elif not field.is_aggregate:
@@ -33,15 +33,15 @@ class InitMergedAliasVisitor(
         return results[0]
 
 
-def get_deserialization_merged_aliases(
+def get_deserialization_flattened_aliases(
     cls: Type, field: ObjectField, default_conversion: DefaultConversion
 ) -> Iterator[str]:
-    assert field.merged
+    assert field.flattened
     try:
-        yield from InitMergedAliasVisitor(default_conversion).visit_with_conv(
+        yield from InitFlattenedAliasVisitor(default_conversion).visit_with_conv(
             field.type, field.deserialization
         )
     except (NotImplementedError, Unsupported):
         raise TypeError(
-            f"Merged field {cls.__name__}.{field.name} must have an object type"
+            f"Flattened field {cls.__name__}.{field.name} must have an object type"
         ) from None

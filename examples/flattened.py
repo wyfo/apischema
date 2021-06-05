@@ -4,7 +4,7 @@ from typing import Union
 from apischema import Undefined, UndefinedType, alias, deserialize, serialize
 from apischema.fields import with_fields_set
 from apischema.json_schema import deserialization_schema
-from apischema.metadata import merged
+from apischema.metadata import flattened
 
 
 @dataclass
@@ -22,17 +22,17 @@ class RootJsonSchema:
         default=Undefined, metadata=alias("$schema")
     )
     defs: list[JsonSchema] = field(default_factory=list, metadata=alias("$defs"))
-    # This field schema is merged inside the owning one
-    json_schema: JsonSchema = field(default=JsonSchema(), metadata=merged)
+    # This field schema is flattened inside the owning one
+    json_schema: JsonSchema = field(default=JsonSchema(), metadata=flattened)
 
 
 data = {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
-    "title": "merged example",
+    "title": "flattened example",
 }
 root_schema = RootJsonSchema(
     schema="http://json-schema.org/draft/2019-09/schema#",
-    json_schema=JsonSchema(title="merged example"),
+    json_schema=JsonSchema(title="flattened example"),
 )
 assert deserialize(RootJsonSchema, data) == root_schema
 assert serialize(RootJsonSchema, root_schema) == data

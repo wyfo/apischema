@@ -34,7 +34,7 @@ from apischema.conversions.visitor import (
 )
 from apischema.dependencies import get_dependent_required
 from apischema.deserialization.coercion import Coerce, Coercer, get_coercer
-from apischema.deserialization.merged import get_deserialization_merged_aliases
+from apischema.deserialization.flattened import get_deserialization_flattened_aliases
 from apischema.json_schema.patterns import infer_pattern
 from apischema.json_schema.types import bad_type
 from apischema.metadata.implem import ValidatorsMetadata
@@ -334,7 +334,7 @@ class DeserializationMethodVisitor(
             normal_fields: List[
                 Tuple[str, str, DeserializationMethod, Required, FallBakOnDefault]
             ] = []
-            merged_fields: List[
+            flattened_fields: List[
                 Tuple[str, AbstractSet[str], DeserializationMethod, FallBakOnDefault]
             ] = []
             pattern_fields: List[
@@ -359,14 +359,14 @@ class DeserializationMethodVisitor(
                 field_fall_back_on_default = (
                     field.fall_back_on_default or fall_back_on_default
                 )
-                if field.merged:
-                    merged_aliases = get_deserialization_merged_aliases(
+                if field.flattened:
+                    flattened_aliases = get_deserialization_flattened_aliases(
                         cls, field, self.default_conversion
                     )
-                    merged_fields.append(
+                    flattened_fields.append(
                         (
                             field.name,
-                            set(map(self.aliaser, merged_aliases)),
+                            set(map(self.aliaser, flattened_aliases)),
                             deserialize_field,
                             field_fall_back_on_default,
                         )
@@ -407,7 +407,7 @@ class DeserializationMethodVisitor(
                         )
                     )
             has_aggregate_field = (
-                merged_fields or pattern_fields or (additional_field is not None)
+                flattened_fields or pattern_fields or (additional_field is not None)
             )
             constraint_errors = get_constraint_errors(constraints, dict)
 
@@ -445,19 +445,19 @@ class DeserializationMethodVisitor(
                 if has_aggregate_field:
                     for (
                         name,
-                        merged_alias,
+                        flattened_alias,
                         field_method,
                         fall_back_on_default,
-                    ) in merged_fields:
+                    ) in flattened_fields:
 
-                        merged = {
+                        flattened = {
                             alias: data[alias]
-                            for alias in merged_alias
+                            for alias in flattened_alias
                             if alias in data
                         }
-                        aliases.extend(merged)
+                        aliases.extend(flattened)
                         try:
-                            values[name] = field_method(merged)
+                            values[name] = field_method(flattened)
                         except ValidationError as err:
                             if not fall_back_on_default:
                                 errors.extend(err.messages)

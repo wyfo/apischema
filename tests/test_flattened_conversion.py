@@ -6,7 +6,7 @@ from pytest import raises
 from apischema import deserialize, serialize
 from apischema.graphql import graphql_schema
 from apischema.json_schema import deserialization_schema, serialization_schema
-from apischema.metadata import conversion, merged
+from apischema.metadata import conversion, flattened
 from apischema.objects import ObjectField, set_object_fields
 
 
@@ -20,7 +20,7 @@ set_object_fields(Field, [ObjectField("attr", int)])
 
 @dataclass
 class Data:
-    data_field: Field = field(metadata=merged)
+    data_field: Field = field(metadata=flattened)
 
 
 json_schema = {
@@ -52,7 +52,7 @@ def get_data() -> Data:
     return Data(Field(0))
 
 
-def test_merged_dataclass_model():
+def test_flattened_dataclass_model():
     data = deserialize(Data, {"attr": 0})
     assert isinstance(data.data_field, Field) and data.data_field.attr == 0
     assert serialize(Data, data) == {"attr": 0}
@@ -112,7 +112,7 @@ class Field2:
 @dataclass
 class Data2:
     data_field2: Field2 = field(
-        metadata=merged | conversion(Field2.from_field, Field2.to_field)
+        metadata=flattened | conversion(Field2.from_field, Field2.to_field)
     )
 
 
@@ -120,7 +120,7 @@ def get_data2() -> Data2:
     return Data2(Field2(0))
 
 
-def test_merged_converted():
+def test_flattened_converted():
     data2 = deserialize(Data2, {"attr": 0})
     assert isinstance(data2.data_field2, Field2) and data2.data_field2.attr == 0
     assert serialize(Data2, data2) == {"attr": 0}
@@ -161,7 +161,7 @@ type Data2 {
 @dataclass
 class Data3:
     data_field2: Field2 = field(
-        metadata=merged | conversion(Field2.from_int, Field2.to_int)
+        metadata=flattened | conversion(Field2.from_int, Field2.to_int)
     )
 
 
@@ -169,7 +169,7 @@ def get_data3() -> Data3:
     ...
 
 
-def test_merged_converted_error():
+def test_flattened_converted_error():
     with raises(TypeError):
         deserialize(Data3, {"attr": 0})
     with raises(TypeError):

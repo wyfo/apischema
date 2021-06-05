@@ -6,7 +6,7 @@ As the question is often asked, it is answered in a dedicated section. Here are 
 
 *pydantic* uses Cython to improve its performance; *apischema* doesn't need it and is still 1.5x faster according to [*pydantic* benchmark](benchmark.md) — more than 2x when *pydantic* is not compiled with Cython.
 
-Better performance, but not at the cost of fewer functionalities; that's rather the opposite: [dynamic aliasing](json_schema.md#dynamic-aliasing-and-default-aliaser), [conversions](conversions.md), [merged fields](data_model.md#composition-over-inheritance---composed-dataclasses-merging), etc.
+Better performance, but not at the cost of fewer functionalities; that's rather the opposite: [dynamic aliasing](json_schema.md#dynamic-aliasing-and-default-aliaser), [conversions](conversions.md), [flattened fields](data_model.md#composition-over-inheritance---composed-dataclasses-flattening), etc.
 
 ### *apischema* can generate [*GraphQL* schema](graphql/overview.md) from your resolvers
 
@@ -60,7 +60,7 @@ Here is a comparison of a custom type support:
 
 ### *apischema* allows you to use composition over inheritance
 
-[Merged fields](data_model.md#composition-over-inheritance---composed-dataclasses-merging) is a distinctive *apischema* feature that is very handy to build complex model from smaller fragments; you don't have to merge yourself the fields of your fragments in a complex class with a lot of fields, *apischema* deal with it for you, and your code is kept simple.
+[Flattened fields](data_model.md#composition-over-inheritance---composed-dataclasses-flattening) is a distinctive *apischema* feature that is very handy to build complex model from smaller fragments; you don't have to merge yourself the fields of your fragments in a complex class with a lot of fields, *apischema* deal with it for you, and your code is kept simple.
 
 ### *apischema* has a functional approach, *pydantic* has an object one
 
