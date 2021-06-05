@@ -20,7 +20,7 @@ def foo_to_bar(_: Foo) -> Bar:
 
 type_name("Bars")(list[Bar])
 
-assert serialization_schema(list[Foo], all_refs=True, conversions=foo_to_bar) == {
+assert serialization_schema(list[Foo], conversion=foo_to_bar, all_refs=True) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "$ref": "#/$defs/Bars",
     "$defs": {

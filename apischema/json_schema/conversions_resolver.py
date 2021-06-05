@@ -13,7 +13,7 @@ from typing import (
     Union,
 )
 
-from apischema.conversions.conversions import Conversions, DefaultConversions
+from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.visitor import (
     Conv,
     ConversionsVisitor,
@@ -46,8 +46,8 @@ def merge_results(
 
 
 class ConversionsResolver(ConversionsVisitor[Conv, Sequence[AnyType]]):
-    def __init__(self, default_conversions: DefaultConversions):
-        super().__init__(default_conversions)
+    def __init__(self, default_conversion: DefaultConversion):
+        super().__init__(default_conversion)
         self._skip_conversion = True
         self._rec_guard: Set[Tuple[AnyType, Conv]] = set()
 
@@ -77,7 +77,7 @@ class ConversionsResolver(ConversionsVisitor[Conv, Sequence[AnyType]]):
         tp: AnyType,
         conversion: Any,
         dynamic: bool,
-        next_conversions: Optional[Conversions] = None,
+        next_conversion: Optional[AnyConversion] = None,
     ) -> Sequence[AnyType]:
         if conversion is not None and self._skip_conversion:
             return [] if dynamic else [tp]
@@ -86,13 +86,13 @@ class ConversionsResolver(ConversionsVisitor[Conv, Sequence[AnyType]]):
         if not is_hashable(tp):
             with suppress(NotImplementedError, Unsupported):
                 results = super().visit_conversion(
-                    tp, conversion, dynamic, next_conversions
+                    tp, conversion, dynamic, next_conversion
                 )
         elif (tp, conversion) not in self._rec_guard:
             self._rec_guard.add((tp, conversion))
             with suppress(NotImplementedError, Unsupported):
                 results = super().visit_conversion(
-                    tp, conversion, dynamic, next_conversions
+                    tp, conversion, dynamic, next_conversion
                 )
             self._rec_guard.remove((tp, conversion))
         if not dynamic and (conversion is not None or not results):
@@ -101,7 +101,7 @@ class ConversionsResolver(ConversionsVisitor[Conv, Sequence[AnyType]]):
 
 
 class WithConversionsResolver:
-    def resolve_conversions(self, tp: AnyType) -> Sequence[AnyType]:
+    def resolve_conversion(self, tp: AnyType) -> Sequence[AnyType]:
         raise NotImplementedError
 
     def __init_subclass__(cls, **kwargs):
@@ -119,12 +119,12 @@ class WithConversionsResolver:
         else:
             return
 
-        def resolve_conversions(
+        def resolve_conversion(
             self: ConversionsVisitor, tp: AnyType
         ) -> Sequence[AnyType]:
-            return Resolver(self.default_conversions).visit_with_conv(
+            return Resolver(self.default_conversion).visit_with_conv(
                 tp, self._conversions
             )
 
         assert issubclass(cls, WithConversionsResolver)
-        cls.resolve_conversions = resolve_conversions  # type: ignore
+        cls.resolve_conversion = resolve_conversion  # type: ignore

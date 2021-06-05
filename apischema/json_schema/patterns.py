@@ -1,15 +1,15 @@
 from typing import Pattern
 
-from apischema.conversions.conversions import DefaultConversions
+from apischema.conversions.conversions import DefaultConversion
 from apischema.types import AnyType
 
 
-def infer_pattern(tp: AnyType, default_conversions: DefaultConversions) -> Pattern:
+def infer_pattern(tp: AnyType, default_conversion: DefaultConversion) -> Pattern:
     from apischema.json_schema.schema import DeserializationSchemaBuilder
 
     try:
         builder = DeserializationSchemaBuilder(
-            False, lambda s: s, default_conversions, False, lambda r: r, {}
+            False, lambda s: s, default_conversion, False, lambda r: r, {}
         )
         prop_schema = builder.visit(tp)
     except RecursionError:

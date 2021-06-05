@@ -22,7 +22,7 @@ import graphql
 from apischema import UndefinedType
 from apischema.aliases import Aliaser
 from apischema.cache import cache
-from apischema.conversions.conversions import Conversions, DefaultConversions
+from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.deserialization import deserialization_method
 from apischema.objects import ObjectField
 from apischema.schemas import Schema
@@ -40,6 +40,7 @@ from apischema.serialization.serialized_methods import (
 from apischema.types import AnyType, NoneType, Undefined
 from apischema.utils import (
     awaitable_origin,
+    deprecate_kwargs,
     empty_dict,
     get_args2,
     get_origin_or_type2,
@@ -55,7 +56,7 @@ class PartialSerializationMethodVisitor(SerializationMethodVisitor):
     @property
     def _any_method(self) -> Callable[[type], SerializationMethod]:
         return partial_serialization_method_factory(
-            self.aliaser, self._conversions, self.default_conversions
+            self.aliaser, self._conversions, self.default_conversion
         )
 
     def object(self, tp: Type, fields: Sequence[ObjectField]) -> SerializationMethod:
@@ -82,14 +83,14 @@ class PartialSerializationMethodVisitor(SerializationMethodVisitor):
 @cache
 def partial_serialization_method_factory(
     aliaser: Aliaser,
-    conversions: Optional[Conversions],
-    default_conversions: DefaultConversions,
+    conversion: Optional[AnyConversion],
+    default_conversion: DefaultConversion,
 ) -> Callable[[AnyType], SerializationMethod]:
     @lru_cache()
     def factory(tp: AnyType) -> SerializationMethod:
         return PartialSerializationMethodVisitor(
-            aliaser, False, False, default_conversions, False, False
-        ).visit_with_conv(tp, conversions)
+            aliaser, False, False, default_conversion, False, False
+        ).visit_with_conv(tp, conversion)
 
     return factory
 
@@ -152,7 +153,7 @@ def resolver(__method_or_property: MethodOrProp) -> MethodOrProp:
 def resolver(
     alias: str = None,
     *,
-    conversions: Conversions = None,
+    conversion: AnyConversion = None,
     schema: Schema = None,
     error_handler: ErrorHandler = Undefined,
     parameters_metadata: Mapping[str, Mapping] = None,
@@ -162,11 +163,12 @@ def resolver(
     ...
 
 
+@deprecate_kwargs({"conversions": "conversion"})
 def resolver(
     __arg=None,
     *,
     alias: str = None,
-    conversions: Conversions = None,
+    conversion: AnyConversion = None,
     schema: Schema = None,
     error_handler: ErrorHandler = Undefined,
     parameters_metadata: Mapping[str, Mapping] = None,
@@ -183,7 +185,7 @@ def resolver(
             error_handler2 = None
         resolver = Resolver(
             func,
-            conversions,
+            conversion,
             schema,
             error_handler2,
             parameters,
@@ -196,7 +198,7 @@ def resolver(
             try:
                 register_serialized(
                     alias=alias2,
-                    conversions=conversions,
+                    conversion=conversion,
                     schema=schema,
                     error_handler=error_handler,
                     owner=owner,
@@ -225,8 +227,8 @@ def resolver_resolve(
     resolver: Resolver,
     types: Mapping[str, AnyType],
     aliaser: Aliaser,
-    default_deserialization: DefaultConversions,
-    default_serialization: DefaultConversions,
+    default_deserialization: DefaultConversion,
+    default_serialization: DefaultConversion,
     serialized: bool = True,
 ) -> Callable:
     parameters, info_parameter = [], None
@@ -247,8 +249,8 @@ def resolver_resolve(
                 additional_properties=False,
                 aliaser=aliaser,
                 coerce=False,
-                conversions=param_field.deserialization,
-                default_conversions=default_deserialization,
+                conversion=param_field.deserialization,
+                default_conversion=default_deserialization,
                 fall_back_on_default=False,
                 schema=param_field.schema,
             )
@@ -263,9 +265,8 @@ def resolver_resolve(
                 )
             )
     func, error_handler = resolver.func, resolver.error_handler
-    conversions = resolver.conversions
     method_factory = partial_serialization_method_factory(
-        aliaser, conversions, default_serialization
+        aliaser, resolver.conversion, default_serialization
     )
 
     serialize_result: Callable[[Any], Any]

@@ -31,7 +31,7 @@ class Conversion:
     converter: Union[Converter, property]
     source: AnyType = None
     target: AnyType = None
-    sub_conversions: Optional["Conversions"] = None
+    sub_conversion: Optional["AnyConversion"] = None
     additional_properties: Optional[bool] = None
     fall_back_on_any: Optional[bool] = None
     check_type: Optional[bool] = None
@@ -46,12 +46,12 @@ class Conversion:
 
 @dataclass(frozen=True)
 class LazyConversion:
-    get: Callable[[], Optional["Conversions"]]
+    get: Callable[[], Optional["AnyConversion"]]
 
 
 ConvOrFunc = Union[Conversion, Converter, property, LazyConversion]
-Conversions = Union[ConvOrFunc, Tuple[ConvOrFunc, ...]]
-DefaultConversions = Callable[[AnyType], Optional[Conversions]]
+AnyConversion = Union[ConvOrFunc, Tuple[ConvOrFunc, ...]]
+DefaultConversion = Callable[[AnyType], Optional[AnyConversion]]
 
 
 ResolvedConversion = NewType("ResolvedConversion", Conversion)
@@ -74,13 +74,13 @@ def resolve_conversion(
     return ResolvedConversion(replace(conversion, source=source, target=target))
 
 
-def resolve_conversions(conversions: Optional[Conversions]) -> ResolvedConversions:
-    if not conversions:
+def resolve_any_conversion(conversion: Optional[AnyConversion]) -> ResolvedConversions:
+    if not conversion:
         return ()
     result: List[ResolvedConversion] = []
-    for conv in conversions if isinstance(conversions, Collection) else [conversions]:
+    for conv in conversion if isinstance(conversion, Collection) else [conversion]:
         if isinstance(conv, LazyConversion):
-            result.extend(resolve_conversions(conv.get()))  # type: ignore
+            result.extend(resolve_any_conversion(conv.get()))  # type: ignore
         else:
             result.append(resolve_conversion(conv))
     return tuple(result)
@@ -99,7 +99,7 @@ def is_identity(conversion: ResolvedConversion) -> bool:
     return (
         conversion.converter == identity
         and conversion.source == conversion.target
-        and conversion.sub_conversions is None
+        and conversion.sub_conversion is None
         and conversion.additional_properties is None
         and conversion.coerce is None
         and conversion.fall_back_on_default is None

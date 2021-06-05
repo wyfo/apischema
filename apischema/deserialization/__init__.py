@@ -1,4 +1,3 @@
-import warnings
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from enum import Enum
@@ -25,13 +24,13 @@ from typing import (
 
 from apischema.aliases import Aliaser
 from apischema.cache import cache
-from apischema.conversions.conversions import Conversions, DefaultConversions
+from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.utils import identity
 from apischema.conversions.visitor import (
     CachedConversionsVisitor,
     Deserialization,
     DeserializationVisitor,
-    sub_conversions,
+    sub_conversion,
 )
 from apischema.dependencies import get_dependent_required
 from apischema.deserialization.coercion import Coerce, Coercer, get_coercer
@@ -58,6 +57,7 @@ from apischema.utils import (
     Lazy,
     PREFIX,
     context_setter,
+    deprecate_kwargs,
     get_origin_or_type,
     literal_values,
     opt_or,
@@ -156,10 +156,10 @@ class DeserializationMethodVisitor(
         additional_properties: bool,
         aliaser: Aliaser,
         coercer: Optional[Coercer],
-        default_conversions: DefaultConversions,
+        default_conversion: DefaultConversion,
         fall_back_on_default: bool,
     ):
-        super().__init__(default_conversions)
+        super().__init__(default_conversion)
         self._additional_properties = additional_properties
         self.aliaser = aliaser
         self._coercer = coercer
@@ -361,7 +361,7 @@ class DeserializationMethodVisitor(
                 )
                 if field.merged:
                     merged_aliases = get_deserialization_merged_aliases(
-                        cls, field, self.default_conversions
+                        cls, field, self.default_conversion
                     )
                     merged_fields.append(
                         (
@@ -375,7 +375,7 @@ class DeserializationMethodVisitor(
                     pattern_fields.append(
                         (
                             field.name,
-                            infer_pattern(field.type, self.default_conversions),
+                            infer_pattern(field.type, self.default_conversion),
                             deserialize_field,
                             field_fall_back_on_default,
                         )
@@ -668,7 +668,7 @@ class DeserializationMethodVisitor(
         tp: AnyType,
         conversion: Deserialization,
         dynamic: bool,
-        next_conversions: Optional[Conversions],
+        next_conversion: Optional[AnyConversion],
     ) -> DeserializationMethodFactory:
         assert conversion
         conv_factories = []
@@ -680,7 +680,7 @@ class DeserializationMethodVisitor(
                     setter._fall_back_on_default = conv.fall_back_on_default
                 if conv.coerce is not None:
                     setter._coercer = get_coercer(conv.coerce)
-                sub_conv = sub_conversions(conv, next_conversions)
+                sub_conv = sub_conversion(conv, next_conversion)
                 conv_factories.append(self.visit_with_conv(conv.source, sub_conv))
 
         def factory(
@@ -738,9 +738,9 @@ class DeserializationMethodVisitor(
         tp: AnyType,
         conversion: Optional[Deserialization],
         dynamic: bool,
-        next_conversions: Optional[Conversions] = None,
+        next_conversion: Optional[AnyConversion] = None,
     ) -> DeserializationMethodFactory:
-        factory = super().visit_conversion(tp, conversion, dynamic, next_conversions)
+        factory = super().visit_conversion(tp, conversion, dynamic, next_conversion)
         if factory.coercer is None and self._coercer is not None:
             factory = replace(factory, coercer=self._coercer)
         if not dynamic:
@@ -760,8 +760,8 @@ def deserialization_method(
     additional_properties: bool = None,
     aliaser: Aliaser = None,
     coerce: Coerce = None,
-    conversions: Conversions = None,
-    default_conversions: DefaultConversions = None,
+    conversion: AnyConversion = None,
+    default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     schema: Schema = None,
 ) -> DeserializationMethod[T]:
@@ -775,8 +775,8 @@ def deserialization_method(
     additional_properties: bool = None,
     aliaser: Aliaser = None,
     coerce: Coerce = None,
-    conversions: Conversions = None,
-    default_conversions: DefaultConversions = None,
+    conversion: AnyConversion = None,
+    default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     schema: Schema = None,
 ) -> DeserializationMethod:
@@ -790,8 +790,8 @@ def deserialization_method(
     additional_properties: bool = None,
     aliaser: Aliaser = None,
     coerce: Coerce = None,
-    conversions: Conversions = None,
-    default_conversions: DefaultConversions = None,
+    conversion: AnyConversion = None,
+    default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     schema: Schema = None,
 ) -> DeserializationMethod:
@@ -804,10 +804,10 @@ def deserialization_method(
             ),
             opt_or(aliaser, settings.aliaser),
             get_coercer(opt_or(coerce, settings.deserialization.coerce)),
-            opt_or(default_conversions, settings.deserialization.default_conversions),
+            opt_or(default_conversion, settings.deserialization.default_conversion),
             opt_or(fall_back_on_default, settings.deserialization.fall_back_on_default),
         )
-        .visit_with_conv(type, conversions)
+        .visit_with_conv(type, conversion)
         .merge(get_constraints(schema), ())
         .method
     )
@@ -821,8 +821,8 @@ def deserialize(
     additional_properties: bool = None,
     aliaser: Aliaser = None,
     coerce: Coerce = None,
-    conversions: Conversions = None,
-    default_conversions: DefaultConversions = None,
+    conversion: AnyConversion = None,
+    default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     schema: Schema = None,
 ) -> T:
@@ -837,14 +837,21 @@ def deserialize(
     additional_properties: bool = None,
     aliaser: Aliaser = None,
     coerce: Coerce = None,
-    conversions: Conversions = None,
-    default_conversions: DefaultConversions = None,
+    conversion: AnyConversion = None,
+    default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     schema: Schema = None,
 ) -> Any:
     ...
 
 
+@deprecate_kwargs(
+    {
+        "coercion": "coerce",
+        "conversions": "conversion",
+        "default_fallback": "fall_back_on_default",
+    }
+)
 def deserialize(
     type: AnyType,
     data: Any,
@@ -852,27 +859,18 @@ def deserialize(
     additional_properties: bool = None,
     aliaser: Aliaser = None,
     coerce: Coerce = None,
-    coercion: Coerce = None,
-    conversions: Conversions = None,
-    default_conversions: DefaultConversions = None,
-    default_fallback: bool = None,
+    conversion: AnyConversion = None,
+    default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     schema: Schema = None,
 ) -> Any:
-    if default_fallback is not None:
-        warnings.warn(
-            "default_fallback is deprecated, use fall_back_on_default instead",
-            DeprecationWarning,
-        )
-    if coercion is not None:
-        warnings.warn("coercion is deprecated, use coerce instead", DeprecationWarning)
     return deserialization_method(
         type,
         additional_properties=additional_properties,
         aliaser=aliaser,
-        coerce=opt_or(coerce, coercion),
-        conversions=conversions,
-        default_conversions=default_conversions,
-        fall_back_on_default=opt_or(fall_back_on_default, default_fallback),
+        coerce=coerce,
+        conversion=conversion,
+        default_conversion=default_conversion,
+        fall_back_on_default=fall_back_on_default,
         schema=schema,
     )(data)

@@ -29,7 +29,7 @@ def test_merge_results(results, origin, expected):
 
 class Visitor(SerializationVisitor, WithConversionsResolver):
     def visit(self, tp: AnyType) -> Sequence[AnyType]:
-        return self.resolve_conversions(tp)
+        return self.resolve_conversion(tp)
 
 
 class A:
@@ -57,7 +57,7 @@ tmp = rec_conversion
         ),
         (
             List[int],
-            Conversion(str, source=int, sub_conversions=Conversion(bool, source=str)),
+            Conversion(str, source=int, sub_conversion=Conversion(bool, source=str)),
             [Collection[bool]],
         ),
         (A, None, [A]),
@@ -66,7 +66,7 @@ tmp = rec_conversion
     ],
 )
 def test_resolve_conversion(tp, conversions, expected):
-    result = Visitor(settings.serialization.default_conversions).visit_with_conv(
+    result = Visitor(settings.serialization.default_conversion).visit_with_conv(
         tp, conversions
     )
     assert list(result) == list(expected)

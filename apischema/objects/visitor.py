@@ -2,7 +2,7 @@ from dataclasses import Field, MISSING
 from typing import Any, Collection, Mapping, Optional, Sequence
 
 from apischema.aliases import Aliaser, get_class_aliaser
-from apischema.conversions.conversions import Conversions
+from apischema.conversions.conversions import AnyConversion
 from apischema.dataclasses import replace
 from apischema.metadata.keys import ALIAS_METADATA, SKIP_METADATA
 from apischema.objects.fields import FieldKind, MISSING_DEFAULT, ObjectField
@@ -47,7 +47,7 @@ def _override_alias(field: ObjectField, aliaser: Aliaser) -> ObjectField:
 class ObjectVisitor(Visitor[Result]):
     _field_kind_filtered: Optional[FieldKind] = None
 
-    def _field_conversion(self, field: ObjectField) -> Optional[Conversions]:
+    def _field_conversion(self, field: ObjectField) -> Optional[AnyConversion]:
         return NotImplementedError
 
     def _object(self, tp: AnyType, fields: Sequence[ObjectField]) -> Result:
@@ -118,7 +118,7 @@ class DeserializationObjectVisitor(ObjectVisitor[Result]):
     _field_kind_filtered = FieldKind.READ_ONLY
 
     @staticmethod
-    def _field_conversion(field: ObjectField) -> Optional[Conversions]:
+    def _field_conversion(field: ObjectField) -> Optional[AnyConversion]:
         return field.deserialization
 
 
@@ -126,5 +126,5 @@ class SerializationObjectVisitor(ObjectVisitor[Result]):
     _field_kind_filtered = FieldKind.WRITE_ONLY
 
     @staticmethod
-    def _field_conversion(field: ObjectField) -> Optional[Conversions]:
+    def _field_conversion(field: ObjectField) -> Optional[AnyConversion]:
         return field.serialization

@@ -39,11 +39,11 @@ tmp = DataModel1
     [(d_conv1, s_conv1, "a"), (d_conv2, s_conv2, "b"), (d_conv3, s_conv3, "a")],
 )
 def test_simple_dataclass_model(d_conv, s_conv, alias):
-    assert deserialize(Data, {alias: 0}, conversions=d_conv) == Data(0)
-    assert serialize(Data, Data(0), conversions=s_conv) == {alias: 0}
+    assert deserialize(Data, {alias: 0}, conversion=d_conv) == Data(0)
+    assert serialize(Data, Data(0), conversion=s_conv) == {alias: 0}
     assert (
-        deserialization_schema(Data, conversions=d_conv)
-        == serialization_schema(Data, conversions=s_conv)
+        deserialization_schema(Data, conversion=d_conv)
+        == serialization_schema(Data, conversion=s_conv)
         == {
             "$schema": "http://json-schema.org/draft/2019-09/schema#",
             "type": "object",

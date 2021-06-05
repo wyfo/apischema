@@ -23,7 +23,7 @@ from typing import (
 
 from apischema.aliases import Aliaser
 from apischema.conversions import converters
-from apischema.conversions.conversions import Conversions, DefaultConversions
+from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.visitor import (
     Conv,
     ConversionsVisitor,
@@ -58,6 +58,7 @@ from apischema.types import AnyType, OrderedDict, UndefinedType
 from apischema.typing import get_args
 from apischema.utils import (
     context_setter,
+    deprecate_kwargs,
     get_origin_or_type,
     is_union_of,
     literal_values,
@@ -84,12 +85,12 @@ class SchemaBuilder(
         self,
         additional_properties: bool,
         aliaser: Aliaser,
-        default_conversions: DefaultConversions,
+        default_conversion: DefaultConversion,
         ignore_first_ref: bool,
         ref_factory: RefFactory,
         refs: Collection[str],
     ):
-        super().__init__(default_conversions)
+        super().__init__(default_conversion)
         self.additional_properties = additional_properties
         self.aliaser = aliaser
         self._ignore_first_ref = ignore_first_ref
@@ -179,9 +180,9 @@ class SchemaBuilder(
                 result["default"] = serialize(
                     field.type,
                     field.get_default(),
-                    conversions=field.serialization,
                     fall_back_on_any=False,
                     check_type=True,
+                    conversion=field.serialization,
                 )
         return result
 
@@ -233,7 +234,7 @@ class SchemaBuilder(
                 merged_schemas.append(self.visit_field(field))
             elif field.pattern_properties is not None:
                 if field.pattern_properties is ...:
-                    pattern = infer_pattern(field.type, self.default_conversions)
+                    pattern = infer_pattern(field.type, self.default_conversion)
                 else:
                     assert isinstance(field.pattern_properties, Pattern)
                     pattern = field.pattern_properties
@@ -316,18 +317,18 @@ class SchemaBuilder(
         tp: AnyType,
         conversion: Optional[Conv],
         dynamic: bool,
-        next_conversions: Optional[Conversions] = None,
+        next_conversion: Optional[AnyConversion] = None,
     ) -> JsonSchema:
         schemas = []
         if not dynamic:
-            for ref_tp in self.resolve_conversions(tp):
+            for ref_tp in self.resolve_conversion(tp):
                 ref_schema = self.ref_schema(get_type_name(ref_tp).json_schema)
                 if ref_schema is not None:
                     return ref_schema
             if get_args(tp):
                 schemas.append(get_schema(get_origin_or_type(tp)))
             schemas.append(get_schema(tp))
-        result = super().visit_conversion(tp, conversion, dynamic, next_conversions)
+        result = super().visit_conversion(tp, conversion, dynamic, next_conversion)
         return reduce(full_schema, schemas, result)
 
     RefsExtractor: ClassVar[Type[RefsExtractor_]]
@@ -360,7 +361,7 @@ class SerializationSchemaBuilder(
         for alias, (serialized, types) in get_serialized_methods(tp).items():
             return_type = types["return"]
             properties[self.aliaser(alias)] = full_schema(
-                self.visit_with_conv(return_type, serialized.conversions),
+                self.visit_with_conv(return_type, serialized.conversion),
                 serialized.schema,
             )
             if not is_union_of(return_type, UndefinedType):
@@ -382,7 +383,7 @@ class SerializationSchemaBuilder(
         return result
 
 
-TypesWithConversions = Collection[Union[AnyType, Tuple[AnyType, Conversions]]]
+TypesWithConversion = Collection[Union[AnyType, Tuple[AnyType, AnyConversion]]]
 
 
 def _default_version(
@@ -402,19 +403,17 @@ def _default_version(
 
 
 def _extract_refs(
-    types: TypesWithConversions,
-    default_conversions: DefaultConversions,
+    types: TypesWithConversion,
+    default_conversion: DefaultConversion,
     builder: Type[SchemaBuilder],
     all_refs: bool,
 ) -> Mapping[str, AnyType]:
     refs: Refs = {}
     for tp in types:
-        conversions = None
+        conversion = None
         if isinstance(tp, tuple):
-            tp, conversions = tp
-        builder.RefsExtractor(default_conversions, refs).visit_with_conv(
-            tp, conversions
-        )
+            tp, conversion = tp
+        builder.RefsExtractor(default_conversion, refs).visit_with_conv(tp, conversion)
     filtr = (lambda count: True) if all_refs else (lambda count: count > 1)
     return {ref: tp for ref, (tp, count) in refs.items() if filtr(count)}
 
@@ -422,14 +421,14 @@ def _extract_refs(
 def _refs_schema(
     builder: Type[SchemaBuilder],
     aliaser: Aliaser,
-    default_conversions: DefaultConversions,
+    default_conversion: DefaultConversion,
     refs: Mapping[str, AnyType],
     ref_factory: RefFactory,
     additional_properties: bool,
 ) -> Mapping[str, JsonSchema]:
     return {
         ref: builder(
-            additional_properties, aliaser, default_conversions, True, ref_factory, refs
+            additional_properties, aliaser, default_conversion, True, ref_factory, refs
         ).visit(tp)
         for ref, tp in refs.items()
     }
@@ -439,8 +438,8 @@ def _schema(
     builder: Type[SchemaBuilder],
     tp: AnyType,
     schema: Optional[Schema],
-    conversions: Optional[Conversions],
-    default_conversions: DefaultConversions,
+    conversion: Optional[AnyConversion],
+    default_conversion: DefaultConversion,
     version: Optional[JsonSchemaVersion],
     aliaser: Optional[Aliaser],
     ref_factory: Optional[RefFactory],
@@ -456,16 +455,16 @@ def _schema(
     if additional_properties is None:
         additional_properties = settings.deserialization.additional_properties
     version, ref_factory, all_refs = _default_version(version, ref_factory, all_refs)
-    refs = _extract_refs([(tp, conversions)], default_conversions, builder, all_refs)
+    refs = _extract_refs([(tp, conversion)], default_conversion, builder, all_refs)
     json_schema = builder(
-        additional_properties, aliaser, default_conversions, False, ref_factory, refs
-    ).visit_with_conv(tp, conversions)
+        additional_properties, aliaser, default_conversion, False, ref_factory, refs
+    ).visit_with_conv(tp, conversion)
     json_schema = full_schema(json_schema, schema)
     if add_defs:
         defs = _refs_schema(
             builder,
             aliaser,
-            default_conversions,
+            default_conversion,
             refs,
             ref_factory,
             additional_properties,
@@ -475,25 +474,26 @@ def _schema(
     result = serialize(
         JsonSchema,
         json_schema,
-        conversions=version.conversion,
-        default_conversions=converters.default_serialization,
         aliaser=aliaser,
-        check_type=True,
         fall_back_on_any=True,
+        check_type=True,
+        conversion=version.conversion,
+        default_conversion=converters.default_serialization,
     )
     if with_schema and version.schema is not None:
         result["$schema"] = version.schema
     return result
 
 
+@deprecate_kwargs({"conversions": "conversion"})
 def deserialization_schema(
     tp: AnyType,
     *,
     additional_properties: bool = None,
     aliaser: Aliaser = None,
     all_refs: bool = None,
-    conversions: Conversions = None,
-    default_conversions: DefaultConversions = None,
+    conversion: AnyConversion = None,
+    default_conversion: DefaultConversion = None,
     ref_factory: RefFactory = None,
     schema: Schema = None,
     version: JsonSchemaVersion = None,
@@ -505,8 +505,8 @@ def deserialization_schema(
         DeserializationSchemaBuilder,
         tp,
         schema,
-        conversions,
-        default_conversions or settings.deserialization.default_conversions,
+        conversion,
+        default_conversion or settings.deserialization.default_conversion,
         version,
         aliaser,
         ref_factory,
@@ -516,12 +516,13 @@ def deserialization_schema(
     )
 
 
+@deprecate_kwargs({"conversions": "conversion"})
 def serialization_schema(
     tp: AnyType,
     *,
     schema: Schema = None,
-    conversions: Conversions = None,
-    default_conversions: DefaultConversions = None,
+    conversion: AnyConversion = None,
+    default_conversion: DefaultConversion = None,
     version: JsonSchemaVersion = None,
     aliaser: Aliaser = None,
     ref_factory: RefFactory = None,
@@ -535,8 +536,8 @@ def serialization_schema(
         SerializationSchemaBuilder,
         tp,
         schema,
-        conversions,
-        default_conversions or settings.serialization.default_conversions,
+        conversion,
+        default_conversion or settings.serialization.default_conversion,
         version,
         aliaser,
         ref_factory,
@@ -547,8 +548,8 @@ def serialization_schema(
 
 
 def _defs_schema(
-    types: TypesWithConversions,
-    default_conversions: DefaultConversions,
+    types: TypesWithConversion,
+    default_conversion: DefaultConversion,
     builder: Type[SchemaBuilder],
     aliaser: Aliaser,
     ref_factory: RefFactory,
@@ -558,8 +559,8 @@ def _defs_schema(
     return _refs_schema(
         builder,
         aliaser,
-        default_conversions,
-        _extract_refs(types, default_conversions, builder, all_refs),
+        default_conversion,
+        _extract_refs(types, default_conversion, builder, all_refs),
         ref_factory,
         additional_properties,
     )
@@ -617,10 +618,10 @@ def compare_schemas(write: Any, read: Any) -> Any:
 
 def definitions_schema(
     *,
-    deserialization: TypesWithConversions = (),
-    serialization: TypesWithConversions = (),
-    default_deserialization: DefaultConversions = None,
-    default_serialization: DefaultConversions = None,
+    deserialization: TypesWithConversion = (),
+    serialization: TypesWithConversion = (),
+    default_deserialization: DefaultConversion = None,
+    default_serialization: DefaultConversion = None,
     aliaser: Aliaser = None,
     version: JsonSchemaVersion = None,
     ref_factory: Optional[RefFactory] = None,
@@ -634,9 +635,9 @@ def definitions_schema(
     if aliaser is None:
         aliaser = settings.aliaser
     if default_deserialization is None:
-        default_deserialization = settings.deserialization.default_conversions
+        default_deserialization = settings.deserialization.default_conversion
     if default_serialization is None:
-        default_serialization = settings.serialization.default_conversions
+        default_serialization = settings.serialization.default_conversion
     version, ref_factory, all_refs = _default_version(version, ref_factory, all_refs)
     deserialization_schemas = _defs_schema(
         deserialization,
@@ -676,11 +677,11 @@ def definitions_schema(
         ref: serialize(
             JsonSchema,
             schema,
-            conversions=version.conversion,
-            default_conversions=converters.default_serialization,
             aliaser=aliaser,
-            check_type=True,
             fall_back_on_any=True,
+            check_type=True,
+            conversion=version.conversion,
+            default_conversion=converters.default_serialization,
         )
         for ref, schema in schemas.items()
     }

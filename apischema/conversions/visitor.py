@@ -18,13 +18,13 @@ from typing import (
 
 from apischema.conversions import LazyConversion
 from apischema.conversions.conversions import (
-    Conversions,
-    DefaultConversions,
+    AnyConversion,
+    DefaultConversion,
     ResolvedConversion,
     ResolvedConversions,
     handle_identity_conversion,
     is_identity,
-    resolve_conversions,
+    resolve_any_conversion,
 )
 from apischema.conversions.dataclass_models import handle_dataclass_model
 from apischema.conversions.utils import is_convertible
@@ -50,24 +50,24 @@ Conv = TypeVar("Conv")
 
 
 class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
-    def __init__(self, default_conversions: DefaultConversions):
-        self.default_conversions = default_conversions
-        self._conversions: Optional[Conversions] = None
+    def __init__(self, default_conversion: DefaultConversion):
+        self.default_conversion = default_conversion
+        self._conversions: Optional[AnyConversion] = None
 
     def _has_conversion(
-        self, tp: AnyType, conversions: Optional[Conversions]
+        self, tp: AnyType, conversion: Optional[AnyConversion]
     ) -> Tuple[bool, Optional[Conv]]:
         raise NotImplementedError
 
     def _annotated_conversion(
         self, annotation: ConversionMetadata
-    ) -> Optional[Conversions]:
+    ) -> Optional[AnyConversion]:
         raise NotImplementedError
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> Result:
         for annotation in reversed(annotations):
             if isinstance(annotation, ConversionMetadata):
-                with self._replace_conversions(self._annotated_conversion(annotation)):
+                with self._replace_conversion(self._annotated_conversion(annotation)):
                     return super().annotated(tp, annotations)
         return super().annotated(tp, annotations)
 
@@ -78,15 +78,15 @@ class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
         return self._union_result(map(self.visit, alternatives))
 
     @contextmanager
-    def _replace_conversions(self, conversions: Optional[Conversions]):
+    def _replace_conversion(self, conversion: Optional[AnyConversion]):
         with context_setter(self) as setter:
-            setter._conversions = resolve_conversions(conversions)
+            setter._conversions = resolve_any_conversion(conversion)
             yield
 
     def visit_with_conv(
-        self, tp: AnyType, conversions: Optional[Conversions]
+        self, tp: AnyType, conversion: Optional[AnyConversion]
     ) -> Result:
-        with self._replace_conversions(conversions):
+        with self._replace_conversion(conversion):
             return self.visit(tp)
 
     def _visit_conversion(
@@ -94,7 +94,7 @@ class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
         tp: AnyType,
         conversion: Conv,
         dynamic: bool,
-        next_conversions: Optional[Conversions],
+        next_conversion: Optional[AnyConversion],
     ) -> Result:
         raise NotImplementedError
 
@@ -103,12 +103,12 @@ class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
         tp: AnyType,
         conversion: Optional[Conv],
         dynamic: bool,
-        next_conversions: Optional[Conversions] = None,
+        next_conversion: Optional[AnyConversion] = None,
     ) -> Result:
         if conversion is not None:
-            return self._visit_conversion(tp, conversion, dynamic, next_conversions)
+            return self._visit_conversion(tp, conversion, dynamic, next_conversion)
         else:
-            with self._replace_conversions(next_conversions):
+            with self._replace_conversion(next_conversion):
                 return super().visit(tp)
 
     def visit(self, tp: AnyType) -> Result:
@@ -117,20 +117,20 @@ class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
         dynamic, conversion = self._has_conversion(tp, self._conversions)
         if not dynamic:
             _, conversion = self._has_conversion(
-                tp, self.default_conversions(get_origin_or_type(tp))  # type: ignore
+                tp, self.default_conversion(get_origin_or_type(tp))  # type: ignore
             )
-        next_conversions = None
+        next_conversion = None
         if not dynamic and is_subclass(tp, Collection):
-            next_conversions = self._conversions
-        return self.visit_conversion(tp, conversion, dynamic, next_conversions)
+            next_conversion = self._conversions
+        return self.visit_conversion(tp, conversion, dynamic, next_conversion)
 
 
-def sub_conversions(
-    conversion: ResolvedConversion, next_conversions: Optional[Conversions]
-) -> Optional[Conversions]:
+def sub_conversion(
+    conversion: ResolvedConversion, next_conversion: Optional[AnyConversion]
+) -> Optional[AnyConversion]:
     return (
-        LazyConversion(lambda: conversion.sub_conversions),
-        LazyConversion(lambda: next_conversions),
+        LazyConversion(lambda: conversion.sub_conversion),
+        LazyConversion(lambda: next_conversion),
     )
 
 
@@ -149,10 +149,10 @@ def self_deserialization_wrapper(cls: Type) -> Type:
 class DeserializationVisitor(ConversionsVisitor[Deserialization, Result]):
     @staticmethod
     def _has_conversion(
-        tp: AnyType, conversions: Optional[Conversions]
+        tp: AnyType, conversion: Optional[AnyConversion]
     ) -> Tuple[bool, Optional[Deserialization]]:
         identity_conv, result = False, []
-        for conv in resolve_conversions(conversions):
+        for conv in resolve_any_conversion(conversion):
             conv = handle_identity_conversion(conv, tp)
             if is_subclass(conv.target, tp):
                 if is_identity(conv):
@@ -178,7 +178,7 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Result]):
 
     def _annotated_conversion(
         self, annotation: ConversionMetadata
-    ) -> Optional[Conversions]:
+    ) -> Optional[AnyConversion]:
         return annotation.deserialization
 
     def _visit_conversion(
@@ -186,10 +186,10 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Result]):
         tp: AnyType,
         conversion: Deserialization,
         dynamic: bool,
-        next_conversions: Optional[Conversions],
+        next_conversion: Optional[AnyConversion],
     ) -> Result:
         return self._union_result(
-            self.visit_with_conv(conv.source, sub_conversions(conv, next_conversions))
+            self.visit_with_conv(conv.source, sub_conversion(conv, next_conversion))
             for conv in conversion
         )
 
@@ -197,9 +197,9 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Result]):
 class SerializationVisitor(ConversionsVisitor[Serialization, Result]):
     @staticmethod
     def _has_conversion(
-        tp: AnyType, conversions: Optional[Conversions]
+        tp: AnyType, conversion: Optional[AnyConversion]
     ) -> Tuple[bool, Optional[Serialization]]:
-        for conv in resolve_conversions(conversions):
+        for conv in resolve_any_conversion(conversion):
             conv = handle_identity_conversion(conv, tp)
             if is_subclass(tp, conv.source):
                 if is_identity(conv):
@@ -213,7 +213,7 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Result]):
 
     def _annotated_conversion(
         self, annotation: ConversionMetadata
-    ) -> Optional[Conversions]:
+    ) -> Optional[AnyConversion]:
         return annotation.serialization
 
     def _visit_conversion(
@@ -221,18 +221,18 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Result]):
         tp: AnyType,
         conversion: Serialization,
         dynamic: bool,
-        next_conversions: Optional[Conversions],
+        next_conversion: Optional[AnyConversion],
     ) -> Result:
         return self.visit_with_conv(
-            conversion.target, sub_conversions(conversion, next_conversions)
+            conversion.target, sub_conversion(conversion, next_conversion)
         )
 
 
 class CachedConversionsVisitor(ConversionsVisitor[Conv, Result]):
-    def __init__(self, default_conversions: DefaultConversions):
-        super().__init__(default_conversions)
+    def __init__(self, default_conversion: DefaultConversion):
+        super().__init__(default_conversion)
         self._visit_cache: Dict[
-            Tuple[AnyType, Optional[Conversions], Hashable], Result
+            Tuple[AnyType, Optional[AnyConversion], Hashable], Result
         ] = {}
 
     def _cache_key(self) -> Hashable:

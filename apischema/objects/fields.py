@@ -15,7 +15,7 @@ from typing import (
     cast,
 )
 
-from apischema.conversions.conversions import Conversions
+from apischema.conversions.conversions import AnyConversion
 from apischema.metadata.implem import ConversionMetadata, ValidatorsMetadata
 from apischema.metadata.keys import (
     ALIAS_METADATA,
@@ -110,7 +110,7 @@ class ObjectField:
         return FALL_BACK_ON_DEFAULT_METADATA in self.full_metadata
 
     @property
-    def deserialization(self) -> Optional[Conversions]:
+    def deserialization(self) -> Optional[AnyConversion]:
         conversion = self._conversion
         return conversion.deserialization if conversion is not None else None
 
@@ -148,7 +148,7 @@ class ObjectField:
             return ()
 
     @property
-    def serialization(self) -> Optional[Conversions]:
+    def serialization(self) -> Optional[AnyConversion]:
         conversion = self._conversion
         return conversion.serialization if conversion is not None else None
 

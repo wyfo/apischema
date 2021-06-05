@@ -21,8 +21,8 @@ wrapper, input_cls = dataclass_input_wrapper(prefixed_foo)
 assert wrapper(input_cls("oo", "f")) == prefixed_foo("oo", "f") == Foo("foo")
 
 # Used as conversion
-assert deserialize(Foo, {"baz": "oo", "prefix": "f"}, conversions=wrapper) == Foo("foo")
-assert deserialization_schema(Foo, conversions=wrapper) == {
+assert deserialize(Foo, {"baz": "oo", "prefix": "f"}, conversion=wrapper) == Foo("foo")
+assert deserialization_schema(Foo, conversion=wrapper) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "type": "object",
     "properties": {

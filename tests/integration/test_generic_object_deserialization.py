@@ -17,7 +17,7 @@ repeat_conv = object_deserialization(repeat)
 
 def test_generic_object_deserialization():
     assert deserialize(
-        Collection[int], {"item": 0, "number": 3}, conversions=repeat_conv
+        Collection[int], {"item": 0, "number": 3}, conversion=repeat_conv
     ) == [0, 0, 0]
     with raises(ValidationError):
-        deserialize(Collection[str], {"item": 0, "number": 3}, conversions=repeat_conv)
+        deserialize(Collection[str], {"item": 0, "number": 3}, conversion=repeat_conv)

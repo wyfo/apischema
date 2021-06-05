@@ -2,6 +2,7 @@ import collections.abc
 import inspect
 import re
 import sys
+import warnings
 from contextlib import contextmanager
 from dataclasses import dataclass, is_dataclass
 from enum import Enum
@@ -517,3 +518,26 @@ else:
 
     def type_dict_wrapper(wrapped: D) -> D:
         return wrapped
+
+
+def deprecate_kwargs(
+    parameters_map: Mapping[str, Optional[str]]
+) -> Callable[[Func], Func]:
+    def decorator(func: Func) -> Func:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for param, replacement in parameters_map.items():
+                if param in kwargs:
+                    instead = f", use '{replacement}' instead" if replacement else ""
+                    warnings.warn(
+                        f"{func.__name__} parameter '{param}' is deprecated{instead}",
+                        DeprecationWarning,
+                    )
+                    arg = kwargs.pop(param)
+                    if replacement:
+                        kwargs[replacement] = kwargs.get(replacement, arg)
+            return func(*args, **kwargs)
+
+        return cast(Func, wrapper)
+
+    return decorator

@@ -73,3 +73,4 @@ def register_default_conversions():
 
 
 register_default_conversions()
+del register_default_conversions

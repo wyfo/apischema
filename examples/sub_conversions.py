@@ -30,7 +30,7 @@ class Foo:
 
 
 assert serialization_schema(
-    Query[Foo], conversions=Conversion(query_to_list, sub_conversions=Foo.serialize)
+    Query[Foo], conversion=Conversion(query_to_list, sub_conversion=Foo.serialize)
 ) == {
     # We get an array of Foo
     "type": "array",
