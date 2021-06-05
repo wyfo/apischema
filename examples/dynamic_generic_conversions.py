@@ -14,9 +14,9 @@ def sort_by_priority(values_with_priority: Mapping[T, Priority]) -> Sequence[T]:
 
 
 assert serialize(
-    dict[str, Priority], {"a": 1, "b": 0}, conversions=sort_by_priority
+    dict[str, Priority], {"a": 1, "b": 0}, conversion=sort_by_priority
 ) == ["b", "a"]
-assert serialization_schema(dict[str, Priority], conversions=sort_by_priority) == {
+assert serialization_schema(dict[str, Priority], conversion=sort_by_priority) == {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
     "type": "array",
     "items": {"type": "string"},

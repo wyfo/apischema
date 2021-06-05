@@ -28,7 +28,7 @@ import graphql
 from apischema import settings
 from apischema.aliases import Aliaser
 from apischema.conversions import identity
-from apischema.conversions.conversions import Conversions, DefaultConversions
+from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.visitor import (
     CachedConversionsVisitor,
     Conv,
@@ -251,11 +251,11 @@ class SchemaBuilder(
     def __init__(
         self,
         aliaser: Aliaser,
-        default_conversions: DefaultConversions,
+        default_conversion: DefaultConversion,
         id_type: graphql.GraphQLScalarType,
         is_id: Optional[IdPredicate],
     ):
-        super().__init__(default_conversions)
+        super().__init__(default_conversion)
         self.aliaser = aliaser
         self.id_type = id_type
         self.is_id = is_id or (lambda t: False)
@@ -395,11 +395,11 @@ class SchemaBuilder(
         tp: AnyType,
         conversion: Optional[Conv],
         dynamic: bool,
-        next_conversions: Optional[Conversions] = None,
+        next_conversion: Optional[AnyConversion] = None,
     ) -> TypeFactory[GraphQLTp]:
         if not dynamic and self.is_id(tp) or tp == ID:
             return TypeFactory(lambda *_: graphql.GraphQLNonNull(self.id_type))
-        factory = super().visit_conversion(tp, conversion, dynamic, next_conversions)
+        factory = super().visit_conversion(tp, conversion, dynamic, next_conversion)
         if not dynamic:
             factory = factory.merge(get_type_name(tp), get_schema(tp))
             if get_args(tp):
@@ -458,8 +458,8 @@ class InputSchemaBuilder(
                 default = serialize(
                     field_type,
                     field_default,
-                    conversions=field.deserialization,
                     aliaser=self.aliaser,
+                    conversion=field.deserialization,
                 )
             except Exception:
                 field_type = Optional[field_type]
@@ -516,13 +516,13 @@ class OutputSchemaBuilder(
     def __init__(
         self,
         aliaser: Aliaser,
-        default_conversions: DefaultConversions,
+        default_conversion: DefaultConversion,
         id_type: graphql.GraphQLScalarType,
         is_id: Optional[IdPredicate],
         union_name_factory: UnionNameFactory,
-        default_deserialization: DefaultConversions,
+        default_deserialization: DefaultConversion,
     ):
-        super().__init__(aliaser, default_conversions, id_type, is_id)
+        super().__init__(aliaser, default_conversion, id_type, is_id)
         self.union_name_factory = union_name_factory
         self.input_builder = InputSchemaBuilder(
             self.aliaser, default_deserialization, self.id_type, self.is_id
@@ -531,7 +531,7 @@ class OutputSchemaBuilder(
 
     def _field_serialization_method(self, field: ObjectField) -> SerializationMethod:
         return partial_serialization_method_factory(
-            self.aliaser, field.serialization, self.default_conversions
+            self.aliaser, field.serialization, self.default_conversion
         )(field.type)
 
     def _wrap_resolve(self, resolve: Func) -> Func:
@@ -568,8 +568,8 @@ class OutputSchemaBuilder(
                 field.resolver,
                 field.types,
                 self.aliaser,
-                self.input_builder.default_conversions,
-                self.default_conversions,
+                self.input_builder.default_conversion,
+                self.default_conversion,
             )
         )
         args = None
@@ -600,8 +600,8 @@ class OutputSchemaBuilder(
                         default = serialize(
                             param_type,
                             param.default,
-                            check_type=True,
                             fall_back_on_any=False,
+                            check_type=True,
                         )
                     except Exception:
                         param_type = Optional[param_type]
@@ -618,7 +618,7 @@ class OutputSchemaBuilder(
                     )
 
                 args[self.aliaser(param_field.alias)] = arg_thunk
-        factory = self.visit_with_conv(field.type, field.resolver.conversions)
+        factory = self.visit_with_conv(field.type, field.resolver.conversion)
         return lambda: graphql.GraphQLField(
             factory.type,  # type: ignore
             {name: arg() for name, arg in args.items()} if args else None,
@@ -744,7 +744,7 @@ _fake_type = cast(type, ...)
 class Operation(Generic[T]):
     function: Callable[..., T]
     alias: Optional[str] = None
-    conversions: Optional[Conversions] = None
+    conversion: Optional[AnyConversion] = None
     schema: Optional[Schema] = None
     error_handler: ErrorHandler = Undefined
     parameters_metadata: Mapping[str, Mapping] = field_(default_factory=dict)
@@ -794,7 +794,7 @@ def operation_resolver(
     (*parameters,) = resolver_parameters(operation.function, check_first=True)
     return operation.alias or operation.function.__name__, Resolver(
         wrapper,
-        operation.conversions,
+        operation.conversion,
         operation.schema,
         error_handler,
         parameters,
@@ -819,15 +819,15 @@ def graphql_schema(
     # TODO deprecate union_ref parameter
     union_ref: UnionNameFactory = "Or".join,
     union_name: UnionNameFactory = "Or".join,
-    default_deserialization: DefaultConversions = None,
-    default_serialization: DefaultConversions = None,
+    default_deserialization: DefaultConversion = None,
+    default_serialization: DefaultConversion = None,
 ) -> graphql.GraphQLSchema:
     if aliaser is None:
         aliaser = settings.aliaser
     if default_deserialization is None:
-        default_deserialization = settings.deserialization.default_conversions
+        default_deserialization = settings.deserialization.default_conversion
     if default_serialization is None:
-        default_serialization = settings.serialization.default_conversions
+        default_serialization = settings.serialization.default_conversion
     query_fields: List[ResolverField] = []
     mutation_fields: List[ResolverField] = []
     subscription_fields: List[ResolverField] = []
@@ -855,7 +855,7 @@ def graphql_schema(
             _, *sub_parameters = resolver_parameters(sub_op.resolver, check_first=False)
             resolver = Resolver(
                 sub_op.resolver,
-                sub_op.conversions,
+                sub_op.conversion,
                 sub_op.schema,
                 subscriber2.error_handler,
                 sub_parameters,
@@ -875,7 +875,7 @@ def graphql_schema(
             alias, subscriber2 = operation_resolver(sub_op, Subscription)
             resolver = Resolver(
                 lambda _: _,
-                sub_op.conversions,
+                sub_op.conversion,
                 sub_op.schema,
                 subscriber2.error_handler,
                 (),

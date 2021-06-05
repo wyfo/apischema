@@ -16,12 +16,12 @@ def foo_elements(foo: Foo) -> list[Union[int, Foo]]:
 
 # Recursive conversion pattern
 tmp = None
-conversion = Conversion(foo_elements, sub_conversions=LazyConversion(lambda: tmp))
+conversion = Conversion(foo_elements, sub_conversion=LazyConversion(lambda: tmp))
 tmp = conversion
 
-assert serialize(Foo, Foo([0, Foo([1])]), conversions=conversion) == [0, [1]]
+assert serialize(Foo, Foo([0, Foo([1])]), conversion=conversion) == [0, [1]]
 # Without the recursive sub-conversion, it would have been:
-assert serialize(Foo, Foo([0, Foo([1])]), conversions=foo_elements) == [
+assert serialize(Foo, Foo([0, Foo([1])]), conversion=foo_elements) == [
     0,
     {"elements": [1]},
 ]

@@ -16,12 +16,13 @@ from typing import (
     overload,
 )
 
-from apischema.conversions.conversions import Conversions
+from apischema.conversions.conversions import AnyConversion
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
 from apischema.schemas import Schema
 from apischema.types import AnyType, Undefined, UndefinedType
 from apischema.typing import generic_mro, get_args, get_origin, get_type_hints
 from apischema.utils import (
+    deprecate_kwargs,
     get_args2,
     get_origin_or_type,
     get_origin_or_type2,
@@ -36,7 +37,7 @@ from apischema.utils import (
 @dataclass(frozen=True)
 class SerializedMethod:
     func: Callable
-    conversions: Optional[Conversions]
+    conversion: Optional[AnyConversion]
     schema: Optional[Schema]
     error_handler: Optional[Callable]
 
@@ -122,7 +123,7 @@ def serialized(__method_or_property: MethodOrProp) -> MethodOrProp:
 def serialized(
     alias: str = None,
     *,
-    conversions: Conversions = None,
+    conversion: AnyConversion = None,
     schema: Schema = None,
     error_handler: ErrorHandler = Undefined,
     owner: Type = None,
@@ -130,11 +131,12 @@ def serialized(
     ...
 
 
+@deprecate_kwargs({"conversions": "conversion"})
 def serialized(
     __arg=None,
     *,
     alias: str = None,
-    conversions: Conversions = None,
+    conversion: AnyConversion = None,
     schema: Schema = None,
     error_handler: ErrorHandler = Undefined,
     owner: Type = None,
@@ -164,7 +166,7 @@ def serialized(
                     return error_handler(error, self, alias2)
 
         assert not isinstance(error_handler2, UndefinedType)
-        serialized = SerializedMethod(func, conversions, schema, error_handler2)
+        serialized = SerializedMethod(func, conversion, schema, error_handler2)
         _serialized_methods[owner][alias2] = serialized
 
     if isinstance(__arg, str):

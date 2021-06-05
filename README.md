@@ -81,6 +81,7 @@ assert deserialization_schema(Resource) == {
     "additionalProperties": False,
 }
 
+
 # Define GraphQL operations
 def resources(tags: Optional[Collection[str]] = None) -> Optional[Collection[Resource]]:
     ...

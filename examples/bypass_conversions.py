@@ -18,12 +18,12 @@ class RGB:
 
 assert serialize(RGB, RGB(0, 0, 0)) == "#000000"
 # dynamic conversion used to bypass the registered one
-assert serialize(RGB, RGB(0, 0, 0), conversions=identity) == {
+assert serialize(RGB, RGB(0, 0, 0), conversion=identity) == {
     "red": 0,
     "green": 0,
     "blue": 0,
 }
 # Expended bypass form
 assert serialize(
-    RGB, RGB(0, 0, 0), conversions=Conversion(identity, source=RGB, target=RGB)
+    RGB, RGB(0, 0, 0), conversion=Conversion(identity, source=RGB, target=RGB)
 ) == {"red": 0, "green": 0, "blue": 0}

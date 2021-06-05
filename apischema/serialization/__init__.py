@@ -16,13 +16,13 @@ from typing import (
 from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.conversions import identity
-from apischema.conversions.conversions import Conversions, DefaultConversions
+from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.utils import Converter
 from apischema.conversions.visitor import (
     CachedConversionsVisitor,
     Serialization,
     SerializationVisitor,
-    sub_conversions,
+    sub_conversion,
 )
 from apischema.fields import FIELDS_SET_ATTR, fields_set
 from apischema.objects import AliasedStr, ObjectField
@@ -33,6 +33,7 @@ from apischema.typing import is_new_type, is_type_var, is_typed_dict
 from apischema.utils import (
     Lazy,
     context_setter,
+    deprecate_kwargs,
     get_origin_or_type,
     get_origin_or_type2,
     opt_or,
@@ -68,11 +69,11 @@ class SerializationMethodVisitor(
         aliaser: Aliaser,
         fall_back_on_any: bool,
         check_type: bool,
-        default_conversions: DefaultConversions,
+        default_conversion: DefaultConversion,
         exclude_unset: bool,
         allow_undefined: bool,
     ):
-        super().__init__(default_conversions)
+        super().__init__(default_conversion)
         self.aliaser = aliaser
         self._fall_back_on_any = fall_back_on_any
         self._check_type = check_type
@@ -97,7 +98,7 @@ class SerializationMethodVisitor(
             self._fall_back_on_any,
             self._check_type,
             self._conversions,
-            self.default_conversions,
+            self.default_conversion,
             self._exclude_unset,
             allow_undefined=self._allow_undefined,
         )
@@ -177,7 +178,7 @@ class SerializationMethodVisitor(
                 (
                     self.aliaser(name),
                     method.func,
-                    self.visit_with_conv(types["return"], method.conversions),
+                    self.visit_with_conv(types["return"], method.conversion),
                 )
                 for name, (method, types) in get_serialized_methods(tp).items()
             ]
@@ -315,7 +316,7 @@ class SerializationMethodVisitor(
         tp: AnyType,
         conversion: Serialization,
         dynamic: bool,
-        next_conversions: Optional[Conversions],
+        next_conversion: Optional[AnyConversion],
     ) -> SerializationMethod:
         with context_setter(self) as setter:
             if conversion.fall_back_on_any is not None:
@@ -323,7 +324,7 @@ class SerializationMethodVisitor(
             if conversion.exclude_unset is not None:
                 setter._exclude_unset = conversion.exclude_unset
             serialize_conv = self.visit_with_conv(
-                conversion.target, sub_conversions(conversion, next_conversions)
+                conversion.target, sub_conversion(conversion, next_conversion)
             )
 
         converter = cast(Converter, conversion.converter)
@@ -347,12 +348,12 @@ def serialization_method_factory(
     aliaser: Optional[Aliaser],
     fall_back_on_any: Optional[bool],
     check_type: Optional[bool],
-    conversions: Optional[Conversions],
-    default_conversions: Optional[DefaultConversions],
+    conversion: Optional[AnyConversion],
+    default_conversion: Optional[DefaultConversion],
     exclude_unset: Optional[bool],
     allow_undefined: bool = False,
 ) -> Callable[[AnyType], SerializationMethod]:
-    @lru_cache()
+    @lru_cache(serialization_method_factory.cache_info().maxsize)  # type: ignore
     def factory(tp: AnyType) -> SerializationMethod:
         from apischema import settings
 
@@ -360,10 +361,10 @@ def serialization_method_factory(
             opt_or(aliaser, settings.aliaser),
             opt_or(fall_back_on_any, settings.serialization.fall_back_on_any),
             opt_or(check_type, settings.serialization.check_type),
-            opt_or(default_conversions, settings.serialization.default_conversions),
+            opt_or(default_conversion, settings.serialization.default_conversion),
             opt_or(exclude_unset, settings.serialization.exclude_unset),
             allow_undefined,
-        ).visit_with_conv(tp, conversions)
+        ).visit_with_conv(tp, conversion)
 
     return factory
 
@@ -374,16 +375,16 @@ def serialization_method(
     aliaser: Aliaser = None,
     fall_back_on_any: bool = None,
     check_type: bool = None,
-    conversions: Conversions = None,
-    default_conversions: DefaultConversions = None,
+    conversion: AnyConversion = None,
+    default_conversion: DefaultConversion = None,
     exclude_unset: bool = None,
 ) -> SerializationMethod:
     return serialization_method_factory(
         aliaser,
         fall_back_on_any,
         check_type,
-        conversions,
-        default_conversions,
+        conversion,
+        default_conversion,
         exclude_unset,
     )(type)
 
@@ -399,8 +400,8 @@ def serialize(
     aliaser: Aliaser = None,
     fall_back_on_any: bool = None,
     check_type: bool = None,
-    conversions: Conversions = None,
-    default_conversions: DefaultConversions = None,
+    conversion: AnyConversion = None,
+    default_conversion: DefaultConversion = None,
     exclude_unset: bool = None,
 ) -> Any:
     ...
@@ -413,22 +414,23 @@ def serialize(
     aliaser: Aliaser = None,
     fall_back_on_any: bool = True,
     check_type: bool = None,
-    conversions: Conversions = None,
-    default_conversions: DefaultConversions = None,
+    conversion: AnyConversion = None,
+    default_conversion: DefaultConversion = None,
     exclude_unset: bool = None,
 ) -> Any:
     ...
 
 
-def serialize(  # type: ignore
+@deprecate_kwargs({"conversions": "conversion"})  # type: ignore
+def serialize(
     type: AnyType = Any,
     obj: Any = NO_OBJ,
     *,
     aliaser: Aliaser = None,
     fall_back_on_any: bool = None,
     check_type: bool = None,
-    conversions: Conversions = None,
-    default_conversions: DefaultConversions = None,
+    conversion: AnyConversion = None,
+    default_conversion: DefaultConversion = None,
     exclude_unset: bool = None,
 ) -> Any:
     # Handle overloaded signature without type
@@ -440,7 +442,7 @@ def serialize(  # type: ignore
         aliaser=aliaser,
         fall_back_on_any=fall_back_on_any,
         check_type=check_type,
-        conversions=conversions,
-        default_conversions=default_conversions,
+        conversion=conversion,
+        default_conversion=default_conversion,
         exclude_unset=exclude_unset,
     )(type)(obj)

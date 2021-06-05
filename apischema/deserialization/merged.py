@@ -1,6 +1,6 @@
 from typing import Iterable, Iterator, Mapping, Sequence, Type
 
-from apischema.conversions.conversions import DefaultConversions
+from apischema.conversions.conversions import DefaultConversion
 from apischema.conversions.visitor import DeserializationVisitor
 from apischema.objects import ObjectField
 from apischema.objects.visitor import DeserializationObjectVisitor
@@ -21,7 +21,7 @@ class InitMergedAliasVisitor(
         for field in fields:
             if field.merged:
                 yield from get_deserialization_merged_aliases(
-                    get_origin_or_type(tp), field, self.default_conversions
+                    get_origin_or_type(tp), field, self.default_conversion
                 )
             elif not field.is_aggregate:
                 yield field.alias
@@ -34,11 +34,11 @@ class InitMergedAliasVisitor(
 
 
 def get_deserialization_merged_aliases(
-    cls: Type, field: ObjectField, default_conversions: DefaultConversions
+    cls: Type, field: ObjectField, default_conversion: DefaultConversion
 ) -> Iterator[str]:
     assert field.merged
     try:
-        yield from InitMergedAliasVisitor(default_conversions).visit_with_conv(
+        yield from InitMergedAliasVisitor(default_conversion).visit_with_conv(
             field.type, field.deserialization
         )
     except (NotImplementedError, Unsupported):

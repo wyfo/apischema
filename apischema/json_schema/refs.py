@@ -12,7 +12,7 @@ from typing import (
     TypeVar,
 )
 
-from apischema.conversions.conversions import Conversions, DefaultConversions
+from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.visitor import (
     ConversionsVisitor,
     DeserializationVisitor,
@@ -45,12 +45,12 @@ T = TypeVar("T")
 
 
 class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
-    def __init__(self, default_conversions: DefaultConversions, refs: Refs):
-        super().__init__(default_conversions)
+    def __init__(self, default_conversion: DefaultConversion, refs: Refs):
+        super().__init__(default_conversion)
         self.refs = refs
-        self._rec_guard: Dict[Tuple[AnyType, Optional[Conversions]], int] = defaultdict(
-            lambda: 0
-        )
+        self._rec_guard: Dict[
+            Tuple[AnyType, Optional[AnyConversion]], int
+        ] = defaultdict(lambda: 0)
 
     def _incr_ref(self, ref: Optional[str], tp: AnyType) -> bool:
         if ref is None:
@@ -115,21 +115,21 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
         tp: AnyType,
         conversion: Optional[Any],
         dynamic: bool,
-        next_conversions: Optional[Conversions] = None,
+        next_conversion: Optional[AnyConversion] = None,
     ):
         if not dynamic:
-            for ref_tp in self.resolve_conversions(tp):
+            for ref_tp in self.resolve_conversion(tp):
                 if self._incr_ref(get_type_name(ref_tp).json_schema, ref_tp):
                     return
         if not is_hashable(tp):
-            return super().visit_conversion(tp, conversion, dynamic, next_conversions)
+            return super().visit_conversion(tp, conversion, dynamic, next_conversion)
         # 2 because the first type encountered of the recursive cycle can have no ref
         # (see test_recursive_by_conversion_schema)
         if self._rec_guard[(tp, self._conversions)] > 2:
             raise TypeError(f"Recursive type {tp} need a ref")
         self._rec_guard[(tp, self._conversions)] += 1
         try:
-            super().visit_conversion(tp, conversion, dynamic, next_conversions)
+            super().visit_conversion(tp, conversion, dynamic, next_conversion)
         finally:
             self._rec_guard[(tp, self._conversions)] -= 1
 

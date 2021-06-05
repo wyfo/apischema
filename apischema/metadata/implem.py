@@ -17,7 +17,7 @@ from apischema.metadata.keys import (
 from apischema.types import AnyType, Metadata, MetadataImplem, MetadataMixin
 
 if TYPE_CHECKING:
-    from apischema.conversions.conversions import Conversions
+    from apischema.conversions.conversions import AnyConversion
     from apischema.validation.validators import Validator
 
 
@@ -28,8 +28,8 @@ def simple_metadata(key: str) -> Metadata:
 @dataclass(frozen=True)
 class ConversionMetadata(MetadataMixin):
     key = CONVERSION_METADATA
-    deserialization: Optional["Conversions"] = None
-    serialization: Optional["Conversions"] = None
+    deserialization: Optional["AnyConversion"] = None
+    serialization: Optional["AnyConversion"] = None
 
 
 conversion = ConversionMetadata

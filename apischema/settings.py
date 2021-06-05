@@ -1,8 +1,8 @@
-from typing import Callable, Optional, Sequence, Type
+from typing import Callable, Optional, Sequence
 
 from apischema import cache
 from apischema.aliases import Aliaser
-from apischema.conversions import Conversions
+from apischema.conversions.conversions import DefaultConversion
 from apischema.conversions.converters import (
     default_deserialization,
     default_serialization,
@@ -15,8 +15,6 @@ from apischema.schemas import Schema, default_schema as default_schema_
 from apischema.type_names import TypeName, default_type_name as default_type_name_
 from apischema.types import AnyType
 from apischema.utils import to_camel_case
-
-DefaultConversions = Callable[[Type], Optional[Conversions]]
 
 
 class ResetCache(type):
@@ -49,10 +47,10 @@ class settings(metaclass=MetaSettings):
         coerce: bool = False
         coercer: Coercer = coerce_
         fall_back_on_default: bool = False
-        default_conversions: DefaultConversions = default_deserialization
+        default_conversion: DefaultConversion = default_deserialization
 
     class serialization(metaclass=ResetCache):
         check_type: bool = False
         fall_back_on_any: bool = False
-        default_conversions: DefaultConversions = default_serialization
+        default_conversion: DefaultConversion = default_serialization
         exclude_unset: bool = True

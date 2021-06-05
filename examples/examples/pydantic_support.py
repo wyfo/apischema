@@ -13,17 +13,17 @@ from apischema import (
     serializer,
     settings,
 )
-from apischema.conversions import Conversion, Conversions
+from apischema.conversions import AnyConversion, Conversion
 from apischema.json_schema import deserialization_schema
 from apischema.schemas import Schema
 from apischema.validation.errors import LocalizedError
 
 #################### Pydantic support code starts here
 
-prev_deserialization = settings.deserialization.default_conversions
+prev_deserialization = settings.deserialization.default_conversion
 
 
-def default_deserialization(tp: Any) -> Optional[Conversions]:
+def default_deserialization(tp: Any) -> Optional[AnyConversion]:
     if inspect.isclass(tp) and issubclass(tp, pydantic.BaseModel):
 
         def deserialize_pydantic(data):
@@ -43,7 +43,7 @@ def default_deserialization(tp: Any) -> Optional[Conversions]:
         return prev_deserialization(tp)
 
 
-settings.deserialization.default_conversions = default_deserialization
+settings.deserialization.default_conversion = default_deserialization
 
 prev_schema = settings.default_schema
 

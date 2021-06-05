@@ -16,7 +16,7 @@ def to_timestamp(d: datetime) -> int:
 
 @dataclass
 class Foo:
-    @serialized(conversions=to_timestamp)
+    @serialized(conversion=to_timestamp)
     def some_date(self) -> datetime:
         return datetime(1970, 1, 1)
 

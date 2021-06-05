@@ -39,8 +39,8 @@ def complete_data():
 complete = object_serialization(Data, complete_data)
 
 data = Data(0, "data")
-assert serialize(Data, data, conversions=size_only) == {"id": 0, "size": 4}
-assert serialize(Data, data, conversions=complete) == {
+assert serialize(Data, data, conversion=size_only) == {"id": 0, "size": 4}
+assert serialize(Data, data, conversion=complete) == {
     "id": 0,
     "content": "data",
     "size": 4,

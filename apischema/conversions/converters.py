@@ -16,9 +16,9 @@ from typing import (
 
 from apischema.conversions import LazyConversion
 from apischema.conversions.conversions import (
+    AnyConversion,
     ConvOrFunc,
     Conversion,
-    Conversions,
     resolve_conversion,
 )
 from apischema.conversions.utils import Converter, is_convertible
@@ -46,7 +46,7 @@ Deserializer = TypeVar(
 )
 Serializer = TypeVar("Serializer", bound=Union[Callable, Conversion, property, type])
 
-default_deserialization: Callable[[type], Optional[Conversions]]
+default_deserialization: Callable[[type], Optional[AnyConversion]]
 # defaultdict.get is not hashable in 3.7
 if sys.version_info < (3, 8):
 
@@ -58,7 +58,7 @@ else:
     default_deserialization = _deserializers.get  # type: ignore
 
 
-def default_serialization(tp: Type) -> Optional[Conversions]:
+def default_serialization(tp: Type) -> Optional[AnyConversion]:
     for sub_cls in getattr(tp, "__mro__", [tp]):
         if sub_cls in _serializers:
             conversion = _serializers[sub_cls]
@@ -225,7 +225,7 @@ def inherited_deserializer(method: ClsMethod) -> ClsMethod:
 @overload
 def inherited_deserializer(
     *,
-    sub_conversions: Conversions = None,
+    sub_conversions: AnyConversion = None,
     additional_properties: Optional[bool] = None,
     coercion: Optional["Coerce"] = None,
     fall_back_on_default: Optional[bool] = None,

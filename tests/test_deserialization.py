@@ -44,7 +44,7 @@ class Data:
 
 def test_merged_aliases():
     aliases = get_deserialization_merged_aliases(
-        Data, object_fields(Data)["field"], settings.deserialization.default_conversions
+        Data, object_fields(Data)["field"], settings.deserialization.default_conversion
     )
     assert set(aliases) == {"a", "g", "h", "i", "e"}
 

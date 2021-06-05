@@ -86,7 +86,7 @@ In previous example, conversions where registered using only converter functions
 
 ## Dynamic conversions — select conversions at runtime
 
-No matter if a conversion is registered or not for a given type, conversions can also be provided at runtime, using `conversions` parameter of `deserialize`/`serialize`/`deserialization_schema`/`serialization_schema`.
+No matter if a conversion is registered or not for a given type, conversions can also be provided at runtime, using `conversion` parameter of `deserialize`/`serialize`/`deserialization_schema`/`serialization_schema`.
 
 ```python
 {!dynamic_conversions.py!}
@@ -95,12 +95,12 @@ No matter if a conversion is registered or not for a given type, conversions can
 !!! note
     For `definitions_schema`, conversions can be added with types by using a tuple instead, for example `definitions_schema(serializations=[(list[Foo], foo_to_bar)])`. 
 
-`conversions` parameter can also take a tuple of conversions, when you have a `Union`, a `tuple` or when you want to have several deserializations for the same type.
+`conversion` parameter can also take a tuple of conversions, when you have a `Union`, a `tuple` or when you want to have several deserializations for the same type.
 
 
 ### Dynamic conversions are local
 
-Dynamic conversions are discarded after having been applied (or after class without conversion having been encountered). For example, you can't apply directly a dynamic conversion to a dataclass field when calling `serialize` on an instance of this dataclass. Reasons of this design are detailed in the [FAQ](#whats-the-difference-between-conversions-and-default_conversions-parameters). 
+Dynamic conversions are discarded after having been applied (or after class without conversion having been encountered). For example, you can't apply directly a dynamic conversion to a dataclass field when calling `serialize` on an instance of this dataclass. Reasons of this design are detailed in the [FAQ](#whats-the-difference-between-conversion-and-default_conversion-parameters). 
 
 ```python
 {!local_conversions.py!}
@@ -206,7 +206,7 @@ You can for example [support *attrs*](examples/attrs_support.md) classes with th
 {!examples/attrs_support.py!}
 ```
 
-*apischema* functions (`deserialize`/`serialize`/`deserialization_schema`/`serialization_schema`/`definitions_schema`) also have a `default_conversions` parameter to dynamically modify default conversions. See [FAQ](#whats-the-difference-between-conversions-and-default_conversions-parameters) for the difference between `conversions` and `default_conversions` parameters.
+*apischema* functions (`deserialize`/`serialize`/`deserialization_schema`/`serialization_schema`/`definitions_schema`) also have a `default_conversion` parameter to dynamically modify default conversions. See [FAQ](#whats-the-difference-between-conversion-and-default_conversion-parameters) for the difference between `conversion` and `default_conversion` parameters.
 
 ## Sub-conversions
 
@@ -241,12 +241,12 @@ Lazy conversions can also be registered, but the deserialization target/serializ
 
 ## FAQ
 
-#### What's the difference between `conversions` and `default_conversions` parameters?
+#### What's the difference between `conversion` and `default_conversion` parameters?
 
-Dynamic conversions (`conversions` parameter) exists to ensure consistency and reuse of subschemas referenced (with a `$ref`) in the JSON/*OpenAPI* schema. 
+Dynamic conversions (`conversion` parameter) exists to ensure consistency and reuse of subschemas referenced (with a `$ref`) in the JSON/*OpenAPI* schema. 
 
-In fact, different global conversions (`default_conversions` parameter) could lead to have a field with different schemas depending on global conversions, so class would not be able to be referenced consistently. Because dynamic conversions are local, they cannot mess with an objet field schema.
+In fact, different global conversions (`default_conversion` parameter) could lead to have a field with different schemas depending on global conversions, so class would not be able to be referenced consistently. Because dynamic conversions are local, they cannot mess with an objet field schema.
 
 Schema generation use the same default conversions for all definitions (which can have associated dynamic conversion).
 
-`default_conversions` parameter allows having different (de)serialization contexts, for example to map date to string between frontend and backend, and to timestamp between backend services.
+`default_conversion` parameter allows having different (de)serialization contexts, for example to map date to string between frontend and backend, and to timestamp between backend services.

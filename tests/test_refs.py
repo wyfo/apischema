@@ -40,10 +40,10 @@ class Recursive:
 def test_find_refs():
     refs = {}
     DeserializationSchemaBuilder.RefsExtractor(
-        settings.deserialization.default_conversions, refs
+        settings.deserialization.default_conversion, refs
     ).visit(D)
     DeserializationSchemaBuilder.RefsExtractor(
-        settings.deserialization.default_conversions, refs
+        settings.deserialization.default_conversion, refs
     ).visit(Recursive)
     assert refs == {
         "B": (B, 1),
@@ -117,7 +117,7 @@ def rec_converter(rec: RecConv) -> List[RecConv]:
 
 def test_recursive_conversion_without_ref():
     tmp = None
-    conversion = Conversion(rec_converter, sub_conversions=LazyConversion(lambda: tmp))
+    conversion = Conversion(rec_converter, sub_conversion=LazyConversion(lambda: tmp))
     tmp = conversion
     with raises(TypeError, match=r"Recursive type <.*> need a ref"):
-        serialization_schema(RecConv, conversions=conversion)
+        serialization_schema(RecConv, conversion=conversion)
