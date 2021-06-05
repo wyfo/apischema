@@ -23,7 +23,7 @@ from apischema.metadata.keys import (
     CONVERSION_METADATA,
     DEFAULT_AS_SET_METADATA,
     FALL_BACK_ON_DEFAULT_METADATA,
-    MERGED_METADATA,
+    FLATTENED_METADATA,
     POST_INIT_METADATA,
     PROPERTIES_METADATA,
     REQUIRED_METADATA,
@@ -115,8 +115,8 @@ class ObjectField:
         return conversion.deserialization if conversion is not None else None
 
     @property
-    def merged(self) -> bool:
-        return MERGED_METADATA in self.full_metadata
+    def flattened(self) -> bool:
+        return FLATTENED_METADATA in self.full_metadata
 
     @property
     def post_init(self) -> bool:
@@ -155,7 +155,7 @@ class ObjectField:
     @property
     def is_aggregate(self) -> bool:
         return (
-            self.merged
+            self.flattened
             or self.additional_properties
             or self.pattern_properties is not None
         )

@@ -169,7 +169,7 @@ class SchemaBuilder(
             field.schema,
         )
         if (
-            not field.merged
+            not field.flattened
             and not field.pattern_properties
             and not field.additional_properties
             and not field.required
@@ -208,13 +208,13 @@ class SchemaBuilder(
                 pass
         return JsonSchema()
 
-    def _check_merged_schema(self, cls: Type, field: ObjectField):
-        assert field.merged
+    def _check_flattened_schema(self, cls: Type, field: ObjectField):
+        assert field.flattened
         with context_setter(self):
             self._ignore_first_ref = True
             if self.visit_field(field).get("type") not in {JsonType.OBJECT, "object"}:
                 raise TypeError(
-                    f"Merged field {cls.__name__}.{field.name} must have an object type"
+                    f"Flattened field {cls.__name__}.{field.name} must have an object type"
                 )
 
     @staticmethod
@@ -223,15 +223,15 @@ class SchemaBuilder(
 
     def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> JsonSchema:
         cls = get_origin_or_type(tp)
-        merged_schemas: List[JsonSchema] = []
+        flattened_schemas: List[JsonSchema] = []
         pattern_properties = {}
         additional_properties: Union[bool, JsonSchema] = self.additional_properties
         properties = {}
         required = []
         for field in fields:
-            if field.merged:
-                self._check_merged_schema(cls, field)
-                merged_schemas.append(self.visit_field(field))
+            if field.flattened:
+                self._check_flattened_schema(cls, field)
+                flattened_schemas.append(self.visit_field(field))
             elif field.pattern_properties is not None:
                 if field.pattern_properties is ...:
                     pattern = infer_pattern(field.type, self.default_conversion)
@@ -258,10 +258,10 @@ class SchemaBuilder(
                 for f in sorted(dependent_required, key=alias_by_names)
             ),
         )
-        if merged_schemas:
+        if flattened_schemas:
             result = json_schema(
                 type=JsonType.OBJECT,
-                allOf=[result, *merged_schemas],
+                allOf=[result, *flattened_schemas],
                 unevaluatedProperties=False,
             )
         return result

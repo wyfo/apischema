@@ -32,7 +32,7 @@ In input, fields become nullable when `Undefined` is their default value.
 
 ## Interfaces
 
-Interfaces are simply classes marked with `apischema.graphql.interface` decorator. An object type implements an interface when its class inherits of interface-marked class, or when it has [merged fields](../data_model.md#composed-dataclasses-merging) of interface-marked dataclass.
+Interfaces are simply classes marked with `apischema.graphql.interface` decorator. An object type implements an interface when its class inherits of interface-marked class, or when it has [flattened fields](../data_model.md#composition-over-inheritance---composed-dataclasses-flattening) of interface-marked dataclass.
 
 ```python
 {!interface.py!}

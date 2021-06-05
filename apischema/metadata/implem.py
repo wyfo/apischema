@@ -1,4 +1,5 @@
 import re
+import warnings
 from dataclasses import dataclass
 from typing import Callable, Optional, Pattern, TYPE_CHECKING, Tuple, Union
 
@@ -6,8 +7,8 @@ from apischema.metadata.keys import (
     CONVERSION_METADATA,
     DEFAULT_AS_SET_METADATA,
     FALL_BACK_ON_DEFAULT_METADATA,
+    FLATTENED_METADATA,
     INIT_VAR_METADATA,
-    MERGED_METADATA,
     POST_INIT_METADATA,
     PROPERTIES_METADATA,
     REQUIRED_METADATA,
@@ -38,12 +39,14 @@ default_as_set = simple_metadata(DEFAULT_AS_SET_METADATA)
 
 fall_back_on_default = simple_metadata(FALL_BACK_ON_DEFAULT_METADATA)
 
+flattened = simple_metadata(FLATTENED_METADATA)
+
 
 def init_var(tp: AnyType) -> Metadata:
     return MetadataImplem({INIT_VAR_METADATA: tp})
 
 
-merged = simple_metadata(MERGED_METADATA)
+merged = flattened
 
 post_init = simple_metadata(POST_INIT_METADATA)
 
@@ -77,3 +80,11 @@ def validators(*validator: Callable) -> ValidatorsMetadata:
     from apischema.validation.validators import Validator
 
     return ValidatorsMetadata(tuple(map(Validator, validator)))
+
+
+def __getattr__(name):
+    if name == "merged":
+        warnings.warn(
+            "metadata.merged is deprecated, use metadata.flattened instead",
+            DeprecationWarning,
+        )
