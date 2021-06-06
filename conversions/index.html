@@ -346,8 +346,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#dynamic-conversions-interact-with-schema_ref" class="md-nav__link">
-    Dynamic conversions interact with schema_ref
+  <a href="#dynamic-conversions-interact-with-type_name" class="md-nav__link">
+    Dynamic conversions interact with type_name
   </a>
   
 </li>
@@ -393,15 +393,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dataclass-model-automatic-conversion-fromto-dataclass" class="md-nav__link">
-    Dataclass model - automatic conversion from/to dataclass
+  <a href="#string-conversions" class="md-nav__link">
+    String conversions
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#function-parameters-as-dataclass" class="md-nav__link">
-    Function parameters as dataclass
+  <a href="#object-deserialization-transform-function-into-a-dataclass-deserializer" class="md-nav__link">
+    Object deserialization — transform function into a dataclass deserializer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#object-serialization-select-only-a-subset-of-fields" class="md-nav__link">
+    Object serialization — select only a subset of fields
   </a>
   
 </li>
@@ -425,6 +432,19 @@
     Lazy/recursive conversions
   </a>
   
+    <nav class="md-nav" aria-label="Lazy/recursive conversions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lazy-registered-conversions" class="md-nav__link">
+    Lazy registered conversions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -436,22 +456,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#why-conversion-can-only-be-applied-on-classes" class="md-nav__link">
-    Why conversion can only be applied on classes?
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#why-annotated-cannot-be-used-to-specified-conversions" class="md-nav__link">
-    Why Annotated cannot be used to specified conversions?
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#why-dynamic-conversion-cannot-apply-on-the-whole-data-model" class="md-nav__link">
-    Why dynamic conversion cannot apply on the whole data model?
+  <a href="#whats-the-difference-between-conversion-and-default_conversion-parameters" class="md-nav__link">
+    What's the difference between conversion and default_conversion parameters?
   </a>
   
 </li>
@@ -625,8 +631,20 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/subclasses_union/" title="Class as union of its subclasses" class="md-nav__link">
+    <a href="../examples/subclass_union/" title="Class as union of its subclasses" class="md-nav__link">
       Class as union of its subclasses
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/subclass_tagged_union/" title="Class as tagged union of its subclasses" class="md-nav__link">
+      Class as tagged union of its subclasses
     </a>
   </li>
 
@@ -639,6 +657,18 @@
   <li class="md-nav__item">
     <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
       Recoverable fields
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/inherited_deserializer/" title="Inherited deserializer" class="md-nav__link">
+      Inherited deserializer
     </a>
   </li>
 
@@ -773,8 +803,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#dynamic-conversions-interact-with-schema_ref" class="md-nav__link">
-    Dynamic conversions interact with schema_ref
+  <a href="#dynamic-conversions-interact-with-type_name" class="md-nav__link">
+    Dynamic conversions interact with type_name
   </a>
   
 </li>
@@ -820,15 +850,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dataclass-model-automatic-conversion-fromto-dataclass" class="md-nav__link">
-    Dataclass model - automatic conversion from/to dataclass
+  <a href="#string-conversions" class="md-nav__link">
+    String conversions
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#function-parameters-as-dataclass" class="md-nav__link">
-    Function parameters as dataclass
+  <a href="#object-deserialization-transform-function-into-a-dataclass-deserializer" class="md-nav__link">
+    Object deserialization — transform function into a dataclass deserializer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#object-serialization-select-only-a-subset-of-fields" class="md-nav__link">
+    Object serialization — select only a subset of fields
   </a>
   
 </li>
@@ -852,6 +889,19 @@
     Lazy/recursive conversions
   </a>
   
+    <nav class="md-nav" aria-label="Lazy/recursive conversions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lazy-registered-conversions" class="md-nav__link">
+    Lazy registered conversions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -863,22 +913,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#why-conversion-can-only-be-applied-on-classes" class="md-nav__link">
-    Why conversion can only be applied on classes?
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#why-annotated-cannot-be-used-to-specified-conversions" class="md-nav__link">
-    Why Annotated cannot be used to specified conversions?
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#why-dynamic-conversion-cannot-apply-on-the-whole-data-model" class="md-nav__link">
-    Why dynamic conversion cannot apply on the whole data model?
+  <a href="#whats-the-difference-between-conversion-and-default_conversion-parameters" class="md-nav__link">
+    What's the difference between conversion and default_conversion parameters?
   </a>
   
 </li>
@@ -910,7 +946,7 @@
                 
                 <h1 id="conversions-deserialization-customization">Conversions – (de)serialization customization<a class="headerlink" href="#conversions-deserialization-customization" title="Permanent link">&para;</a></h1>
 <p><em>apischema</em> covers majority of standard data types, but it's of course not enough, that's why it gives you the way to add support for all your classes and the libraries you use.</p>
-<p>Actually, <em>apischema</em> uses internally its own feature to support standard library data types like UUID/datetime/etc. (see <a href="https://github.com/wyfo/apischema/blob/master/apischema/std_types.py">std_types.py</a>)</p>
+<p>Actually, <em>apischema</em> uses its own feature to provide a basic support for standard library data types like UUID/datetime/etc. (see <a href="https://github.com/wyfo/apischema/blob/master/apischema/std_types.py">std_types.py</a>)</p>
 <p>ORM support can easily be achieved with this feature (see <a href="../examples/sqlalchemy_support/">SQLAlchemy example</a>).</p>
 <p>In fact, you can even add support of competitor libraries like <em>Pydantic</em> (see <a href="../examples/pydantic_support/"><em>Pydantic</em> compatibility example</a>)</p>
 <h2 id="principle-apischema-conversions">Principle - apischema conversions<a class="headerlink" href="#principle-apischema-conversions" title="Permanent link">&para;</a></h2>
@@ -952,7 +988,7 @@
 
 
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">,</span> <span class="s2">&quot;#000000&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">42</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;#00002a&quot;</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">,</span> <span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">42</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;#00002a&quot;</span>
 <span class="k">assert</span> <span class="p">(</span>
     <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">RGB</span><span class="p">)</span>
     <span class="o">==</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">RGB</span><span class="p">)</span>
@@ -1021,7 +1057,7 @@
 
 
 <span class="c1"># Deserializer is inherited</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span> <span class="o">==</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo2</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">())</span> <span class="o">==</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo2</span><span class="p">,</span> <span class="n">Foo2</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span>
 
 
 <span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
@@ -1036,44 +1072,18 @@
 
 
 <span class="c1"># Deserializer is inherited and overridden</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Bar</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">!=</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Bar2</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Bar</span><span class="p">,</span> <span class="n">Bar</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">!=</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Bar2</span><span class="p">,</span> <span class="n">Bar2</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span>
 </code></pre></div>
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 </div>
-<p>Inheritance can also be toggled off in specific cases, like in the <a href="../examples/subclasses_union/">Class as union of its subclasses</a> example</p>
+<p>Inheritance can also be toggled off in specific cases, like in the <a href="../examples/subclass_union/">Class as union of its subclasses</a> example</p>
 <p>On the other hand, deserializers cannot be inherited, because the same <code>Source</code> passed to a conversion function <code>(Source) -&gt; Target</code> will always give the same <code>Target</code> (not ensured to be the desired subtype).</p>
-<p>However, there is one way to do it by using a <code>classmethod</code> and the special decorator <code>apischema.conversions.inherited_deserializer</code>; the class parameter of the method is then assumed to be used to instantiate the return.  </p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span>
-<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">inherited_deserializer</span>
-
-
-<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="nb">int</span>
-
-    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">n</span>
-
-    <span class="nd">@inherited_deserializer</span>
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_int</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-
-
-<span class="k">class</span> <span class="nc">Bar</span><span class="p">(</span><span class="n">Foo</span><span class="p">):</span>
-    <span class="k">pass</span>
-
-
-<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Bar</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">Bar</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">!=</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-</code></pre></div>
-
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>An "other" way to achieve that would be to use <code>__init_subclass__</code> method in order to add a deserializer to each subclass. In fact, that's what <code>inherited_deserializer</code> is doing behind the scene.</p>
 </div>
+<p>Pseudo-inheritance could be achieved by registering a conversion (using for example a <code>classmethod</code>) for each subclass in <code>__init_subclass__</code> method (or a metaclass), or by using <code>__subclasses__</code>; see <a href="../examples/inherited_deserializer/">example</a></p>
 <h2 id="generic-conversions">Generic conversions<a class="headerlink" href="#generic-conversions" title="Permanent link">&para;</a></h2>
 <p><code>Generic</code> conversions are supported out of the box.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">TypeVar</span>
@@ -1091,20 +1101,19 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wrapped</span><span class="p">:</span> <span class="n">T</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">wrapped</span> <span class="o">=</span> <span class="n">wrapped</span>
 
-    <span class="c1"># serializer decorator for methods of generic class is not supported in Python 3.6</span>
+    <span class="nd">@serializer</span>
     <span class="k">def</span> <span class="nf">unwrap</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapped</span>
 
 
-<span class="c1"># Wrapper constructor can be used as a function too</span>
+<span class="c1"># Wrapper constructor can be used as a function too (so deserializer could work as decorator)</span>
 <span class="n">deserializer</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">)</span>
-<span class="n">serializer</span><span class="p">(</span><span class="n">Wrapper</span><span class="o">.</span><span class="n">unwrap</span><span class="p">)</span>
 
 
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">wrapped</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="s2">&quot;wrapped&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">(</span><span class="s2">&quot;wrapped&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;wrapped&quot;</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Wrapper</span><span class="p">(</span><span class="s2">&quot;wrapped&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;wrapped&quot;</span>
 <span class="k">assert</span> <span class="p">(</span>
     <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Wrapper</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span>
     <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}</span>
@@ -1112,10 +1121,6 @@
 <span class="p">)</span>
 </code></pre></div>
 
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>(De)serializer cannot decorate methods of <code>Generic</code> classes in Python 3.6, it has to be used outside of class.</p>
-</div>
 <p>However, it's not allowed to register a conversion of a specialized generic type, like <code>Foo[int]</code>(see <a href="#why-conversion-can-only-be-applied-on-classes-and-not-on-others-types-newtype-fooint-etc">FAQ</a>).</p>
 <h2 id="conversion-object">Conversion object<a class="headerlink" href="#conversion-object" title="Permanent link">&para;</a></h2>
 <p>In previous example, conversions where registered using only converter functions. However, everywhere you can pass a converter, you can also pass a <code>apischema.conversions.Conversion</code> instance.
@@ -1135,13 +1140,15 @@
 </code></pre></div>
 
 <h2 id="dynamic-conversions-select-conversions-at-runtime">Dynamic conversions — select conversions at runtime<a class="headerlink" href="#dynamic-conversions-select-conversions-at-runtime" title="Permanent link">&para;</a></h2>
-<p>No matter if a conversion is registered or not for a given type, conversions can also be provided at runtime, using <code>conversions</code> parameter of <code>deserialize</code>/<code>serialize</code>/<code>deserialization_schema</code>/<code>serialization_schema</code>.</p>
+<p>No matter if a conversion is registered or not for a given type, conversions can also be provided at runtime, using <code>conversion</code> parameter of <code>deserialize</code>/<code>serialize</code>/<code>deserialization_schema</code>/<code>serialization_schema</code>.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">conversion</span>
 
 <span class="c1"># Set UTC timezone for example</span>
 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TZ&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;UTC&quot;</span>
@@ -1153,7 +1160,7 @@
 
 
 <span class="n">date</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2017</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="mi">1504310400</span><span class="p">,</span> <span class="n">conversions</span><span class="o">=</span><span class="n">datetime_from_timestamp</span><span class="p">)</span> <span class="o">==</span> <span class="n">date</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="mi">1504310400</span><span class="p">,</span> <span class="n">conversion</span><span class="o">=</span><span class="n">datetime_from_timestamp</span><span class="p">)</span> <span class="o">==</span> <span class="n">date</span>
 
 
 <span class="nd">@dataclass</span>
@@ -1169,19 +1176,20 @@
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bar</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">baz</span><span class="p">)</span>
 
 
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">conversions</span><span class="o">=</span><span class="n">Foo</span><span class="o">.</span><span class="n">sum</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">conversions</span><span class="o">=</span><span class="n">Foo</span><span class="o">.</span><span class="n">diff</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">conversion</span><span class="o">=</span><span class="n">Foo</span><span class="o">.</span><span class="n">sum</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">conversion</span><span class="o">=</span><span class="n">Foo</span><span class="o">.</span><span class="n">diff</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+<span class="c1"># conversions can be specified using Annotated</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Annotated</span><span class="p">[</span><span class="n">Foo</span><span class="p">,</span> <span class="n">conversion</span><span class="p">(</span><span class="n">serialization</span><span class="o">=</span><span class="n">Foo</span><span class="o">.</span><span class="n">sum</span><span class="p">)],</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span>
 </code></pre></div>
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For <code>definitions_schema</code>, conversions can be added with types by using a tuple instead, for example <code>definitions_schema(serializations=[(list[Foo], foo_to_bar)])</code>. </p>
 </div>
-<p><code>conversions</code> parameter can also take a list of conversions, when you have a <code>Union</code>, a <code>tuple</code> or when you want to have several deserializations for the same type</p>
+<p><code>conversion</code> parameter can also take a tuple of conversions, when you have a <code>Union</code>, a <code>tuple</code> or when you want to have several deserializations for the same type.</p>
 <h3 id="dynamic-conversions-are-local">Dynamic conversions are local<a class="headerlink" href="#dynamic-conversions-are-local" title="Permanent link">&para;</a></h3>
-<p>Dynamic conversions are discarded after having been applied (or after class without conversion having been encountered). For example, you can't apply directly a dynamic conversion to a dataclass field when calling  <code>serialize</code> on an instance of this dataclass. Reasons of this design are detailed in the <a href="#why-dynamic-conversion-cannot-apply-on-the-whole-data-model">FAQ</a>. </p>
-<p>However, there is an exception for containers like <code>Collection</code>, <code>list</code>, <code>dict</code>, etc. and <code>Union</code>, and types with a registered conversion from/to a container: dynamic conversions are not discarded and can be used by their elements </p>
+<p>Dynamic conversions are discarded after having been applied (or after class without conversion having been encountered). For example, you can't apply directly a dynamic conversion to a dataclass field when calling <code>serialize</code> on an instance of this dataclass. Reasons of this design are detailed in the <a href="#whats-the-difference-between-conversion-and-default_conversion-parameters">FAQ</a>. </p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -1205,19 +1213,23 @@
 
 <span class="c1"># timestamp conversion is not applied on Foo field because it&#39;s discarded</span>
 <span class="c1"># when encountering Foo</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">13</span><span class="p">)),</span> <span class="n">conversions</span><span class="o">=</span><span class="n">to_timestamp</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">13</span><span class="p">)),</span> <span class="n">conversion</span><span class="o">=</span><span class="n">to_timestamp</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="s2">&quot;2019-10-13T00:00:00&quot;</span>
 <span class="p">}</span>
 
 <span class="c1"># timestamp conversion is applied on every member of list</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">([</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)],</span> <span class="n">conversions</span><span class="o">=</span><span class="n">to_timestamp</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="n">datetime</span><span class="p">],</span> <span class="p">[</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)],</span> <span class="n">conversion</span><span class="o">=</span><span class="n">to_timestamp</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </code></pre></div>
 
-<h3 id="dynamic-conversions-interact-with-schema_ref">Dynamic conversions interact with <code>schema_ref</code><a class="headerlink" href="#dynamic-conversions-interact-with-schema_ref" title="Permanent link">&para;</a></h3>
-<p>Dynamic conversions are applied before looking for a ref registered with <code>schema_ref</code></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Dynamic conversion is not discarded when the encountered type is a container (<code>list</code>, <code>dict</code>, <code>Collection</code>, etc. or <code>Union</code>) or a registered conversion from/to a container; the dynamic conversion can then apply to the container elements</p>
+</div>
+<h3 id="dynamic-conversions-interact-with-type_name">Dynamic conversions interact with <code>type_name</code><a class="headerlink" href="#dynamic-conversions-interact-with-type_name" title="Permanent link">&para;</a></h3>
+<p>Dynamic conversions are applied before looking for a ref registered with <code>type_name</code></p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema_ref</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">type_name</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">serialization_schema</span>
 
 
@@ -1235,9 +1247,9 @@
     <span class="k">return</span> <span class="n">Bar</span><span class="p">()</span>
 
 
-<span class="n">schema_ref</span><span class="p">(</span><span class="s2">&quot;Bars&quot;</span><span class="p">)(</span><span class="nb">list</span><span class="p">[</span><span class="n">Bar</span><span class="p">])</span>
+<span class="n">type_name</span><span class="p">(</span><span class="s2">&quot;Bars&quot;</span><span class="p">)(</span><span class="nb">list</span><span class="p">[</span><span class="n">Bar</span><span class="p">])</span>
 
-<span class="k">assert</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="n">Foo</span><span class="p">],</span> <span class="n">all_refs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">conversions</span><span class="o">=</span><span class="n">foo_to_bar</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+<span class="k">assert</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="n">Foo</span><span class="p">],</span> <span class="n">conversion</span><span class="o">=</span><span class="n">foo_to_bar</span><span class="p">,</span> <span class="n">all_refs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Bars&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$defs&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -1253,7 +1265,7 @@
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
-<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">identity</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">Conversion</span><span class="p">,</span> <span class="n">identity</span>
 
 
 <span class="nd">@dataclass</span>
@@ -1268,15 +1280,23 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;#</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">red</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">green</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">blue</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span>
 
 
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;#000000&quot;</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">,</span> <span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;#000000&quot;</span>
 <span class="c1"># dynamic conversion used to bypass the registered one</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">conversions</span><span class="o">=</span><span class="n">identity</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">RGB</span><span class="p">,</span> <span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">conversion</span><span class="o">=</span><span class="n">identity</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="s2">&quot;red&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
     <span class="s2">&quot;green&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
     <span class="s2">&quot;blue&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 <span class="p">}</span>
+<span class="c1"># Expended bypass form</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span>
+    <span class="n">RGB</span><span class="p">,</span> <span class="n">RGB</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">conversion</span><span class="o">=</span><span class="n">Conversion</span><span class="p">(</span><span class="n">identity</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">RGB</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">RGB</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;red&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;blue&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
 </code></pre></div>
 
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For a more precise selection of bypassed conversion, for <code>tuple</code> or <code>Union</code> member for example, it's possible to pass the concerned class as the source <em>and</em> the target of conversion <em>with</em> <code>identity</code> converter, as shown in the example. </p>
+</div>
 <h3 id="liskov-substitution-principle">Liskov substitution principle<a class="headerlink" href="#liskov-substitution-principle" title="Permanent link">&para;</a></h3>
 <p>LSP is taken in account when applying dynamic conversion: serializer source can be a subclass of the actual class and deserializer target can be a superclass of the actual class.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -1302,8 +1322,8 @@
     <span class="k">return</span> <span class="n">Bar</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
 
 
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Bar</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="n">conversions</span><span class="o">=</span><span class="n">foo_to_int</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
-<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">conversions</span><span class="o">=</span><span class="n">bar_from_int</span><span class="p">)</span> <span class="o">==</span> <span class="n">Bar</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Bar</span><span class="p">,</span> <span class="n">Bar</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="n">conversion</span><span class="o">=</span><span class="n">foo_to_int</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">conversion</span><span class="o">=</span><span class="n">bar_from_int</span><span class="p">)</span> <span class="o">==</span> <span class="n">Bar</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span>
 </code></pre></div>
 
 <h3 id="generic-dynamic-conversions">Generic dynamic conversions<a class="headerlink" href="#generic-dynamic-conversions" title="Permanent link">&para;</a></h3>
@@ -1323,8 +1343,10 @@
     <span class="k">return</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">values_with_priority</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">))]</span>
 
 
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="n">conversions</span><span class="o">=</span><span class="n">sort_by_priority</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">]</span>
-<span class="k">assert</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Priority</span><span class="p">],</span> <span class="n">conversions</span><span class="o">=</span><span class="n">sort_by_priority</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span>
+    <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Priority</span><span class="p">],</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="n">conversion</span><span class="o">=</span><span class="n">sort_by_priority</span>
+<span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Priority</span><span class="p">],</span> <span class="n">conversion</span><span class="o">=</span><span class="n">sort_by_priority</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
     <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
@@ -1362,7 +1384,7 @@
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;some_date&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;other_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2019-10-13&quot;</span><span class="p">})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span>
     <span class="n">datetime</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
 <span class="p">)</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">13</span><span class="p">)))</span> <span class="o">==</span> <span class="p">{</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">13</span><span class="p">)))</span> <span class="o">==</span> <span class="p">{</span>
     <span class="s2">&quot;some_date&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
     <span class="s2">&quot;other_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2019-10-13T00:00:00&quot;</span><span class="p">,</span>
 <span class="p">}</span>
@@ -1373,7 +1395,7 @@
 <p>It's possible to pass a conversion only for deserialization or only for serialization</p>
 </div>
 <h2 id="serialized-method-conversions">Serialized method conversions<a class="headerlink" href="#serialized-method-conversions" title="Permanent link">&para;</a></h2>
-<p>Serialized method can also have dedicated conversions</p>
+<p>Serialized methods can also have dedicated conversions for their return</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -1392,215 +1414,178 @@
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-    <span class="nd">@serialized</span><span class="p">(</span><span class="n">conversions</span><span class="o">=</span><span class="n">to_timestamp</span><span class="p">)</span>
+    <span class="nd">@serialized</span><span class="p">(</span><span class="n">conversion</span><span class="o">=</span><span class="n">to_timestamp</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">some_date</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
 
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;some_date&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;some_date&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
 </code></pre></div>
 
-<h2 id="dataclass-model-automatic-conversion-fromto-dataclass">Dataclass model - automatic conversion from/to dataclass<a class="headerlink" href="#dataclass-model-automatic-conversion-fromto-dataclass" title="Permanent link">&para;</a></h2>
-<p>Conversions are a powerful tool, which allows to support every type you need. If it is particularly well suited for scalar types (<code>datetime.datetime</code>, <code>bson.ObjectId</code>, etc.), it may seem a little bit complex for object types. In fact, the conversion would often be a simple mapping of fields between the type and a dataclass.</p>
-<p>That's why <em>apischema</em> provides a shortcut for this case: <code>apischema.conversions.dataclass_model</code>; it allows to specify a dataclass which will be used as a typed model for a given class : each field of the dataclass will be mapped on the attributes of the class instances.
-The function returns two <code>Conversion</code> object, one for deserialization and the other for serialization. They can then be registered with <code>serializer</code>/<code>deserializer</code>, or be used dynamically.</p>
-<p>Remember that dataclass can also be declared dynamically with <code>dataclasses.make_dataclasses</code>. That's especially useful when it comes to add support for libraries like ORM. The following example show how to add a <a href="../examples/sqlalchemy_support/">basic support for 
-<em>SQLAlchemy</em></a>:</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Collection</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">field</span><span class="p">,</span> <span class="n">make_dataclass</span>
-<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">getmembers</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+<h2 id="string-conversions">String conversions<a class="headerlink" href="#string-conversions" title="Permanent link">&para;</a></h2>
+<p>A common pattern of conversion concerns class having a string constructor and a <code>__str__</code> method; standard types <code>uuid.UUID</code>, <code>pathlib.Path</code>, <code>ipaddress.IPv4Address</code> are concerned. Using <code>apischema.conversions.as_str</code> will register a string-deserializer from the constructor and a string-serializer from the <code>__str__</code> method.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">bson</span>
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
-<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">String</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">as_declarative</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Unsupported</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">as_str</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
-<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">dataclass_model</span>
-<span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
-<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">serialization_schema</span>
-<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">required</span>
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">Unsupported</span><span class="p">):</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">bson</span><span class="o">.</span><span class="n">ObjectId</span><span class="p">,</span> <span class="s2">&quot;0123456789ab0123456789ab&quot;</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">Unsupported</span><span class="p">):</span>
+    <span class="n">serialize</span><span class="p">(</span><span class="n">bson</span><span class="o">.</span><span class="n">ObjectId</span><span class="p">,</span> <span class="n">bson</span><span class="o">.</span><span class="n">ObjectId</span><span class="p">(</span><span class="s2">&quot;0123456789ab0123456789ab&quot;</span><span class="p">))</span>
 
+<span class="n">as_str</span><span class="p">(</span><span class="n">bson</span><span class="o">.</span><span class="n">ObjectId</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">column_type</span><span class="p">(</span><span class="n">column</span><span class="p">:</span> <span class="n">Column</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="n">col_type</span> <span class="o">=</span> <span class="n">column</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">python_type</span>
-    <span class="k">return</span> <span class="n">Optional</span><span class="p">[</span><span class="n">col_type</span><span class="p">]</span> <span class="k">if</span> <span class="n">column</span><span class="o">.</span><span class="n">nullable</span> <span class="k">else</span> <span class="n">col_type</span>
-
-
-<span class="k">def</span> <span class="nf">column_field</span><span class="p">(</span><span class="n">column</span><span class="p">:</span> <span class="n">Column</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">column</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">column</span><span class="o">.</span><span class="n">default</span>
-    <span class="k">elif</span> <span class="n">column</span><span class="o">.</span><span class="n">server_default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">Undefined</span>
-    <span class="k">elif</span> <span class="n">column</span><span class="o">.</span><span class="n">nullable</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># Put default everywhere to avoid</span>
-        <span class="k">return</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=...</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">required</span><span class="p">)</span>
-
-
-<span class="c1"># Very basic SQLAlchemy support</span>
-<span class="nd">@as_declarative</span><span class="p">()</span>
-<span class="k">class</span> <span class="nc">Base</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="n">columns</span> <span class="o">=</span> <span class="n">getmembers</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">Column</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">columns</span><span class="p">:</span>
-            <span class="k">return</span>
-
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="n">column</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">column_type</span><span class="p">(</span><span class="n">column</span><span class="p">),</span> <span class="n">column_field</span><span class="p">(</span><span class="n">column</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span>
-        <span class="p">]</span>
-        <span class="n">d_conv</span><span class="p">,</span> <span class="n">s_conv</span> <span class="o">=</span> <span class="n">dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">make_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">fields</span><span class="p">))</span>
-        <span class="n">deserializer</span><span class="p">(</span><span class="n">d_conv</span><span class="p">)</span>
-        <span class="n">serializer</span><span class="p">(</span><span class="n">s_conv</span><span class="p">)</span>
-
-
-<span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;foo&quot;</span>
-    <span class="n">bar</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">baz</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
-
-
-<span class="n">foo</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
-<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">foo</span><span class="o">.</span><span class="n">bar</span> <span class="o">==</span> <span class="mi">0</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
-<span class="k">assert</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
-    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]}},</span>
-    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-<span class="p">}</span>
-
-
-<span class="k">def</span> <span class="nf">foos</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Collection</span><span class="p">[</span><span class="n">Foo</span><span class="p">]]:</span>
-    <span class="o">...</span>
-
-
-<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foos</span><span class="p">])</span>
-<span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">type Query {</span>
-<span class="s2">  foos: [Foo!]</span>
-<span class="s2">}</span>
-
-<span class="s2">type Foo {</span>
-<span class="s2">  bar: Int!</span>
-<span class="s2">  baz: String</span>
-<span class="s2">}</span>
-<span class="s2">&quot;&quot;&quot;</span>
-<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">bson</span><span class="o">.</span><span class="n">ObjectId</span><span class="p">,</span> <span class="s2">&quot;0123456789ab0123456789ab&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">bson</span><span class="o">.</span><span class="n">ObjectId</span><span class="p">(</span>
+    <span class="s2">&quot;0123456789ab0123456789ab&quot;</span>
+<span class="p">)</span>
+<span class="k">assert</span> <span class="p">(</span>
+    <span class="n">serialize</span><span class="p">(</span><span class="n">bson</span><span class="o">.</span><span class="n">ObjectId</span><span class="p">,</span> <span class="n">bson</span><span class="o">.</span><span class="n">ObjectId</span><span class="p">(</span><span class="s2">&quot;0123456789ab0123456789ab&quot;</span><span class="p">))</span>
+    <span class="o">==</span> <span class="s2">&quot;0123456789ab0123456789ab&quot;</span>
+<span class="p">)</span>
 </code></pre></div>
 
-<p>There are two differences with regular conversions :</p>
-<ul>
-<li>The dataclass model computation can be deferred until it's needed. This is because some libraries do some resolutions after class definition (for example SQLAchemy resolves dynamic string references in relationships). So you could replace the following line in the example, it would works too.</li>
-</ul>
-<div class="codehilite"><pre><span></span><code><span class="c1"># dataclass_model(cls)(make_dataclass(cls.__name__, fields))</span>
-<span class="n">dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">)(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">make_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">fields</span><span class="p">))</span>
-</code></pre></div>
-
-<ul>
-<li><a href="../de_serialization/#serialized-methodsproperties">Serialized methods/properties</a> of the class are automatically added to the dataclass model (but you can also declare serialized methods in the dataclass model). This behavior can be toggled off using <code>fields_only</code> parameter with a <code>True</code> value. </li>
-</ul>
-<h2 id="function-parameters-as-dataclass">Function parameters as dataclass<a class="headerlink" href="#function-parameters-as-dataclass" title="Permanent link">&para;</a></h2>
-<p><code>apischema.conversions.dataclass_input_wrapper</code> can convert a function into a new function taking a unique parameter, a dataclass whose fields are mapped from the original function parameters.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Previously mentioned standard types are handled by <em>apischema</em> using <code>as_str</code>.</p>
+</div>
+<h2 id="object-deserialization-transform-function-into-a-dataclass-deserializer">Object deserialization — transform function into a dataclass deserializer<a class="headerlink" href="#object-deserialization-transform-function-into-a-dataclass-deserializer" title="Permanent link">&para;</a></h2>
+<p><code>apischema.objects.object_deserialization</code> can convert a function into a new function taking a unique parameter, a dataclass whose fields are mapped from the original function parameters.</p>
 <p>It can be used for example to build a deserialization conversion from an alternative constructor.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span>
-
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">alias</span><span class="p">,</span> <span class="n">deserialize</span>
-<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">dataclass_input_wrapper</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">type_name</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+<span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">object_deserialization</span>
 
 
-<span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-    <span class="n">bar</span><span class="p">:</span> <span class="nb">str</span>
+<span class="k">def</span> <span class="nf">create_range</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">range</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
 
 
-<span class="c1"># Annotated can be used to add metadata to mapped fields</span>
-<span class="k">def</span> <span class="nf">prefixed_foo</span><span class="p">(</span><span class="n">baz</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pfx</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">alias</span><span class="p">(</span><span class="s2">&quot;prefix&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">Foo</span><span class="p">(</span><span class="n">pfx</span> <span class="o">+</span> <span class="n">baz</span><span class="p">)</span>
-
-
-<span class="n">wrapper</span><span class="p">,</span> <span class="n">input_cls</span> <span class="o">=</span> <span class="n">dataclass_input_wrapper</span><span class="p">(</span><span class="n">prefixed_foo</span><span class="p">)</span>
-
-<span class="k">assert</span> <span class="n">wrapper</span><span class="p">(</span><span class="n">input_cls</span><span class="p">(</span><span class="s2">&quot;oo&quot;</span><span class="p">,</span> <span class="s2">&quot;f&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="n">prefixed_foo</span><span class="p">(</span><span class="s2">&quot;oo&quot;</span><span class="p">,</span> <span class="s2">&quot;f&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="s2">&quot;foo&quot;</span><span class="p">)</span>
-
-<span class="c1"># Used as conversion</span>
-<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="s2">&quot;oo&quot;</span><span class="p">,</span> <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="s2">&quot;f&quot;</span><span class="p">},</span> <span class="n">conversions</span><span class="o">=</span><span class="n">wrapper</span><span class="p">)</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="s2">&quot;foo&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">conversions</span><span class="o">=</span><span class="n">wrapper</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+<span class="n">range_conv</span> <span class="o">=</span> <span class="n">object_deserialization</span><span class="p">(</span><span class="n">create_range</span><span class="p">,</span> <span class="n">type_name</span><span class="p">(</span><span class="s2">&quot;Range&quot;</span><span class="p">))</span>
+<span class="c1"># Conversion can be registered</span>
+<span class="n">deserializer</span><span class="p">(</span><span class="n">range_conv</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">range</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;stop&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">})</span> <span class="o">==</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="nb">range</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span> <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
-    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;baz&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;stop&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="s2">&quot;stop&quot;</span><span class="p">],</span>
     <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre></div>
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Metadata can also be passed with <code>parameters_metadata</code> parameter; it takes a mapping of parameter names as key and mapped metadata as value.</p>
+<p>Parameters metadata can be specified using <code>typing.Annotated</code>, or be passed with <code>parameters_metadata</code> parameter, which is a mapping of parameter names as key and mapped metadata as value.</p>
 </div>
+<h2 id="object-serialization-select-only-a-subset-of-fields">Object serialization — select only a subset of fields<a class="headerlink" href="#object-serialization-select-only-a-subset-of-fields" title="Permanent link">&para;</a></h2>
+<p><code>apischema.objects.object_serialization</code> can be used to serialize only a subset of an object fields and methods.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">alias</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">type_name</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">JsonSchemaVersion</span><span class="p">,</span> <span class="n">definitions_schema</span>
+<span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">get_field</span><span class="p">,</span> <span class="n">object_serialization</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Data</span><span class="p">:</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">content</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_details</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="o">...</span>
+
+
+<span class="c1"># Serialization fields can be a str/field or a function/method/property</span>
+<span class="n">size_only</span> <span class="o">=</span> <span class="n">object_serialization</span><span class="p">(</span>
+    <span class="n">Data</span><span class="p">,</span> <span class="p">[</span><span class="n">get_field</span><span class="p">(</span><span class="n">Data</span><span class="p">)</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">Data</span><span class="o">.</span><span class="n">size</span><span class="p">],</span> <span class="n">type_name</span><span class="p">(</span><span class="s2">&quot;DataSize&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="c1"># [&quot;id&quot;, Data.size] would also work</span>
+
+
+<span class="k">def</span> <span class="nf">complete_data</span><span class="p">():</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="o">...</span><span class="p">,</span>  <span class="c1"># shortcut to include all the fields</span>
+        <span class="n">Data</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">Data</span><span class="o">.</span><span class="n">get_details</span><span class="p">,</span> <span class="n">alias</span><span class="p">(</span><span class="s2">&quot;details&quot;</span><span class="p">)),</span>  <span class="c1"># add/override metadata using tuple</span>
+    <span class="p">]</span>
+
+
+<span class="c1"># Serialization fields computation can be deferred in a function</span>
+<span class="c1"># The serialization name will then be defaulted to the function name</span>
+<span class="n">complete</span> <span class="o">=</span> <span class="n">object_serialization</span><span class="p">(</span><span class="n">Data</span><span class="p">,</span> <span class="n">complete_data</span><span class="p">)</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Data</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">conversion</span><span class="o">=</span><span class="n">size_only</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Data</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">conversion</span><span class="o">=</span><span class="n">complete</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="s2">&quot;details&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># because get_details return None in this example</span>
+<span class="p">}</span>
+
+
+<span class="k">assert</span> <span class="n">definitions_schema</span><span class="p">(</span>
+    <span class="n">serialization</span><span class="o">=</span><span class="p">[(</span><span class="n">Data</span><span class="p">,</span> <span class="n">size_only</span><span class="p">),</span> <span class="p">(</span><span class="n">Data</span><span class="p">,</span> <span class="n">complete</span><span class="p">)],</span>
+    <span class="n">version</span><span class="o">=</span><span class="n">JsonSchemaVersion</span><span class="o">.</span><span class="n">OPEN_API_3_0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;DataSize&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span> <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
+        <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;size&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;CompleteData&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;details&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="s2">&quot;size&quot;</span><span class="p">,</span> <span class="s2">&quot;details&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</code></pre></div>
+
 <h2 id="default-conversions">Default conversions<a class="headerlink" href="#default-conversions" title="Permanent link">&para;</a></h2>
-<p>As almost every default behavior in <em>apischema</em>, default conversion can be configured using <code>apischema.settings.deserialization</code>/<code>apischema.settings.serialization</code>. The initial value of these settings are the function which retrieved conversions registered with <code>deserializer</code>/<code>serializer</code>.</p>
+<p>As almost every default behavior in <em>apischema</em>, default conversions can be configured using <code>apischema.settings.deserialization.default_conversion</code>/<code>apischema.settings.serialization.default_conversion</code>. The initial value of these settings are the function which retrieved conversions registered with <code>deserializer</code>/<code>serializer</code>.</p>
 <p>You can for example <a href="../examples/attrs_support/">support <em>attrs</em></a> classes with this feature:</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">MISSING</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">make_dataclass</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span>
 
 <span class="kn">import</span> <span class="nn">attr</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">settings</span>
-<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">dataclass_model</span>
-<span class="kn">from</span> <span class="nn">apischema.conversions.conversions</span> <span class="kn">import</span> <span class="n">Conversion</span><span class="p">,</span> <span class="n">Conversions</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+<span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">ObjectField</span>
+
+<span class="n">prev_default_object_fields</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">default_object_fields</span>
 
 
-<span class="k">def</span> <span class="nf">attrs_to_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
-    <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span>
-            <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">a</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
-            <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">default</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">default</span> <span class="o">!=</span> <span class="n">attr</span><span class="o">.</span><span class="n">NOTHING</span> <span class="k">else</span> <span class="n">MISSING</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__attrs_attrs__&quot;</span><span class="p">)</span>
-    <span class="p">]</span>
-    <span class="k">return</span> <span class="n">make_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
-
-
-<span class="nd">@lru_cache</span><span class="p">()</span>  <span class="c1"># Use cache because it will be called often</span>
-<span class="k">def</span> <span class="nf">attrs_dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Conversion</span><span class="p">,</span> <span class="n">Conversion</span><span class="p">]:</span>
-    <span class="k">return</span> <span class="n">dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">attrs_to_dataclass</span><span class="p">(</span><span class="bp">cls</span><span class="p">))</span>
-
-
-<span class="n">prev_deserialization</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">deserialization</span><span class="p">()</span>
-<span class="n">prev_serialization</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">serialization</span><span class="p">()</span>
-
-
-<span class="nd">@settings</span><span class="o">.</span><span class="n">deserialization</span>
-<span class="k">def</span> <span class="nf">deserialization</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Conversions</span><span class="p">]:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">prev_deserialization</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">result</span>
-    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__attrs_attrs__&quot;</span><span class="p">):</span>
-        <span class="n">deserialization_conversion</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">attrs_dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">deserialization_conversion</span>
+<span class="k">def</span> <span class="nf">attrs_fields</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">ObjectField</span><span class="p">]]:</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__attrs_attrs__&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">ObjectField</span><span class="p">(</span>
+                <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">default</span> <span class="o">==</span> <span class="n">attr</span><span class="o">.</span><span class="n">NOTHING</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">default</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__attrs_attrs__&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">prev_default_object_fields</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
 
 
-<span class="nd">@settings</span><span class="o">.</span><span class="n">serialization</span>
-<span class="k">def</span> <span class="nf">serialization</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Conversions</span><span class="p">]:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">prev_serialization</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">result</span>
-    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__attrs_attrs__&quot;</span><span class="p">):</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">serialization_conversion</span> <span class="o">=</span> <span class="n">attrs_dataclass_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">serialization_conversion</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">default_object_fields</span> <span class="o">=</span> <span class="n">attrs_fields</span>
 
 
 <span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
@@ -1609,9 +1594,17 @@ The function returns two <code>Conversion</code> object, one for deserialization
 
 
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
+    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">}</span>
 </code></pre></div>
 
+<p><em>apischema</em> functions (<code>deserialize</code>/<code>serialize</code>/<code>deserialization_schema</code>/<code>serialization_schema</code>/<code>definitions_schema</code>) also have a <code>default_conversion</code> parameter to dynamically modify default conversions. See <a href="#whats-the-difference-between-conversion-and-default_conversion-parameters">FAQ</a> for the difference between <code>conversion</code> and <code>default_conversion</code> parameters.</p>
 <h2 id="sub-conversions">Sub-conversions<a class="headerlink" href="#sub-conversions" title="Permanent link">&para;</a></h2>
 <p>Sub-conversions are <a href="#dynamic-conversions--select-conversions-at-runtime">dynamic conversions</a> applied on the result of a conversion.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -1646,7 +1639,7 @@ The function returns two <code>Conversion</code> object, one for deserialization
 
 
 <span class="k">assert</span> <span class="n">serialization_schema</span><span class="p">(</span>
-    <span class="n">Query</span><span class="p">[</span><span class="n">Foo</span><span class="p">],</span> <span class="n">conversions</span><span class="o">=</span><span class="n">Conversion</span><span class="p">(</span><span class="n">query_to_list</span><span class="p">,</span> <span class="n">sub_conversions</span><span class="o">=</span><span class="n">Foo</span><span class="o">.</span><span class="n">serialize</span><span class="p">)</span>
+    <span class="n">Query</span><span class="p">[</span><span class="n">Foo</span><span class="p">],</span> <span class="n">conversion</span><span class="o">=</span><span class="n">Conversion</span><span class="p">(</span><span class="n">query_to_list</span><span class="p">,</span> <span class="n">sub_conversion</span><span class="o">=</span><span class="n">Foo</span><span class="o">.</span><span class="n">serialize</span><span class="p">)</span>
 <span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="c1"># We get an array of Foo</span>
     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
@@ -1662,7 +1655,7 @@ The function returns two <code>Conversion</code> object, one for deserialization
 
 <p>Sub-conversions can also be used to <a href="#bypass-registered-conversion">bypass registered conversions</a> or to define <a href="#lazyrecursive-conversions">recursive conversions</a>.</p>
 <h2 id="lazyrecursive-conversions">Lazy/recursive conversions<a class="headerlink" href="#lazyrecursive-conversions" title="Permanent link">&para;</a></h2>
-<p>Conversions can be defined lazily, i.e. using a function returning <code>Conversion</code> (single, or a collection of it); this function must be wrap into a <code>apischema.conversions.LazyConversion</code> instance.</p>
+<p>Conversions can be defined lazily, i.e. using a function returning <code>Conversion</code> (single, or a tuple of it); this function must be wrap into a <code>apischema.conversions.LazyConversion</code> instance.</p>
 <p>It allows creating recursive conversions or using a conversion object which can be modified after its definition (for example a conversion for a base class modified by <code>__init_subclass__</code>)</p>
 <p>It is used by <em>apischema</em> itself for the generated JSON schema. It is indeed a recursive data, and the <a href="../json_schema/#json-schema--openapi-version">different versions</a> are handled by a conversion with a lazy recursive sub-conversion.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -1683,27 +1676,47 @@ The function returns two <code>Conversion</code> object, one for deserialization
 
 <span class="c1"># Recursive conversion pattern</span>
 <span class="n">tmp</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">conversion</span> <span class="o">=</span> <span class="n">Conversion</span><span class="p">(</span><span class="n">foo_elements</span><span class="p">,</span> <span class="n">sub_conversions</span><span class="o">=</span><span class="n">LazyConversion</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">tmp</span><span class="p">))</span>
+<span class="n">conversion</span> <span class="o">=</span> <span class="n">Conversion</span><span class="p">(</span><span class="n">foo_elements</span><span class="p">,</span> <span class="n">sub_conversion</span><span class="o">=</span><span class="n">LazyConversion</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">tmp</span><span class="p">))</span>
 <span class="n">tmp</span> <span class="o">=</span> <span class="n">conversion</span>
 
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">Foo</span><span class="p">([</span><span class="mi">1</span><span class="p">])]),</span> <span class="n">conversions</span><span class="o">=</span><span class="n">conversion</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">Foo</span><span class="p">([</span><span class="mi">1</span><span class="p">])]),</span> <span class="n">conversion</span><span class="o">=</span><span class="n">conversion</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
 <span class="c1"># Without the recursive sub-conversion, it would have been:</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">Foo</span><span class="p">([</span><span class="mi">1</span><span class="p">])]),</span> <span class="n">conversions</span><span class="o">=</span><span class="n">foo_elements</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">]}]</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">Foo</span><span class="p">([</span><span class="mi">1</span><span class="p">])]),</span> <span class="n">conversion</span><span class="o">=</span><span class="n">foo_elements</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span>
+    <span class="mi">0</span><span class="p">,</span>
+    <span class="p">{</span><span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">]},</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<h3 id="lazy-registered-conversions">Lazy registered conversions<a class="headerlink" href="#lazy-registered-conversions" title="Permanent link">&para;</a></h3>
+<p>Lazy conversions can also be registered, but the deserialization target/serialization source has to be passed too.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">Conversion</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
+
+
+<span class="n">deserializer</span><span class="p">(</span>
+    <span class="n">lazy</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Conversion</span><span class="p">(</span><span class="k">lambda</span> <span class="n">bar</span><span class="p">:</span> <span class="n">Foo</span><span class="p">(</span><span class="n">bar</span><span class="p">),</span> <span class="n">source</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">Foo</span><span class="p">),</span> <span class="n">target</span><span class="o">=</span><span class="n">Foo</span>
+<span class="p">)</span>
+<span class="n">serializer</span><span class="p">(</span>
+    <span class="n">lazy</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Conversion</span><span class="p">(</span><span class="k">lambda</span> <span class="n">foo</span><span class="p">:</span> <span class="n">foo</span><span class="o">.</span><span class="n">bar</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">Foo</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span> <span class="n">source</span><span class="o">=</span><span class="n">Foo</span>
+<span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
 </code></pre></div>
 
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
-<h4 id="why-conversion-can-only-be-applied-on-classes">Why conversion can only be applied on classes?<a class="headerlink" href="#why-conversion-can-only-be-applied-on-classes" title="Permanent link">&para;</a></h4>
-<p>Serialization doesn't have access to annotations (it's way less performant to use model annotations, and things like <code>Union</code> are useless in a serialization point of view), it uses instead the class of the object serialized; so <code>NewType</code> and other things that don't exist at runtime are simply unavailable.</p>
-<p>Also, generic specialization like <code>Foo[int]</code> cannot be retrieved by serialization, that's why their registration is not allowed. </p>
-<p>On the other hand, deserialization use annotations, so it could indeed apply conversions to other types (and it was in fact the case in the firsts versions).</p>
-<p>However, it has been judged better to get the same restriction on both operation for simplicity and because the main need of deserialization customization is validation, which can already be registered for <code>NewType</code> or embedded in <code>Annotated</code>, etc.</p>
-<h4 id="why-annotated-cannot-be-used-to-specified-conversions">Why <code>Annotated</code> cannot be used to specified conversions?<a class="headerlink" href="#why-annotated-cannot-be-used-to-specified-conversions" title="Permanent link">&para;</a></h4>
-<p>Same reason than above, because serialization doesn't use type annotations, so conversions would be lost.</p>
-<p>Actually, for dataclasses/namedtuples fields, as well as serialized methods return, it would be possible to use read an annotated conversion (only on the field/return type, not on nested types), even during serialization.
-However, this behavior could be confusing, because <code>Annotated[MyType, conversion(...)]</code> would be allowed as a dataclass fields, but <code>list[Annotated[Mytype, conversions(...)]]</code> will not work as expected.</p>
-<p>That's why it has been decided that conversions should not be embedded in <code>Annotated</code>, to keep things simple.</p>
-<h4 id="why-dynamic-conversion-cannot-apply-on-the-whole-data-model">Why dynamic conversion cannot apply on the whole data model?<a class="headerlink" href="#why-dynamic-conversion-cannot-apply-on-the-whole-data-model" title="Permanent link">&para;</a></h4>
-<p>To ensure consistency and reuse of subschemas with a <code>$ref</code>. Indeed, if dynamic conversions were global, different endpoints with or without conversions could have different result for nested classes (because one of its field could be impacted), so these classes could not be referenced consistently with their <code>$ref</code>.</p>
+<h4 id="whats-the-difference-between-conversion-and-default_conversion-parameters">What's the difference between <code>conversion</code> and <code>default_conversion</code> parameters?<a class="headerlink" href="#whats-the-difference-between-conversion-and-default_conversion-parameters" title="Permanent link">&para;</a></h4>
+<p>Dynamic conversions (<code>conversion</code> parameter) exists to ensure consistency and reuse of subschemas referenced (with a <code>$ref</code>) in the JSON/<em>OpenAPI</em> schema. </p>
+<p>In fact, different global conversions (<code>default_conversion</code> parameter) could lead to have a field with different schemas depending on global conversions, so class would not be able to be referenced consistently. Because dynamic conversions are local, they cannot mess with an objet field schema.</p>
+<p>Schema generation use the same default conversions for all definitions (which can have associated dynamic conversion).</p>
+<p><code>default_conversion</code> parameter allows having different (de)serialization contexts, for example to map date to string between frontend and backend, and to timestamp between backend services.</p>
                 
               
               

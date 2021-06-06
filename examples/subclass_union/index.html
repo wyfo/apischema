@@ -434,8 +434,32 @@
 
 
   <li class="md-nav__item">
+    <a href="../subclass_tagged_union/" title="Class as tagged union of its subclasses" class="md-nav__link">
+      Class as tagged union of its subclasses
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
     <a href="../recoverable_fields/" title="Recoverable fields" class="md-nav__link">
       Recoverable fields
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../inherited_deserializer/" title="Inherited deserializer" class="md-nav__link">
+      Inherited deserializer
     </a>
   </li>
 
@@ -508,7 +532,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/subclasses_union.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/subclass_union.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
@@ -518,7 +542,7 @@
                 
                 <h1 id="class-as-union-of-its-subclasses">Class as union of its subclasses<a class="headerlink" href="#class-as-union-of-its-subclasses" title="Permanent link">&para;</a></h1>
 <p><em>Inspired by <a href="https://github.com/samuelcolvin/pydantic/issues/2036">https://github.com/samuelcolvin/pydantic/issues/2036</a></em></p>
-<p>A class can easily be deserialized as an union of its subclasses using deserializers. Indeed, when more than one deserializer are registered, it results in an union.</p>
+<p>A class can easily be deserialized as a union of its subclasses using deserializers. Indeed, when more than one deserializer are registered, it results in a union.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
 
@@ -608,13 +632,13 @@
           </a>
         
         
-          <a href="../recoverable_fields/" title="Recoverable fields" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../subclass_tagged_union/" title="Class as tagged union of its subclasses" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Recoverable fields
+                Class as tagged union of its subclasses
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

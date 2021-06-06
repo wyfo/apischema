@@ -589,8 +589,20 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/subclasses_union/" title="Class as union of its subclasses" class="md-nav__link">
+    <a href="../examples/subclass_union/" title="Class as union of its subclasses" class="md-nav__link">
       Class as union of its subclasses
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/subclass_tagged_union/" title="Class as tagged union of its subclasses" class="md-nav__link">
+      Class as tagged union of its subclasses
     </a>
   </li>
 
@@ -603,6 +615,18 @@
   <li class="md-nav__item">
     <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
       Recoverable fields
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/inherited_deserializer/" title="Inherited deserializer" class="md-nav__link">
+      Inherited deserializer
     </a>
   </li>
 
@@ -869,14 +893,21 @@
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span>
     <span class="p">{</span>
         <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;size greater than 3 (maxItems)&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;item count greater than 3 (maxItems)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
     <span class="p">},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&#39;^</span><span class="se">\\</span><span class="s2">w*$&#39; not matched (pattern)&quot;</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;length less than 3 (minLength)&quot;</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;not matching &#39;^</span><span class="se">\\</span><span class="s2">w*$&#39; (pattern)&quot;</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;string length lower than 3 (minLength)&quot;</span><span class="p">]},</span>
 <span class="p">]</span>
 </code></pre></div>
 
 <p>As shown in the example, <em>apischema</em> will not stop at the first error met but tries to validate all parts of the data.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>ValidationError</code> should be serialized using the same serializer that the one used for deserialization, because it can contains some unaliased field path</p>
+</div>
 <h2 id="dataclass-validators">Dataclass validators<a class="headerlink" href="#dataclass-validators" title="Permanent link">&para;</a></h2>
 <p>Dataclass validation can be completed by custom validators. These are simple decorated methods which will be executed during validation, after all fields having been deserialized.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -947,14 +978,14 @@
 </div>
 <h3 id="raise-more-than-one-error-with-yield">Raise more than one error with <code>yield</code><a class="headerlink" href="#raise-more-than-one-error-with-yield" title="Permanent link">&para;</a></h3>
 <p>Validation of list field can require to raise several exception, one for each bad elements. With <code>raise</code>, this is not possible, because you can raise only once.</p>
-<p>However, <em>apischema</em> provides a way or raising as many errors as needed by using <code>yield</code>. Moreover, with this syntax, it is possible to add a "path" to the error to precise its location in the validated data. This path will be added to the <code>loc</code> key of the error.</p>
+<p>However, <em>apischema</em> provides a way or raising as many errors as needed by using <code>yield</code>. Moreover, with this syntax, it is possible to add a "path" (see <a href="#error-path">below</a>) to the error to precise its location in the validated data. This path will be added to the <code>loc</code> key of the error.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">ipaddress</span> <span class="kn">import</span> <span class="n">IPv4Address</span><span class="p">,</span> <span class="n">IPv4Network</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">validator</span>
-<span class="kn">from</span> <span class="nn">apischema.fields</span> <span class="kn">import</span> <span class="n">fields</span>
+<span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">get_alias</span>
 
 
 <span class="nd">@dataclass</span>
@@ -967,7 +998,7 @@
         <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">ip</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ips</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">ip</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subnet</span><span class="p">:</span>
                 <span class="c1"># yield &lt;error path&gt;, &lt;error message&gt;</span>
-                <span class="k">yield</span> <span class="p">(</span><span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">ips</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="s2">&quot;ip not in subnet&quot;</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">ips</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="s2">&quot;ip not in subnet&quot;</span>
 
 
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
@@ -984,15 +1015,16 @@
 <h4 id="error-path">Error path<a class="headerlink" href="#error-path" title="Permanent link">&para;</a></h4>
 <p>In the example, validator yield a tuple of an "error path" and the error message. Error path can be:</p>
 <ul>
-<li>a string</li>
-<li>an integer (for list indices)</li>
-<li>a dataclass field (obtained with <code>apischema.fields.fields</code>)</li>
-<li>a tuple of this 3 components.</li>
+<li>a field alias (obtained with <code>apischema.objects.get_alias</code>);</li>
+<li>an integer, for list indices;</li>
+<li>a raw string, for dict key (or field);</li>
+<li>an <code>apischema.objects.AliasedStr</code>, a string subclass which will be aliased by serialization aliaser;</li>
+<li>an iterable, e.g. a tuple, of this 4 components.</li>
 </ul>
 <p><code>yield</code> can also be used with only an error message.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For dataclass field error path, it's advised to use <code>apischema.fields.fields</code> instead of raw string, because it will take in account potential aliasing and it will be easier to rename field with IDE refactoring.</p>
+<p>For dataclass field error path, it's advised to use <code>apischema.objects.get_alias</code> instead of raw string, because it will take in account potential aliasing and it will be better handled by IDE (refactoring, cross-referencing, etc.)</p>
 </div>
 <h3 id="discard">Discard<a class="headerlink" href="#discard" title="Permanent link">&para;</a></h3>
 <p>If one of your validators fails because a field is corrupted, maybe you don't want following validators to be executed. <code>validator</code> decorator provides a <code>discard</code> parameter to discard fields of the remaining validation. All the remaining validators having discarded fields in <a href="#automatic-dependencies-management">dependencies</a> will not be executed.</p>
@@ -1001,26 +1033,36 @@
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">validator</span>
-<span class="kn">from</span> <span class="nn">apischema.fields</span> <span class="kn">import</span> <span class="n">fields</span>
+<span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">get_alias</span><span class="p">,</span> <span class="n">get_field</span>
 
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">BoundedValues</span><span class="p">:</span>
+    <span class="c1"># field must be assign to be used, even with empty `field()`</span>
     <span class="n">bounds</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">()</span>
     <span class="n">values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 
+    <span class="c1"># validator(&quot;bounds&quot;) would also work, but it&#39;s not handled by IDE refactoring, etc.</span>
     <span class="nd">@validator</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">bounds_are_sorted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">min_bound</span><span class="p">,</span> <span class="n">max_bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
         <span class="k">if</span> <span class="n">min_bound</span> <span class="o">&gt;</span> <span class="n">max_bound</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="s2">&quot;bounds are not sorted&quot;</span>
+            <span class="k">yield</span> <span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="s2">&quot;bounds are not sorted&quot;</span>
 
     <span class="nd">@validator</span>
     <span class="k">def</span> <span class="nf">values_dont_exceed_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">min_bound</span><span class="p">,</span> <span class="n">max_bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
         <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">min_bound</span> <span class="o">&lt;=</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="n">max_bound</span><span class="p">:</span>
-                <span class="k">yield</span> <span class="p">(</span><span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="s2">&quot;value exceeds bounds&quot;</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="s2">&quot;value exceeds bounds&quot;</span>
+
+
+<span class="c1"># Outside class, fields can still be accessed in a &quot;static&quot; way, to avoid use raw string</span>
+<span class="nd">@validator</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="n">get_field</span><span class="p">(</span><span class="n">BoundedValues</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">bounds_are_sorted_equivalent</span><span class="p">(</span><span class="n">bounded</span><span class="p">:</span> <span class="n">BoundedValues</span><span class="p">):</span>
+    <span class="n">min_bound</span><span class="p">,</span> <span class="n">max_bound</span> <span class="o">=</span> <span class="n">bounded</span><span class="o">.</span><span class="n">bounds</span>
+    <span class="k">if</span> <span class="n">min_bound</span> <span class="o">&gt;</span> <span class="n">max_bound</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">get_alias</span><span class="p">(</span><span class="n">bounded</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="s2">&quot;bounds are not sorted&quot;</span>
 
 
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
@@ -1032,6 +1074,10 @@
 <span class="p">]</span>
 </code></pre></div>
 
+<p>You can notice in this example that <em>apischema</em> tries avoiding using raw strings to identify fields. In every function of the library using fields identifier (<code>apischema.validator</code>, <code>apischema.dependent_required</code>, <code>apischema.fields.set_fields</code>, etc.), you have always three ways to pass them:
+- using field object, preferred in dataclass definition;
+- using <code>apischema.objects.get_field</code>, to be used outside of class definition; it works with <code>NamedTuple</code> too — the object returned is the <em>apischema</em> internal field representation, common to <code>dataclass</code>, <code>NamedTuple</code> and <code>TypedDict</code>;
+- using raw strings, thus not handled by static tools like refactoring, but it works;</p>
 <h3 id="field-validators">Field validators<a class="headerlink" href="#field-validators" title="Permanent link">&para;</a></h3>
 <h4 id="at-field-level">At field level<a class="headerlink" href="#at-field-level" title="Permanent link">&para;</a></h4>
 <p>Fields are validated according to their types and schema. But it's also possible to add validators to fields</p>
@@ -1066,14 +1112,14 @@
 <p><code>field_validator</code> allow to reuse the the same validator for several fields. However in this case, using a custom type (for example a <code>NewType</code>) with validators (see <a href="#validators-for-every-new-types">next section</a>) could often be a better solution.</p>
 </div>
 <h4 id="using-other-fields">Using other fields<a class="headerlink" href="#using-other-fields" title="Permanent link">&para;</a></h4>
-<p>A common pattern can be to validate a field using other fields values. This is achieved with dataclass validators seen above. However there is a shortcut for this use case:</p>
+<p>A common pattern can be to validate a field using other fields values. This is achieved with dataclass validators seen above. However, there is a shortcut for this use case:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">validator</span>
-<span class="kn">from</span> <span class="nn">apischema.fields</span> <span class="kn">import</span> <span class="n">fields</span>
+<span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">get_alias</span><span class="p">,</span> <span class="n">get_field</span>
 
 
 <span class="k">class</span> <span class="nc">Parity</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
@@ -1084,19 +1130,25 @@
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">NumberWithParity</span><span class="p">:</span>
     <span class="n">parity</span><span class="p">:</span> <span class="n">Parity</span>
-    <span class="n">number</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">()</span>  <span class="c1"># field must be assign, even with empty `field()`</span>
+    <span class="n">number</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">()</span>
 
     <span class="nd">@validator</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">check_parity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parity</span> <span class="o">==</span> <span class="n">Parity</span><span class="o">.</span><span class="n">EVEN</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
             <span class="k">yield</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span>
 
-    <span class="c1"># using field argument adds automatically discard argument</span>
-    <span class="c1"># and prefix all error paths with the field</span>
+    <span class="c1"># A field validator is equivalent to a discard argument and all error paths prefixed</span>
+    <span class="c1"># with the field alias</span>
     <span class="nd">@validator</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="n">number</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">check_parity_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parity</span> <span class="o">==</span> <span class="n">Parity</span><span class="o">.</span><span class="n">EVEN</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">number</span><span class="p">,</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span>
+            <span class="k">yield</span> <span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">number</span><span class="p">,</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span>
+
+
+<span class="nd">@validator</span><span class="p">(</span><span class="n">get_field</span><span class="p">(</span><span class="n">NumberWithParity</span><span class="p">)</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">check_parity_other_equivalent</span><span class="p">(</span><span class="n">number2</span><span class="p">:</span> <span class="n">NumberWithParity</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">number2</span><span class="o">.</span><span class="n">parity</span> <span class="o">==</span> <span class="n">Parity</span><span class="o">.</span><span class="n">EVEN</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">number2</span><span class="o">.</span><span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span>
 
 
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
@@ -1167,8 +1219,7 @@
 </code></pre></div>
 
 <h3 id="validators-are-not-run-on-default-values">Validators are not run on default values<a class="headerlink" href="#validators-are-not-run-on-default-values" title="Permanent link">&para;</a></h3>
-<p>If all validator dependencies are initialized with their defau
-lt values, they are not run; make sure your default values make sens.</p>
+<p>If all validator dependencies are initialized with their default values, they are not run.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
@@ -1205,7 +1256,7 @@ lt values, they are not run; make sure your default values make sens.</p>
 <span class="n">Palindrome</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Palindrome&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
 
 
-<span class="nd">@validator</span>
+<span class="nd">@validator</span>  <span class="c1"># could also use @validator(owner=Palindrome)</span>
 <span class="k">def</span> <span class="nf">check_palindrome</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">Palindrome</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">]:</span>
@@ -1229,7 +1280,7 @@ lt values, they are not run; make sure your default values make sens.</p>
 <h4 id="why-only-validate-at-deserialization-and-not-at-instantiation">Why only validate at deserialization and not at instantiation?<a class="headerlink" href="#why-only-validate-at-deserialization-and-not-at-instantiation" title="Permanent link">&para;</a></h4>
 <p><em>apischema</em> uses type annotations, so every objects used can already be statically type-checked (with <em>Mypy</em>/<em>Pycharm</em>/etc.) at instantiation but also at modification.</p>
 <h4 id="why-use-validators-for-dataclasses-instead-of-doing-validation-in-__post_init__">Why use validators for dataclasses instead of doing validation in <code>__post_init__</code>?<a class="headerlink" href="#why-use-validators-for-dataclasses-instead-of-doing-validation-in-__post_init__" title="Permanent link">&para;</a></h4>
-<p>Actually, validation can completly be done in <code>__post_init__</code>, there is not problem with that. However, validators offers one thing that cannot be achieved with <code>__post_init__</code>: they are run before <code>__init__</code>, so they can validate incomplete data. Moreover, they are only run during deserialization, so they don't add overhead to normal class instantiation.</p>
+<p>Actually, validation can completely be done in <code>__post_init__</code>, there is no problem with that. However, validators offers one thing that cannot be achieved with <code>__post_init__</code>: they are run before <code>__init__</code>, so they can validate incomplete data. Moreover, they are only run during deserialization, so they don't add overhead to normal class instantiation.</p>
                 
               
               

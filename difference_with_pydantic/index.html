@@ -411,8 +411,20 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/subclasses_union/" title="Class as union of its subclasses" class="md-nav__link">
+    <a href="../examples/subclass_union/" title="Class as union of its subclasses" class="md-nav__link">
       Class as union of its subclasses
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/subclass_tagged_union/" title="Class as tagged union of its subclasses" class="md-nav__link">
+      Class as tagged union of its subclasses
     </a>
   </li>
 
@@ -425,6 +437,18 @@
   <li class="md-nav__item">
     <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
       Recoverable fields
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/inherited_deserializer/" title="Inherited deserializer" class="md-nav__link">
+      Inherited deserializer
     </a>
   </li>
 
@@ -792,7 +816,7 @@
 <p>As the question is often asked, it is answered in a dedicated section. Here are some the key differences between <em>apischema</em> and <em>pydantic</em>:</p>
 <h3 id="apischema-is-faster"><em>apischema</em> is faster<a class="headerlink" href="#apischema-is-faster" title="Permanent link">&para;</a></h3>
 <p><em>pydantic</em> uses Cython to improve its performance; <em>apischema</em> doesn't need it and is still 1.5x faster according to <a href="../benchmark/"><em>pydantic</em> benchmark</a> — more than 2x when <em>pydantic</em> is not compiled with Cython.</p>
-<p>Better performance, but not at the cost of fewer functionalities; that's rather the opposite: <a href="../json_schema/#dynamic-aliasing-and-default-aliaser">dynamic aliasing</a>, <a href="../conversions/">conversions</a>, <a href="../data_model/#composition-over-inheritance---composed-dataclasses-merging">merged fields</a>, etc.</p>
+<p>Better performance, but not at the cost of fewer functionalities; that's rather the opposite: <a href="../json_schema/#dynamic-aliasing-and-default-aliaser">dynamic aliasing</a>, <a href="../conversions/">conversions</a>, <a href="../data_model/#composition-over-inheritance---composed-dataclasses-flattening">flattened fields</a>, etc.</p>
 <h3 id="apischema-can-generate-graphql-schema-from-your-resolvers"><em>apischema</em> can generate <a href="../graphql/overview/"><em>GraphQL</em> schema</a> from your resolvers<a class="headerlink" href="#apischema-can-generate-graphql-schema-from-your-resolvers" title="Permanent link">&para;</a></h3>
 <p>Not just a simple printable schema but a complete <code>graphql.GraphQLSchema</code> (using <a href="https://github.com/graphql-python/graphql-core/"><em>graphql-core</em></a> library) which can be used to execute your queries/mutations/subscriptions through your resolvers, powered by <em>apischema</em> (de)serialization and conversions features.</p>
 <p>Types and resolvers can be used both in traditional JSON-oriented API and GraphQL API</p>
@@ -892,7 +916,7 @@
 <h3 id="apischema-can-also-customize-serialization-with-computed-fields"><em>apischema</em> can also customize serialization with computed fields<a class="headerlink" href="#apischema-can-also-customize-serialization-with-computed-fields" title="Permanent link">&para;</a></h3>
 <p><a href="../de_serialization/#serialized-methodsproperties">Serialized methods/properties</a> are regular methods/properties which are included in serialization effortlessly.</p>
 <h3 id="apischema-allows-you-to-use-composition-over-inheritance"><em>apischema</em> allows you to use composition over inheritance<a class="headerlink" href="#apischema-allows-you-to-use-composition-over-inheritance" title="Permanent link">&para;</a></h3>
-<p><a href="../data_model/#composition-over-inheritance---composed-dataclasses-merging">Merged fields</a> is a distinctive <em>apischema</em> feature that is very handy to build complex model from smaller fragments; you don't have to merge yourself the fields of your fragments in a complex class with a lot of fields, <em>apischema</em> deal with it for you, and your code is kept simple.</p>
+<p><a href="../data_model/#composition-over-inheritance---composed-dataclasses-flattening">Flattened fields</a> is a distinctive <em>apischema</em> feature that is very handy to build complex model from smaller fragments; you don't have to merge yourself the fields of your fragments in a complex class with a lot of fields, <em>apischema</em> deal with it for you, and your code is kept simple.</p>
 <h3 id="apischema-has-a-functional-approach-pydantic-has-an-object-one"><em>apischema</em> has a functional approach, <em>pydantic</em> has an object one<a class="headerlink" href="#apischema-has-a-functional-approach-pydantic-has-an-object-one" title="Permanent link">&para;</a></h3>
 <p><em>pydantic</em> features are based on <code>BaseModel</code> methods. You have to have a <code>BaseModel</code> instance to do anything, even if you manipulate only an integer. Complex <em>pydantic</em> stuff like <code>__root__</code> model or deserialization customization come from this approach.</p>
 <p><em>apischema</em> is functional, it doesn't use method but simple functions, which works with all types. You can also register conversions for any types similarly you would implement a type class in a functional language. And your class namespace don't mix up with a mandatory base class' one.</p>
@@ -950,7 +974,7 @@
 </code></pre></div>
 
 <h3 id="apischema-supports-pydantic"><em>apischema</em> supports <em>pydantic</em><a class="headerlink" href="#apischema-supports-pydantic" title="Permanent link">&para;</a></h3>
-<p>It's not a feature, is just the result of <a href="../examples/pydantic_support/">20 lines of code</a>.</p>
+<p>It's not a feature, is just the result of <a href="../examples/pydantic_support/">30 lines of code</a>.</p>
                 
               
               

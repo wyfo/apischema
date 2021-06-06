@@ -584,8 +584,20 @@
 
 
   <li class="md-nav__item">
-    <a href="../../examples/subclasses_union/" title="Class as union of its subclasses" class="md-nav__link">
+    <a href="../../examples/subclass_union/" title="Class as union of its subclasses" class="md-nav__link">
       Class as union of its subclasses
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../examples/subclass_tagged_union/" title="Class as tagged union of its subclasses" class="md-nav__link">
+      Class as tagged union of its subclasses
     </a>
   </li>
 
@@ -598,6 +610,18 @@
   <li class="md-nav__item">
     <a href="../../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
       Recoverable fields
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../examples/inherited_deserializer/" title="Inherited deserializer" class="md-nav__link">
+      Inherited deserializer
     </a>
   </li>
 
@@ -846,7 +870,7 @@
 <p>In output, <code>Undefined</code> is converted to <code>None</code>; so in the schema, <code>Union[T, UndefinedType]</code> will be nullable.</p>
 <p>In input, fields become nullable when <code>Undefined</code> is their default value.</p>
 <h2 id="interfaces">Interfaces<a class="headerlink" href="#interfaces" title="Permanent link">&para;</a></h2>
-<p>Interfaces are simply classes marked with <code>apischema.graphql.interface</code> decorator. An object type implements an interface when its class inherits of interface-marked class, or when it has <a href="../../data_model/#composed-dataclasses-merging">merged fields</a> of interface-marked dataclass.</p>
+<p>Interfaces are simply classes marked with <code>apischema.graphql.interface</code> decorator. An object type implements an interface when its class inherits of interface-marked class, or when it has <a href="../../data_model/#composition-over-inheritance---composed-dataclasses-flattening">flattened fields</a> of interface-marked dataclass.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
@@ -1050,7 +1074,7 @@
 <span class="s1">type Foo {</span>
 <span class="s1">  bar(</span>
 <span class="s1">    &quot;&quot;&quot;argument&quot;&quot;&quot;</span>
-<span class="s1">    param: Int!</span>
+<span class="s1">    arg: Int!</span>
 <span class="s1">  ): Int!</span>
 <span class="s1">}</span>
 <span class="s1">&#39;&#39;&#39;</span>
@@ -1184,7 +1208,7 @@ It's fields <strong>must</strong> be typed using <code>apischema.tagged_unions.T
 
 <span class="c1"># (De)serialization works as expected</span>
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}})</span> <span class="o">==</span> <span class="n">tagged_bar</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">tagged_bar</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}}</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">tagged_bar</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}}</span>
 
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;unknown&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">})</span>
@@ -1193,10 +1217,7 @@ It's fields <strong>must</strong> be typed using <code>apischema.tagged_unions.T
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">},</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span>
-    <span class="p">{</span>
-        <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;size greater than 1 (maxProperties)&quot;</span><span class="p">],</span>
-    <span class="p">}</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;property count greater than 1 (maxProperties)&quot;</span><span class="p">]}</span>
 <span class="p">]</span>
 </code></pre></div>
 
@@ -1302,10 +1323,7 @@ It's fields <strong>must</strong> be typed using <code>apischema.tagged_unions.T
 <span class="s2">}</span>
 <span class="s2">&quot;&quot;&quot;</span>
 <span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">query_str</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span>
-    <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">},</span>
-        <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">}</span>
+    <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">},</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
                 

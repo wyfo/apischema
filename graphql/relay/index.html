@@ -522,8 +522,20 @@
 
 
   <li class="md-nav__item">
-    <a href="../../examples/subclasses_union/" title="Class as union of its subclasses" class="md-nav__link">
+    <a href="../../examples/subclass_union/" title="Class as union of its subclasses" class="md-nav__link">
       Class as union of its subclasses
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../examples/subclass_tagged_union/" title="Class as tagged union of its subclasses" class="md-nav__link">
+      Class as tagged union of its subclasses
     </a>
   </li>
 
@@ -536,6 +548,18 @@
   <li class="md-nav__item">
     <a href="../../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
       Recoverable fields
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../examples/inherited_deserializer/" title="Inherited deserializer" class="md-nav__link">
+      Inherited deserializer
     </a>
   </li>
 
@@ -774,8 +798,9 @@
 
 <p>In fact, it is <code>GlobalId</code> type which is serialized and deserialized as an <code>ID!</code>, not the <code>Id</code> parameter of the <code>Node</code> class; <em>apischema</em> automatically add a <a href="../../conversions/#field-conversions">field converter</a> to make the conversion between the <code>Id</code> (for example an <code>UUID</code>) of a given node and the corresponding <code>GlobalId</code>.</p>
 <p>Node instance global id can be retrieved with <code>global_id</code> property.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">graphql</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">import</span> <span class="nn">graphql</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">relay</span>
@@ -803,7 +828,7 @@
 <span class="s2">}</span>
 <span class="s2">&quot;&quot;&quot;</span>
 <span class="k">assert</span> <span class="n">graphql</span><span class="o">.</span><span class="n">graphql_sync</span><span class="p">(</span>  <span class="c1"># ... and use it in a query</span>
-    <span class="n">schema</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">variable_values</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">serialize</span><span class="p">(</span><span class="n">some_global_id</span><span class="p">)}</span>
+    <span class="n">schema</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">variable_values</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">serialize</span><span class="p">(</span><span class="n">relay</span><span class="o">.</span><span class="n">GlobalId</span><span class="p">,</span> <span class="n">some_global_id</span><span class="p">)}</span>
 <span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;node&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Empire&quot;</span><span class="p">}}</span>
 </code></pre></div>
 

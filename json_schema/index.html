@@ -301,13 +301,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#default-annotation" class="md-nav__link">
-    default annotation
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#constraints-validation" class="md-nav__link">
     Constraints validation
   </a>
@@ -317,6 +310,13 @@
           <li class="md-nav__item">
   <a href="#default-schema" class="md-nav__link">
     Default schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extra-schema" class="md-nav__link">
+    Extra schema
   </a>
   
 </li>
@@ -383,8 +383,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#assign-a-reference-to-a-type" class="md-nav__link">
-    Assign a reference to a type
+  <a href="#set-reference-name" class="md-nav__link">
+    Set reference name
   </a>
   
 </li>
@@ -419,26 +419,6 @@
   <a href="#readonly-writeonly" class="md-nav__link">
     readOnly / writeOnly
   </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#faq" class="md-nav__link">
-    FAQ
-  </a>
-  
-    <nav class="md-nav" aria-label="FAQ">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#why-field-default-value-is-not-used-by-default-to-generate-json-schema" class="md-nav__link">
-    Why field default value is not used by default to generate JSON schema?
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -630,8 +610,20 @@
 
 
   <li class="md-nav__item">
-    <a href="../examples/subclasses_union/" title="Class as union of its subclasses" class="md-nav__link">
+    <a href="../examples/subclass_union/" title="Class as union of its subclasses" class="md-nav__link">
       Class as union of its subclasses
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/subclass_tagged_union/" title="Class as tagged union of its subclasses" class="md-nav__link">
+      Class as tagged union of its subclasses
     </a>
   </li>
 
@@ -644,6 +636,18 @@
   <li class="md-nav__item">
     <a href="../examples/recoverable_fields/" title="Recoverable fields" class="md-nav__link">
       Recoverable fields
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../examples/inherited_deserializer/" title="Inherited deserializer" class="md-nav__link">
+      Inherited deserializer
     </a>
   </li>
 
@@ -757,13 +761,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#default-annotation" class="md-nav__link">
-    default annotation
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#constraints-validation" class="md-nav__link">
     Constraints validation
   </a>
@@ -773,6 +770,13 @@
           <li class="md-nav__item">
   <a href="#default-schema" class="md-nav__link">
     Default schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extra-schema" class="md-nav__link">
+    Extra schema
   </a>
   
 </li>
@@ -839,8 +843,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#assign-a-reference-to-a-type" class="md-nav__link">
-    Assign a reference to a type
+  <a href="#set-reference-name" class="md-nav__link">
+    Set reference name
   </a>
   
 </li>
@@ -875,26 +879,6 @@
   <a href="#readonly-writeonly" class="md-nav__link">
     readOnly / writeOnly
   </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#faq" class="md-nav__link">
-    FAQ
-  </a>
-  
-    <nav class="md-nav" aria-label="FAQ">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#why-field-default-value-is-not-used-by-default-to-generate-json-schema" class="md-nav__link">
-    Why field default value is not used by default to generate JSON schema?
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -962,7 +946,7 @@
     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
 <span class="p">}</span>
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span><span class="p">})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span><span class="p">}</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span><span class="p">}</span>
 </code></pre></div>
 
 <h3 id="alias-all-fields">Alias all fields<a class="headerlink" href="#alias-all-fields" title="Permanent link">&para;</a></h3>
@@ -1000,13 +984,9 @@
 <p>Otherwise, it's used the same way than <a href="../de_serialization/#strictness-configuration"><code>settings.coercer</code></a>.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">settings</span>
 
-<span class="n">settings</span><span class="o">.</span><span class="n">aliaser</span><span class="p">(</span><span class="n">camel_case</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">camel_case</span> <span class="o">=</span> <span class="kc">True</span>
 </code></pre></div>
 
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p><code>NamedTuple</code> fields are also aliased, but not TypedDict ones; in fact, TypedDict is not a true class, so it is never encountered in serialization, then aliaser cannot be applied to its fields. </p>
-</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Dynamic aliaser ignores <code>override=False</code></p>
@@ -1050,6 +1030,7 @@
             <span class="s2">&quot;maxItems&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
             <span class="s2">&quot;uniqueItems&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="p">[],</span>
         <span class="p">},</span>
     <span class="p">},</span>
     <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
@@ -1122,6 +1103,16 @@
 <td><code>str</code></td>
 </tr>
 <tr>
+<td>media_type</td>
+<td>contentMediaType</td>
+<td><code>str</code></td>
+</tr>
+<tr>
+<td>encoding</td>
+<td>contentEncoding</td>
+<td><code>str</code></td>
+</tr>
+<tr>
 <td>min_len</td>
 <td>minLength</td>
 <td><code>str</code></td>
@@ -1165,46 +1156,8 @@
 </table>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><code>schema</code> function has an overloaded signature which prevents to mix incompatible keywords. </p>
+<p>In case of field schema, field default value will be serialized (if possible) to add <code>default</code> keyword to the schema.</p>
 </div>
-<p>Two other arguments enable a finer control of the JSON schema generated : </p>
-<ul>
-<li><code>extra</code> enable to add arbitrary keys to schema;</li>
-<li><code>override=True</code> prevents <em>apischema</em> to use the annotated type schema, using only <code>schema</code> annotation.  </li>
-</ul>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
-
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span>
-<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
-
-<span class="n">Foo</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Foo&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
-<span class="n">schema</span><span class="p">(</span><span class="n">min_len</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;typeName&quot;</span><span class="p">:</span> <span class="s2">&quot;Foo&quot;</span><span class="p">})(</span><span class="n">Foo</span><span class="p">)</span>
-
-<span class="n">Bar</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Bar&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
-<span class="n">schema</span><span class="p">(</span>
-    <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;http://some-domain.org/path/tp/schema.json#/$defs/Bar&quot;</span><span class="p">},</span>
-    <span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="p">)(</span><span class="n">Bar</span><span class="p">)</span>
-
-<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
-    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;minLength&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-    <span class="s2">&quot;typeName&quot;</span><span class="p">:</span> <span class="s2">&quot;Foo&quot;</span><span class="p">,</span>
-<span class="p">}</span>
-<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Bar</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
-    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;http://some-domain.org/path/tp/schema.json#/$defs/Bar&quot;</span><span class="p">,</span>
-<span class="p">}</span>
-<span class="c1"># Without override=True, it would be {</span>
-<span class="c1">#     &quot;$schema&quot;: &quot;http://json-schema.org/draft/2019-09/schema#&quot;,</span>
-<span class="c1">#     &quot;$ref&quot;: &quot;http://some-domain.org/path/tp/schema.json#/$defs/Bar&quot;,</span>
-<span class="c1">#     &quot;type&quot;: &quot;integer&quot;,</span>
-<span class="c1"># }</span>
-</code></pre></div>
-
-<h3 id="default-annotation"><code>default</code> annotation<a class="headerlink" href="#default-annotation" title="Permanent link">&para;</a></h3>
-<p><code>default</code> annotation is not added automatically when a field has a default value (see <a href="#why-field-default-value-is-not-used-by-default-to-to-generate-json-schema">FAQ</a>); <code>schema</code> <code>default</code> parameter must be used in order to make it appear in the schema. However <code>...</code> can be used as a placeholder to make <em>apischema</em> use field default value; this one will be serialized — if serialization fails, error will be ignored as well as <code>default</code> annotation.</p>
 <h3 id="constraints-validation">Constraints validation<a class="headerlink" href="#constraints-validation" title="Permanent link">&para;</a></h3>
 <p>JSON schema constrains the data deserialized; this constraints are naturally used for validation.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
@@ -1236,10 +1189,13 @@
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span>
     <span class="p">{</span>
         <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;size greater than 3 (maxItems)&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;item count greater than 3 (maxItems)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
     <span class="p">},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&#39;^</span><span class="se">\\</span><span class="s2">w*$&#39; not matched (pattern)&quot;</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;length less than 3 (minLength)&quot;</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;not matching &#39;^</span><span class="se">\\</span><span class="s2">w*$&#39; (pattern)&quot;</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;string length lower than 3 (minLength)&quot;</span><span class="p">]},</span>
 <span class="p">]</span>
 </code></pre></div>
 
@@ -1247,15 +1203,54 @@
 <p>When no schema are defined, a default schema can be computed using <code>settings.default_schema</code> like this:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span>
-<span class="kn">from</span> <span class="nn">apischema.json_schema.schema</span> <span class="kn">import</span> <span class="n">Schema</span>
-<span class="nd">@settings</span><span class="o">.</span><span class="n">default_schema</span>
+<span class="kn">from</span> <span class="nn">apischema.schemas</span> <span class="kn">import</span> <span class="n">Schema</span>
+
+
 <span class="k">def</span> <span class="nf">default_schema</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Schema</span><span class="p">]:</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="o">...</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">return</span> <span class="n">schema</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">schema</span><span class="p">(</span><span class="o">...</span><span class="p">)</span> <span class="k">if</span> <span class="o">...</span> <span class="k">else</span> <span class="kc">None</span>
+
+<span class="n">settings</span><span class="o">.</span><span class="n">default_schema</span> <span class="o">=</span> <span class="n">default_schema</span>
 </code></pre></div>
 
 <p>Default implementation returns <code>None</code> for every types.</p>
+<h3 id="extra-schema">Extra schema<a class="headerlink" href="#extra-schema" title="Permanent link">&para;</a></h3>
+<p><code>schema</code> has two other arguments: <code>extra</code> and <code>override</code>, which give a finer control of the JSON schema generated: <code>extra</code> and <code>override</code>. It can be used for example to build "strict" unions (using <code>oneOf</code> instead of <code>anyOf</code>)</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+
+
+<span class="c1"># schema extra can be callable to modify the schema in place</span>
+<span class="k">def</span> <span class="nf">to_one_of</span><span class="p">(</span><span class="n">schema</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+    <span class="k">if</span> <span class="s2">&quot;anyOf&quot;</span> <span class="ow">in</span> <span class="n">schema</span><span class="p">:</span>
+        <span class="n">schema</span><span class="p">[</span><span class="s2">&quot;oneOf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;anyOf&quot;</span><span class="p">)</span>
+
+
+<span class="n">OneOf</span> <span class="o">=</span> <span class="n">schema</span><span class="p">(</span><span class="n">extra</span><span class="o">=</span><span class="n">to_one_of</span><span class="p">)</span>
+
+
+<span class="c1"># or extra can be a dictionary which will update the schema</span>
+<span class="nd">@schema</span><span class="p">(</span>
+    <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;http://some-domain.org/path/to/schema.json#/$defs/Foo&quot;</span><span class="p">},</span>
+    <span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># override apischema generated schema, using only extra</span>
+<span class="p">)</span>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
+
+
+<span class="c1"># Use Annotated with OneOf to make a &quot;strict&quot; Union</span>
+<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Annotated</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Foo</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">OneOf</span><span class="p">])</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;oneOf&quot;</span><span class="p">:</span> <span class="p">[</span>  <span class="c1"># oneOf instead of anyOf</span>
+        <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;http://some-domain.org/path/to/schema.json#/$defs/Foo&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+
 <h2 id="required-field-with-default-value">Required field with default value<a class="headerlink" href="#required-field-with-default-value" title="Permanent link">&para;</a></h2>
 <p>By default, a dataclass/namedtuple field will be tagged <code>required</code> if it doesn't have a default value.</p>
 <p>However, you may want to have a default value for a field in order to be more convenient in your code, but still make the field required. One could think about some schema model where version is fixed but is required, for example JSON-RPC with <code>"jsonrpc": "2.0"</code>. That's done with field metadata <code>required</code>.</p>
@@ -1283,16 +1278,15 @@
 <p>Schema of a <code>Mapping</code>/<code>dict</code> type is naturally translated to <code>"additionalProperties": &lt;schema of the value type&gt;</code>.</p>
 <p>However when the schema of the key has a <code>pattern</code>, it will give a <code>"patternProperties": {&lt;key pattern&gt;: &lt;schema of the value type&gt;}</code>  </p>
 <h3 id="with-dataclass">With dataclass<a class="headerlink" href="#with-dataclass" title="Permanent link">&para;</a></h3>
-<p><code>additionalProperties</code>/<code>patternProperties</code> can be added to dataclasses by using  fields annotated with <code>properties</code> metadata. Properties not mapped on regular fields will be deserialized into this fields; they must have a <code>Mapping</code> type (or be <a href="../conversions/">convertible</a> from <code>Mapping</code>) because they are instanciated with a mapping.</p>
+<p><code>additionalProperties</code>/<code>patternProperties</code> can be added to dataclasses by using  fields annotated with <code>properties</code> metadata. Properties not mapped on regular fields will be deserialized into this fields; they must have a <code>Mapping</code> type, or be <a href="../conversions/">deserializable</a> from a <code>Mapping</code>, because they are instantiated with a mapping.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Mapping</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">schema_ref</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">schema</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 
 
-<span class="nd">@schema_ref</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
     <span class="n">active</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
@@ -1317,7 +1311,7 @@
 <span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Config</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;active&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;boolean&quot;</span><span class="p">}},</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;active&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;boolean&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}},</span>
     <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;boolean&quot;</span><span class="p">},</span>
     <span class="s2">&quot;patternProperties&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;^server_&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;boolean&quot;</span><span class="p">},</span>
@@ -1340,8 +1334,7 @@
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
-<span class="kn">from</span> <span class="nn">apischema.dependent_required</span> <span class="kn">import</span> <span class="n">DependentRequired</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">dependent_required</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 <span class="kn">from</span> <span class="nn">apischema.skip</span> <span class="kn">import</span> <span class="n">NotNull</span>
 
@@ -1353,7 +1346,11 @@
     <span class="n">credit_card</span><span class="p">:</span> <span class="n">NotNull</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">billing_address</span><span class="p">:</span> <span class="n">NotNull</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
-    <span class="n">dependencies</span> <span class="o">=</span> <span class="n">DependentRequired</span><span class="p">({</span><span class="n">credit_card</span><span class="p">:</span> <span class="p">[</span><span class="n">billing_address</span><span class="p">]})</span>
+    <span class="n">dependencies</span> <span class="o">=</span> <span class="n">dependent_required</span><span class="p">({</span><span class="n">credit_card</span><span class="p">:</span> <span class="p">[</span><span class="n">billing_address</span><span class="p">]})</span>
+
+
+<span class="c1"># it can also be done outside the class with</span>
+<span class="c1"># dependent_required({&quot;credit_card&quot;: [&quot;billing_address&quot;]}, owner=Billing)</span>
 
 
 <span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Billing</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
@@ -1379,9 +1376,9 @@
 <span class="p">]</span>
 </code></pre></div>
 
-<p>Because bidirectional dependencies are a common idiom, <em>apischema</em> provides a shortcut notation. Its indeed possible to write <code>DependentRequired([credit_card, billing_adress])</code>.</p>
+<p>Because bidirectional dependencies are a common idiom, <em>apischema</em> provides a shortcut notation; it's indeed possible to write <code>dependent_required([credit_card, billing_adress])</code>.</p>
 <h2 id="json-schema-reference">JSON schema reference<a class="headerlink" href="#json-schema-reference" title="Permanent link">&para;</a></h2>
-<p>For complex schema with type reuse, it's convenient to extract definitions of schema components in order to reuse them; it's even mandatory for recursive types. Then, schema use JSON pointers "$ref" to refer to the definitions. <em>apischema</em> handles this feature natively.</p>
+<p>For complex schema with type reuse, it's convenient to extract definitions of schema components in order to reuse them — it's even mandatory for recursive types; JSON schema use JSON pointers "$ref" to refer to the definitions. <em>apischema</em> handles this feature natively.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
@@ -1402,7 +1399,10 @@
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
             <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
-                <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;anyOf&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Node&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;null&quot;</span><span class="p">}]},</span>
+                <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;anyOf&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Node&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;null&quot;</span><span class="p">}],</span>
+                    <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="p">},</span>
             <span class="p">},</span>
             <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span>
             <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
@@ -1472,23 +1472,23 @@
 <span class="p">}</span>
 </code></pre></div>
 
-<h3 id="assign-a-reference-to-a-type">Assign a reference to a type<a class="headerlink" href="#assign-a-reference-to-a-type" title="Permanent link">&para;</a></h3>
-<p>It's possible to assign a reference name to every type using <code>apischema.schema_ref</code>, this name being then used in the schema. It can also be used to remove the reference of a type, by passing <code>None</code> instead of a string, so the type can no more be referenced as a separate definition in the schema.</p>
-<p>Generic aliases can have a ref, but they need to be specialized; <code>Foo[T, int]</code> cannot have a ref but <code>Foo[str, int]</code> can.</p>
+<h3 id="set-reference-name">Set reference name<a class="headerlink" href="#set-reference-name" title="Permanent link">&para;</a></h3>
+<p>In the previous examples, types were referenced using their name. This is indeed the default behavior for every classes/<code>NewType</code>s (except primitive <code>int</code>/<code>str</code>/<code>bool</code>/<code>float</code>).</p>
+<p>It's possible to override the default reference name using <code>apischema.type_name</code>; passing <code>None</code> instead of a string will remove the reference, making the type unable to be referenced as a separate definition in the schema.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema_ref</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">type_name</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
 
 
-<span class="c1"># Schema ref can be added as a decorator</span>
-<span class="nd">@schema_ref</span><span class="p">(</span><span class="s2">&quot;Resource&quot;</span><span class="p">)</span>
+<span class="c1"># Type name can be added as a decorator</span>
+<span class="nd">@type_name</span><span class="p">(</span><span class="s2">&quot;Resource&quot;</span><span class="p">)</span>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">BaseResource</span><span class="p">:</span>
     <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
     <span class="c1"># or using typing.Annotated</span>
-    <span class="n">tags</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">schema_ref</span><span class="p">(</span><span class="s2">&quot;ResourceTags&quot;</span><span class="p">)]</span>
+    <span class="n">tags</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">type_name</span><span class="p">(</span><span class="s2">&quot;ResourceTags&quot;</span><span class="p">)]</span>
 
 
 <span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">BaseResource</span><span class="p">,</span> <span class="n">all_refs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
@@ -1515,18 +1515,62 @@
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Builtin collections are interchangeable when a ref is registered. For example, if a ref is registered for <code>list[Foo]</code>, this ref will also be used for <code>Sequence[Foo]</code> or <code>Collection[Foo]</code>.</p>
+<p>Builtin collections are interchangeable when a type_name is registered. For example, if a name is registered for <code>list[Foo]</code>, this name will also be used for <code>Sequence[Foo]</code> or <code>Collection[Foo]</code>.</p>
 </div>
-<p>By default, <code>dataclass</code>, <code>NewType</code>, <code>TypedDict</code> and <code>NamedTuple</code> will use their type name as reference (but it can be overridden). This default behavior can be customized using <code>apischema.settings.default_ref</code>:</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">settings</span>
-<span class="nd">@settings</span><span class="o">.</span><span class="n">default_ref</span>
-<span class="k">def</span> <span class="nf">default_ref</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<p>Generic aliases can have a type name, but they need to be specialized; <code>Foo[T, int]</code> cannot have a type name but <code>Foo[str, int]</code> can. However, generic classes can get a dynamic type name depending on their generic argument, passing a name factory to <code>type_name</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">TypeVar</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">type_name</span>
+<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">flattened</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+
+<span class="c1"># Type name factory takes the type and its arguments as (positional) parameters</span>
+<span class="nd">@type_name</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tp</span><span class="p">,</span> <span class="n">arg</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">arg</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">Resource&quot;</span><span class="p">)</span>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Resource</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">content</span><span class="p">:</span> <span class="n">T</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">flattened</span><span class="p">)</span>
     <span class="o">...</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">str</span>
+
+
+<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Resource</span><span class="p">[</span><span class="n">Foo</span><span class="p">],</span> <span class="n">all_refs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/FooResource&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;$defs&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;FooResource&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;allOf&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
+                    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Foo&quot;</span><span class="p">},</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;unevaluatedProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;Foo&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
+            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">}</span>
 </code></pre></div>
 
+<p>The default behavior can also be customized using <code>apischema.settings.default_type_name</code>:</p>
 <h3 id="reference-factory">Reference factory<a class="headerlink" href="#reference-factory" title="Permanent link">&para;</a></h3>
-<p><code>schema_ref</code> is used to set the reference name, like the name of a class, but in schema, <code>$ref</code> looks like <code>#/$defs/Foo</code>. In fact, schema generation use the ref given by <code>schema_ref</code> and pass it to a <code>ref_factory</code> function (a parameter of schema generation functions) which will convert it to its final form. <a href="#json-schemaopenapi-version">JSON schema version</a> comes with its default <code>ref_factory</code>, for draft 2019-09, it prefixes the ref with <code>#/$defs/</code>, while it prefixes with <code>#/components/schema</code> in case of <em>OpenAPI</em>.</p>
+<p>In JSON schema, <code>$ref</code> looks like <code>#/$defs/Foo</code>, not just <code>Foo</code>. In fact, schema generation use the ref given by <code>type_name</code>/<code>default_type_name</code> and pass it to a <code>ref_factory</code> function (a parameter of schema generation functions) which will convert it to its final form. <a href="#json-schemaopenapi-version">JSON schema version</a> comes with its default <code>ref_factory</code>, for draft 2019-09, it prefixes the ref with <code>#/$defs/</code>, while it prefixes with <code>#/components/schema</code> in case of <em>OpenAPI</em>.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
@@ -1541,7 +1585,7 @@
     <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;http://some-domain.org/path/to/</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">.json#&quot;</span>
 
 
-<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">ref_factory</span><span class="o">=</span><span class="n">ref_factory</span><span class="p">,</span> <span class="n">all_refs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+<span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">all_refs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ref_factory</span><span class="o">=</span><span class="n">ref_factory</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;http://some-domain.org/path/to/Foo.json#&quot;</span><span class="p">,</span>
 <span class="p">}</span>
@@ -1581,7 +1625,7 @@
     <span class="p">},</span>
     <span class="s2">&quot;Bar&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}},</span>
         <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
@@ -1590,7 +1634,7 @@
 <h2 id="json-schema-openapi-version">JSON schema / <em>OpenAPI</em> version<a class="headerlink" href="#json-schema-openapi-version" title="Permanent link">&para;</a></h2>
 <p>JSON schema has several versions — <em>OpenAPI</em> is treated as a JSON schema version. If <em>apischema</em> natively use the last one: draft 2019-09, it is possible to specify a schema version which will be used for the generation.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">JsonSchemaVersion</span><span class="p">,</span>
@@ -1602,6 +1646,7 @@
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
     <span class="n">baz</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">constant</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
 
 <span class="nd">@dataclass</span>
@@ -1621,7 +1666,10 @@
         <span class="p">},</span>
         <span class="s2">&quot;Bar&quot;</span><span class="p">:</span> <span class="p">{</span>
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]}},</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]},</span>
+                <span class="s2">&quot;constant&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;const&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+            <span class="p">},</span>
             <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;baz&quot;</span><span class="p">],</span>
             <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">},</span>
@@ -1642,7 +1690,10 @@
         <span class="p">},</span>
         <span class="s2">&quot;Bar&quot;</span><span class="p">:</span> <span class="p">{</span>
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]}},</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;null&quot;</span><span class="p">]},</span>
+                <span class="s2">&quot;constant&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;const&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+            <span class="p">},</span>
             <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;baz&quot;</span><span class="p">],</span>
             <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">},</span>
@@ -1650,7 +1701,7 @@
 <span class="p">}</span>
 <span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">JsonSchemaVersion</span><span class="o">.</span><span class="n">OPEN_API_3_0</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
     <span class="c1"># No definitions for OpenAPI, use definitions_schema for it</span>
-    <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schemas/Foo&quot;</span><span class="p">,</span>  <span class="c1"># OpenAPI prefix</span>
+    <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schemas/Foo&quot;</span>  <span class="c1"># OpenAPI prefix</span>
 <span class="p">}</span>
 <span class="k">assert</span> <span class="n">definitions_schema</span><span class="p">(</span>
     <span class="n">deserialization</span><span class="o">=</span><span class="p">[</span><span class="n">Foo</span><span class="p">],</span> <span class="n">version</span><span class="o">=</span><span class="n">JsonSchemaVersion</span><span class="o">.</span><span class="n">OPEN_API_3_0</span>
@@ -1664,7 +1715,10 @@
     <span class="s2">&quot;Bar&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
         <span class="c1"># &quot;nullable&quot; instead of &quot;type&quot;: &quot;null&quot;</span>
-        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;nullable&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}},</span>
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;nullable&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="s2">&quot;constant&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;enum&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+        <span class="p">},</span>
         <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;baz&quot;</span><span class="p">],</span>
         <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">},</span>
@@ -1673,10 +1727,7 @@
 
 <h2 id="readonly-writeonly"><code>readOnly</code> / <code>writeOnly</code><a class="headerlink" href="#readonly-writeonly" title="Permanent link">&para;</a></h2>
 <p>Dataclasses <code>InitVar</code> and <code>field(init=False)</code> fields will be flagged respectively with <code>"writeOnly": true</code> and <code>"readOnly": true</code> in the generated schema.</p>
-<p>In <a href="#definitions-schema">definitions schema</a>, if a type appears both in deserialization and serialization,  properties are merged and the resulting schema contains then <code>readOnly</code> and <code>writeOnly</code> properties. By the way, the <code>required</code> is not merged because it can't (it would mess up validation if some not-init field was required), so deserialization <code>required</code> is kept because it's more important as it can be used in validation (<em>OpenAPI</em> 3.0 semantic which allows the merge <a href="https://www.openapis.org/blog/2020/06/18/openapi-3-1-0-rc0-its-here">has been dropped</a> in 3.1, so it has not been judged useful to be supported)</p>
-<h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
-<h4 id="why-field-default-value-is-not-used-by-default-to-generate-json-schema">Why field default value is not used by default to generate JSON schema?<a class="headerlink" href="#why-field-default-value-is-not-used-by-default-to-generate-json-schema" title="Permanent link">&para;</a></h4>
-<p>Actually, default value is not always the usable in the schema, for example <code>NotNull</code> fields with a <code>None</code> default value. Because <code>default</code> keyword is kind of facultative in the schema, it has been decided to not put it by default in order to not put wrong default by accident.</p>
+<p>In <a href="#definitions-schema">definitions schema</a>, if a type appears both in deserialization and serialization, properties are merged and the resulting schema contains then <code>readOnly</code> and <code>writeOnly</code> properties. By the way, the <code>required</code> is not merged because it can't (it would mess up validation if some not-init field was required), so deserialization <code>required</code> is kept because it's more important as it can be used in validation (<em>OpenAPI</em> 3.0 semantic which allows the merge <a href="https://www.openapis.org/blog/2020/06/18/openapi-3-1-0-rc0-its-here">has been dropped</a> in 3.1, so it has not been judged useful to be supported)</p>
                 
               
               

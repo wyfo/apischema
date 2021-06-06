@@ -15,7 +15,7 @@
     
     
       
-        <title>Recoverable fields - apischema</title>
+        <title>Inherited deserializer - apischema</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#recoverable-fields" class="md-skip">
+        <a href="#inherited-deserializer" class="md-skip">
           Skip to content
         </a>
       
@@ -88,7 +88,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              Recoverable fields
+              Inherited deserializer
             
           </span>
         </div>
@@ -435,6 +435,18 @@
           
           
 
+
+  <li class="md-nav__item">
+    <a href="../recoverable_fields/" title="Recoverable fields" class="md-nav__link">
+      Recoverable fields
+    </a>
+  </li>
+
+        
+          
+          
+          
+
   
 
 
@@ -445,22 +457,10 @@
       
     
     
-    <a href="./" title="Recoverable fields" class="md-nav__link md-nav__link--active">
-      Recoverable fields
-    </a>
-    
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../inherited_deserializer/" title="Inherited deserializer" class="md-nav__link">
+    <a href="./" title="Inherited deserializer" class="md-nav__link md-nav__link--active">
       Inherited deserializer
     </a>
+    
   </li>
 
         
@@ -532,7 +532,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/recoverable_fields.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/inherited_deserializer.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
@@ -540,70 +540,70 @@
                   
                 
                 
-                <h1 id="recoverable-fields">Recoverable fields<a class="headerlink" href="#recoverable-fields" title="Permanent link">&para;</a></h1>
-<p>Inspired by <a href="https://github.com/samuelcolvin/pydantic/issues/800">https://github.com/samuelcolvin/pydantic/issues/800</a></p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span>
+                <h1 id="inherited-deserializer">Inherited deserializer<a class="headerlink" href="#inherited-deserializer" title="Permanent link">&para;</a></h1>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterator</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypeVar</span>
 
-<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">Conversion</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">serializer</span>
-<span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span><span class="p">,</span> <span class="n">serialization_schema</span>
+<span class="n">Foo_</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Foo_&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;Foo&quot;</span><span class="p">)</span>
+
+<span class="c1"># Use a dataclass in order to be easily testable with ==</span>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">Foo_</span><span class="p">],</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Foo_</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init_subclass__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># Register subclasses&#39; conversion in __init_subclass__</span>
+        <span class="n">deserializer</span><span class="p">(</span><span class="n">Conversion</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">deserialize</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="bp">cls</span><span class="p">))</span>
 
 
-<span class="c1"># Add a dummy placeholder comment in order to not have an empty schema</span>
-<span class="c1"># (because Union member with empty schema would &quot;contaminate&quot; whole Union schema)</span>
-<span class="nd">@schema</span><span class="p">(</span><span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;$comment&quot;</span><span class="p">:</span> <span class="s2">&quot;recoverable&quot;</span><span class="p">})</span>
-<span class="k">class</span> <span class="nc">RecoverableRaw</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="n">raw</span>
+<span class="c1"># Register main conversion after the class definition</span>
+<span class="n">deserializer</span><span class="p">(</span><span class="n">Conversion</span><span class="p">(</span><span class="n">Foo</span><span class="o">.</span><span class="n">deserialize</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">Foo</span><span class="p">))</span>
 
 
-<span class="n">deserializer</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Bar</span><span class="p">(</span><span class="n">Foo</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Bar</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">Bar</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+
+<span class="c1"># For external types (defines in imported library)</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">ForeignType</span><span class="p">:</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">int</span>
+
+
+<span class="k">class</span> <span class="nc">ForeignSubtype</span><span class="p">(</span><span class="n">ForeignType</span><span class="p">):</span>
+    <span class="k">pass</span>
+
 
 <span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+<span class="c1"># Recursive implementation of type.__subclasses__</span>
+<span class="k">def</span> <span class="nf">rec_subclasses</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">T</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">type</span><span class="p">[</span><span class="n">T</span><span class="p">]]:</span>
+    <span class="k">for</span> <span class="n">sub_cls</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">():</span>
+        <span class="k">yield</span> <span class="n">sub_cls</span>
+        <span class="k">yield from</span> <span class="n">rec_subclasses</span><span class="p">(</span><span class="n">sub_cls</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">remove_recoverable_schema</span><span class="p">(</span><span class="n">json_schema</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-    <span class="k">if</span> <span class="s2">&quot;anyOf&quot;</span> <span class="ow">in</span> <span class="n">json_schema</span><span class="p">:</span>  <span class="c1"># deserialization schema</span>
-        <span class="n">value_schema</span><span class="p">,</span> <span class="n">recoverable_comment</span> <span class="o">=</span> <span class="n">json_schema</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;anyOf&quot;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">recoverable_comment</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;$comment&quot;</span><span class="p">:</span> <span class="s2">&quot;recoverable&quot;</span><span class="p">}</span>
-        <span class="n">json_schema</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">value_schema</span><span class="p">)</span>
+<span class="c1"># Register deserializers for all subclasses</span>
+<span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ForeignType</span><span class="p">,</span> <span class="o">*</span><span class="n">rec_subclasses</span><span class="p">(</span><span class="n">ForeignType</span><span class="p">)):</span>
+    <span class="c1"># cls=cls is an lambda idiom to capture variable by value inside loop</span>
+    <span class="n">deserializer</span><span class="p">(</span><span class="n">Conversion</span><span class="p">(</span><span class="k">lambda</span> <span class="n">value</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="bp">cls</span><span class="p">:</span> <span class="bp">cls</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="n">source</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="bp">cls</span><span class="p">))</span>
 
-
-<span class="nd">@schema</span><span class="p">(</span><span class="n">extra</span><span class="o">=</span><span class="n">remove_recoverable_schema</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">Recoverable</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">RecoverableRaw</span><span class="p">]):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">,</span> <span class="n">RecoverableRaw</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
-
-    <span class="nd">@value</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span>
-
-
-<span class="n">deserializer</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">)</span>
-<span class="n">serializer</span><span class="p">(</span><span class="n">Recoverable</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-
-<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="mi">0</span>
-<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-    <span class="n">_</span> <span class="o">=</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="s2">&quot;bad&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
-<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">raw</span> <span class="o">==</span> <span class="s2">&quot;bad&quot;</span>
-
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Recoverable</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
-<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-    <span class="n">serialize</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Recoverable</span><span class="p">(</span><span class="n">RecoverableRaw</span><span class="p">(</span><span class="s2">&quot;bad&quot;</span><span class="p">)))</span>
-<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">raw</span> <span class="o">==</span> <span class="s2">&quot;bad&quot;</span>
-
-<span class="k">assert</span> <span class="p">(</span>
-    <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span>
-    <span class="o">==</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">Recoverable</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span>
-    <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}</span>
-<span class="p">)</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">ForeignType</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">ForeignType</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">ForeignSubtype</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">ForeignSubtype</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 </code></pre></div>
                 
               
@@ -623,7 +623,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../subclass_tagged_union/" title="Class as tagged union of its subclasses" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../recoverable_fields/" title="Recoverable fields" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -632,19 +632,19 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Class as tagged union of its subclasses
+                Recoverable fields
               </div>
             </div>
           </a>
         
         
-          <a href="../inherited_deserializer/" title="Inherited deserializer" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../../benchmark/" title="Benchmark" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Inherited deserializer
+                Benchmark
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
