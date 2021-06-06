@@ -50,6 +50,8 @@ def as_tagged_union(cls: Cls) -> Cls:
             lambda obj: serialization_union(**{obj.__class__.__name__: obj}),
             source=cls,
             target=serialization_union,
+            # Conversion must not be inherited because it would lead to infinite
+            # recursion otherwise
             inherited=False,
         )
 
@@ -129,8 +131,8 @@ class Concat(Drawing):
             yield point
 
 
-def echo(spec: Drawing = None) -> Optional[Drawing]:
-    return spec
+def echo(drawing: Drawing = None) -> Optional[Drawing]:
+    return drawing
 
 
 drawing_schema = graphql_schema(query=[echo])
@@ -138,7 +140,7 @@ assert (
     graphql.utilities.print_schema(drawing_schema)
     == """\
 type Query {
-  echo(spec: DrawingInput): Drawing
+  echo(drawing: DrawingInput): Drawing
 }
 
 type Drawing {
@@ -184,7 +186,7 @@ input ConcatInput {
 
 query = """\
 {
-echo(spec: {
+echo(drawing: {
     Concat: {
         left: {
             SizedLine: {
