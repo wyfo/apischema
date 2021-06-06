@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import (
     Any,
     Callable,
@@ -47,6 +48,14 @@ class Conversion:
 @dataclass(frozen=True)
 class LazyConversion:
     get: Callable[[], Optional["AnyConversion"]]
+
+    def __post_init__(self):
+        object.__setattr__(self, "get", lru_cache(1)(self.get))
+
+    @property
+    def inherited(self) -> Optional[bool]:
+        conversion = self.get()  # type: ignore
+        return isinstance(conversion, Conversion) and conversion.inherited
 
 
 ConvOrFunc = Union[Conversion, Converter, property, LazyConversion]

@@ -26,7 +26,8 @@ nav:
   - examples/sqlalchemy_support.md
   - examples/pydantic_support.md
   - examples/attrs_support.md
-  - examples/subclasses_union.md
+  - examples/subclass_union.md
+  - examples/subclass_tagged_union.md
   - examples/recoverable_fields.md
   - examples/inherited_deserializer.md
 - benchmark.md
