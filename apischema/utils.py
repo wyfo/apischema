@@ -524,7 +524,8 @@ def deprecate_kwargs(
     parameters_map: Mapping[str, Optional[str]]
 ) -> Callable[[Func], Func]:
     def decorator(func: Func) -> Func:
-        @wraps(func)
+        wrapped = func.__init__ if isinstance(func, type) else func  # type: ignore
+
         def wrapper(*args, **kwargs):
             for param, replacement in parameters_map.items():
                 if param in kwargs:
@@ -536,8 +537,12 @@ def deprecate_kwargs(
                     arg = kwargs.pop(param)
                     if replacement:
                         kwargs[replacement] = kwargs.get(replacement, arg)
-            return func(*args, **kwargs)
+            return wrapped(*args, **kwargs)
 
-        return cast(Func, wrapper)
+        if isinstance(func, type):
+            func.__init__ = wraps(func.__init__)(wrapper)  # type: ignore
+            return cast(Func, func)
+        else:
+            return cast(Func, wraps(func)(wrapper))
 
     return decorator
