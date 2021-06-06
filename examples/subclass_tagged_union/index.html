@@ -595,6 +595,8 @@
             <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">serialization_union</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="n">obj</span><span class="p">}),</span>
             <span class="n">source</span><span class="o">=</span><span class="bp">cls</span><span class="p">,</span>
             <span class="n">target</span><span class="o">=</span><span class="n">serialization_union</span><span class="p">,</span>
+            <span class="c1"># Conversion must not be inherited because it would lead to infinite</span>
+            <span class="c1"># recursion otherwise</span>
             <span class="n">inherited</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -674,8 +676,8 @@
             <span class="k">yield</span> <span class="n">point</span>
 
 
-<span class="k">def</span> <span class="nf">echo</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Drawing</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Drawing</span><span class="p">]:</span>
-    <span class="k">return</span> <span class="n">spec</span>
+<span class="k">def</span> <span class="nf">echo</span><span class="p">(</span><span class="n">drawing</span><span class="p">:</span> <span class="n">Drawing</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Drawing</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">drawing</span>
 
 
 <span class="n">drawing_schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">echo</span><span class="p">])</span>
@@ -683,7 +685,7 @@
     <span class="n">graphql</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">print_schema</span><span class="p">(</span><span class="n">drawing_schema</span><span class="p">)</span>
     <span class="o">==</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">type Query {</span>
-<span class="s2">  echo(spec: DrawingInput): Drawing</span>
+<span class="s2">  echo(drawing: DrawingInput): Drawing</span>
 <span class="s2">}</span>
 
 <span class="s2">type Drawing {</span>
@@ -729,7 +731,7 @@
 
 <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">{</span>
-<span class="s2">echo(spec: {</span>
+<span class="s2">echo(drawing: {</span>
 <span class="s2">    Concat: {</span>
 <span class="s2">        left: {</span>
 <span class="s2">            SizedLine: {</span>
