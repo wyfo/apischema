@@ -1,6 +1,8 @@
 import collections.abc
 import sys
+import warnings
 from collections import defaultdict
+from dataclasses import dataclass
 from functools import lru_cache, wraps
 from itertools import repeat
 from typing import (
@@ -15,11 +17,13 @@ from typing import (
     Tuple,
     TypeVar,
 )
+from unittest.mock import Mock
 
 from pytest import mark
 
 from apischema.typing import Annotated, typing_origin
 from apischema.utils import (
+    deprecate_kwargs,
     is_async,
     replace_builtins,
     to_camel_case,
@@ -172,3 +176,23 @@ def test_type_dict_wrapper(wrapped):
         (C, [C]),
         (D, [D]),
     ]
+
+
+@deprecate_kwargs({"prev": "new"})
+@dataclass
+class MyClass:
+    new: int
+
+
+@deprecate_kwargs({"prev": "new"})
+def func(new: int):
+    pass
+
+
+@mark.parametrize("func", [MyClass, func])
+@mark.parametrize("kwarg, warn", [("prev", True), ("new", False)])
+def test_deprecate_kwargs(monkeypatch, func, kwarg, warn):
+    mock = Mock()
+    monkeypatch.setattr(warnings, "warn", mock)
+    func(**{kwarg: 0})
+    mock.assert_called_once() if warn else mock.assert_not_called()
