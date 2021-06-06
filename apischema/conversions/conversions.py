@@ -21,12 +21,13 @@ from apischema.conversions.utils import (
 )
 from apischema.dataclasses import replace
 from apischema.types import AnyType
-from apischema.utils import is_method, method_class, method_wrapper
+from apischema.utils import deprecate_kwargs, is_method, method_class, method_wrapper
 
 if TYPE_CHECKING:
     from apischema.deserialization.coercion import Coerce
 
 
+@deprecate_kwargs({"sub_conversions": "sub_conversion"})
 @dataclass(frozen=True)
 class Conversion:
     converter: Union[Converter, property]
