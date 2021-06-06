@@ -64,7 +64,7 @@ def default_serialization(tp: Type) -> Optional[AnyConversion]:
             conversion = _serializers[sub_cls]
             if (
                 sub_cls == tp
-                or not isinstance(conversion, Conversion)
+                or not isinstance(conversion, (Conversion, LazyConversion))
                 or conversion.inherited in (None, True)
             ):
                 return conversion

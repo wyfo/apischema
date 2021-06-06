@@ -57,7 +57,7 @@ Moreover, when serializer is a method/property, overriding this method/property 
 ```
 
 !!! note
-Inheritance can also be toggled off in specific cases, like in the [Class as union of its subclasses](examples/subclasses_union.md) example
+Inheritance can also be toggled off in specific cases, like in the [Class as union of its subclasses](examples/subclass_union.md) example
 
 On the other hand, deserializers cannot be inherited, because the same `Source` passed to a conversion function `(Source) -> Target` will always give the same `Target` (not ensured to be the desired subtype).
 
