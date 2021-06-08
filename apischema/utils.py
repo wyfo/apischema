@@ -228,6 +228,7 @@ MethodOrProperty = Union[Callable, property]
 
 def _method_location(method: MethodOrProperty) -> Optional[Type]:
     if isinstance(method, property):
+        assert method.fget is not None
         method = method.fget
     while hasattr(method, "__wrapped__"):
         method = method.__wrapped__  # type: ignore
@@ -246,7 +247,11 @@ def _method_location(method: MethodOrProperty) -> Optional[Type]:
 
 def is_method(method: MethodOrProperty) -> bool:
     """Return if the function is method/property declared in a class"""
-    return (isinstance(method, property) and is_method(method.fget)) or (
+    return (
+        isinstance(method, property)
+        and method.fget is not None
+        and is_method(method.fget)
+    ) or (
         isinstance(method, FunctionType)
         and method.__name__ != method.__qualname__
         and isinstance(_method_location(method), (type, type(None)))
@@ -264,6 +269,7 @@ METHOD_WRAPPER_ATTR = f"{PREFIX}method_wrapper"
 
 def method_wrapper(method: MethodOrProperty, name: str = None) -> Callable:
     if isinstance(method, property):
+        assert method.fget is not None
         name = name or method.fget.__name__
 
         @wraps(method.fget)
