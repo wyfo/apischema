@@ -162,7 +162,7 @@ class SerializationMethodVisitor(
 
         return self._wrap_type_check(cls, method)
 
-    def object(self, tp: Type, fields: Sequence[ObjectField]) -> SerializationMethod:
+    def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> SerializationMethod:
         with context_setter(self) as setter:
             setter._allow_undefined = True
             normal_fields, aggregate_fields = [], []
@@ -182,29 +182,21 @@ class SerializationMethodVisitor(
                 )
                 for name, (method, types) in get_serialized_methods(tp).items()
             ]
-            exclude_unset = self._exclude_unset
+        exclude_unset = self._exclude_unset
 
-        def method(obj: Any) -> Any:
-            normal_fields2, aggregate_fields2 = normal_fields, aggregate_fields
-            if exclude_unset and hasattr(obj, FIELDS_SET_ATTR):
-                fields_set_ = fields_set(obj)
-                normal_fields2 = [
-                    (name, alias, method)
-                    for (name, alias, method) in normal_fields
-                    if name in fields_set_
-                ]
-                aggregate_fields2 = [
-                    (name, method)
-                    for (name, method) in aggregate_fields
-                    if name in fields_set_
-                ]
+        def method(
+            obj: Any,
+            attr_getter=getattr,
+            normal_fields=normal_fields,
+            aggregate_fields=aggregate_fields,
+        ) -> Any:
             result = {}
             # aggregate before normal fields to avoid overloading
-            for name, field_method in aggregate_fields2:
-                attr = getattr(obj, name)
+            for name, field_method in aggregate_fields:
+                attr = attr_getter(obj, name)
                 result.update(field_method(attr))
-            for name, alias, field_method in normal_fields2:
-                attr = getattr(obj, name)
+            for name, alias, field_method in normal_fields:
+                attr = attr_getter(obj, name)
                 if attr is not Undefined:
                     result[alias] = field_method(attr)
             for alias, func, method in serialized_methods:
@@ -215,7 +207,44 @@ class SerializationMethodVisitor(
 
         cls = get_origin_or_type(tp)
         if is_typed_dict(cls):
-            cls = Mapping
+            cls, exclude_unset = Mapping, False
+            wrapped_attr_getter = method
+
+            def method(
+                obj: Any,
+                attr_getter=getattr,
+                normal_fields=normal_fields,
+                aggregate_fields=aggregate_fields,
+            ) -> Any:
+                return wrapped_attr_getter(
+                    obj, type(obj).__getitem__, normal_fields, aggregate_fields
+                )
+
+        if exclude_unset:
+            wrapped_exclude_unset = method
+
+            def method(
+                obj: Any,
+                attr_getter=getattr,
+                normal_fields=normal_fields,
+                aggregate_fields=aggregate_fields,
+            ) -> Any:
+                if hasattr(obj, FIELDS_SET_ATTR):
+                    fields_set_ = fields_set(obj)
+                    normal_fields = [
+                        (name, alias, method)
+                        for (name, alias, method) in normal_fields
+                        if name in fields_set_
+                    ]
+                    aggregate_fields = [
+                        (name, method)
+                        for (name, method) in aggregate_fields
+                        if name in fields_set_
+                    ]
+                return wrapped_exclude_unset(
+                    obj, attr_getter, normal_fields, aggregate_fields
+                )
+
         return self._wrap_type_check(cls, method)
 
     def primitive(self, cls: Type) -> SerializationMethod:
