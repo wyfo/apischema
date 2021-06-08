@@ -1,6 +1,6 @@
 from pytest import raises
 
-from apischema import ValidationError, deserialize
+from apischema import ValidationError, deserialize, serialize
 from apischema.json_schema import deserialization_schema, serialization_schema
 from apischema.typing import TypedDict
 
@@ -39,3 +39,4 @@ def test_typed_dict():
     }
     with raises(ValidationError):
         assert deserialize(TD3, {})
+    assert serialize(TD1, {"key1": ""}) == {"key1": ""}

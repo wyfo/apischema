@@ -59,7 +59,7 @@ class PartialSerializationMethodVisitor(SerializationMethodVisitor):
             self.aliaser, self._conversions, self.default_conversion
         )
 
-    def object(self, tp: Type, fields: Sequence[ObjectField]) -> SerializationMethod:
+    def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> SerializationMethod:
         return lambda obj: obj
 
     def union(self, alternatives: Sequence[AnyType]) -> SerializationMethod:
