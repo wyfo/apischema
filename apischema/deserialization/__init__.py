@@ -555,10 +555,11 @@ class DeserializationMethodVisitor(
                 constraint_errors = constraints.errors_by_type[cls]
 
                 def method(data: Any) -> Any:
-                    if not isinstance(data, cls) and not (
-                        cls == float and isinstance(data, int)
-                    ):
-                        raise bad_type(data, cls)
+                    if not isinstance(data, cls):
+                        if cls == float and isinstance(data, int):
+                            data = float(data)
+                        else:
+                            raise bad_type(data, cls)
                     if data is not None:
                         errors = constraint_errors(data)
                         if errors:
@@ -568,11 +569,12 @@ class DeserializationMethodVisitor(
             else:
 
                 def method(data: Any) -> Any:
-                    if not isinstance(data, cls) and not (
-                        cls == float and isinstance(data, int)
-                    ):
+                    if isinstance(data, cls):
+                        return data
+                    elif cls == float and isinstance(data, int):
+                        return float(data)
+                    else:
                         raise bad_type(data, cls)
-                    return data
 
             return with_validators(method, validators)
 
