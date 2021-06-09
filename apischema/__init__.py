@@ -20,6 +20,7 @@ __all__ = [
     "validator",
 ]
 
+import warnings
 
 from . import (  # noqa: F401
     cache,
@@ -61,6 +62,8 @@ def __getattr__(name):
             "GraphQL feature requires graphql-core library\n"
             "Run `pip install apischema[graphql]` to install it"
         )
+    if name == "skip":
+        warnings.warn("apischema.skip module is deprecated")
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 

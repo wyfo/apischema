@@ -2,8 +2,8 @@ from collections import defaultdict
 from enum import Enum
 from typing import (
     Any,
+    Collection,
     Dict,
-    Iterable,
     Mapping,
     Optional,
     Sequence,
@@ -26,8 +26,9 @@ from apischema.objects.visitor import (
     SerializationObjectVisitor,
 )
 from apischema.type_names import TypeNameFactory, get_type_name
-from apischema.types import AnyType, UndefinedType
+from apischema.types import AnyType
 from apischema.utils import is_hashable, replace_builtins
+from apischema.visitor import Unsupported
 
 try:
     from apischema.typing import Annotated
@@ -79,7 +80,7 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
     def any(self):
         pass
 
-    def collection(self, cls: Type[Iterable], value_type: AnyType):
+    def collection(self, cls: Type[Collection], value_type: AnyType):
         self.visit(value_type)
 
     def enum(self, cls: Type[Enum]):
@@ -103,12 +104,8 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
         for cls in types:
             self.visit(cls)
 
-    def _union_result(self, results: Iterable):
-        for _ in results:
-            pass
-
-    def union(self, alternatives: Sequence[AnyType]):
-        return super().union([alt for alt in alternatives if alt is not UndefinedType])
+    def _visited_union(self, results: Sequence):
+        pass
 
     def visit_conversion(
         self,
@@ -117,8 +114,10 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
         dynamic: bool,
         next_conversion: Optional[AnyConversion] = None,
     ):
+        ref_types = []
         if not dynamic:
             for ref_tp in self.resolve_conversion(tp):
+                ref_types.append(ref_tp)
                 if self._incr_ref(get_type_name(ref_tp).json_schema, ref_tp):
                     return
         if not is_hashable(tp):
@@ -130,6 +129,9 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
         self._rec_guard[(tp, self._conversions)] += 1
         try:
             super().visit_conversion(tp, conversion, dynamic, next_conversion)
+        except Unsupported:
+            for ref_tp in ref_types:
+                self.refs.pop(get_type_name(ref_tp).json_schema, ...)  # type: ignore
         finally:
             self._rec_guard[(tp, self._conversions)] -= 1
 

@@ -1,4 +1,4 @@
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from dataclasses import replace
 from functools import lru_cache
 from types import new_class
@@ -14,6 +14,7 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    Union,
 )
 
 from apischema.conversions import LazyConversion
@@ -42,7 +43,7 @@ from apischema.utils import (
     substitute_type_vars,
     subtyping_substitution,
 )
-from apischema.visitor import Result, Visitor
+from apischema.visitor import Result, Unsupported, Visitor
 
 Deserialization = ResolvedConversions
 Serialization = ResolvedConversion
@@ -71,11 +72,25 @@ class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
                     return super().annotated(tp, annotations)
         return super().annotated(tp, annotations)
 
-    def _union_result(self, results: Iterable[Result]) -> Result:
+    def _union_results(
+        self, alternatives: Iterable[AnyType], *, skip: Collection[AnyType] = ()
+    ) -> Sequence[Result]:
+        results, skipped = [], False
+        for alt in alternatives:
+            if alt not in skip:
+                with suppress(Unsupported):
+                    results.append(self.visit(alt))
+            else:
+                skipped = True
+        if not (results or skipped):
+            raise Unsupported(Union[tuple(alternatives)])
+        return results
+
+    def _visited_union(self, results: Sequence[Result]) -> Result:
         raise NotImplementedError
 
     def union(self, alternatives: Sequence[AnyType]) -> Result:
-        return self._union_result(map(self.visit, alternatives))
+        return self._visited_union(self._union_results(alternatives))
 
     @contextmanager
     def _replace_conversion(self, conversion: Optional[AnyConversion]):
@@ -188,10 +203,11 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Result]):
         dynamic: bool,
         next_conversion: Optional[AnyConversion],
     ) -> Result:
-        return self._union_result(
+        results = [
             self.visit_with_conv(conv.source, sub_conversion(conv, next_conversion))
             for conv in conversion
-        )
+        ]
+        return self._visited_union(results)
 
 
 class SerializationVisitor(ConversionsVisitor[Serialization, Result]):

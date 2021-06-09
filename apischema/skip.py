@@ -1,15 +1,9 @@
 __all__ = ["NotNull", "Skip"]
 from typing import TypeVar, Union
 
-from apischema.types import AnyType
-from apischema.typing import get_args, is_annotated
+from apischema.visitor import Unsupported
 
-
-class Skipped(Exception):
-    pass
-
-
-Skip = object()
+Skip = Unsupported
 
 T = TypeVar("T")
 try:
@@ -23,7 +17,3 @@ except ImportError:
             raise TypeError("NotNull requires Annotated (PEP 593)")
 
     NotNull = _NotNull()  # type: ignore
-
-
-def is_skipped(tp: AnyType) -> bool:
-    return is_annotated(tp) and (Skip in get_args(tp)[1:])

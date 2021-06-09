@@ -1,3 +1,4 @@
+import warnings
 from dataclasses import (  # type: ignore
     Field,
     InitVar,
@@ -19,7 +20,6 @@ from typing import (
     Union,
 )
 
-from apischema.skip import is_skipped
 from apischema.types import (
     AnyType,
     COLLECTION_TYPES,
@@ -40,6 +40,11 @@ from apischema.typing import (
     required_keys,
 )
 from apischema.utils import PREFIX, get_origin_or_type, has_type_vars, is_dataclass
+
+try:
+    from apischema.typing import Annotated
+except ImportError:
+    Annotated = ...  # type: ignore
 
 TUPLE_TYPE = get_origin(Tuple[Any])
 
@@ -82,8 +87,16 @@ def dataclass_types_and_fields(
 
 
 class Unsupported(TypeError):
-    def __init__(self, cls: Type):
-        self.cls = cls
+    def __init__(self, tp: AnyType):
+        self.type = tp
+
+    @property
+    def cls(self) -> AnyType:
+        warnings.warn(
+            "Unsupported.cls is deprecated, use Unsupported.type instead",
+            DeprecationWarning,
+        )
+        return self.type
 
 
 Result = TypeVar("Result", covariant=True)
@@ -91,6 +104,8 @@ Result = TypeVar("Result", covariant=True)
 
 class Visitor(Generic[Result]):
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> Result:
+        if Unsupported in annotations:
+            raise Unsupported(Annotated[(tp, *annotations)])  # type: ignore
         return self.visit(tp)
 
     def any(self) -> Result:
@@ -153,11 +168,7 @@ class Visitor(Generic[Result]):
             if is_annotated(tp):
                 return self.annotated(args[0], args[1:])
             if origin is Union:
-                alternatives = tuple(arg for arg in args if not is_skipped(arg))
-                if len(alternatives) == 1:
-                    return self.visit(alternatives[0])
-                else:
-                    return self.union(alternatives)
+                return self.union(args[0]) if len(args) == 1 else self.union(args)
             if origin is TUPLE_TYPE:
                 if len(args) < 2 or args[1] is not ...:
                     return self.tuple(args)
