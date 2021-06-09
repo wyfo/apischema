@@ -1,4 +1,4 @@
-from typing import Iterable, Iterator, Mapping, Sequence, Type
+from typing import Iterator, Mapping, Sequence, Type
 
 from apischema.conversions.conversions import DefaultConversion
 from apischema.conversions.visitor import DeserializationVisitor
@@ -26,8 +26,7 @@ class InitFlattenedAliasVisitor(
             elif not field.is_aggregate:
                 yield field.alias
 
-    def _union_result(self, results: Iterable[Iterator[str]]) -> Iterator[str]:
-        results = list(results)
+    def _visited_union(self, results: Sequence[Iterator[str]]) -> Iterator[str]:
         if len(results) != 1:
             raise NotImplementedError
         return results[0]

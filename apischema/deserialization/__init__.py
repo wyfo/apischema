@@ -6,9 +6,9 @@ from typing import (
     AbstractSet,
     Any,
     Callable,
+    Collection,
     Dict,
     Hashable,
-    Iterable,
     List,
     Mapping,
     Optional,
@@ -50,7 +50,6 @@ from apischema.types import (
     MAPPING_TYPES,
     NoneType,
     OrderedDict,
-    UndefinedType,
 )
 from apischema.typing import get_args, get_origin
 from apischema.utils import (
@@ -218,7 +217,7 @@ class DeserializationMethodVisitor(
         return DeserializationMethodFactory(factory)
 
     def collection(
-        self, cls: Type[Iterable], value_type: AnyType
+        self, cls: Type[Collection], value_type: AnyType
     ) -> DeserializationMethodFactory:
         value_factory = self.visit(value_type)
 
@@ -631,10 +630,8 @@ class DeserializationMethodVisitor(
         return DeserializationMethodFactory(factory, list)
 
     def union(self, alternatives: Sequence[AnyType]) -> DeserializationMethodFactory:
+        alt_factories = list(self._union_results(alternatives, skip={NoneType}))
         none_check = None if NoneType in alternatives else NOT_NONE
-        alt_factories = [
-            self.visit(alt) for alt in alternatives if alt not in (None, UndefinedType)
-        ]
 
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]

@@ -1,10 +1,23 @@
-from typing import Any, Mapping, Sequence, Type, TypeVar, Union, cast, overload
+import inspect
+from typing import (
+    Any,
+    Callable,
+    Mapping,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
 from apischema.cache import cache
+from apischema.metadata import properties
 from apischema.objects.fields import ObjectField
 from apischema.objects.visitor import ObjectVisitor
 from apischema.types import AnyType, OrderedDict
-from apischema.typing import _GenericAlias
+from apischema.typing import _GenericAlias, get_type_hints
+from apischema.utils import empty_dict
 from apischema.visitor import Unsupported
 
 
@@ -80,3 +93,37 @@ def get_alias(obj: T) -> T:
 
 def get_alias(obj: Union[Type[T], T]) -> T:
     return cast(T, AliasGetter(obj))
+
+
+def parameters_as_fields(
+    func: Callable, parameters_metadata: Mapping[str, Mapping] = None
+) -> Sequence[ObjectField]:
+    parameters_metadata = parameters_metadata or {}
+    types = get_type_hints(func, include_extras=True)
+    fields = []
+    for param_name, param in inspect.signature(func).parameters.items():
+        if param.kind is inspect.Parameter.POSITIONAL_ONLY:
+            raise TypeError("Positional only parameters are not supported")
+        param_type = types.get(param_name, Any)
+        if param.kind in {
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            inspect.Parameter.KEYWORD_ONLY,
+        }:
+            field = ObjectField(
+                param_name,
+                param_type,
+                param.default is inspect.Parameter.empty,
+                parameters_metadata.get(param_name, empty_dict),
+                default=param.default,
+            )
+            fields.append(field)
+        elif param.kind == inspect.Parameter.VAR_KEYWORD:
+            field = ObjectField(
+                param_name,
+                Mapping[str, param_type],  # type: ignore
+                False,
+                properties | parameters_metadata.get(param_name, empty_dict),
+                default_factory=dict,
+            )
+            fields.append(field)
+    return fields

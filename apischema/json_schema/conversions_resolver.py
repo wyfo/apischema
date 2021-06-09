@@ -69,7 +69,7 @@ class ConversionsResolver(ConversionsVisitor[Conv, Sequence[AnyType]]):
     def tuple(self, types: Sequence[AnyType]) -> Sequence[AnyType]:
         return merge_results(map(self.visit, types), Tuple)
 
-    def _union_result(self, results: Iterable[Sequence[AnyType]]) -> Sequence[AnyType]:
+    def _visited_union(self, results: Sequence[Sequence[AnyType]]) -> Sequence[AnyType]:
         return merge_results(results, Union)
 
     def visit_conversion(

@@ -77,7 +77,7 @@ For `Enum`, this is the value and not the attribute name that is serialized
 
 - `typing.Optional`/`typing.Union` (`Optional[T]` is strictly equivalent to `Union[T, None]`)
 
-: Deserialization select the first matching alternative (see below how to [skip some union member](#skip-union-member))
+: Deserialization select the first matching alternative; unsupported alternatives are ignored
 
 - `tuple` (*`typing.Tuple`*)
 
@@ -153,7 +153,7 @@ Here with PEP 563 (requires 3.7+)
     Currently, PEP 585 can have surprising behavior when used outside the box, see [bpo-41370](https://bugs.python.org/issue41370)
     
 
-## `null` vs `undefined`
+## `null` vs. `undefined`
 
 Contrary to Javascript, Python doesn't have an `undefined` equivalent (if we consider `None` to be `null` equivalent). But it can be useful to distinguish (especially when thinkinn about HTTP `PATCH` method) between a `null` field and an `undefined`/absent field.
 
@@ -175,32 +175,14 @@ Dataclass/`NamedTuple` fields are ignored by serialization when `Undefined`.
 
 [PEP 593](https://www.python.org/dev/peps/pep-0593/) is fully supported; annotations stranger to *apischema* are simply ignored.
 
-### Skip `Union` member
-
-Sometimes, one of the `Union` members has not to be taken in account during validation; it can just be here to match the type of the default value of the field. This member can be marked as to be skipped with [PEP 593](https://www.python.org/dev/peps/pep-0593/) `Annotated` and `apischema.skip.Skip`
-
-```python
-{!skip_union.py!}
-```
-
-### Optional vs. NotNull
-
-`Optional` type is not always appropriate, because it allows deserialized value to be `null`, but sometimes, you just want `None` as a default value for unset fields, not an authorized one.
-
-That's why *apischema* defines a `NotNull` type; in fact, `NotNull = Union[T, Annotated[None, Skip]]`. 
-
-```python
-{!not_null.py!}
-```
-
-!!! note
-    You can also use [`Undefined`](#null-vs-undefined), but it can be more convenient to directly manipulate an `Optional` field, especially in the rest of the code unrelated to (de)serialization.
-
 ## Custom types
 
 *apischema* can support almost all of your custom types in a few lines of code, using [conversion feature](conversions.md). However, it also provides a simple and direct way to support dataclass-like types, as presented [below](#dataclass-like-types-aka-object-types).
 
 Otherwise, when *apischema* encounters a type that it doesn't support, `apischema.Unsupported` exception will be raised.
+
+!!! note
+    In the rare case when a union member should be ignored by apischema, it's possible to use mark it as unsupported using `Union[Foo, Annotated[Bar, Unsupported]]`.
 
 ### Dataclass-like types, aka object types
 

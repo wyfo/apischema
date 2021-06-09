@@ -15,9 +15,8 @@ from typing import (
     Union,
 )
 
-from apischema.metadata import properties
 from apischema.objects.fields import MISSING_DEFAULT, ObjectField, set_object_fields
-from apischema.objects.getters import object_fields
+from apischema.objects.getters import object_fields, parameters_as_fields
 from apischema.type_names import type_name
 from apischema.types import OrderedDict
 from apischema.typing import get_type_hints
@@ -39,37 +38,8 @@ def object_deserialization(
     *input_class_modifiers: Callable[[type], Any],
     parameters_metadata: Mapping[str, Mapping] = None,
 ) -> Any:
-    parameters_metadata = parameters_metadata or {}
+    fields = parameters_as_fields(func, parameters_metadata)
     types = get_type_hints(func, include_extras=True)
-    fields = []
-    params, kwargs_param = [], None
-    for param_name, param in inspect.signature(func).parameters.items():
-        if param.kind is inspect.Parameter.POSITIONAL_ONLY:
-            raise TypeError("Positional only parameters are not supported")
-        param_type = types.get(param_name, Any)
-        if param.kind in {
-            inspect.Parameter.POSITIONAL_OR_KEYWORD,
-            inspect.Parameter.KEYWORD_ONLY,
-        }:
-            field = ObjectField(
-                param_name,
-                param_type,
-                param.default is inspect.Parameter.empty,
-                parameters_metadata.get(param_name, empty_dict),
-                default=param.default,
-            )
-            fields.append(field)
-            params.append(param_name)
-        elif param.kind == inspect.Parameter.VAR_KEYWORD:
-            field = ObjectField(
-                param_name,
-                Mapping[str, param_type],  # type: ignore
-                False,
-                properties | parameters_metadata.get(param_name, empty_dict),
-                default_factory=dict,
-            )
-            fields.append(field)
-            kwargs_param = param_name
     if "return" not in types:
         raise TypeError("Object deserialization must be typed")
     return_type = types["return"]
@@ -93,7 +63,8 @@ def object_deserialization(
     for modifier in input_class_modifiers:
         modifier(input_cls)
     set_object_fields(input_cls, fields)
-    if kwargs_param:
+    if any(f.additional_properties for f in fields):
+        kwargs_param = next(f.name for f in fields if f.additional_properties)
 
         def wrapper(input):
             kwargs = input.kwargs.copy()

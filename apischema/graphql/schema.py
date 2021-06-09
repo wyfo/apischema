@@ -370,18 +370,12 @@ class SchemaBuilder(
         raise TypeError("Tuple are not supported")
 
     def union(self, alternatives: Sequence[AnyType]) -> TypeFactory[GraphQLTp]:
-        factories = [
-            self.visit(alt)
-            for alt in alternatives
-            if alt not in (NoneType, UndefinedType)
-        ]
-        if not factories:
-            raise TypeError("Empty union")
+        factories = self._union_results(alternatives, skip={NoneType, UndefinedType})
         if len(factories) == 1:
             factory = factories[0]
         else:
-            factory = self._union_result(factories)
-        if len(factories) != len(alternatives):
+            factory = self._visited_union(factories)
+        if NoneType in alternatives or UndefinedType in alternatives:
 
             def nullable(name: Optional[str], description: Optional[str]) -> GraphQLTp:
                 res = factory.factory(name, description)  # type: ignore
@@ -497,15 +491,13 @@ class InputSchemaBuilder(
 
         return TypeFactory(factory)
 
-    def _union_result(
-        self, results: Iterable[TypeFactory]
+    def _visited_union(
+        self, results: Sequence[TypeFactory]
     ) -> TypeFactory[graphql.GraphQLInputType]:
-        results = list(results)
         # Check must be done here too because _union_result is used by visit_conversion
-        if len(results) == 1:
-            return results[0]
-        else:
+        if len(results) != 1:
             raise TypeError("Union are not supported for input")
+        return results[0]
 
 
 Func = TypeVar("Func", bound=Callable)
@@ -723,15 +715,13 @@ class OutputSchemaBuilder(
         raise TypeError("TypedDict are not supported in output schema")
 
     @cache_type
-    def _union_result(
-        self, factories: Iterable[TypeFactory]
+    def _visited_union(
+        self, results: Sequence[TypeFactory]
     ) -> TypeFactory[graphql.GraphQLOutputType]:
-        factories = list(factories)  # Execute the iteration (tuple to be hashable)
-
         def factory(
             name: Optional[str], description: Optional[str]
         ) -> graphql.GraphQLOutputType:
-            types = [factory.raw_type for factory in factories]
+            types = [factory.raw_type for factory in results]
             if name is None:
                 name = self.union_name_factory([t.name for t in types])
             return graphql.GraphQLUnionType(name, types, description=description)
@@ -816,7 +806,7 @@ def graphql_schema(
     description: Optional[str] = None,
     extensions: Optional[Dict[str, Any]] = None,
     aliaser: Optional[Aliaser] = to_camel_case,
-    id_types: Union[Collection[AnyType], IdPredicate] = None,
+    id_types: Union[Collection[AnyType], IdPredicate] = (),
     id_encoding: Tuple[
         Optional[Callable[[str], Any]], Optional[Callable[[Any], str]]
     ] = (None, None),

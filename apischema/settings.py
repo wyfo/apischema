@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Sequence
+from typing import Callable, Collection, Optional, Sequence, Union
 
 from apischema import cache
 from apischema.aliases import Aliaser
@@ -54,3 +54,5 @@ class settings(metaclass=MetaSettings):
         fall_back_on_any: bool = False
         default_conversion: DefaultConversion = default_serialization
         exclude_unset: bool = True
+        skip_simple_dataclasses: bool = False
+        skip_types: Union[Collection[AnyType], Callable[[AnyType], bool]] = ()

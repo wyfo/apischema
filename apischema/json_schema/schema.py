@@ -9,7 +9,6 @@ from typing import (
     ClassVar,
     Collection,
     Dict,
-    Iterable,
     List,
     Mapping,
     Optional,
@@ -124,7 +123,7 @@ class SchemaBuilder(
     def any(self) -> JsonSchema:
         return JsonSchema()
 
-    def collection(self, cls: Type[Iterable], value_type: AnyType) -> JsonSchema:
+    def collection(self, cls: Type[Collection], value_type: AnyType) -> JsonSchema:
         return json_schema(
             type=JsonType.ARRAY,
             items=self.visit(value_type),
@@ -277,8 +276,7 @@ class SchemaBuilder(
             maxItems=len(types),
         )
 
-    def _union_result(self, results: Iterable[JsonSchema]) -> JsonSchema:
-        results = list(results)
+    def _visited_union(self, results: Sequence[JsonSchema]) -> JsonSchema:
         if len(results) == 1:
             return results[0]
         elif any(alt == {} for alt in results):
@@ -308,9 +306,6 @@ class SchemaBuilder(
                 raise NotImplementedError
         else:
             return json_schema(anyOf=results)
-
-    def union(self, alternatives: Sequence[AnyType]) -> JsonSchema:
-        return super().union([alt for alt in alternatives if alt is not UndefinedType])
 
     def visit_conversion(
         self,

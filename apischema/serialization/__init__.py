@@ -60,7 +60,7 @@ def instance_checker(tp: AnyType) -> Callable[[Any], bool]:
 
 
 class SerializationMethodVisitor(
-    CachedConversionsVisitor,
+    CachedConversionsVisitor[Serialization, SerializationMethod],
     SerializationVisitor[SerializationMethod],
     SerializationObjectVisitor[SerializationMethod],
 ):
@@ -279,13 +279,10 @@ class SerializationMethodVisitor(
         return self._wrap_type_check(tuple, method)
 
     def union(self, alternatives: Sequence[AnyType]) -> SerializationMethod:
-        method_and_checks = [
-            (self.visit(alt), instance_checker(alt))
-            for alt in alternatives
-            if alt not in (None, UndefinedType)
-        ]
+        methods = self._union_results(alternatives, skip={NoneType})
+        checks = [instance_checker(alt) for alt in alternatives if alt is not NoneType]
+        methods_and_checks = list(zip(methods, checks))
         none_check = None if NoneType in alternatives else NOT_NONE
-        undefined_allowed = UndefinedType in alternatives and self._allow_undefined
         fall_back_on_any, any_method = self._fall_back_on_any, self._any_method
 
         def method(obj: Any) -> Any:
@@ -293,15 +290,13 @@ class SerializationMethodVisitor(
             if obj is none_check:
                 return obj
             error = None
-            for alt_method, instance_check in method_and_checks:
+            for alt_method, instance_check in methods_and_checks:
                 if not instance_check(obj):
                     continue
                 try:
                     return alt_method(obj)
                 except Exception as err:
                     error = err
-            if obj is Undefined and undefined_allowed:
-                return obj
             if fall_back_on_any:
                 try:
                     return any_method(obj.__class__)(obj)
@@ -369,6 +364,8 @@ class SerializationMethodVisitor(
     def visit(self, tp: AnyType) -> SerializationMethod:
         if tp == AliasedStr:
             return self._wrap_type_check(AliasedStr, self.aliaser)
+        if self._allow_undefined and tp is UndefinedType:
+            return lambda obj: obj
         return super().visit(tp)
 
 
