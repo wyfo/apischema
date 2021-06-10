@@ -13,7 +13,6 @@ from typing import (
 
 from apischema.cache import cache
 from apischema.metadata import properties
-from apischema.objects import AliasedStr
 from apischema.objects.fields import ObjectField
 from apischema.objects.visitor import ObjectVisitor
 from apischema.types import AnyType, OrderedDict
@@ -69,6 +68,10 @@ def get_field(obj: T) -> T:
 # https://github.com/python/mypy/issues/9003#issuecomment-667418520
 def get_field(obj: Union[Type[T], T]) -> T:
     return cast(T, FieldGetter(obj))
+
+
+class AliasedStr(str):
+    pass
 
 
 class AliasGetter:
