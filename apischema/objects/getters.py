@@ -70,13 +70,17 @@ def get_field(obj: Union[Type[T], T]) -> T:
     return cast(T, FieldGetter(obj))
 
 
+class AliasedStr(str):
+    pass
+
+
 class AliasGetter:
     def __init__(self, obj: Any):
         self.fields = object_fields2(obj)
 
     def __getattribute__(self, name: str) -> str:
         try:
-            return object.__getattribute__(self, "fields")[name].alias
+            return AliasedStr(object.__getattribute__(self, "fields")[name].alias)
         except KeyError:
             raise AttributeError(name)
 

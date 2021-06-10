@@ -1,2 +1,0 @@
-class AliasedStr(str):
-    pass
