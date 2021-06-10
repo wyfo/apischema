@@ -13,6 +13,7 @@ from typing import (
 
 from apischema.cache import cache
 from apischema.metadata import properties
+from apischema.objects import AliasedStr
 from apischema.objects.fields import ObjectField
 from apischema.objects.visitor import ObjectVisitor
 from apischema.types import AnyType, OrderedDict
@@ -76,7 +77,7 @@ class AliasGetter:
 
     def __getattribute__(self, name: str) -> str:
         try:
-            return object.__getattribute__(self, "fields")[name].alias
+            return AliasedStr(object.__getattribute__(self, "fields")[name].alias)
         except KeyError:
             raise AttributeError(name)
 

@@ -30,7 +30,6 @@ from apischema.metadata.keys import (
     SCHEMA_METADATA,
     VALIDATORS_METADATA,
 )
-from apischema.objects.utils import AliasedStr
 from apischema.types import AnyType, ChainMap
 from apischema.typing import get_args, is_annotated
 from apischema.utils import LazyValue, empty_dict, type_dict_wrapper
@@ -91,7 +90,7 @@ class ObjectField:
 
     @property
     def alias(self) -> str:
-        return AliasedStr(self.full_metadata.get(ALIAS_METADATA, self.name))
+        return self.full_metadata.get(ALIAS_METADATA, self.name)
 
     @property
     def override_alias(self) -> bool:
