@@ -154,18 +154,20 @@ class DeserializationMethodVisitor(
         self,
         additional_properties: bool,
         aliaser: Aliaser,
-        coercer: Optional[Coercer],
+        coercion: bool,
+        coercer: Coercer,
         default_conversion: DefaultConversion,
         fall_back_on_default: bool,
     ):
         super().__init__(default_conversion)
         self._additional_properties = additional_properties
         self.aliaser = aliaser
+        self._coerce = coercion
         self._coercer = coercer
         self._fall_back_on_default = fall_back_on_default
 
     def _cache_key(self) -> Hashable:
-        return self._coercer
+        return self._coerce, self._coercer
 
     def _cache_result(
         self, lazy: Lazy[DeserializationMethodFactory]
@@ -630,7 +632,7 @@ class DeserializationMethodVisitor(
         return DeserializationMethodFactory(factory, list)
 
     def union(self, alternatives: Sequence[AnyType]) -> DeserializationMethodFactory:
-        alt_factories = list(self._union_results(alternatives, skip={NoneType}))
+        alt_factories = self._union_results(alternatives, skip={NoneType})
         none_check = None if NoneType in alternatives else NOT_NONE
 
         def factory(
@@ -677,8 +679,9 @@ class DeserializationMethodVisitor(
                     setter._additional_properties = conv.additional_properties
                 if conv.fall_back_on_default is not None:
                     setter._fall_back_on_default = conv.fall_back_on_default
-                if conv.coerce is not None:
-                    setter._coercer = get_coercer(conv.coerce)
+                setter._coerce, setter._coercer = get_coercer(
+                    conv.coerce, self._coerce, self._coercer
+                )
                 sub_conv = sub_conversion(conv, next_conversion)
                 conv_factories.append(self.visit_with_conv(conv.source, sub_conv))
 
@@ -740,7 +743,7 @@ class DeserializationMethodVisitor(
         next_conversion: Optional[AnyConversion] = None,
     ) -> DeserializationMethodFactory:
         factory = super().visit_conversion(tp, conversion, dynamic, next_conversion)
-        if factory.coercer is None and self._coercer is not None:
+        if factory.coercer is None and self._coerce:
             factory = replace(factory, coercer=self._coercer)
         if not dynamic:
             factory = factory.merge(get_constraints(get_schema(tp)), get_validators(tp))
@@ -796,13 +799,17 @@ def deserialization_method(
 ) -> DeserializationMethod:
     from apischema import settings
 
+    coerce, coercer = get_coercer(
+        coerce, settings.deserialization.coerce, settings.deserialization.coercer
+    )
     return (
         DeserializationMethodVisitor(
             opt_or(
                 additional_properties, settings.deserialization.additional_properties
             ),
             opt_or(aliaser, settings.aliaser),
-            get_coercer(opt_or(coerce, settings.deserialization.coerce)),
+            coerce,
+            coercer,
             opt_or(default_conversion, settings.deserialization.default_conversion),
             opt_or(fall_back_on_default, settings.deserialization.fall_back_on_default),
         )
