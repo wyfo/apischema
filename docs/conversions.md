@@ -174,6 +174,14 @@ A common pattern of conversion concerns class having a string constructor and a 
 !!! note
     Previously mentioned standard types are handled by *apischema* using `as_str`.
 
+## Use `Enum` names
+
+`Enum` subclasses are (de)serialized using values. However, you may want to use enumeration names instead, that's why *apischema* provides `apischema.conversion.as_names` to decorate `Enum` subclasses.
+
+```python
+{!as_names.py!}
+```
+
 ## Object deserialization — transform function into a dataclass deserializer
 
 `apischema.objects.object_deserialization` can convert a function into a new function taking a unique parameter, a dataclass whose fields are mapped from the original function parameters.

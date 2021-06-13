@@ -2,6 +2,9 @@ import sys
 import warnings
 from collections import defaultdict
 from dataclasses import replace
+from enum import Enum
+from functools import partial
+from types import new_class
 from typing import (
     Callable,
     Dict,
@@ -22,6 +25,7 @@ from apischema.conversions.conversions import (
     resolve_conversion,
 )
 from apischema.conversions.utils import Converter, is_convertible
+from apischema.type_names import type_name
 from apischema.types import AnyType
 from apischema.typing import is_type_var
 from apischema.utils import (
@@ -244,10 +248,31 @@ def inherited_deserializer(method=None, **kwargs):
     return InheritedDeserializer(method, **kwargs)
 
 
-Cls = TypeVar("Cls", bound=Type)
+Cls = TypeVar("Cls", bound=type)
 
 
 def as_str(cls: Cls) -> Cls:
     deserializer(Conversion(cls, source=str))
     serializer(Conversion(str, source=cls))
+    return cls
+
+
+EnumCls = TypeVar("EnumCls", bound=Type[Enum])
+
+
+def as_names(cls: EnumCls, aliaser: Callable[[str], str] = lambda s: s) -> EnumCls:
+    # Enum requires to call namespace __setitem__
+    def exec_body(namespace: dict):
+        for elt in cls:  # type: ignore
+            namespace[elt.name] = aliaser(elt.name)
+
+    if not issubclass(cls, Enum):
+        raise TypeError("as_names must be called with Enum subclass")
+    name_cls = type_name(None)(
+        new_class(cls.__name__, (str, Enum), exec_body=exec_body)
+    )
+    deserializer(Conversion(partial(getattr, cls), source=name_cls, target=cls))
+    serializer(
+        Conversion(lambda obj: getattr(name_cls, obj.name), source=cls, target=name_cls)
+    )
     return cls
