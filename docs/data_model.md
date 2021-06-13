@@ -71,7 +71,8 @@ They correpond to JSON *object* and are serialized to `dict`.
 
 `enum.Enum` subclasses, `typing.Literal`
 
-For `Enum`, this is the value and not the attribute name that is serialized
+!!! warning
+    `Enum` subclasses are (de)serialized using **values**, not names. *apischema* also provides a [conversion](conversions.md#using-enum-names) to use names instead.
 
 #### Typing facilities
 
