@@ -3,12 +3,13 @@ import inspect
 import re
 import sys
 import warnings
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass, is_dataclass
 from enum import Enum
 from functools import wraps
 from types import FunctionType, MappingProxyType
 from typing import (
+    AbstractSet,
     Any,
     Awaitable,
     Callable,
@@ -557,3 +558,22 @@ def deprecate_kwargs(
             return cast(Func, wraps(func)(wrapper))
 
     return decorator
+
+
+def as_predicate(
+    collection_or_predicate: Union[Collection[T], Callable[[T], bool]]
+) -> Callable[[T], bool]:
+    if not isinstance(collection_or_predicate, Collection):
+        return collection_or_predicate
+    collection = collection_or_predicate
+    if not isinstance(collection, AbstractSet):
+        with suppress(Exception):
+            collection = set(collection)
+
+    def wrapper(elt: T) -> bool:
+        try:
+            return elt in collection
+        except Exception:
+            return False
+
+    return wrapper

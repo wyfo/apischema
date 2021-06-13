@@ -98,7 +98,7 @@ They correpond to JSON *object* and are serialized to `dict`.
 
 - `typing.Any`
 
-: Untouched by deserialization
+: Untouched by deserialization, serialized according to the object runtime class
 
 #### Other standard library types
 

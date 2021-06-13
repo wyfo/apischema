@@ -11,7 +11,9 @@ Let start again with the [overview example](index.md#example)
 
 `apischema.deserialize` deserializes Python types from JSON-like data: `dict`/`list`/`str`/`int`/`float`/`bool`/`None` — in short, what you get when you execute `json.loads`. Types can be dataclasses as well as `list[int]`, `NewType`s, or whatever you want (see [conversions](conversions.md) to extend deserialization support to every type you want).
   
+```python
 {!deserialization.py!}
+```
 
 Deserialization performs a validation of data, based on typing annotations and other information (see [schema](json_schema.md) and [validation](validation.md)).
 
@@ -77,7 +79,10 @@ Validation error can happen when deserializing an ill-formed field. However, if 
 #### Strictness configuration
 
 *apischema* global configuration is managed through `apischema.settings` object.
-It has, among other, three global variables `settings.deserializaton.additional_properties`, `settings.deserialization.coerce` and `settings.deserialization.fall_back_on_default` whose values are used as default parameter values for the `deserialize`; by default, `additional_properties=False`, `coerce=False` and `fall_back_on_default=False`.
+It has, among other, three global variables `settings.additional_properties`, `settings.deserialization.coerce` and `settings.deserialization.fall_back_on_default` whose values are used as default parameter values for the `deserialize`; by default, `additional_properties=False`, `coerce=False` and `fall_back_on_default=False`.
+
+!!! note
+`additional_properties` settings is in `settings.deserialization` because it's also used in [serialization]().
 
 Global coercion function can be set with `settings.coercer` following this example:
 
@@ -211,18 +216,13 @@ Sometimes, some fields must be serialized, even with their default value; this b
 !!! note
     This metadata has effect only in combination with `with_fields_set` decorator.
 
+### TypedDict additional properties
+
+`TypedDict` can contain additional keys, which are not serialized by default. Setting `additional_properties` parameter to `True` (or `apischema.settings.additional_properties`) will toggle on their serialization (without aliasing).
 
 ## Performances
 
-*apischema* is [among the fastest](benchmark.md) (if not the fastest) Python library in its domain. These performances are achieved by pre-computing (de)serialization methods depending on the (de)serialized type (and other parameters): all the type annotations processing is done in this pre-computation. The methods are then cached using `functools.lru_cache`, so `deserialize` and `serialize` don't recompute them every time. 
 
-However, if `lru_cache` is fast, using the methods directly is faster, so *apischema* provides `apischema.deserialization_method` and `apischema.serialization_method`. These functions share the same parameters than `deserialize`/`serialize`, except the data/object parameter to (de)serialize. Using the computed methods directly can increase performances by 10%.
-
-```python
-{!de_serialization_methods.py!}
-```
-
-Also, *apischema* cache size can be modified using `apischema.cache.set_size`, and it can be reset using `apischema.cache.reset` (it happens automatically when `apischema.settings` is modified), but you should not need it.
 
 ## FAQ
 
@@ -231,3 +231,14 @@ Because ill-formed data can be symptomatic of deeper issues, it has been decided
 
 #### Why `with_fields_set` feature is not enable by default?
 It's true that this feature has the little cost of adding a decorator everywhere. However, keeping dataclass decorator allows IDEs/linters/type checkers/etc. to handle the class as such, so there is no need to develop a plugin for them. Standard compliance can be worth the additional decorator. (And little overhead can be avoided when not useful)
+
+#### Why serialization type checking not enabled by default?
+
+Type checking has a runtime cost, which means poorer performance. Moreover, as explained in [performances section](performance_and_benchmark.md#serialization-passthrough), it prevents "passthrough" optimization. At last, code is supposed to be statically verified, and thus types already checked. (If some silly things are done and leads to have unsupported types passed to the JSON library, an error will be raised anyway).
+
+Runtime type checking is more a development feature, which could for example be with `apischema.settings.serialization.check_type = __debug__`.
+
+#### Why not use json library `default` fallback parameter for serialization?
+Some *apischema* features like [conversions](conversions.md) can simply not be implemented with `default` fallback. By the way, *apischema* can perform [surprisingly better](performance_and_benchmark.md#passing-through-is-not-always-faster) than using `default`.
+
+However, `default` can be used in combination with [passthrough optimization](performance_and_benchmark.md#serialization-passthrough) when needed to improve performance.  

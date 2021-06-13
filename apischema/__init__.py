@@ -1,4 +1,5 @@
 __all__ = [
+    "PassThroughOptions",
     "Undefined",
     "UndefinedType",
     "Unsupported",
@@ -12,6 +13,7 @@ __all__ = [
     "properties",
     "schema",
     "schema_ref",
+    "serialization_default",
     "serialization_method",
     "serialize",
     "serialized",
@@ -41,7 +43,8 @@ from .dependencies import dependent_required
 from .deserialization import deserialization_method, deserialize
 from .metadata import properties
 from .schemas import schema
-from .serialization import serialization_method, serialize
+from .serialization import serialization_default, serialization_method, serialize
+from .serialization.pass_through import PassThroughOptions
 from .serialization.serialized_methods import serialized
 from .settings import settings
 from .type_names import schema_ref, type_name

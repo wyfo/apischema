@@ -1,9 +1,11 @@
 dataclasses==0.7;python_version<'3.7'
+graphql-core>=3.1.2
+attrs
+bson
+orjson
 pydantic
 pytest
 pytest-cov
 pytest-asyncio
 sqlalchemy
 typing_extensions
-graphql-core
-bson

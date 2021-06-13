@@ -448,7 +448,7 @@ def _schema(
     if aliaser is None:
         aliaser = settings.aliaser
     if additional_properties is None:
-        additional_properties = settings.deserialization.additional_properties
+        additional_properties = settings.additional_properties
     version, ref_factory, all_refs = _default_version(version, ref_factory, all_refs)
     refs = _extract_refs([(tp, conversion)], default_conversion, builder, all_refs)
     json_schema = builder(
@@ -515,15 +515,15 @@ def deserialization_schema(
 def serialization_schema(
     tp: AnyType,
     *,
-    schema: Schema = None,
+    additional_properties: bool = None,
+    all_refs: bool = None,
+    aliaser: Aliaser = None,
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
-    version: JsonSchemaVersion = None,
-    aliaser: Aliaser = None,
     ref_factory: RefFactory = None,
-    all_refs: bool = None,
+    schema: Schema = None,
+    version: JsonSchemaVersion = None,
     with_schema: bool = True,
-    additional_properties: bool = None,
 ) -> Mapping[str, Any]:
     from apischema import settings
 
@@ -626,7 +626,7 @@ def definitions_schema(
     from apischema import settings
 
     if additional_properties is None:
-        additional_properties = settings.deserialization.additional_properties
+        additional_properties = settings.additional_properties
     if aliaser is None:
         aliaser = settings.aliaser
     if default_deserialization is None:

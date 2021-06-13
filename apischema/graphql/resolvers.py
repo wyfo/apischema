@@ -28,7 +28,11 @@ from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.deserialization import deserialization_method
 from apischema.objects import ObjectField
 from apischema.schemas import Schema
-from apischema.serialization import SerializationMethod, SerializationMethodVisitor
+from apischema.serialization import (
+    PassThroughOptions,
+    SerializationMethod,
+    SerializationMethodVisitor,
+)
 from apischema.serialization.serialized_methods import (
     ErrorHandler,
     SerializedMethod,
@@ -54,7 +58,7 @@ from apischema.validation.errors import ValidationError
 
 class PartialSerializationMethodVisitor(SerializationMethodVisitor):
     @property
-    def _any_method(self) -> Callable[[type], SerializationMethod]:
+    def _factory(self) -> Callable[[type], SerializationMethod]:
         return lambda _: identity
 
     def enum(self, cls: Type[Enum]) -> SerializationMethod:
@@ -78,7 +82,13 @@ def partial_serialization_method_factory(
     @lru_cache()
     def factory(tp: AnyType) -> SerializationMethod:
         return PartialSerializationMethodVisitor(
-            aliaser, False, False, default_conversion, False, False
+            False,
+            aliaser,
+            False,
+            default_conversion,
+            False,
+            False,
+            PassThroughOptions(),
         ).visit_with_conv(tp, conversion)
 
     return factory

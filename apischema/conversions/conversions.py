@@ -35,13 +35,13 @@ class Conversion:
     source: AnyType = None
     target: AnyType = None
     sub_conversion: Optional["AnyConversion"] = None
+    inherited: Optional[bool] = None
     additional_properties: Optional[bool] = None
-    fall_back_on_any: Optional[bool] = None
     check_type: Optional[bool] = None
     coerce: Optional["Coerce"] = None
+    fall_back_on_any: Optional[bool] = None
     fall_back_on_default: Optional[bool] = None
     exclude_unset: Optional[bool] = None
-    inherited: Optional[bool] = None
 
     def __call__(self, *args, **kwargs):
         return self.converter(*args, **kwargs)

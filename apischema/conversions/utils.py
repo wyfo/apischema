@@ -1,16 +1,5 @@
 from inspect import Parameter, isclass, signature
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generic,
-    NoReturn,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Dict, Generic, Optional, Tuple, Type, Union, cast
 
 from apischema.types import AnyType
 from apischema.typing import get_type_hints, is_new_type, is_type
@@ -82,7 +71,7 @@ def converter_types(
     return source, target
 
 
-INVALID_CONVERSION_TYPES = {Union, Annotated, Literal, NoReturn}
+INVALID_CONVERSION_TYPES = {Union, Annotated, Literal}
 
 
 def is_convertible(tp: AnyType) -> bool:

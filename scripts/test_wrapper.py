@@ -3,6 +3,7 @@
 import asyncio
 import inspect
 import sys
+import timeit
 import typing
 from typing import *
 from unittest.mock import MagicMock
@@ -50,3 +51,5 @@ if sys.version_info < (3, 7):
     asyncio.run = lambda coro: asyncio.get_event_loop().run_until_complete(coro)
 
 inspect.isclass = lambda tp: isinstance(tp, type) and not get_args(tp)
+__timeit = timeit.timeit
+timeit.timeit = lambda stmt, number=None, **kwargs: __timeit(stmt, number=1, **kwargs)
