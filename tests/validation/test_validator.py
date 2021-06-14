@@ -1,11 +1,9 @@
-from dataclasses import dataclass, field
-from operator import not_
+from dataclasses import dataclass
 from typing import Callable, Type
 
 from pytest import raises
 
 from apischema import ValidationError, validator
-from apischema.metadata import validators
 from apischema.validation.mock import NonTrivialDependency, ValidatorMock
 from apischema.validation.validators import Validator, get_validators, validate
 
@@ -15,7 +13,6 @@ class Data:
     a: int
     b: int
     c: int = 0
-    with_validator: bool = field(default=False, metadata=validators(not_))
 
     @validator
     def a_gt_10(self):

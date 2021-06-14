@@ -16,10 +16,8 @@ from apischema import (
 from apischema.conversions import AnyConversion, Conversion
 from apischema.json_schema import deserialization_schema
 from apischema.schemas import Schema
-from apischema.validation.errors import LocalizedError
 
-#################### Pydantic support code starts here
-
+# ---------- Pydantic support code starts here ----------
 prev_deserialization = settings.deserialization.default_conversion
 
 
@@ -30,9 +28,7 @@ def default_deserialization(tp: Any) -> Optional[AnyConversion]:
             try:
                 return tp.parse_obj(data)
             except pydantic.ValidationError as error:
-                raise ValidationError.deserialize(
-                    [LocalizedError(err["loc"], [err["msg"]]) for err in error.errors()]
-                )
+                raise ValidationError.from_errors(error.errors())
 
         return Conversion(
             deserialize_pydantic,
@@ -65,7 +61,7 @@ def serialize_pydantic(obj: pydantic.BaseModel) -> Any:
     return getattr(obj, "__root__", obj.dict(exclude_unset=True))
 
 
-#################### Pydantic support code ends here
+# ---------- Pydantic support code ends here ----------
 
 
 class Foo(pydantic.BaseModel):
@@ -83,6 +79,6 @@ assert deserialization_schema(Foo) == {
 }
 with raises(ValidationError) as err:
     deserialize(Foo, {"bar": "not an int"})
-assert serialize(err.value) == [
-    {"loc": ["bar"], "err": ["value is not a valid integer"]}  # pydantic error message
+assert err.value.errors == [
+    {"loc": ["bar"], "msg": "value is not a valid integer"}  # pydantic error message
 ]

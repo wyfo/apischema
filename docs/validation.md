@@ -4,7 +4,7 @@ Validation is an important part of deserialization. By default, *apischema* vali
 
 ## Deserialization and validation error
 
-`ValidationError` is raised when validation fails. This exception will contains all the information about the ill-formed part of the data. By the way this exception is also serializable and can be sent back directly to client.
+`ValidationError` is raised when validation fails. This exception contains all the information about the ill-formed part of the data. It can be formatted/serialized using its `errors` property. 
 
 ```python
 {!validation_error.py!}
@@ -13,7 +13,7 @@ Validation is an important part of deserialization. By default, *apischema* vali
 As shown in the example, *apischema* will not stop at the first error met but tries to validate all parts of the data.
 
 !!! note
-    `ValidationError` should be serialized using the same serializer that the one used for deserialization, because it can contains some unaliased field path
+    `ValidationError` can also be serialized using `apischema.serialize` (this will use `errors` internally).
 
 ## Dataclass validators
 
@@ -57,7 +57,7 @@ In the example, validator yield a tuple of an "error path" and the error message
 - a field alias (obtained with `apischema.objects.get_alias`);
 - an integer, for list indices;
 - a raw string, for dict key (or field);
-- an `apischema.objects.AliasedStr`, a string subclass which will be aliased by serialization aliaser;
+- an `apischema.objects.AliasedStr`, a string subclass which will be aliased by deserialization aliaser;
 - an iterable, e.g. a tuple, of this 4 components.
 
 `yield` can also be used with only an error message.

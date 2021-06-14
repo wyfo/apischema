@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from pytest import raises
 
-from apischema import ValidationError, deserialize, serialize
+from apischema import ValidationError, deserialize
 from apischema.metadata import validators
 
 
@@ -18,6 +18,4 @@ class Foo:
 
 with raises(ValidationError) as err:
     deserialize(Foo, {"bar": "11"})
-assert serialize(err.value) == [
-    {"loc": ["bar"], "err": ["number has duplicate digits"]}
-]
+assert err.value.errors == [{"loc": ["bar"], "msg": "number has duplicate digits"}]

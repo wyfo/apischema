@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from pytest import raises
 
-from apischema import ValidationError, dependent_required, deserialize, serialize
+from apischema import ValidationError, dependent_required, deserialize
 from apischema.json_schema import deserialization_schema
 from apischema.skip import NotNull
 
@@ -36,9 +36,9 @@ assert deserialization_schema(Billing) == {
 
 with raises(ValidationError) as err:
     deserialize(Billing, {"name": "Anonymous", "credit_card": 1234_5678_9012_3456})
-assert serialize(err.value) == [
+assert err.value.errors == [
     {
         "loc": ["billing_address"],
-        "err": ["missing property (required by ['credit_card'])"],
+        "msg": "missing property (required by ['credit_card'])",
     }
 ]

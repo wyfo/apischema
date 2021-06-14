@@ -3,7 +3,7 @@ from enum import Enum
 
 from pytest import raises
 
-from apischema import ValidationError, deserialize, serialize, validator
+from apischema import ValidationError, deserialize, validator
 from apischema.objects import get_alias, get_field
 
 
@@ -38,6 +38,4 @@ def check_parity_other_equivalent(number2: NumberWithParity):
 
 with raises(ValidationError) as err:
     deserialize(NumberWithParity, {"parity": "even", "number": 1})
-assert serialize(err.value) == [
-    {"loc": ["number"], "err": ["number doesn't respect parity"]}
-]
+assert err.value.errors == [{"loc": ["number"], "msg": "number doesn't respect parity"}]

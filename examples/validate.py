@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from pytest import raises
 
-from apischema import ValidationError, schema, serialize, validator
+from apischema import ValidationError, schema, validator
 from apischema.validation import validate
 
 
@@ -22,4 +22,4 @@ validate(Foo(-1, 0))
 
 with raises(ValidationError) as err:
     validate(Foo(2, 2))
-assert serialize(err.value) == [{"loc": [], "err": ["bar cannot be equal to baz"]}]
+assert err.value.errors == [{"loc": [], "msg": "bar cannot be equal to baz"}]

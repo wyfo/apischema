@@ -2,7 +2,7 @@ from dataclasses import InitVar, dataclass, field
 
 from pytest import raises
 
-from apischema import ValidationError, deserialize, serialize, validator
+from apischema import ValidationError, deserialize, validator
 from apischema.metadata import init_var
 
 
@@ -18,4 +18,4 @@ class Foo:
 
 with raises(ValidationError) as err:
     deserialize(Foo, {"bar": -1})
-assert serialize(err.value) == [{"loc": ["bar"], "err": ["negative"]}]
+assert err.value.errors == [{"loc": ["bar"], "msg": "negative"}]

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from pytest import raises
 
-from apischema import ValidationError, deserialize, serialize, validator
+from apischema import ValidationError, deserialize, validator
 from apischema.objects import get_alias, get_field
 
 
@@ -37,8 +37,8 @@ def bounds_are_sorted_equivalent(bounded: BoundedValues):
 
 with raises(ValidationError) as err:
     deserialize(BoundedValues, {"bounds": [10, 0], "values": [-1, 2, 4]})
-assert serialize(err.value) == [
-    {"loc": ["bounds"], "err": ["bounds are not sorted"]}
+assert err.value.errors == [
+    {"loc": ["bounds"], "msg": "bounds are not sorted"}
     # Without discard, there would have been an other error
-    # {"loc": ["values", 1], "err": ["value exceeds bounds"]}
+    # {"loc": ["values", 1], "msg": "value exceeds bounds"}
 ]

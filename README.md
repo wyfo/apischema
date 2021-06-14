@@ -65,8 +65,8 @@ assert serialize(Resource, resource) == data
 # Validate during deserialization
 with raises(ValidationError) as err:  # pytest checks exception is raised
     deserialize(Resource, {"id": "42", "name": "wyfo"})
-assert serialize(err.value) == [  # ValidationError is serializable
-    {"loc": ["id"], "err": ["badly formed hexadecimal UUID string"]}
+assert err.value.errors == [
+    {"loc": ["id"], "msg": "badly formed hexadecimal UUID string"}
 ]
 # Generate JSON Schema
 assert deserialization_schema(Resource) == {

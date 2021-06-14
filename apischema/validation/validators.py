@@ -10,6 +10,7 @@ from typing import (
     Dict,
     Iterable,
     List,
+    Mapping,
     Optional,
     Sequence,
     Type,
@@ -17,8 +18,9 @@ from typing import (
     overload,
 )
 
+from apischema.aliases import Aliaser
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
-from apischema.objects import object_fields
+from apischema.objects import get_alias
 from apischema.objects.fields import FieldOrName, check_field_or_name, get_field_name
 from apischema.types import AnyType
 from apischema.typing import get_type_hints
@@ -31,6 +33,7 @@ from apischema.utils import (
 from apischema.validation.dependencies import find_all_dependencies
 from apischema.validation.errors import (
     ValidationError,
+    apply_aliaser,
     build_validation_error,
     merge_errors,
 )
@@ -116,22 +119,30 @@ class Validator:
 T = TypeVar("T")
 
 
-def validate(__obj: T, __validators: Iterable[Validator] = None, **kwargs) -> T:
-    if __validators is None:
-        __validators = get_validators(type(__obj))
+def validate(
+    obj: T,
+    validators: Iterable[Validator] = None,
+    kwargs: Mapping[str, Any] = None,
+    *,
+    aliaser: Aliaser = lambda s: s,
+) -> T:
+    if validators is None:
+        validators = get_validators(type(obj))
     error: Optional[ValidationError] = None
-    __validators = iter(__validators)
-    for validator in __validators:
+    validators = iter(validators)
+    for validator in validators:
         try:
-            if kwargs and validator.params != kwargs.keys():
+            if not kwargs:
+                validator.validate(obj)
+            elif validator.params == kwargs.keys():
+                validator.validate(obj, **kwargs)
+            else:
                 if any(k not in kwargs for k in validator.params):
                     raise RuntimeError(
                         f"Missing parameters {kwargs.keys() - validator.params}"
                         f" for validator {validator.func}"
                     )
-                validator.validate(__obj, **{k: kwargs[k] for k in validator.params})
-            else:
-                validator.validate(__obj, **kwargs)
+                validator.validate(obj, **{k: kwargs[k] for k in validator.params})
         except ValidationError as e:
             err = e
         except NonTrivialDependency as exc:
@@ -143,24 +154,23 @@ def validate(__obj: T, __validators: Iterable[Validator] = None, **kwargs) -> T:
             err = ValidationError([str(e)])
         else:
             continue
+        err = apply_aliaser(err, aliaser)
         if validator.field is not None:
-            alias = object_fields(validator.owner)[
-                get_field_name(validator.field)
-            ].alias
-            err = ValidationError(children={alias: err})
+            alias = getattr(get_alias(validator.owner), get_field_name(validator.field))
+            err = ValidationError(children={aliaser(alias): err})
         error = merge_errors(error, err)
         if validator.discard:
             try:
                 discarded = set(map(get_field_name, validator.discard))
                 next_validators = (
-                    v for v in __validators if not discarded & v.dependencies
+                    v for v in validators if not discarded & v.dependencies
                 )
-                validate(__obj, next_validators, **kwargs)
+                validate(obj, next_validators, kwargs, aliaser=aliaser)
             except ValidationError as err:
                 error = merge_errors(error, err)
     if error is not None:
         raise error
-    return __obj
+    return obj
 
 
 V = TypeVar("V", bound=Callable)
