@@ -70,7 +70,6 @@ from apischema.utils import (
     literal_values,
     sort_by_annotations_position,
     to_camel_case,
-    to_pascal_case,
 )
 
 JsonScalar = graphql.GraphQLScalarType(
@@ -320,7 +319,7 @@ class SchemaBuilder(
         ) -> graphql.GraphQLEnumType:
             return graphql.GraphQLEnumType(
                 unwrap_name(name, tp),
-                dict(zip(map(to_pascal_case, values), values)),
+                dict(zip(values, values)),
                 description=description,
             )
 
