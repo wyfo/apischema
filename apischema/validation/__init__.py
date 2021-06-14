@@ -1,5 +1,6 @@
 __all__ = [
     "Discard",
+    "LocalizedError",
     "ValidationError",
     "ValidatorResult",
     "gather_errors",
@@ -8,5 +9,5 @@ __all__ = [
     "validator",
 ]
 
-from .errors import ValidationError, ValidatorResult, gather_errors
+from .errors import LocalizedError, ValidationError, ValidatorResult, gather_errors
 from .validators import Discard, get_validators, validate, validator
