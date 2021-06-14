@@ -231,14 +231,13 @@ def cache_type(method: Method) -> Method:
         ) -> graphql.GraphQLNonNull:
             if name is None:
                 return graphql.GraphQLNonNull(factory.factory(name, description))  # type: ignore
-            current_call = (description, method, args, kwargs)
-            if name in self._cache_by_name:
-                tp, cached_call = self._cache_by_name[name]
-                assert isinstance(tp, graphql.GraphQLNonNull)
-                if isinstance(tp.of_type, self.types) and cached_call == current_call:
+            if (name, method, description) in self._cache_by_name:
+                tp, cached_args = self._cache_by_name[(name, method, description)]
+                if cached_args == (args, kwargs):
                     return tp
             tp = graphql.GraphQLNonNull(factory.factory(name, description))  # type: ignore
-            self._cache_by_name[name] = (tp, current_call)
+            # Don't put args in cache in order to avoid hashable issue
+            self._cache_by_name[(name, method, description)] = (tp, (args, kwargs))
             return tp
 
         return replace(factory, factory=name_cache)
@@ -263,7 +262,9 @@ class SchemaBuilder(
         self.aliaser = aliaser
         self.id_type = id_type
         self.is_id = is_id or (lambda t: False)
-        self._cache_by_name: Dict[str, Tuple[GraphQLTp, Any]] = {}
+        self._cache_by_name: Dict[
+            Tuple[str, Callable, Optional[str]], Tuple[GraphQLTp, Tuple[tuple, dict]]
+        ] = {}
 
     def _cache_result(
         self, lazy: Lazy[TypeFactory[GraphQLTp]]
