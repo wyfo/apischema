@@ -144,7 +144,7 @@ def validate(
                     )
                 validator.validate(obj, **{k: kwargs[k] for k in validator.params})
         except ValidationError as e:
-            err = e
+            err = apply_aliaser(e, aliaser)
         except NonTrivialDependency as exc:
             exc.validator = validator
             raise
@@ -154,7 +154,6 @@ def validate(
             err = ValidationError([str(e)])
         else:
             continue
-        err = apply_aliaser(err, aliaser)
         if validator.field is not None:
             alias = getattr(get_alias(validator.owner), get_field_name(validator.field))
             err = ValidationError(children={aliaser(alias): err})
