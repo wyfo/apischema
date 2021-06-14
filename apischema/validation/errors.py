@@ -2,12 +2,13 @@ import collections.abc
 import re
 import sys
 import warnings
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from functools import reduce, wraps
 from inspect import isgeneratorfunction
 from typing import (
     Any,
     Callable,
+    Collection,
     Dict,
     Generator,
     Iterable,
@@ -19,10 +20,10 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
-    cast,
     overload,
 )
 
+from apischema.aliases import Aliaser
 from apischema.objects import AliasedStr
 from apischema.typing import get_args, is_annotated
 from apischema.utils import get_args2, get_origin2, merge_opts
@@ -36,22 +37,20 @@ ErrorMsg = str
 Error = Union[ErrorMsg, Tuple[Any, ErrorMsg]]
 # where  Any = Union[Field, int, str, Iterable[Union[Field, int, str,]]]
 # but Field being kind of magic not understood by type checkers, it's hidden behind Any
-ErrorKey = Union[AliasedStr, str, int]
+ErrorKey = Union[str, int]
 T = TypeVar("T")
 ValidatorResult = Generator[Error, None, T]
 
+try:
+    from apischema.typing import TypedDict
 
-@dataclass
-class LocalizedError:
-    loc: Sequence[ErrorKey]
-    err: Sequence[ErrorMsg]
+    class LocalizedError(TypedDict):
+        loc: List[ErrorKey]
+        msg: ErrorMsg
 
-    def nested(self, index=0) -> "ValidationError":
-        if index == len(self.loc):
-            return ValidationError(self.err)
-        else:
-            assert index < len(self.loc)
-            return ValidationError(children={self.loc[index]: self.nested(index + 1)})
+
+except ImportError:
+    LocalizedError = Mapping[str, Any]  # type: ignore
 
 
 @dataclass
@@ -62,20 +61,23 @@ class ValidationError(Exception):
     def __str__(self):
         return repr(self)
 
-    def flat(self) -> Iterator[Tuple[Tuple[ErrorKey, ...], Sequence[ErrorMsg]]]:
-        if self.messages:
-            yield (), self.messages
+    def _errors(self) -> Iterator[Tuple[List[ErrorKey], ErrorMsg]]:
+        for msg in self.messages:
+            yield [], msg
         for child_key in sorted(self.children):
-            for path, errors in self.children[child_key].flat():
-                yield (child_key, *path), errors
+            for path, error in self.children[child_key]._errors():
+                yield [child_key, *path], error
 
-    def serialize(self) -> Sequence[LocalizedError]:
-        return [LocalizedError(loc, err) for loc, err in self.flat()]
+    @property
+    def errors(self) -> List[LocalizedError]:
+        return [{"loc": path, "msg": error} for path, error in self._errors()]
 
     @staticmethod
-    def deserialize(errors: Sequence[LocalizedError]) -> "ValidationError":
+    def from_errors(errors: Sequence[LocalizedError]) -> "ValidationError":
         return reduce(
-            merge_errors, map(LocalizedError.nested, errors), ValidationError()
+            merge_errors,
+            [_rec_build_error(err["loc"], err["msg"]) for err in errors],
+            ValidationError(),
         )
 
 
@@ -117,8 +119,14 @@ def merge_errors(err1: ValidationError, err2: ValidationError) -> ValidationErro
     )
 
 
-def exception(err: Exception) -> str:
-    return str(err)
+def apply_aliaser(error: ValidationError, aliaser: Aliaser) -> ValidationError:
+    aliased_children = {
+        str(aliaser(key))
+        if isinstance(key, AliasedStr)
+        else key: apply_aliaser(child, aliaser)
+        for key, child in error.children.items()
+    }
+    return replace(error, children=aliased_children)
 
 
 def _rec_build_error(path: Sequence[ErrorKey], msg: ErrorMsg) -> ValidationError:
@@ -126,17 +134,6 @@ def _rec_build_error(path: Sequence[ErrorKey], msg: ErrorMsg) -> ValidationError
         return ValidationError([msg])
     else:
         return ValidationError(children={path[0]: _rec_build_error(path[1:], msg)})
-
-
-def _check_error_path(path) -> Sequence[ErrorKey]:
-    if isinstance(path, (int, str)):
-        path = (path,)
-    for i, elt in enumerate(path):
-        if not isinstance(path[i], (str, int)):
-            raise TypeError(
-                f"Bad error path, expected Field, int or str," f" found {type(i)}"
-            )
-    return cast(Sequence[ErrorKey], path)
 
 
 def build_validation_error(errors: Iterable[Error]) -> ValidationError:
@@ -150,7 +147,9 @@ def build_validation_error(errors: Iterable[Error]) -> ValidationError:
         if not path:
             messages.append(msg)
         else:
-            key, *remain = _check_error_path(path)
+            if isinstance(path, str) or not isinstance(path, Collection):
+                path = (path,)
+            key, *remain = path
             children[key] = merge_errors(
                 children.get(key), _rec_build_error(remain, msg)
             )

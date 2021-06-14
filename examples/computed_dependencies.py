@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from pytest import raises
 
-from apischema import ValidationError, deserialize, serialize, validator
+from apischema import ValidationError, deserialize, validator
 
 
 @dataclass
@@ -18,7 +18,7 @@ class PasswordForm:
 
 with raises(ValidationError) as err:
     deserialize(PasswordForm, {"password": "p455w0rd"})
-assert serialize(err.value) == [
+assert err.value.errors == [
     # validator is not executed because confirmation is missing
-    {"loc": ["confirmation"], "err": ["missing property"]}
+    {"loc": ["confirmation"], "msg": "missing property"}
 ]

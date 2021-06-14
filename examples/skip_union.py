@@ -3,7 +3,7 @@ from typing import Annotated, Union
 
 from pytest import raises
 
-from apischema import ValidationError, deserialize, serialize
+from apischema import ValidationError, deserialize
 from apischema.skip import Skip
 
 
@@ -14,6 +14,6 @@ class Foo:
 
 with raises(ValidationError) as err:
     deserialize(Foo, {"bar": None})
-assert serialize(err.value) == [
-    {"loc": ["bar"], "err": ["expected type integer, found null"]}
+assert err.value.errors == [
+    {"loc": ["bar"], "msg": "expected type integer, found null"}
 ]

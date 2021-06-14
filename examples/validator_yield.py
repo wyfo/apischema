@@ -3,7 +3,7 @@ from ipaddress import IPv4Address, IPv4Network
 
 from pytest import raises
 
-from apischema import ValidationError, deserialize, serialize, validator
+from apischema import ValidationError, deserialize, validator
 from apischema.objects import get_alias
 
 
@@ -25,7 +25,7 @@ with raises(ValidationError) as err:
         SubnetIps,
         {"subnet": "126.42.18.0/24", "ips": ["126.42.18.1", "126.42.19.0", "0.0.0.0"]},
     )
-assert serialize(err.value) == [
-    {"loc": ["ips", 1], "err": ["ip not in subnet"]},
-    {"loc": ["ips", 2], "err": ["ip not in subnet"]},
+assert err.value.errors == [
+    {"loc": ["ips", 1], "msg": "ip not in subnet"},
+    {"loc": ["ips", 2], "msg": "ip not in subnet"},
 ]

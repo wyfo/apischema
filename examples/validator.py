@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from pytest import raises
 
-from apischema import ValidationError, deserialize, serialize, validator
+from apischema import ValidationError, deserialize, validator
 
 
 @dataclass
@@ -19,6 +19,6 @@ class PasswordForm:
 
 with raises(ValidationError) as err:
     deserialize(PasswordForm, {"password": "p455w0rd", "confirmation": "..."})
-assert serialize(err.value) == [
-    {"loc": [], "err": ["password doesn't match its confirmation"]}
+assert err.value.errors == [
+    {"loc": [], "msg": "password doesn't match its confirmation"}
 ]

@@ -77,8 +77,7 @@ However, it's not allowed to register a conversion of a specialized generic type
 
 ## Conversion object
 
-In previous example, conversions where registered using only converter functions. However, everywhere you can pass a converter, you can also pass a `apischema.conversions.Conversion` instance.
-`Conversion` allows adding additional metadata to conversion than a function can do ; it can also be used to precise converter source/target when annotations are not available.
+In previous example, conversions where registered using only converter functions. However, it can also be done by passing a `apischema.conversions.Conversion` instance. It allows specifying additional metadata to conversion (see [next sections](#sub-conversions) for examples) and precise converter source/target when annotations are not available.
 
 ```python
 {!conversion_object.py!}

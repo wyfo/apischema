@@ -3,7 +3,7 @@ from typing import NewType
 
 from pytest import raises
 
-from apischema import ValidationError, deserialize, schema, serialize
+from apischema import ValidationError, deserialize, schema
 
 Tag = NewType("Tag", str)
 schema(min_len=3, pattern=r"^\w*$", examples=["available", "EMEA"])(Tag)
@@ -24,14 +24,9 @@ with raises(ValidationError) as err:  # pytest check exception is raised
     deserialize(
         Resource, {"id": 42, "tags": ["tag", "duplicate", "duplicate", "bad&", "_"]}
     )
-assert serialize(err.value) == [
-    {
-        "loc": ["tags"],
-        "err": [
-            "item count greater than 3 (maxItems)",
-            "duplicate items (uniqueItems)",
-        ],
-    },
-    {"loc": ["tags", 3], "err": ["not matching '^\\w*$' (pattern)"]},
-    {"loc": ["tags", 4], "err": ["string length lower than 3 (minLength)"]},
+assert err.value.errors == [
+    {"loc": ["tags"], "msg": "item count greater than 3 (maxItems)"},
+    {"loc": ["tags"], "msg": "duplicate items (uniqueItems)"},
+    {"loc": ["tags", 3], "msg": "not matching '^\\w*$' (pattern)"},
+    {"loc": ["tags", 4], "msg": "string length lower than 3 (minLength)"},
 ]

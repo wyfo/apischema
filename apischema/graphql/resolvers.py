@@ -26,11 +26,7 @@ from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.deserialization import deserialization_method
 from apischema.objects import ObjectField
 from apischema.schemas import Schema
-from apischema.serialization import (
-    SerializationMethod,
-    SerializationMethodVisitor,
-    serialize,
-)
+from apischema.serialization import SerializationMethod, SerializationMethodVisitor
 from apischema.serialization.serialized_methods import (
     ErrorHandler,
     SerializedMethod,
@@ -292,11 +288,7 @@ def resolver_resolve(
                 values[param_name] = None
 
         if errors:
-            raise TypeError(
-                serialize(
-                    ValidationError, ValidationError(children=errors), aliaser=aliaser
-                )
-            )
+            raise ValueError(ValidationError(children=errors).errors)
         if info_parameter:
             values[info_parameter] = __info
         try:

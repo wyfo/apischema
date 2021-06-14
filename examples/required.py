@@ -3,7 +3,7 @@ from typing import Optional
 
 from pytest import raises
 
-from apischema import ValidationError, deserialize, serialize
+from apischema import ValidationError, deserialize
 from apischema.metadata import required
 
 
@@ -14,4 +14,4 @@ class Foo:
 
 with raises(ValidationError) as err:
     deserialize(Foo, {})
-assert serialize(err.value) == [{"loc": ["bar"], "err": ["missing property"]}]
+assert err.value.errors == [{"loc": ["bar"], "msg": "missing property"}]

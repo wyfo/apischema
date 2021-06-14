@@ -71,8 +71,8 @@ def register_default_conversions():
     """Handle standard library + internal types"""
     from . import std_types  # noqa: F401
 
-    deserializer(ValidationError.deserialize)
-    serializer(ValidationError.serialize)
+    deserializer(ValidationError.from_errors)
+    serializer(ValidationError.errors)
 
 
 register_default_conversions()
