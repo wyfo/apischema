@@ -70,7 +70,6 @@ from apischema.utils import (
     literal_values,
     sort_by_annotations_position,
     to_camel_case,
-    to_pascal_case,
 )
 
 JsonScalar = graphql.GraphQLScalarType(
@@ -232,12 +231,13 @@ def cache_type(method: Method) -> Method:
         ) -> graphql.GraphQLNonNull:
             if name is None:
                 return graphql.GraphQLNonNull(factory.factory(name, description))  # type: ignore
-            if name in self._cache_by_name:
-                tp, cached_call = self._cache_by_name[name]
-                if cached_call == (description, method, args, kwargs):
+            if (name, method, description) in self._cache_by_name:
+                tp, cached_args = self._cache_by_name[(name, method, description)]
+                if cached_args == (args, kwargs):
                     return tp
             tp = graphql.GraphQLNonNull(factory.factory(name, description))  # type: ignore
-            self._cache_by_name[name] = (tp, (description, method, args, kwargs))
+            # Don't put args in cache in order to avoid hashable issue
+            self._cache_by_name[(name, method, description)] = (tp, (args, kwargs))
             return tp
 
         return replace(factory, factory=name_cache)
@@ -249,6 +249,8 @@ class SchemaBuilder(
     CachedConversionsVisitor[Conv, TypeFactory[GraphQLTp]],
     ObjectVisitor[TypeFactory[GraphQLTp]],
 ):
+    types: Tuple[Type[graphql.GraphQLType], ...]
+
     def __init__(
         self,
         aliaser: Aliaser,
@@ -260,7 +262,9 @@ class SchemaBuilder(
         self.aliaser = aliaser
         self.id_type = id_type
         self.is_id = is_id or (lambda t: False)
-        self._cache_by_name: Dict[str, Tuple[GraphQLTp, Any]] = {}
+        self._cache_by_name: Dict[
+            Tuple[str, Callable, Optional[str]], Tuple[GraphQLTp, Tuple[tuple, dict]]
+        ] = {}
 
     def _cache_result(
         self, lazy: Lazy[TypeFactory[GraphQLTp]]
@@ -320,7 +324,7 @@ class SchemaBuilder(
         ) -> graphql.GraphQLEnumType:
             return graphql.GraphQLEnumType(
                 unwrap_name(name, tp),
-                dict(zip(map(to_pascal_case, values), values)),
+                dict(zip(values, values)),
                 description=description,
             )
 
@@ -436,6 +440,8 @@ class InputSchemaBuilder(
     DeserializationVisitor[TypeFactory[graphql.GraphQLInputType]],
     DeserializationObjectVisitor[TypeFactory[graphql.GraphQLInputType]],
 ):
+    types = graphql.type.definition.graphql_input_types
+
     def _visit_flattened(
         self, field: ObjectField
     ) -> TypeFactory[graphql.GraphQLInputType]:
@@ -508,6 +514,8 @@ class OutputSchemaBuilder(
     SerializationVisitor[TypeFactory[graphql.GraphQLOutputType]],
     SerializationObjectVisitor[TypeFactory[graphql.GraphQLOutputType]],
 ):
+    types = graphql.type.definition.graphql_output_types
+
     def __init__(
         self,
         aliaser: Aliaser,
@@ -522,6 +530,8 @@ class OutputSchemaBuilder(
         self.input_builder = InputSchemaBuilder(
             self.aliaser, default_deserialization, self.id_type, self.is_id
         )
+        # Share the same cache for input_builder in order to share
+        self.input_builder._cache_by_name = self._cache_by_name
         self.get_flattened: Optional[Callable[[Any], Any]] = None
 
     def _field_serialization_method(self, field: ObjectField) -> SerializationMethod:
