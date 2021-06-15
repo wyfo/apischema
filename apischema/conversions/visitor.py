@@ -244,7 +244,7 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Result]):
         )
 
 
-class CachedConversionsVisitor(ConversionsVisitor[Conv, Result]):
+class RecursiveConversionsVisitor(ConversionsVisitor[Conv, Result]):
     def __init__(self, default_conversion: DefaultConversion):
         super().__init__(default_conversion)
         self._visit_cache: Dict[
@@ -254,7 +254,7 @@ class CachedConversionsVisitor(ConversionsVisitor[Conv, Result]):
     def _cache_key(self) -> Hashable:
         return None
 
-    def _cache_result(self, lazy: Lazy[Result]) -> Result:
+    def _recursive_result(self, lazy: Lazy[Result]) -> Result:
         raise NotImplementedError
 
     def visit(self, tp: AnyType) -> Result:
@@ -269,7 +269,7 @@ class CachedConversionsVisitor(ConversionsVisitor[Conv, Result]):
             assert result is not None
             return result
 
-        self._visit_cache[cache_key] = self._cache_result(lazy_result)
+        self._visit_cache[cache_key] = self._recursive_result(lazy_result)
         try:
             result = super().visit(tp)
         finally:

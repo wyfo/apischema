@@ -30,10 +30,10 @@ from apischema.aliases import Aliaser
 from apischema.conversions import identity
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.visitor import (
-    CachedConversionsVisitor,
     Conv,
     Deserialization,
     DeserializationVisitor,
+    RecursiveConversionsVisitor,
     Serialization,
     SerializationVisitor,
 )
@@ -231,6 +231,9 @@ def cache_type(method: Method) -> Method:
         ) -> graphql.GraphQLNonNull:
             if name is None:
                 return graphql.GraphQLNonNull(factory.factory(name, description))  # type: ignore
+            # Method is in cache key because scalar types will have the same method,
+            # and then be shared by both visitors, while input/output types will have
+            # their own cache entry.
             if (name, method, description) in self._cache_by_name:
                 tp, cached_args = self._cache_by_name[(name, method, description)]
                 if cached_args == (args, kwargs):
@@ -246,7 +249,7 @@ def cache_type(method: Method) -> Method:
 
 
 class SchemaBuilder(
-    CachedConversionsVisitor[Conv, TypeFactory[GraphQLTp]],
+    RecursiveConversionsVisitor[Conv, TypeFactory[GraphQLTp]],
     ObjectVisitor[TypeFactory[GraphQLTp]],
 ):
     types: Tuple[Type[graphql.GraphQLType], ...]
@@ -266,7 +269,7 @@ class SchemaBuilder(
             Tuple[str, Callable, Optional[str]], Tuple[GraphQLTp, Tuple[tuple, dict]]
         ] = {}
 
-    def _cache_result(
+    def _recursive_result(
         self, lazy: Lazy[TypeFactory[GraphQLTp]]
     ) -> TypeFactory[GraphQLTp]:
         def factory(name: Optional[str], description: Optional[str]) -> GraphQLTp:

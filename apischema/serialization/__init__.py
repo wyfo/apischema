@@ -19,7 +19,7 @@ from apischema.conversions import identity
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.utils import Converter
 from apischema.conversions.visitor import (
-    CachedConversionsVisitor,
+    RecursiveConversionsVisitor,
     Serialization,
     SerializationVisitor,
     sub_conversion,
@@ -60,7 +60,7 @@ def instance_checker(tp: AnyType) -> Callable[[Any], bool]:
 
 
 class SerializationMethodVisitor(
-    CachedConversionsVisitor[Serialization, SerializationMethod],
+    RecursiveConversionsVisitor[Serialization, SerializationMethod],
     SerializationVisitor[SerializationMethod],
     SerializationObjectVisitor[SerializationMethod],
 ):
@@ -80,7 +80,7 @@ class SerializationMethodVisitor(
         self._exclude_unset = exclude_unset
         self._allow_undefined = allow_undefined
 
-    def _cache_result(self, lazy: Lazy[SerializationMethod]) -> SerializationMethod:
+    def _recursive_result(self, lazy: Lazy[SerializationMethod]) -> SerializationMethod:
         rec_method = None
 
         def method(obj: Any) -> Any:
