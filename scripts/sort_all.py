@@ -22,6 +22,8 @@ for root, dirs, files in os.walk(PACKAGE_DIR):
         )
         namespace: dict = {}
         exec("".join(lines[all_first_line : all_last_line + 1]), namespace)
+        if namespace["__all__"] == sorted(namespace["__all__"]):
+            continue
         __all__ = ", ".join(f'"{s}"' for s in sorted(namespace["__all__"]))
         with open(path, "w") as f:
             f.writelines(lines[:all_first_line])
