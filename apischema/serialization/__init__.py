@@ -19,7 +19,7 @@ from apischema.conversions import identity
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.utils import Converter
 from apischema.conversions.visitor import (
-    CachedConversionsVisitor,
+    RecursiveConversionsVisitor,
     Serialization,
     SerializationVisitor,
     sub_conversion,
@@ -29,7 +29,7 @@ from apischema.objects import AliasedStr, ObjectField
 from apischema.objects.visitor import SerializationObjectVisitor
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import AnyType, NoneType, Undefined, UndefinedType
-from apischema.typing import is_new_type, is_type_var, is_typed_dict
+from apischema.typing import is_new_type, is_type, is_type_var, is_typed_dict
 from apischema.utils import (
     Lazy,
     context_setter,
@@ -60,7 +60,7 @@ def instance_checker(tp: AnyType) -> Callable[[Any], bool]:
 
 
 class SerializationMethodVisitor(
-    CachedConversionsVisitor[Serialization, SerializationMethod],
+    RecursiveConversionsVisitor[Serialization, SerializationMethod],
     SerializationVisitor[SerializationMethod],
     SerializationObjectVisitor[SerializationMethod],
 ):
@@ -80,7 +80,7 @@ class SerializationMethodVisitor(
         self._exclude_unset = exclude_unset
         self._allow_undefined = allow_undefined
 
-    def _cache_result(self, lazy: Lazy[SerializationMethod]) -> SerializationMethod:
+    def _recursive_result(self, lazy: Lazy[SerializationMethod]) -> SerializationMethod:
         rec_method = None
 
         def method(obj: Any) -> Any:
@@ -312,7 +312,7 @@ class SerializationMethodVisitor(
         try:
             return super().unsupported(tp)
         except Unsupported:
-            if self._fall_back_on_any and isinstance(tp, type):
+            if self._fall_back_on_any and is_type(tp):
                 any_method = self._any_method
                 if issubclass(tp, Mapping):
 

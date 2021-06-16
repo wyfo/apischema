@@ -27,9 +27,9 @@ from apischema.cache import cache
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.utils import identity
 from apischema.conversions.visitor import (
-    CachedConversionsVisitor,
     Deserialization,
     DeserializationVisitor,
+    RecursiveConversionsVisitor,
     sub_conversion,
 )
 from apischema.dependencies import get_dependent_required
@@ -133,7 +133,7 @@ def get_constraint_errors(
 
 
 class DeserializationMethodVisitor(
-    CachedConversionsVisitor[Deserialization, DeserializationMethodFactory],
+    RecursiveConversionsVisitor[Deserialization, DeserializationMethodFactory],
     DeserializationVisitor[DeserializationMethodFactory],
     DeserializationObjectVisitor[DeserializationMethodFactory],
 ):
@@ -156,7 +156,7 @@ class DeserializationMethodVisitor(
     def _cache_key(self) -> Hashable:
         return self._coerce, self._coercer
 
-    def _cache_result(
+    def _recursive_result(
         self, lazy: Lazy[DeserializationMethodFactory]
     ) -> DeserializationMethodFactory:
         def factory(

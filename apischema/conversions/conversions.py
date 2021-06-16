@@ -27,7 +27,6 @@ if TYPE_CHECKING:
     from apischema.deserialization.coercion import Coerce
 
 
-@deprecate_kwargs({"sub_conversions": "sub_conversion"})
 @dataclass(frozen=True)
 class Conversion:
     converter: Union[Converter, property]
@@ -44,6 +43,9 @@ class Conversion:
 
     def __call__(self, *args, **kwargs):
         return self.converter(*args, **kwargs)
+
+
+deprecate_kwargs({"sub_conversions": "sub_conversion"})(Conversion)
 
 
 @dataclass(frozen=True)
