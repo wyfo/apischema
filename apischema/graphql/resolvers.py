@@ -62,9 +62,6 @@ class PartialSerializationMethodVisitor(SerializationMethodVisitor):
     def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> SerializationMethod:
         return identity
 
-    def union(self, alternatives: Sequence[AnyType]) -> SerializationMethod:
-        return identity
-
     def visit(self, tp: AnyType) -> SerializationMethod:
         if tp is UndefinedType:
             return lambda obj: None
