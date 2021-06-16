@@ -1,12 +1,16 @@
 # Data model and resolvers
 
-Almost everything of the [Data model section](../data_model.md) remains valid in *GraphQL* integration.
+Almost everything of the [Data model section](../data_model.md) remains valid in *GraphQL* integration, with a few differences
 
-## Restrictions
+## *GraphQL* specific data model
+
+### `Enum`
+
+`Enum` members are represented in the schema using their **name** instead of their value. This is more coherent with the way *GraphQL* represents enumerations.
 
 ### `TypedDict`
 
-`TypedDict` is not supported in output type. In fact, typed dicts are not real classes, so their type can not be checked at runtime, but this is required to disambiguate unions/interfaces.
+`TypedDict` is not supported as an output type. (see [FAQ](#why-typeddict-is-not-supported-as-an-output-type))
 
 ### `Union`
 Unions are only supported between **output** object type, which means `dataclass` and `NamedTuple` (and [conversions](../conversions.md)/[dataclass model](../conversions.md#dataclass-model---automatic-conversion-fromto-dataclass)).
@@ -151,3 +155,8 @@ As tagged union are not (yet?) part of the *GraphQL* spec, so they are just impl
 {!tagged_union_graphql_schema.py!}
 ```
 
+## FAQ
+
+#### Why `TypedDict` is not supported as an output type?
+
+At first, `TypedDict` subclasses are not real classes, so they cannot be used to check types at runtime. Runtime check is however requried to disambiguate unions/interfaces. A hack could be done to solve this issue, but there is another one which cannot be hacked: `TypedDict` inheritance hierarchy is lost at runtime, so they don't play nicely with interface concept. 

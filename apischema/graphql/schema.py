@@ -67,7 +67,6 @@ from apischema.utils import (
     get_origin2,
     get_origin_or_type,
     is_union_of,
-    literal_values,
     sort_by_annotations_position,
     to_camel_case,
 )
@@ -257,12 +256,16 @@ class SchemaBuilder(
     def __init__(
         self,
         aliaser: Aliaser,
+        enum_aliaser: Aliaser,
+        enum_schemas: Mapping[Enum, Schema],
         default_conversion: DefaultConversion,
         id_type: graphql.GraphQLScalarType,
         is_id: Optional[IdPredicate],
     ):
         super().__init__(default_conversion)
         self.aliaser = aliaser
+        self.enum_aliaser = enum_aliaser
+        self.enum_schemas = enum_schemas
         self.id_type = id_type
         self.is_id = is_id or (lambda t: False)
         self._cache_by_name: Dict[
@@ -318,28 +321,42 @@ class SchemaBuilder(
         raise NotImplementedError
 
     @cache_type
-    def _literal(self, values: Sequence[Any], tp: AnyType) -> TypeFactory[GraphQLTp]:
-        if not all(isinstance(v, str) for v in literal_values(values)):
-            raise TypeError("apischema GraphQL only support Enum/Literal of strings")
-
+    def enum(self, cls: Type[Enum]) -> TypeFactory[GraphQLTp]:
         def factory(
             name: Optional[str], description: Optional[str]
         ) -> graphql.GraphQLEnumType:
             return graphql.GraphQLEnumType(
-                unwrap_name(name, tp),
-                dict(zip(values, values)),
+                unwrap_name(name, cls),
+                {
+                    self.enum_aliaser(name): graphql.GraphQLEnumValue(
+                        member,
+                        get_description(self.enum_schemas.get(member)),
+                        get_deprecated(self.enum_schemas.get(member)),
+                    )
+                    for name, member in cls.__members__.items()
+                },
                 description=description,
             )
 
         return TypeFactory(factory)
 
-    def enum(self, cls: Type[Enum]) -> TypeFactory[GraphQLTp]:
-        return self._literal([elt.value for elt in cls], cls)
-
+    @cache_type
     def literal(self, values: Sequence[Any]) -> TypeFactory[GraphQLTp]:
         from apischema.typing import Literal
 
-        return self._literal(values, Literal[tuple(values)])  # type: ignore
+        if not all(isinstance(v, str) for v in values):
+            raise TypeError("apischema GraphQL only support Literal of strings")
+
+        def factory(
+            name: Optional[str], description: Optional[str]
+        ) -> graphql.GraphQLEnumType:
+            return graphql.GraphQLEnumType(
+                unwrap_name(name, Literal[tuple(values)]),  # type: ignore
+                dict(zip(map(self.enum_aliaser, values), values)),
+                description=description,
+            )
+
+        return TypeFactory(factory)
 
     @cache_type
     def mapping(
@@ -522,16 +539,25 @@ class OutputSchemaBuilder(
     def __init__(
         self,
         aliaser: Aliaser,
+        enum_aliaser: Aliaser,
+        enum_schemas: Mapping[Enum, Schema],
         default_conversion: DefaultConversion,
         id_type: graphql.GraphQLScalarType,
         is_id: Optional[IdPredicate],
         union_name_factory: UnionNameFactory,
         default_deserialization: DefaultConversion,
     ):
-        super().__init__(aliaser, default_conversion, id_type, is_id)
+        super().__init__(
+            aliaser, enum_aliaser, enum_schemas, default_conversion, id_type, is_id
+        )
         self.union_name_factory = union_name_factory
         self.input_builder = InputSchemaBuilder(
-            self.aliaser, default_deserialization, self.id_type, self.is_id
+            self.aliaser,
+            self.enum_aliaser,
+            self.enum_schemas,
+            default_deserialization,
+            self.id_type,
+            self.is_id,
         )
         # Share the same cache for input_builder in order to share
         self.input_builder._cache_by_name = self._cache_by_name
@@ -819,6 +845,8 @@ def graphql_schema(
     description: Optional[str] = None,
     extensions: Optional[Dict[str, Any]] = None,
     aliaser: Optional[Aliaser] = to_camel_case,
+    enum_aliaser: Optional[Aliaser] = str.upper,
+    enum_schemas: Optional[Mapping[Enum, Schema]] = None,
     id_types: Union[Collection[AnyType], IdPredicate] = (),
     id_encoding: Tuple[
         Optional[Callable[[str], Any]], Optional[Callable[[Any], str]]
@@ -831,6 +859,8 @@ def graphql_schema(
 ) -> graphql.GraphQLSchema:
     if aliaser is None:
         aliaser = settings.aliaser
+    if enum_aliaser is None:
+        enum_aliaser = lambda s: s
     if default_deserialization is None:
         default_deserialization = settings.deserialization.default_conversion
     if default_serialization is None:
@@ -931,6 +961,8 @@ def graphql_schema(
 
     output_builder = OutputSchemaBuilder(
         aliaser,
+        enum_aliaser,
+        enum_schemas or {},
         default_serialization,
         id_type,
         is_id,

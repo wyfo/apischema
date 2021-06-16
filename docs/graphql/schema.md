@@ -14,7 +14,6 @@ In fact, `graphql_schema` is just a wrapper around `graphql.GraphQLSchema` (same
 {!operation.py!}
 ```
 
-
 ## *camelCase*
 
 *GraphQL* use *camelCase* as a convention for resolvers; *apischema* follows this convention by automatically convert all resolver names (and their parameters) to *camelCase*. `graphql_schema` has an `aliaser` parameter if you want to use another case.
@@ -36,6 +35,13 @@ However, in *GraphQL* schema, unions must be named, so `typing.Union` used shoul
 {!union_type_name.py!}
 ```
 
+## `Enum` metadata
+
+Contrary to dataclasses, `Enum` doesn't provide a way to set metadata for its members, especially description, but also deprecation reason. They can however be passed using `enum_schemas` parameter of `graphql_schema`. 
+
+```python
+{!enum_schemas.py!}
+```
 
 ## Additional types
 

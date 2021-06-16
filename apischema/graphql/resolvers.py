@@ -1,5 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
+from enum import Enum
 from functools import lru_cache
 from inspect import Parameter, signature
 from typing import (
@@ -22,6 +23,7 @@ import graphql
 from apischema import UndefinedType
 from apischema.aliases import Aliaser
 from apischema.cache import cache
+from apischema.conversions import Conversion, identity
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.deserialization import deserialization_method
 from apischema.objects import ObjectField
@@ -34,6 +36,7 @@ from apischema.serialization.serialized_methods import (
     serialized as register_serialized,
 )
 from apischema.types import AnyType, NoneType, Undefined
+from apischema.typing import is_type
 from apischema.utils import (
     awaitable_origin,
     deprecate_kwargs,
@@ -51,12 +54,13 @@ from apischema.validation.errors import ValidationError
 class PartialSerializationMethodVisitor(SerializationMethodVisitor):
     @property
     def _any_method(self) -> Callable[[type], SerializationMethod]:
-        return partial_serialization_method_factory(
-            self.aliaser, self._conversions, self.default_conversion
-        )
+        return lambda _: identity
+
+    def enum(self, cls: Type[Enum]) -> SerializationMethod:
+        return identity
 
     def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> SerializationMethod:
-        return lambda obj: obj
+        return identity
 
     def visit(self, tp: AnyType) -> SerializationMethod:
         if tp is UndefinedType:
@@ -215,6 +219,12 @@ def resolver_resolve(
     default_serialization: DefaultConversion,
     serialized: bool = True,
 ) -> Callable:
+    # graphql deserialization will give Enum objects instead of strings
+    def handle_enum(tp: AnyType) -> Optional[AnyConversion]:
+        if is_type(tp) and issubclass(tp, Enum):
+            return Conversion(identity, source=Any, target=tp)
+        return default_deserialization(tp)
+
     parameters, info_parameter = [], None
     for param in resolver.parameters:
         param_type = types[param.name]
@@ -234,7 +244,7 @@ def resolver_resolve(
                 aliaser=aliaser,
                 coerce=False,
                 conversion=param_field.deserialization,
-                default_conversion=default_deserialization,
+                default_conversion=handle_enum,
                 fall_back_on_default=False,
                 schema=param_field.schema,
             )
