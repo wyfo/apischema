@@ -29,7 +29,7 @@ from apischema.objects import AliasedStr, ObjectField
 from apischema.objects.visitor import SerializationObjectVisitor
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import AnyType, NoneType, Undefined, UndefinedType
-from apischema.typing import is_new_type, is_type_var, is_typed_dict
+from apischema.typing import is_new_type, is_type, is_type_var, is_typed_dict
 from apischema.utils import (
     Lazy,
     context_setter,
@@ -312,7 +312,7 @@ class SerializationMethodVisitor(
         try:
             return super().unsupported(tp)
         except Unsupported:
-            if self._fall_back_on_any and isinstance(tp, type):
+            if self._fall_back_on_any and is_type(tp):
                 any_method = self._any_method
                 if issubclass(tp, Mapping):
 

@@ -68,7 +68,7 @@ class ObjectField:
             object.__setattr__(self, "default_factory", None)
         if not self.required and self.default_factory is None:
             if default is MISSING_DEFAULT:
-                raise ValueError("Missing default for required ObjectField")
+                raise ValueError("Missing default for non-required ObjectField")
             object.__setattr__(self, "default_factory", LazyValue(default))
 
     @property
