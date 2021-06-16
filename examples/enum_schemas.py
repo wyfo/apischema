@@ -19,9 +19,7 @@ def echo(enum: MyEnum) -> MyEnum:
 schema_ = graphql_schema(
     query=[echo], enum_schemas={MyEnum.FOO: schema(description="foo")}
 )
-assert (
-    print_schema(schema_)
-    == '''\
+schema_str = '''\
 type Query {
   echo(enum: MyEnum!): MyEnum!
 }
@@ -32,5 +30,5 @@ enum MyEnum {
   BAR
 }
 '''
-)
+assert print_schema(schema_) == schema_str
 assert graphql_sync(schema_, "{echo(enum: FOO)}").data == {"echo": "FOO"}
