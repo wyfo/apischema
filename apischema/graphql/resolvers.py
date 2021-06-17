@@ -23,7 +23,7 @@ import graphql
 from apischema import UndefinedType
 from apischema.aliases import Aliaser
 from apischema.cache import cache
-from apischema.conversions import Conversion, identity
+from apischema.conversions import Conversion
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.deserialization import deserialization_method
 from apischema.objects import ObjectField
@@ -43,6 +43,7 @@ from apischema.utils import (
     empty_dict,
     get_args2,
     get_origin_or_type2,
+    identity,
     is_async,
     is_union_of,
     keep_annotations,

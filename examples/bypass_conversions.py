@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from apischema import serialize, serializer
-from apischema.conversions import Conversion, identity
+from apischema import identity, serialize, serializer
+from apischema.conversions import Conversion
 
 
 @dataclass

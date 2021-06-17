@@ -15,7 +15,6 @@ from typing import (
 
 from apischema.aliases import Aliaser
 from apischema.cache import cache
-from apischema.conversions import identity
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.utils import Converter
 from apischema.conversions.visitor import (
@@ -36,6 +35,7 @@ from apischema.utils import (
     deprecate_kwargs,
     get_origin_or_type,
     get_origin_or_type2,
+    identity,
     opt_or,
 )
 from apischema.visitor import Unsupported

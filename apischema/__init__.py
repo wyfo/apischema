@@ -8,6 +8,7 @@ __all__ = [
     "deserialization_method",
     "deserialize",
     "deserializer",
+    "identity",
     "properties",
     "schema",
     "schema_ref",
@@ -45,6 +46,7 @@ from .serialization.serialized_methods import serialized
 from .settings import settings
 from .type_names import schema_ref, type_name
 from .types import Undefined, UndefinedType
+from .utils import identity
 from .validation import ValidationError, validator
 from .visitor import Unsupported
 

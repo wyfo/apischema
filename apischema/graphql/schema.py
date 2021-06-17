@@ -27,7 +27,6 @@ import graphql
 
 from apischema import settings
 from apischema.aliases import Aliaser
-from apischema.conversions import identity
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.visitor import (
     Conv,
@@ -66,6 +65,7 @@ from apischema.utils import (
     get_args2,
     get_origin2,
     get_origin_or_type,
+    identity,
     is_union_of,
     sort_by_annotations_position,
     to_camel_case,

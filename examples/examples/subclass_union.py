@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Any, Union
 
-from apischema import deserialize, deserializer, serializer
-from apischema.conversions import Conversion, identity
+from apischema import deserialize, deserializer, identity, serializer
+from apischema.conversions import Conversion
 from apischema.json_schema import deserialization_schema, serialization_schema
 
 

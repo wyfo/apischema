@@ -8,7 +8,6 @@ from typing import (
     Optional,
     Tuple,
     Type,
-    TypeVar,
     Union,
     cast,
 )
@@ -91,10 +90,3 @@ def is_convertible(tp: AnyType) -> bool:
     return is_new_type(tp) or (
         is_type(origin) and origin not in INVALID_CONVERSION_TYPES
     )
-
-
-T = TypeVar("T")
-
-
-def identity(x: T) -> T:
-    return x

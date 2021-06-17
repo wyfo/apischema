@@ -5,9 +5,8 @@ from typing import Callable, Optional, TYPE_CHECKING, Tuple, Type, Union
 
 from apischema.conversions import Conversion
 from apischema.conversions.conversions import ResolvedConversion
-from apischema.conversions.utils import identity
 from apischema.dataclasses import replace
-from apischema.utils import PREFIX
+from apischema.utils import PREFIX, identity
 
 if TYPE_CHECKING:
     from apischema.deserialization.coercion import Coerce

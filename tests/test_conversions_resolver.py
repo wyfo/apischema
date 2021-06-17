@@ -3,7 +3,6 @@ from typing import Collection, Dict, List, Mapping, Sequence, Tuple
 from pytest import mark
 
 from apischema import serializer, settings
-from apischema.conversions import identity
 from apischema.conversions.conversions import Conversion, LazyConversion
 from apischema.conversions.visitor import SerializationVisitor
 from apischema.json_schema.conversions_resolver import (
@@ -11,6 +10,7 @@ from apischema.json_schema.conversions_resolver import (
     merge_results,
 )
 from apischema.types import AnyType
+from apischema.utils import identity
 
 
 @mark.parametrize(
