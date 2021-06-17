@@ -25,7 +25,6 @@ from typing import (
 from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
-from apischema.conversions.utils import identity
 from apischema.conversions.visitor import (
     Deserialization,
     DeserializationVisitor,
@@ -58,6 +57,7 @@ from apischema.utils import (
     context_setter,
     deprecate_kwargs,
     get_origin_or_type,
+    identity,
     literal_values,
     opt_or,
 )

@@ -13,15 +13,17 @@ from typing import (
     Union,
 )
 
-from apischema.conversions.utils import (
-    Converter,
-    T as IdentityT,
-    converter_types,
-    identity,
-)
+from apischema.conversions.utils import Converter, converter_types
 from apischema.dataclasses import replace
 from apischema.types import AnyType
-from apischema.utils import deprecate_kwargs, is_method, method_class, method_wrapper
+from apischema.typing import is_type_var
+from apischema.utils import (
+    deprecate_kwargs,
+    identity,
+    is_method,
+    method_class,
+    method_wrapper,
+)
 
 if TYPE_CHECKING:
     from apischema.deserialization.coercion import Coerce
@@ -101,7 +103,11 @@ def resolve_any_conversion(conversion: Optional[AnyConversion]) -> ResolvedConve
 def handle_identity_conversion(
     conversion: ResolvedConversion, tp: AnyType
 ) -> ResolvedConversion:
-    if is_identity(conversion) and conversion.source == IdentityT:
+    if (
+        is_identity(conversion)
+        and conversion.source == conversion.target
+        and is_type_var(conversion.source)
+    ):
         return ResolvedConversion(replace(conversion, source=tp, target=tp))
     else:
         return conversion

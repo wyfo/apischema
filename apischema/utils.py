@@ -61,6 +61,11 @@ PREFIX = "_apischema_"
 T = TypeVar("T")
 U = TypeVar("U")
 
+
+def identity(x: T) -> T:
+    return x
+
+
 Lazy = Callable[[], T]
 
 
