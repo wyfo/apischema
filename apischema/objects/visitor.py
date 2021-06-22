@@ -4,7 +4,7 @@ from typing import Any, Collection, Mapping, Optional, Sequence
 from apischema.aliases import Aliaser, get_class_aliaser
 from apischema.conversions.conversions import AnyConversion
 from apischema.dataclasses import replace
-from apischema.metadata.keys import ALIAS_METADATA, SKIP_METADATA
+from apischema.metadata.keys import ALIAS_METADATA
 from apischema.objects.fields import FieldKind, MISSING_DEFAULT, ObjectField
 from apischema.types import AnyType, Undefined
 from apischema.typing import get_args
@@ -48,10 +48,13 @@ class ObjectVisitor(Visitor[Result]):
     _field_kind_filtered: Optional[FieldKind] = None
 
     def _field_conversion(self, field: ObjectField) -> Optional[AnyConversion]:
-        return NotImplementedError
+        raise NotImplementedError
+
+    def _skip_field(self, field: ObjectField) -> bool:
+        raise NotImplementedError
 
     def _object(self, tp: AnyType, fields: Sequence[ObjectField]) -> Result:
-        fields = [field for field in fields if SKIP_METADATA not in field.metadata]
+        fields = [f for f in fields if not self._skip_field(f)]
         aliaser = get_class_aliaser(get_origin_or_type(tp))
         if aliaser is not None:
             fields = [_override_alias(f, aliaser) for f in fields]
@@ -121,6 +124,10 @@ class DeserializationObjectVisitor(ObjectVisitor[Result]):
     def _field_conversion(field: ObjectField) -> Optional[AnyConversion]:
         return field.deserialization
 
+    @staticmethod
+    def _skip_field(field: ObjectField) -> bool:
+        return field.skip.deserialization
+
 
 class SerializationObjectVisitor(ObjectVisitor[Result]):
     _field_kind_filtered = FieldKind.WRITE_ONLY
@@ -128,3 +135,7 @@ class SerializationObjectVisitor(ObjectVisitor[Result]):
     @staticmethod
     def _field_conversion(field: ObjectField) -> Optional[AnyConversion]:
         return field.serialization
+
+    @staticmethod
+    def _skip_field(field: ObjectField) -> bool:
+        return field.skip.serialization

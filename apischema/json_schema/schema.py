@@ -54,7 +54,7 @@ from apischema.serialization import serialize
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.types import AnyType, OrderedDict, UndefinedType
-from apischema.typing import get_args
+from apischema.typing import get_args, is_typed_dict
 from apischema.utils import (
     context_setter,
     deprecate_kwargs,
@@ -162,7 +162,7 @@ class SchemaBuilder(
         else:
             return json_schema(type=JsonType.OBJECT, additionalProperties=value)
 
-    def visit_field(self, field: ObjectField) -> JsonSchema:
+    def visit_field(self, field: ObjectField, required: bool = False) -> JsonSchema:
         result = full_schema(
             self.visit_with_conv(field.type, self._field_conversion(field)),
             field.schema,
@@ -171,7 +171,7 @@ class SchemaBuilder(
             not field.flattened
             and not field.pattern_properties
             and not field.additional_properties
-            and not field.required
+            and not required
             and "default" not in result
         ):
             result = JsonSchema(result)
@@ -241,9 +241,14 @@ class SchemaBuilder(
             elif field.additional_properties:
                 additional_properties = self._properties_schema(field)
             else:
-                properties[self.aliaser(field.alias)] = self.visit_field(field)
-                if self._field_required(field):
-                    required.append(field.alias)
+                alias = self.aliaser(field.alias)
+                if is_typed_dict(cls):
+                    is_required = field.required
+                else:
+                    is_required = self._field_required(field)
+                properties[alias] = self.visit_field(field, is_required)
+                if is_required:
+                    required.append(alias)
         alias_by_names = {f.name: f.alias for f in fields}.__getitem__
         dependent_required = get_dependent_required(cls)
         result = json_schema(
@@ -346,7 +351,7 @@ class SerializationSchemaBuilder(
 
     @staticmethod
     def _field_required(field: ObjectField):
-        return field.required and not is_union_of(field.type, UndefinedType)
+        return field.skip_if is None
 
     def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> JsonSchema:
         result = super().object(tp, fields)

@@ -21,13 +21,21 @@ from apischema.utils import empty_dict
 from apischema.visitor import Unsupported
 
 
-class GetFields(ObjectVisitor[Sequence[ObjectField]]):
-    def object(self, cls: Type, fields: Sequence[ObjectField]) -> Sequence[ObjectField]:
-        return fields
-
-
 @cache
-def object_fields(tp: AnyType) -> Mapping[str, ObjectField]:
+def object_fields(
+    tp: AnyType, deserialization: bool = False, serialization: bool = False
+) -> Mapping[str, ObjectField]:
+    class GetFields(ObjectVisitor[Sequence[ObjectField]]):
+        def _skip_field(self, field: ObjectField) -> bool:
+            return (field.skip.deserialization and serialization) or (
+                field.skip.serialization and deserialization
+            )
+
+        def object(
+            self, cls: Type, fields: Sequence[ObjectField]
+        ) -> Sequence[ObjectField]:
+            return fields
+
     try:
         return OrderedDict((f.name, f) for f in GetFields().visit(tp))
     except Unsupported:

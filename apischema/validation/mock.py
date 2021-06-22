@@ -30,7 +30,7 @@ class ValidatorMock:
         if name in values:
             return values[name]
         cls = super().__getattribute__("cls")
-        fields = object_fields(cls)
+        fields = object_fields(cls, deserialization=True)
         if name in fields:
             if fields[name].required:
                 raise NonTrivialDependency(name)

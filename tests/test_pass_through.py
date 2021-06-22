@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field, make_dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from pytest import mark
 
-from apischema import alias, properties
+from apischema import UndefinedType, alias, properties
 from apischema.metadata import flatten, skip
 from apischema.serialization import PassThroughOptions, pass_through
 from apischema.utils import to_camel_case
@@ -26,6 +26,7 @@ class Flattened:
             ("properties", Dict[str, int], field(metadata=properties)),
         ),
         ("skipped_fields", ("skipped", int, field(metadata=skip))),
+        ("skipped_if_fields", ("skippedif", Union[int, UndefinedType])),
     ],
 )
 @mark.parametrize("has_field", [False, True])
