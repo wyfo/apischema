@@ -3,7 +3,7 @@ __all__ = [
     "conversion",
     "default_as_set",
     "fall_back_on_default",
-    "flattened",
+    "flatten",
     "init_var",
     "post_init",
     "properties",
@@ -13,13 +13,16 @@ __all__ = [
     "validators",
 ]
 
+import sys
+import warnings
+
 from apischema.aliases import alias
 from apischema.schemas import schema
 from .implem import (
     conversion,
     default_as_set,
     fall_back_on_default,
-    flattened,
+    flatten,
     init_var,
     post_init,
     properties,
@@ -27,3 +30,20 @@ from .implem import (
     skip,
     validators,
 )
+
+if sys.version_info >= (3, 7):
+
+    def __getattr__(name):
+        for deprecated in ("merged", "flattened"):
+            if name == deprecated:
+                warnings.warn(
+                    f"apischema.metadata.{deprecated} is deprecated, "
+                    "use apischema.metadata.flatten instead",
+                    DeprecationWarning,
+                )
+                return flatten
+            raise AttributeError(f"module {__name__} has no attribute {name}")
+
+
+else:
+    from .implem import flattened, merged  # noqa: F401

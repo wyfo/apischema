@@ -5,16 +5,16 @@ from pytest import raises
 
 from apischema import settings
 from apischema.deserialization import get_deserialization_flattened_aliases
-from apischema.metadata import flattened, init_var
+from apischema.metadata import flatten, init_var
 from apischema.objects import object_fields
 
 
 @dataclass
 class A:
     a: int
-    b: "B" = field(metadata=flattened)
-    c: "C[int]" = field(metadata=flattened)
-    d: "D" = field(metadata=flattened)
+    b: "B" = field(metadata=flatten)
+    c: "C[int]" = field(metadata=flatten)
+    d: "D" = field(metadata=flatten)
     e: InitVar[int] = field(metadata=init_var(int))
     f: int = field(init=False)
 
@@ -39,7 +39,7 @@ class D(Generic[T]):
 
 @dataclass
 class Data:
-    field: A = field(metadata=flattened)
+    field: A = field(metadata=flatten)
 
 
 def test_flattened_aliases():
@@ -51,7 +51,7 @@ def test_flattened_aliases():
 
 @dataclass
 class BadData:
-    field: int = field(metadata=flattened)
+    field: int = field(metadata=flatten)
 
 
 def test_invalid_flattened():

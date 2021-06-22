@@ -23,7 +23,7 @@ from apischema.metadata.keys import (
     CONVERSION_METADATA,
     DEFAULT_AS_SET_METADATA,
     FALL_BACK_ON_DEFAULT_METADATA,
-    FLATTENED_METADATA,
+    FLATTEN_METADATA,
     POST_INIT_METADATA,
     PROPERTIES_METADATA,
     REQUIRED_METADATA,
@@ -115,7 +115,7 @@ class ObjectField:
 
     @property
     def flattened(self) -> bool:
-        return FLATTENED_METADATA in self.full_metadata
+        return FLATTEN_METADATA in self.full_metadata
 
     @property
     def post_init(self) -> bool:

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from apischema import serialize, serialized
 from apischema.json_schema import serialization_schema
-from apischema.metadata import flattened
+from apischema.metadata import flatten
 
 
 @dataclass
@@ -48,7 +48,7 @@ def test_inherited_serialized():
 
 
 class WithFlattened(Base):
-    base: Base = field(metadata=flattened)
+    base: Base = field(metadata=flatten)
 
 
 def test_flattened_serialized():

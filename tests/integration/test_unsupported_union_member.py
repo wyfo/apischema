@@ -3,13 +3,12 @@ from typing import Annotated, Union
 
 from pytest import raises
 
-from apischema import ValidationError, deserialize
-from apischema.skip import Skip
+from apischema import Unsupported, ValidationError, deserialize
 
 
 @dataclass
 class Foo:
-    bar: Union[int, Annotated[None, Skip]] = None
+    bar: Union[int, Annotated[None, Unsupported]] = None
 
 
 with raises(ValidationError) as err:
