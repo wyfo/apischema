@@ -2,7 +2,6 @@ dataclasses;python_version<'3.7'
 graphql-core
 attrs
 bson
-orjson  # not supported by pypy3
 pydantic
 pytest
 pytest-cov
