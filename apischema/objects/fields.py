@@ -16,7 +16,11 @@ from typing import (
 )
 
 from apischema.conversions.conversions import AnyConversion
-from apischema.metadata.implem import ConversionMetadata, ValidatorsMetadata
+from apischema.metadata.implem import (
+    ConversionMetadata,
+    SkipMetadata,
+    ValidatorsMetadata,
+)
 from apischema.metadata.keys import (
     ALIAS_METADATA,
     ALIAS_NO_OVERRIDE_METADATA,
@@ -24,20 +28,28 @@ from apischema.metadata.keys import (
     DEFAULT_AS_SET_METADATA,
     FALL_BACK_ON_DEFAULT_METADATA,
     FLATTEN_METADATA,
+    NONE_AS_UNDEFINED_METADATA,
     POST_INIT_METADATA,
     PROPERTIES_METADATA,
     REQUIRED_METADATA,
     SCHEMA_METADATA,
+    SKIP_METADATA,
     VALIDATORS_METADATA,
 )
-from apischema.types import AnyType, ChainMap
+from apischema.types import AnyType, ChainMap, NoneType, Undefined, UndefinedType
 from apischema.typing import get_args, is_annotated
-from apischema.utils import LazyValue, empty_dict, type_dict_wrapper
+from apischema.utils import (
+    LazyValue,
+    empty_dict,
+    get_args2,
+    is_union_of,
+    keep_annotations,
+    merge_opts,
+    type_dict_wrapper,
+)
 
 if TYPE_CHECKING:
     from apischema.schemas import Schema
-    from apischema.schemas.annotations import Annotations
-    from apischema.schemas.constraints import Constraints
     from apischema.validation.validators import Validator
 
 
@@ -49,6 +61,16 @@ class FieldKind(Enum):
 
 # Cannot reuse MISSING for dataclass field because it would be interpreted as no default
 MISSING_DEFAULT = object()
+
+
+@merge_opts
+def merge_skip_if(
+    s1: Callable[[Any], Any], s2: Callable[[Any], Any]
+) -> Callable[[Any], Any]:
+    def merged(obj) -> Any:
+        return s1(obj) or s2(obj)
+
+    return merged
 
 
 @dataclass(frozen=True)
@@ -70,6 +92,9 @@ class ObjectField:
             if default is MISSING_DEFAULT:
                 raise ValueError("Missing default for non-required ObjectField")
             object.__setattr__(self, "default_factory", LazyValue(default))
+        if self.none_as_undefined and is_union_of(self.type, NoneType):
+            new_type = Union[tuple(a for a in get_args2(self.type) if a != NoneType)]  # type: ignore
+            object.__setattr__(self, "type", keep_annotations(new_type, self.type))
 
     @property
     def full_metadata(self) -> Mapping[str, Any]:
@@ -105,17 +130,35 @@ class ObjectField:
         return DEFAULT_AS_SET_METADATA in self.full_metadata
 
     @property
-    def fall_back_on_default(self) -> bool:
-        return FALL_BACK_ON_DEFAULT_METADATA in self.full_metadata
-
-    @property
     def deserialization(self) -> Optional[AnyConversion]:
         conversion = self._conversion
         return conversion.deserialization if conversion is not None else None
 
     @property
+    def fall_back_on_default(self) -> bool:
+        return FALL_BACK_ON_DEFAULT_METADATA in self.full_metadata
+
+    @property
     def flattened(self) -> bool:
         return FLATTEN_METADATA in self.full_metadata
+
+    def get_default(self) -> Any:
+        if self.required:
+            raise RuntimeError("Field is required")
+        assert self.default_factory is not None
+        return self.default_factory()  # type: ignore
+
+    @property
+    def is_aggregate(self) -> bool:
+        return (
+            self.flattened
+            or self.additional_properties
+            or self.pattern_properties is not None
+        )
+
+    @property
+    def none_as_undefined(self):
+        return NONE_AS_UNDEFINED_METADATA in self.full_metadata
 
     @property
     def post_init(self) -> bool:
@@ -130,12 +173,25 @@ class ObjectField:
         return self.metadata.get(SCHEMA_METADATA, None)
 
     @property
-    def annotations(self) -> Optional["Annotations"]:
-        return self.schema.annotations if self.schema is not None else None
+    def serialization(self) -> Optional[AnyConversion]:
+        conversion = self._conversion
+        return conversion.serialization if conversion is not None else None
 
     @property
-    def constraints(self) -> Optional["Constraints"]:
-        return self.schema.constraints if self.schema is not None else None
+    def skip(self) -> SkipMetadata:
+        return self.metadata.get(SKIP_METADATA, SkipMetadata())
+
+    @property
+    def skip_if(self) -> Optional[Callable[[Any], Any]]:
+        skip_if = self.skip.serialization_if
+        if self.default_factory is not None and self.skip.serialization_default:
+            default = self.default_factory()  # type: ignore
+            skip_if = merge_skip_if(skip_if, lambda obj: obj == default)
+        if is_union_of(self.type, UndefinedType):
+            skip_if = merge_skip_if(skip_if, lambda obj: obj is Undefined)
+        if self.none_as_undefined:
+            skip_if = merge_skip_if(skip_if, lambda obj: obj is None)
+        return skip_if
 
     @property
     def validators(self) -> Sequence["Validator"]:
@@ -145,25 +201,6 @@ class ObjectField:
             ).validators
         else:
             return ()
-
-    @property
-    def serialization(self) -> Optional[AnyConversion]:
-        conversion = self._conversion
-        return conversion.serialization if conversion is not None else None
-
-    @property
-    def is_aggregate(self) -> bool:
-        return (
-            self.flattened
-            or self.additional_properties
-            or self.pattern_properties is not None
-        )
-
-    def get_default(self) -> Any:
-        if self.required:
-            raise RuntimeError("Field is required")
-        assert self.default_factory is not None
-        return self.default_factory()  # type: ignore
 
 
 FieldOrName = Union[str, ObjectField, Field]

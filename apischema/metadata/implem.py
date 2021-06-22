@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Callable, Optional, Pattern, TYPE_CHECKING, Tuple, Union
+from typing import Any, Callable, Optional, Pattern, TYPE_CHECKING, Tuple, Union
 
 from apischema.metadata.keys import (
     CONVERSION_METADATA,
@@ -8,6 +8,7 @@ from apischema.metadata.keys import (
     FALL_BACK_ON_DEFAULT_METADATA,
     FLATTEN_METADATA,
     INIT_VAR_METADATA,
+    NONE_AS_UNDEFINED_METADATA,
     POST_INIT_METADATA,
     PROPERTIES_METADATA,
     REQUIRED_METADATA,
@@ -47,6 +48,8 @@ def init_var(tp: AnyType) -> Metadata:
     return MetadataImplem({INIT_VAR_METADATA: tp})
 
 
+none_as_undefined = simple_metadata(NONE_AS_UNDEFINED_METADATA)
+
 post_init = simple_metadata(POST_INIT_METADATA)
 
 
@@ -66,7 +69,28 @@ properties = PropertiesMetadata()
 
 required = simple_metadata(REQUIRED_METADATA)
 
-skip = simple_metadata(SKIP_METADATA)
+
+@dataclass(frozen=True)
+class SkipMetadata(MetadataMixin):
+    key = SKIP_METADATA
+    deserialization: bool = False
+    serialization: bool = False
+    serialization_default: bool = False
+    serialization_if: Optional[Callable[[Any], Any]] = None
+
+    def __call__(
+        self,
+        deserialization: bool = False,
+        serialization: bool = False,
+        serialization_default: bool = False,
+        serialization_if: Optional[Callable[[Any], Any]] = None,
+    ) -> "SkipMetadata":
+        return SkipMetadata(
+            deserialization, serialization, serialization_default, serialization_if
+        )
+
+
+skip = SkipMetadata(deserialization=True, serialization=True)
 
 
 @dataclass(frozen=True)

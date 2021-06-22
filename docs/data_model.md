@@ -171,6 +171,16 @@ Dataclass/`NamedTuple` fields are ignored by serialization when `Undefined`.
     
 !!! note
     `Undefined` is a falsy constant, i.e. `bool(Undefined) is False`.
+
+### Use `None` as if it was `Undefined`
+
+Using `None` can be more convenient than `Undefined` as a placeholder for missing value, but `Optional` types are translated to nullable fields.
+
+That's why *apischema* provides `none_as_undefined` metadata, allowing `None` to be handled as if it was `Undefined`: type will not be nullable and field not serialized if its value is `None`.
+
+```python
+{!none_as_undefined.py!}
+```
     
 ## Annotated - PEP 593
 
@@ -232,10 +242,21 @@ Examples of [*SQLAlchemy* support](examples/sqlalchemy_support.md) and [attrs su
 
 ## Skip field
 
-Dataclass fields can be excluded from *apischema* processing by using `apischema.metadata.skip` in the field metadata
+Dataclass fields can be excluded from *apischema* processing by using `apischema.metadata.skip` in the field metadata. It can be parametrized with `deserialization`/`serialization` boolean parameters to skip field only for the given operations.
 
 ```python
-{!skip_field.py!}   
+{!skip.py!}   
+```
+
+!!! note
+    Fields skipped in deserialization should have a default value if deserialized, because deserialization of the class could raise otherwise.
+
+### Skip field serialization depending on condition
+
+Field can also be skipped when serializing, depending on condition given by `serialization_if`, or when the field value is equal to its default value with `serialization_default=True`.
+
+```python
+{!skip_if.py!}   
 ```
     
 ## Composition over inheritance - composed dataclasses flattening

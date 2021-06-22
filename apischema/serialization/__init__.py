@@ -200,17 +200,25 @@ class SerializationMethodVisitor(
 
     def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> SerializationMethod:
         cls = get_origin_or_type(tp)
-        identity_fields, normal_fields, aggregate_fields = [], [], []
+        identity_fields, normal_fields, skipped_if_fields, aggregate_fields = (
+            [],
+            [],
+            [],
+            [],
+        )
         for field in fields:
             serialize_field = self.visit_with_conv(field.type, field.serialization)
+            alias = self.aliaser(field.alias)
             if field.is_aggregate:
-                aggregate_fields.append((field.name, serialize_field))
-            elif serialize_field is identity:
-                identity_fields.append((field.name, self.aliaser(field.alias)))
-            else:
-                normal_fields.append(
-                    (field.name, self.aliaser(field.alias), serialize_field)
+                aggregate_fields.append((field.name, serialize_field, field.skip_if))
+            elif field.skip_if is not None:
+                skipped_if_fields.append(
+                    (field.name, alias, serialize_field, field.skip_if)
                 )
+            elif serialize_field is identity:
+                identity_fields.append((field.name, alias))
+            else:
+                normal_fields.append((field.name, alias, serialize_field))
         serialized_methods = [
             (
                 self.aliaser(name),
@@ -228,23 +236,28 @@ class SerializationMethodVisitor(
 
             def method(
                 obj: Any,
+                aggregate_fields=tuple(aggregate_fields),
                 identity_fields=tuple(identity_fields),
                 normal_fields=tuple(normal_fields),
-                aggregate_fields=tuple(aggregate_fields),
+                skipped_if_fields=tuple(skipped_if_fields),
                 make_result=make_result,
             ) -> Any:
                 result = make_result()
                 # aggregate before normal fields to avoid overloading
-                for name, field_method in aggregate_fields:
-                    result.update(field_method(getattr(obj, name)))
+                for name, field_method, skip_if in aggregate_fields:
+                    attr = getattr(obj, name)
+                    if skip_if is None or not skip_if(attr):
+                        result.update(field_method(attr))
+                for name, alias, field_method, skip_if in skipped_if_fields:
+                    attr = getattr(obj, name)
+                    if skip_if(attr):
+                        result.pop(alias, ...)
+                    else:
+                        result[alias] = field_method(attr)
                 for name, alias in identity_fields:
                     result[alias] = getattr(obj, name)
                 for name, alias, field_method in normal_fields:
-                    attr = getattr(obj, name)
-                    if attr is not Undefined:
-                        result[alias] = field_method(attr)
-                    else:
-                        result.pop(alias, ...)
+                    result[alias] = field_method(getattr(obj, name))
                 return result
 
             if self._exclude_unset and support_fields_set(cls):
@@ -253,25 +266,16 @@ class SerializationMethodVisitor(
                 def method(obj: Any) -> Any:
                     if hasattr(obj, FIELDS_SET_ATTR):
                         fields_set_ = fields_set(obj)
-                        return wrapped_exclude_unset(
-                            obj,
-                            [
-                                (name, alias)
-                                for name, alias in identity_fields
-                                if name in fields_set_
-                            ],
-                            [
-                                (name, alias, method)
-                                for name, alias, method in normal_fields
-                                if name in fields_set_
-                            ],
-                            [
-                                (name, method)
-                                for name, method in aggregate_fields
-                                if name in fields_set_
-                            ],
-                            lambda: {},
-                        )
+                        new_fields = [
+                            [(name, *_) for name, *_ in fields if name in fields_set_]  # type: ignore
+                            for fields in [
+                                aggregate_fields,
+                                identity_fields,
+                                normal_fields,
+                                skipped_if_fields,
+                            ]
+                        ]
+                        return wrapped_exclude_unset(obj, *new_fields, lambda: {})
                     return wrapped_exclude_unset(obj)
 
         else:
@@ -279,9 +283,14 @@ class SerializationMethodVisitor(
             def method(obj: Mapping) -> dict:
                 result = make_result()
                 # aggregate before normal fields to avoid overloading
-                for name, field_method in aggregate_fields:
-                    if name in obj:
+                for name, field_method, skip_if in aggregate_fields:
+                    if name in obj and (skip_if is None or not skip_if(obj[name])):
                         result.update(field_method(obj[name]))
+                for name, alias, field_method, skip_if in skipped_if_fields:
+                    if name in obj and not skip_if(obj[name]):
+                        result[alias] = field_method(obj[name])
+                    else:
+                        del result[alias]
                 for name, alias in identity_fields:
                     if name in obj:
                         result[alias] = obj[name]

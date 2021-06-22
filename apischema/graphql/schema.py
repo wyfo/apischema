@@ -270,7 +270,8 @@ class SchemaBuilder(
         self.id_type = id_type
         self.is_id = is_id or (lambda t: False)
         self._cache_by_name: Dict[
-            Tuple[str, Callable, Optional[str]], Tuple[GraphQLTp, Tuple[tuple, dict]]
+            Tuple[str, Callable, Optional[str]],
+            Tuple[graphql.GraphQLNonNull, Tuple[tuple, dict]],
         ] = {}
 
     def _recursive_result(
@@ -567,7 +568,7 @@ class OutputSchemaBuilder(
     def _field_serialization_method(self, field: ObjectField) -> SerializationMethod:
         return partial_serialization_method_factory(
             self.aliaser, field.serialization, self.default_conversion
-        )(field.type)
+        )(Optional[field.type] if field.none_as_undefined else field.type)
 
     def _wrap_resolve(self, resolve: Func) -> Func:
         if self.get_flattened is None:

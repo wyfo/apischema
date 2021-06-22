@@ -69,7 +69,8 @@ Some JSON serialization libraries also support dataclasses. However, *apischema*
 - [`aliased_fields`](json_schema.md#field-alias)
 - [`flattened_fields`](data_model.md#composition-over-inheritance---composed-dataclasses-flattening)
 - [`properties_fields`](#additional-properties)
-- [`skip_fields`](data_model.md#skip-field)
+- [`skipped_fields`](data_model.md#skip-field)
+- [`skipped_if_fields`](data_model.md#skip-field-serialization-depending-on-condition)
 
 !!! note
     `dataclasses=True` is equivalent to `dataclasses=PassThroughOptions.Dataclasses()` (which is equivalent to `dataclasses=PassThroughOptions.Dataclasses(False, False, False, False, False))`

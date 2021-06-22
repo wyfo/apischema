@@ -84,7 +84,7 @@ def object_deserialization(
 def _fields_and_init(
     cls: type, fields_and_methods: Union[Iterable[Any], Callable[[], Iterable[Any]]]
 ) -> Tuple[Sequence[ObjectField], Callable[[Any, Any], None]]:
-    fields = object_fields(cls)
+    fields = object_fields(cls, serialization=True)
     output_fields: Dict[str, ObjectField] = OrderedDict()
     methods = []
     if callable(fields_and_methods):

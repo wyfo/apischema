@@ -11,7 +11,6 @@ from apischema.conversions.visitor import (
     SerializationVisitor,
 )
 from apischema.fields import support_fields_set
-from apischema.metadata.keys import SKIP_METADATA
 from apischema.objects import AliasedStr, ObjectField
 from apischema.objects.visitor import SerializationObjectVisitor
 from apischema.serialization.serialized_methods import get_serialized_methods
@@ -29,6 +28,7 @@ class PassThroughOptions:
         flattened_fields: bool = False
         properties_fields: bool = False
         skipped_fields: bool = False
+        skipped_if_fields: bool = False
 
     any: bool = False
     collections: bool = False
@@ -106,7 +106,7 @@ class PassThroughVisitor(
 
     def _object(self, tp: AnyType, fields: Sequence[ObjectField]) -> bool:
         cls = get_origin_or_type(tp)
-        support_skipped = not any(SKIP_METADATA in f.metadata for f in fields) or (
+        support_skipped = not any(self._skip_field(f) for f in fields) or (
             is_dataclass(cls)
             and self.options.dataclass_options is not None
             and self.options.dataclass_options.skipped_fields
@@ -139,6 +139,7 @@ class PassThroughVisitor(
                 dataclass_options.properties_fields
                 or not (field.pattern_properties or field.additional_properties)
             )
+            and (dataclass_options.skipped_if_fields or field.skip_if is None)
             and self.visit_with_conv(field.type, field.serialization)
             for field in fields
         )
@@ -150,7 +151,7 @@ class PassThroughVisitor(
         return all(map(self.visit, types))
 
     def union(self, alternatives: Sequence[AnyType]) -> bool:
-        return all(map(self.visit, alternatives))
+        return all(self._union_results(alternatives))
 
     def _visit_conversion(
         self,
