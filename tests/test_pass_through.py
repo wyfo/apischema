@@ -5,7 +5,7 @@ from uuid import UUID
 from pytest import mark
 
 from apischema import alias, properties
-from apischema.metadata import flattened, skip
+from apischema.metadata import flatten, skip
 from apischema.serialization import PassThroughOptions, pass_through
 from apischema.utils import to_camel_case
 
@@ -20,7 +20,7 @@ class Flattened:
     [
         ("aliaser", ("with_underscore", int)),
         ("aliased_fields", ("aliased", int, field(metadata=alias("toto")))),
-        ("flattened_fields", ("flattened", Flattened, field(metadata=flattened))),
+        ("flattened_fields", ("flattened", Flattened, field(metadata=flatten))),
         (
             "properties_fields",
             ("properties", Dict[str, int], field(metadata=properties)),

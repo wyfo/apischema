@@ -240,7 +240,7 @@ Dataclass fields can be excluded from *apischema* processing by using `apischema
     
 ## Composition over inheritance - composed dataclasses flattening
 
-Dataclass fields which are themselves dataclass can be "flattened" into the owning one by using `flattened` metadata. Then, when the class will be (de)serialized, "flattened" fields will be (de)serialized at the same level than the owning class.
+Dataclass fields which are themselves dataclass can be "flattened" into the owning one by using `flatten` metadata. Then, when the class will be (de)serialized, "flattened" fields will be (de)serialized at the same level than the owning class.
 
 ```python
 {!flattened.py!}

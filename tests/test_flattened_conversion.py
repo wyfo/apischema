@@ -6,7 +6,7 @@ from pytest import raises
 from apischema import deserialize, serialize
 from apischema.graphql import graphql_schema
 from apischema.json_schema import deserialization_schema, serialization_schema
-from apischema.metadata import conversion, flattened
+from apischema.metadata import conversion, flatten
 from apischema.objects import ObjectField, set_object_fields
 
 
@@ -20,7 +20,7 @@ set_object_fields(Field, [ObjectField("attr", int)])
 
 @dataclass
 class Data:
-    data_field: Field = field(metadata=flattened)
+    data_field: Field = field(metadata=flatten)
 
 
 json_schema = {
@@ -112,7 +112,7 @@ class Field2:
 @dataclass
 class Data2:
     data_field2: Field2 = field(
-        metadata=flattened | conversion(Field2.from_field, Field2.to_field)
+        metadata=flatten | conversion(Field2.from_field, Field2.to_field)
     )
 
 
@@ -161,7 +161,7 @@ type Data2 {
 @dataclass
 class Data3:
     data_field2: Field2 = field(
-        metadata=flattened | conversion(Field2.from_int, Field2.to_int)
+        metadata=flatten | conversion(Field2.from_int, Field2.to_int)
     )
 
 

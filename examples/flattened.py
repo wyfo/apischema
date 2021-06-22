@@ -4,7 +4,7 @@ from typing import Union
 from apischema import Undefined, UndefinedType, alias, deserialize, serialize
 from apischema.fields import with_fields_set
 from apischema.json_schema import deserialization_schema
-from apischema.metadata import flattened
+from apischema.metadata import flatten
 
 
 @dataclass
@@ -23,7 +23,7 @@ class RootJsonSchema:
     )
     defs: list[JsonSchema] = field(default_factory=list, metadata=alias("$defs"))
     # This field schema is flattened inside the owning one
-    json_schema: JsonSchema = field(default=JsonSchema(), metadata=flattened)
+    json_schema: JsonSchema = field(default=JsonSchema(), metadata=flatten)
 
 
 data = {

@@ -3,7 +3,7 @@ from typing import Generic, TypeVar
 
 from apischema import type_name
 from apischema.json_schema import deserialization_schema
-from apischema.metadata import flattened
+from apischema.metadata import flatten
 
 T = TypeVar("T")
 
@@ -12,7 +12,7 @@ T = TypeVar("T")
 @dataclass
 class Resource(Generic[T]):
     id: int
-    content: T = field(metadata=flattened)
+    content: T = field(metadata=flatten)
     ...
 
 
