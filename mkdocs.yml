@@ -30,7 +30,7 @@ nav:
   - examples/subclass_tagged_union.md
   - examples/recoverable_fields.md
   - examples/inherited_deserializer.md
-- benchmark.md
+- performance_and_benchmark.md
 - difference_with_pydantic.md
 - Releases: https://github.com/wyfo/apischema/releases
 

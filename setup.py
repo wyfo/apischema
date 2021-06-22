@@ -21,11 +21,11 @@ setup(
         "graphql": ["graphql-core>=3.1.2"],
         "examples": [
             "graphql-core>=3.1.2",
-            "pytest>=6.2.2",
-            "pydantic>=1.7.3",
-            "attrs>=20.3.0",
-            "sqlalchemy>=1.3.23",
-            "bson>=0.5.10",
+            "attrs",
+            "bson",
+            "orjson" "pydantic",
+            "pytest",
+            "sqlalchemy",
         ],
     },
     classifiers=[

@@ -26,7 +26,7 @@ This library fulfills the following goals:
 - be adaptable, provide tools to support any types (ORM, etc.);
 - avoid dynamic things like using raw strings for attributes name - play nicely with your IDE.
 
-No known alternative achieves all of this, and apischema is also [faster](https://wyfo.github.io/apischema/benchmark) than all of them.
+No known alternative achieves all of this, and apischema is also [faster](https://wyfo.github.io/apischema/performance_and_benchmark) than all of them.
 
 On top of that, because APIs are not only JSON, *apischema* is also a complete *GraphQL* library.
 

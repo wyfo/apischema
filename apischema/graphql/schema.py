@@ -60,6 +60,7 @@ from apischema.types import AnyType, NoneType, OrderedDict, Undefined, Undefined
 from apischema.typing import get_args, get_origin, is_annotated
 from apischema.utils import (
     Lazy,
+    as_predicate,
     context_setter,
     empty_dict,
     get_args2,
@@ -946,7 +947,7 @@ def graphql_schema(
         )
         subscription_fields.append(resolver_field)
 
-    is_id = id_types.__contains__ if isinstance(id_types, Collection) else id_types
+    is_id = as_predicate(id_types)
     if id_encoding == (None, None):
         id_type: graphql.GraphQLScalarType = graphql.GraphQLID
     else:

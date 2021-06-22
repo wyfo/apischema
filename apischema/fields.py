@@ -19,6 +19,12 @@ _ALREADY_SET = f"{PREFIX}already_set"
 
 Cls = TypeVar("Cls", bound=Type)
 
+_fields_set_classes: Set[type] = set()
+
+
+def support_fields_set(cls: type) -> bool:
+    return any(base in _fields_set_classes for base in cls.__mro__)
+
 
 def with_fields_set(cls: Cls) -> Cls:
     from apischema.metadata.keys import DEFAULT_AS_SET_METADATA
@@ -79,6 +85,7 @@ def with_fields_set(cls: Cls) -> Cls:
         setattr(new, _ALREADY_SET, True)
         setattr(cls, attr, wraps(old)(new))  # type: ignore
 
+    _fields_set_classes.add(cls)
     return cls
 
 

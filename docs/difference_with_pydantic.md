@@ -4,7 +4,7 @@ As the question is often asked, it is answered in a dedicated section. Here are 
 
 ### *apischema* is faster
 
-*pydantic* uses Cython to improve its performance; *apischema* doesn't need it and is still 1.5x faster according to [*pydantic* benchmark](benchmark.md) — more than 2x when *pydantic* is not compiled with Cython.
+*pydantic* uses Cython to improve its performance; *apischema* doesn't need it and is still 1.5x faster according to [*pydantic* benchmark](performance_and_benchmark.md) — more than 2x when *pydantic* is not compiled with Cython.
 
 Better performance, but not at the cost of fewer functionalities; that's rather the opposite: [dynamic aliasing](json_schema.md#dynamic-aliasing-and-default-aliaser), [conversions](conversions.md), [flattened fields](data_model.md#composition-over-inheritance---composed-dataclasses-flattening), etc.
 

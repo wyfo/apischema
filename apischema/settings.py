@@ -1,4 +1,4 @@
-from typing import Callable, Collection, Optional, Sequence, Union
+from typing import Callable, Optional, Sequence
 
 from apischema import cache
 from apischema.aliases import Aliaser
@@ -12,6 +12,7 @@ from apischema.json_schema import JsonSchemaVersion
 from apischema.objects import ObjectField
 from apischema.objects.fields import default_object_fields as default_object_fields_
 from apischema.schemas import Schema, default_schema as default_schema_
+from apischema.serialization import PassThroughOptions
 from apischema.type_names import TypeName, default_type_name as default_type_name_
 from apischema.types import AnyType
 from apischema.utils import to_camel_case
@@ -34,6 +35,7 @@ class MetaSettings(ResetCache):
 
 
 class settings(metaclass=MetaSettings):
+    additional_properties: bool = False
     aliaser: Aliaser = lambda s: s
     default_object_fields: Callable[
         [type], Optional[Sequence[ObjectField]]
@@ -43,7 +45,6 @@ class settings(metaclass=MetaSettings):
     json_schema_version: JsonSchemaVersion = JsonSchemaVersion.DRAFT_2019_09
 
     class deserialization(metaclass=ResetCache):
-        additional_properties: bool = False
         coerce: bool = False
         coercer: Coercer = coerce_
         fall_back_on_default: bool = False
@@ -54,5 +55,4 @@ class settings(metaclass=MetaSettings):
         fall_back_on_any: bool = False
         default_conversion: DefaultConversion = default_serialization
         exclude_unset: bool = True
-        skip_simple_dataclasses: bool = False
-        skip_types: Union[Collection[AnyType], Callable[[AnyType], bool]] = ()
+        pass_through: PassThroughOptions = PassThroughOptions()

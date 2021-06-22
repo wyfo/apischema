@@ -810,9 +810,7 @@ def deserialization_method(
     )
     return (
         DeserializationMethodVisitor(
-            opt_or(
-                additional_properties, settings.deserialization.additional_properties
-            ),
+            opt_or(additional_properties, settings.additional_properties),
             opt_or(aliaser, settings.aliaser),
             coerce,
             coercer,
