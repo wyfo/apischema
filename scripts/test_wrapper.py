@@ -2,6 +2,7 @@
 # type: ignore
 import asyncio
 import inspect
+import json
 import sys
 import timeit
 import typing
@@ -53,3 +54,5 @@ if sys.version_info < (3, 7):
 inspect.isclass = lambda tp: isinstance(tp, type) and not get_args(tp)
 __timeit = timeit.timeit
 timeit.timeit = lambda stmt, number=None, **kwargs: __timeit(stmt, number=1, **kwargs)
+
+sys.modules["orjson"] = json
