@@ -732,7 +732,6 @@ class OutputSchemaBuilder(
     ) -> TypeFactory[graphql.GraphQLOutputType]:
         raise TypeError("TypedDict are not supported in output schema")
 
-    @cache_type
     def _union_result(
         self, factories: Iterable[TypeFactory]
     ) -> TypeFactory[graphql.GraphQLOutputType]:
@@ -744,7 +743,12 @@ class OutputSchemaBuilder(
             types = [factory.raw_type for factory in factories]
             if name is None:
                 name = self.union_name_factory([t.name for t in types])
-            return graphql.GraphQLUnionType(name, types, description=description)
+            cache_key = (name, self._union_result, description)
+            if cache_key not in self._cache_by_name:
+                self._cache_by_name[cache_key] = graphql.GraphQLNonNull(
+                    graphql.GraphQLUnionType(name, types, description=description)
+                ), ((), {})
+            return self._cache_by_name[cache_key][0]
 
         return TypeFactory(factory)
 
