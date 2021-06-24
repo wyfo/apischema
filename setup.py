@@ -5,7 +5,7 @@ with open("README.md") as f:
 
 setup(
     name="apischema",
-    version="0.15.4",
+    version="0.15.5",
     url="https://github.com/wyfo/apischema",
     author="Joseph Perez",
     author_email="joperez@hotmail.fr",
