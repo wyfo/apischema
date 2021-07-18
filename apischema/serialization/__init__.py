@@ -33,7 +33,6 @@ from apischema.types import AnyType, NoneType, Undefined
 from apischema.typing import is_new_type, is_type, is_type_var, is_typed_dict
 from apischema.utils import (
     Lazy,
-    context_setter,
     deprecate_kwargs,
     get_origin_or_type,
     get_origin_or_type2,
@@ -80,10 +79,10 @@ class SerializationMethodVisitor(
         super().__init__(default_conversion)
         self.additional_properties = additional_properties
         self.aliaser = aliaser
+        self.check_type = check_type
+        self.exclude_unset = exclude_unset
+        self.fall_back_on_any = fall_back_on_any
         self.pass_through_options = pass_through_options
-        self._fall_back_on_any = fall_back_on_any
-        self._check_type = check_type
-        self._exclude_unset = exclude_unset
 
     def _recursive_result(self, lazy: Lazy[SerializationMethod]) -> SerializationMethod:
         rec_method = None
@@ -104,7 +103,7 @@ class SerializationMethodVisitor(
                 aliaser=self.aliaser,
                 conversions=self._conversions,
                 default_conversion=self.default_conversion,
-                exclude_unset=self._exclude_unset,
+                exclude_unset=self.exclude_unset,
                 options=self.pass_through_options,
             )
         except (TypeError, Unsupported):  # TypeError because tp can be unhashable
@@ -115,11 +114,11 @@ class SerializationMethodVisitor(
         return serialization_method_factory(
             self.additional_properties,
             self.aliaser,
-            self._check_type,
+            self.check_type,
             self._conversions,
             self.default_conversion,
-            self._exclude_unset,
-            self._fall_back_on_any,
+            self.exclude_unset,
+            self.fall_back_on_any,
             self.pass_through_options,
         )
 
@@ -132,9 +131,9 @@ class SerializationMethodVisitor(
         return method
 
     def _wrap(self, cls: type, method: SerializationMethod) -> SerializationMethod:
-        if not self._check_type:
+        if not self.check_type:
             return method
-        fall_back_on_any, any_method = self._fall_back_on_any, self.any()
+        fall_back_on_any, any_method = self.fall_back_on_any, self.any()
         if is_typed_dict(cls):
             cls = Mapping
 
@@ -260,7 +259,7 @@ class SerializationMethodVisitor(
                     result[alias] = field_method(getattr(obj, name))
                 return result
 
-            if self._exclude_unset and support_fields_set(cls):
+            if self.exclude_unset and support_fields_set(cls):
                 wrapped_exclude_unset = method
 
                 def method(obj: Any) -> Any:
@@ -339,9 +338,9 @@ class SerializationMethodVisitor(
                 serialize_elt(elt) for serialize_elt, elt in zip(elt_serializers, obj)
             ]
 
-        if self._check_type:
+        if self.check_type:
             wrapped = method
-            fall_back_on_any, as_list = self._fall_back_on_any, self._factory(list)
+            fall_back_on_any, as_list = self.fall_back_on_any, self._factory(list)
 
             def method(obj: Any) -> Any:
                 if len(obj) == len(elt_serializers):
@@ -361,7 +360,7 @@ class SerializationMethodVisitor(
         checks = [instance_checker(alt) for alt in alternatives if alt is not NoneType]
         methods_and_checks = list(zip(methods, checks))
         none_check = None if NoneType in alternatives else NOT_NONE
-        fall_back_on_any, any_method = self._fall_back_on_any, self.any()
+        fall_back_on_any, any_method = self.fall_back_on_any, self.any()
 
         def method(obj: Any) -> Any:
             # Optional/Undefined optimization
@@ -390,7 +389,7 @@ class SerializationMethodVisitor(
         try:
             return super().unsupported(tp)
         except Unsupported:
-            if self._fall_back_on_any and is_type(tp):
+            if self.fall_back_on_any and is_type(tp):
                 any_method = self.any()
                 if issubclass(tp, Mapping):
 
@@ -418,15 +417,9 @@ class SerializationMethodVisitor(
         dynamic: bool,
         next_conversion: Optional[AnyConversion],
     ) -> SerializationMethod:
-        with context_setter(self) as setter:
-            if conversion.fall_back_on_any is not None:
-                setter._fall_back_on_any = conversion.fall_back_on_any
-            if conversion.exclude_unset is not None:
-                setter._exclude_unset = conversion.exclude_unset
-            serialize_conv = self.visit_with_conv(
-                conversion.target, sub_conversion(conversion, next_conversion)
-            )
-
+        serialize_conv = self.visit_with_conv(
+            conversion.target, sub_conversion(conversion, next_conversion)
+        )
         converter = cast(Converter, conversion.converter)
         if converter is identity:
             method = serialize_conv
@@ -442,7 +435,7 @@ class SerializationMethodVisitor(
     def visit(self, tp: AnyType) -> SerializationMethod:
         if tp is AliasedStr:
             return self._wrap(AliasedStr, self.aliaser)
-        elif not self._check_type and self.pass_through(tp):
+        elif not self.check_type and self.pass_through(tp):
             return identity
         else:
             return super().visit(tp)

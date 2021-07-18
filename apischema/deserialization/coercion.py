@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any, Callable, Dict, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Type, TypeVar, Union
 
 from apischema.json_schema.types import bad_type
 from apischema.types import NoneType
@@ -45,6 +45,9 @@ Coerce = Union[bool, Coercer]
 
 
 def wrap_coercer(coercer: Coercer) -> Coercer:
+    if coercer is coerce:
+        return coercer
+
     @wraps(coercer)
     def wrapper(cls, data):
         try:
@@ -58,11 +61,3 @@ def wrap_coercer(coercer: Coercer) -> Coercer:
         return result
 
     return wrapper
-
-
-def get_coercer(
-    coerce: Optional[Coerce], default_coerce: bool, default_coercer: Coercer
-) -> Tuple[bool, Coercer]:
-    if coerce is None:
-        return default_coerce, default_coercer
-    return bool(coerce), wrap_coercer(coerce) if callable(coerce) else default_coercer

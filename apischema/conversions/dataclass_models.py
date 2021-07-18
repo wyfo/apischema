@@ -70,16 +70,9 @@ def dataclass_model(
         check_model(origin, model)
 
     model_type = DataclassModel(origin, model, fields_only)
-    conversion = Conversion(
-        identity,
-        additional_properties=additional_properties,
-        coerce=coercion,
-        fall_back_on_default=fall_back_on_default,
-        exclude_unset=exclude_unset,
+    return Conversion(identity, source=model_type, target=origin), Conversion(
+        identity, source=origin, target=model_type
     )
-    d_conv = replace(conversion, source=model_type, target=origin)
-    s_conv = replace(conversion, source=origin, target=model_type)
-    return d_conv, s_conv
 
 
 def has_model_origin(cls: Type) -> bool:

@@ -26,7 +26,7 @@ from apischema.utils import (
 )
 
 if TYPE_CHECKING:
-    from apischema.deserialization.coercion import Coerce
+    pass
 
 
 @dataclass(frozen=True)
@@ -36,12 +36,6 @@ class Conversion:
     target: AnyType = None
     sub_conversion: Optional["AnyConversion"] = None
     inherited: Optional[bool] = None
-    additional_properties: Optional[bool] = None
-    check_type: Optional[bool] = None
-    coerce: Optional["Coerce"] = None
-    fall_back_on_any: Optional[bool] = None
-    fall_back_on_default: Optional[bool] = None
-    exclude_unset: Optional[bool] = None
 
     def __call__(self, *args, **kwargs):
         return self.converter(*args, **kwargs)
@@ -118,8 +112,4 @@ def is_identity(conversion: ResolvedConversion) -> bool:
         conversion.converter == identity
         and conversion.source == conversion.target
         and conversion.sub_conversion is None
-        and conversion.additional_properties is None
-        and conversion.coerce is None
-        and conversion.fall_back_on_default is None
-        and conversion.exclude_unset is None
     )
