@@ -252,6 +252,8 @@ class RecursiveConversionsVisitor(ConversionsVisitor[Conv, Result]):
         ] = {}
 
     def _cache_key(self) -> Hashable:
+        """When other attributes are modified during visit, they can be used as
+        additional cache key"""
         return None
 
     def _recursive_result(self, lazy: Lazy[Result]) -> Result:

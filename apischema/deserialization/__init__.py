@@ -8,7 +8,6 @@ from typing import (
     Callable,
     Collection,
     Dict,
-    Hashable,
     List,
     Mapping,
     Optional,
@@ -32,7 +31,7 @@ from apischema.conversions.visitor import (
     sub_conversion,
 )
 from apischema.dependencies import get_dependent_required
-from apischema.deserialization.coercion import Coerce, Coercer, get_coercer
+from apischema.deserialization.coercion import Coerce, Coercer, wrap_coercer
 from apischema.deserialization.flattened import get_deserialization_flattened_aliases
 from apischema.json_schema.patterns import infer_pattern
 from apischema.json_schema.types import bad_type
@@ -54,7 +53,6 @@ from apischema.typing import get_args, get_origin
 from apischema.utils import (
     Lazy,
     PREFIX,
-    context_setter,
     deprecate_kwargs,
     get_origin_or_type,
     identity,
@@ -141,20 +139,15 @@ class DeserializationMethodVisitor(
         self,
         additional_properties: bool,
         aliaser: Aliaser,
-        coercion: bool,
-        coercer: Coercer,
+        coercer: Optional[Coercer],
         default_conversion: DefaultConversion,
         fall_back_on_default: bool,
     ):
         super().__init__(default_conversion)
-        self._additional_properties = additional_properties
+        self.additional_properties = additional_properties
         self.aliaser = aliaser
-        self._coerce = coercion
-        self._coercer = coercer
-        self._fall_back_on_default = fall_back_on_default
-
-    def _cache_key(self) -> Hashable:
-        return self._coerce, self._coercer
+        self.coercer = coercer
+        self.fall_back_on_default = fall_back_on_default
 
     def _recursive_result(
         self, lazy: Lazy[DeserializationMethodFactory]
@@ -325,8 +318,8 @@ class DeserializationMethodVisitor(
             )
             for f in fields
         ]
-        additional_properties = self._additional_properties
-        fall_back_on_default = self._fall_back_on_default
+        additional_properties = self.additional_properties
+        fall_back_on_default = self.fall_back_on_default
 
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
@@ -678,18 +671,10 @@ class DeserializationMethodVisitor(
         next_conversion: Optional[AnyConversion],
     ) -> DeserializationMethodFactory:
         assert conversion
-        conv_factories = []
-        for conv in conversion:
-            with context_setter(self) as setter:
-                if conv.additional_properties is not None:
-                    setter._additional_properties = conv.additional_properties
-                if conv.fall_back_on_default is not None:
-                    setter._fall_back_on_default = conv.fall_back_on_default
-                setter._coerce, setter._coercer = get_coercer(
-                    conv.coerce, self._coerce, self._coercer
-                )
-                sub_conv = sub_conversion(conv, next_conversion)
-                conv_factories.append(self.visit_with_conv(conv.source, sub_conv))
+        conv_factories = [
+            self.visit_with_conv(conv.source, sub_conversion(conv, next_conversion))
+            for conv in conversion
+        ]
 
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
@@ -749,8 +734,8 @@ class DeserializationMethodVisitor(
         next_conversion: Optional[AnyConversion] = None,
     ) -> DeserializationMethodFactory:
         factory = super().visit_conversion(tp, conversion, dynamic, next_conversion)
-        if factory.coercer is None and self._coerce:
-            factory = replace(factory, coercer=self._coercer)
+        if self.coercer is not None and factory.coercer is None:
+            factory = replace(factory, coercer=self.coercer)
         if not dynamic:
             factory = factory.merge(get_constraints(get_schema(tp)), get_validators(tp))
             if get_args(tp):
@@ -805,14 +790,18 @@ def deserialization_method(
 ) -> DeserializationMethod:
     from apischema import settings
 
-    coerce, coercer = get_coercer(
-        coerce, settings.deserialization.coerce, settings.deserialization.coercer
-    )
+    coerce = opt_or(coerce, settings.deserialization.coerce)
+    coercer: Optional[Coercer]
+    if callable(coerce):
+        coercer = wrap_coercer(coerce)
+    elif coerce:
+        coercer = settings.deserialization.coercer
+    else:
+        coercer = None
     return (
         DeserializationMethodVisitor(
             opt_or(additional_properties, settings.additional_properties),
             opt_or(aliaser, settings.aliaser),
-            coerce,
             coercer,
             opt_or(default_conversion, settings.deserialization.default_conversion),
             opt_or(fall_back_on_default, settings.deserialization.fall_back_on_default),
