@@ -10,6 +10,7 @@ from typing import (
     Dict,
     Iterator,
     Mapping,
+    MutableMapping,
     Optional,
     Sequence,
     Tuple,
@@ -22,7 +23,7 @@ import graphql
 
 from apischema import UndefinedType
 from apischema.aliases import Aliaser
-from apischema.cache import cache
+from apischema.cache import CacheAwareDict, cache
 from apischema.conversions import Conversion
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.deserialization import deserialization_method
@@ -113,7 +114,9 @@ class Resolver(SerializedMethod):
         return super().return_type(unwrap_awaitable(return_type))
 
 
-_resolvers: Dict[Type, Dict[str, Resolver]] = defaultdict(dict)
+_resolvers: MutableMapping[Type, Dict[str, Resolver]] = CacheAwareDict(
+    defaultdict(dict)
+)
 
 
 def get_resolvers(tp: AnyType) -> Mapping[str, Tuple[Resolver, Mapping[str, AnyType]]]:

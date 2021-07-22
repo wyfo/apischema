@@ -1,16 +1,12 @@
 import warnings
 from contextlib import suppress
 from dataclasses import dataclass
-from typing import Callable, Dict, NamedTuple, Optional, TypeVar, Union
+from typing import Callable, MutableMapping, NamedTuple, Optional, TypeVar, Union
 
+from apischema.cache import CacheAwareDict
 from apischema.types import AnyType, PRIMITIVE_TYPES
 from apischema.typing import get_args, get_origin, is_type_var
-from apischema.utils import (
-    has_type_vars,
-    merge_opts,
-    replace_builtins,
-    type_dict_wrapper,
-)
+from apischema.utils import has_type_vars, merge_opts, replace_builtins
 
 
 class TypeName(NamedTuple):
@@ -25,7 +21,7 @@ def _apply_args(name_or_factory: NameOrFactory, *args) -> Optional[str]:
     return name_or_factory(*args) if callable(name_or_factory) else name_or_factory
 
 
-_type_names: Dict[AnyType, "TypeNameFactory"] = type_dict_wrapper({})
+_type_names: MutableMapping[AnyType, "TypeNameFactory"] = CacheAwareDict({})
 
 T = TypeVar("T")
 

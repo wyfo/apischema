@@ -7,10 +7,10 @@ from typing import (
     Any,
     Callable,
     Collection,
-    Dict,
     Iterable,
     List,
     Mapping,
+    MutableMapping,
     Optional,
     Sequence,
     Type,
@@ -19,17 +19,13 @@ from typing import (
 )
 
 from apischema.aliases import Aliaser
+from apischema.cache import CacheAwareDict
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
 from apischema.objects import get_alias
 from apischema.objects.fields import FieldOrName, check_field_or_name, get_field_name
 from apischema.types import AnyType
 from apischema.typing import get_type_hints
-from apischema.utils import (
-    get_origin_or_type2,
-    is_method,
-    method_class,
-    type_dict_wrapper,
-)
+from apischema.utils import get_origin_or_type2, is_method, method_class
 from apischema.validation.dependencies import find_all_dependencies
 from apischema.validation.errors import (
     ValidationError,
@@ -39,7 +35,7 @@ from apischema.validation.errors import (
 )
 from apischema.validation.mock import NonTrivialDependency
 
-_validators: Dict[Type, List["Validator"]] = type_dict_wrapper(defaultdict(list))
+_validators: MutableMapping[Type, List["Validator"]] = CacheAwareDict(defaultdict(list))
 
 
 def get_validators(tp: AnyType) -> Sequence["Validator"]:
