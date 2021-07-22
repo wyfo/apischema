@@ -7,17 +7,18 @@ from typing import (
     Dict,
     List,
     Mapping,
+    MutableMapping,
     Set,
     Tuple,
     overload,
 )
 
+from apischema.cache import CacheAwareDict
 from apischema.objects.fields import check_field_or_name, get_field_name
-from apischema.utils import type_dict_wrapper
 
-_dependent_requireds: Dict[type, List[Tuple[Any, Collection[Any]]]] = type_dict_wrapper(
-    defaultdict(list)
-)
+_dependent_requireds: MutableMapping[
+    type, List[Tuple[Any, Collection[Any]]]
+] = CacheAwareDict(defaultdict(list))
 
 DependentRequired = Mapping[str, AbstractSet[str]]
 

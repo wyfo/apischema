@@ -526,9 +526,9 @@ if sys.version_info < (3, 7):
 
 
 else:
-    D = TypeVar("D", bound=dict)
+    M = TypeVar("M", bound=MutableMapping)
 
-    def type_dict_wrapper(wrapped: D) -> D:
+    def type_dict_wrapper(wrapped: M) -> M:
         return wrapped
 
 

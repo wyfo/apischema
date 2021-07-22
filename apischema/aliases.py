@@ -1,12 +1,12 @@
-from typing import Callable, Dict, TypeVar, overload
+from typing import Callable, MutableMapping, TypeVar, overload
 
+from apischema.cache import CacheAwareDict
 from apischema.types import Metadata, MetadataImplem
-from apischema.utils import type_dict_wrapper
 
 Aliaser = Callable[[str], str]
 Cls = TypeVar("Cls", bound=type)
 
-_class_aliasers: Dict[type, Aliaser] = type_dict_wrapper({})
+_class_aliasers: MutableMapping[type, Aliaser] = CacheAwareDict({})
 
 get_class_aliaser = _class_aliasers.get
 
@@ -51,7 +51,3 @@ def alias(arg=None, *, override: bool = True):  # type: ignore
         if not metadata:
             raise NotImplementedError
         return metadata
-
-
-def _global_aliaser(s: str) -> str:
-    return s

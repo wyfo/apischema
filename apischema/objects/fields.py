@@ -3,9 +3,9 @@ from enum import Enum, auto
 from typing import (
     Any,
     Callable,
-    Dict,
     Iterable,
     Mapping,
+    MutableMapping,
     NoReturn,
     Optional,
     Pattern,
@@ -15,6 +15,7 @@ from typing import (
     cast,
 )
 
+from apischema.cache import CacheAwareDict
 from apischema.conversions.conversions import AnyConversion
 from apischema.metadata.implem import (
     ConversionMetadata,
@@ -45,7 +46,6 @@ from apischema.utils import (
     is_union_of,
     keep_annotations,
     merge_opts,
-    type_dict_wrapper,
 )
 
 if TYPE_CHECKING:
@@ -226,7 +226,9 @@ def get_field_name(field_or_name: Any) -> str:
         _bad_field(field_or_name)
 
 
-_class_fields: Dict[type, Callable[[], Sequence[ObjectField]]] = type_dict_wrapper({})
+_class_fields: MutableMapping[
+    type, Callable[[], Sequence[ObjectField]]
+] = CacheAwareDict({})
 
 
 def set_object_fields(

@@ -7,8 +7,8 @@ from functools import partial
 from types import new_class
 from typing import (
     Callable,
-    Dict,
     List,
+    MutableMapping,
     Optional,
     TYPE_CHECKING,
     Type,
@@ -17,6 +17,7 @@ from typing import (
     overload,
 )
 
+from apischema.cache import CacheAwareDict
 from apischema.conversions import LazyConversion
 from apischema.conversions.conversions import (
     AnyConversion,
@@ -36,15 +37,16 @@ from apischema.utils import (
     is_method,
     method_class,
     stop_signature_abuse,
-    type_dict_wrapper,
 )
 
 if TYPE_CHECKING:
     from apischema.deserialization.coercion import Coerce
 
 
-_deserializers: Dict[AnyType, List[ConvOrFunc]] = type_dict_wrapper(defaultdict(list))
-_serializers: Dict[AnyType, ConvOrFunc] = type_dict_wrapper({})
+_deserializers: MutableMapping[AnyType, List[ConvOrFunc]] = CacheAwareDict(
+    defaultdict(list)
+)
+_serializers: MutableMapping[AnyType, ConvOrFunc] = CacheAwareDict({})
 Deserializer = TypeVar(
     "Deserializer", bound=Union[Callable, Conversion, staticmethod, type]
 )
@@ -197,7 +199,7 @@ def reset_deserializers(cls: Type):
 
 
 def reset_serializer(cls: Type):
-    _deserializers.pop(cls, ...)
+    _serializers.pop(cls, ...)
 
 
 class InheritedDeserializer:

@@ -7,6 +7,7 @@ from typing import (
     Callable,
     Dict,
     Mapping,
+    MutableMapping,
     NoReturn,
     Optional,
     Tuple,
@@ -16,6 +17,7 @@ from typing import (
     overload,
 )
 
+from apischema.cache import CacheAwareDict
 from apischema.conversions.conversions import AnyConversion
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
 from apischema.schemas import Schema
@@ -30,7 +32,6 @@ from apischema.utils import (
     method_registerer,
     substitute_type_vars,
     subtyping_substitution,
-    type_dict_wrapper,
 )
 
 
@@ -75,7 +76,7 @@ class SerializedMethod:
         return types
 
 
-_serialized_methods: Dict[Type, Dict[str, SerializedMethod]] = type_dict_wrapper(
+_serialized_methods: MutableMapping[Type, Dict[str, SerializedMethod]] = CacheAwareDict(
     defaultdict(dict)
 )
 
