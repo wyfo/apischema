@@ -53,6 +53,29 @@ class ObjectVisitor(Visitor[Result]):
     def _skip_field(self, field: ObjectField) -> bool:
         raise NotImplementedError
 
+    @staticmethod
+    def _default_fields(cls: type) -> Optional[Sequence[ObjectField]]:
+        from apischema import settings
+
+        return settings.default_object_fields(cls)
+
+    def _override_fields(
+        self, tp: AnyType, fields: Sequence[ObjectField]
+    ) -> Sequence[ObjectField]:
+
+        origin = get_origin_or_type(tp)
+        if isinstance(origin, type):
+            default_fields = self._default_fields(origin)
+            if default_fields is not None:
+                if get_args(tp):
+                    sub = dict(zip(get_parameters(origin), get_args(tp)))
+                    default_fields = [
+                        replace(f, type=substitute_type_vars(f.type, sub))
+                        for f in default_fields
+                    ]
+                return default_fields
+        return fields
+
     def _object(self, tp: AnyType, fields: Sequence[ObjectField]) -> Result:
         fields = [f for f in fields if not self._skip_field(f)]
         aliaser = get_class_aliaser(get_origin_or_type(tp))
@@ -77,7 +100,7 @@ class ObjectVisitor(Visitor[Result]):
             for name in types
             if name in by_name and by_name[name].kind != self._field_kind_filtered
         ]
-        return self._object(tp, object_fields)
+        return self._object(tp, self._override_fields(tp, object_fields))
 
     def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> Result:
         raise NotImplementedError
@@ -89,7 +112,7 @@ class ObjectVisitor(Visitor[Result]):
             ObjectField(name, type_, name not in defaults, default=defaults.get(name))
             for name, type_ in types.items()
         ]
-        return self._object(tp, fields)
+        return self._object(tp, self._override_fields(tp, fields))
 
     def typed_dict(
         self, tp: AnyType, types: Mapping[str, AnyType], required_keys: Collection[str]
@@ -98,23 +121,12 @@ class ObjectVisitor(Visitor[Result]):
             ObjectField(name, type_, name in required_keys, default=Undefined)
             for name, type_ in types.items()
         ]
-        return self._object(tp, fields)
+        return self._object(tp, self._override_fields(tp, fields))
 
     def unsupported(self, tp: AnyType) -> Result:
-        from apischema import settings
-
-        origin = get_origin_or_type(tp)
-        if isinstance(origin, type):
-            fields = settings.default_object_fields(origin)
-            if fields is not None:
-                if get_args(tp):
-                    sub = dict(zip(get_parameters(origin), get_args(tp)))
-                    fields = [
-                        replace(f, type=substitute_type_vars(f.type, sub))
-                        for f in fields
-                    ]
-                return self._object(origin, fields)
-        return super().unsupported(tp)
+        dummy: list = []
+        fields = self._override_fields(tp, dummy)
+        return super().unsupported(tp) if fields is dummy else self._object(tp, fields)
 
 
 class DeserializationObjectVisitor(ObjectVisitor[Result]):
