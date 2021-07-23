@@ -192,7 +192,7 @@ class ObjectField:
             skip_if = merge_skip_if(skip_if, lambda obj: obj == default)
         if is_union_of(self.type, UndefinedType):
             skip_if = merge_skip_if(skip_if, lambda obj: obj is Undefined)
-        if self.none_as_undefined or none:
+        if self.none_as_undefined or (none and is_union_of(self.type, NoneType)):
             skip_if = merge_skip_if(skip_if, lambda obj: obj is None)
         return skip_if
 
