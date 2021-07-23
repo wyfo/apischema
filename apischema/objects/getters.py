@@ -3,6 +3,7 @@ from typing import (
     Any,
     Callable,
     Mapping,
+    Optional,
     Sequence,
     Type,
     TypeVar,
@@ -23,13 +24,22 @@ from apischema.visitor import Unsupported
 
 @cache
 def object_fields(
-    tp: AnyType, deserialization: bool = False, serialization: bool = False
+    tp: AnyType,
+    deserialization: bool = False,
+    serialization: bool = False,
+    default: Optional[
+        Callable[[type], Optional[Sequence[ObjectField]]]
+    ] = ObjectVisitor._default_fields,
 ) -> Mapping[str, ObjectField]:
     class GetFields(ObjectVisitor[Sequence[ObjectField]]):
         def _skip_field(self, field: ObjectField) -> bool:
             return (field.skip.deserialization and serialization) or (
                 field.skip.serialization and deserialization
             )
+
+        @staticmethod
+        def _default_fields(cls: type) -> Optional[Sequence[ObjectField]]:
+            return None if default is None else default(cls)
 
         def object(
             self, cls: Type, fields: Sequence[ObjectField]

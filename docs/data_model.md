@@ -219,6 +219,9 @@ Thus, support of dataclass-like types (*attrs*, *SQLAlchemy* traditional mappers
 
 Another way to set object fields is to directly modify *apischema* default behavior, using `apischema.settings.default_object_fields`.
 
+!!! note
+    `set_object_fields`/`settings.default_object_fields` can be used to override existing fields. Current fields can be retrieved using `apischema.objects.object_fields`.
+
 ```python
 from collections.abc import Sequence
 from typing import Optional
