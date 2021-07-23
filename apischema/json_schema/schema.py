@@ -351,7 +351,12 @@ class SerializationSchemaBuilder(
 
     @staticmethod
     def _field_required(field: ObjectField):
-        return field.skip_if is None
+        from apischema import settings
+
+        skip_if = field.skip_if(
+            settings.serialization.exclude_defaults, settings.serialization.exclude_none
+        )
+        return skip_if is None
 
     def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> JsonSchema:
         result = super().object(tp, fields)

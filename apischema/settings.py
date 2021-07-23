@@ -54,5 +54,7 @@ class settings(metaclass=MetaSettings):
         check_type: bool = False
         fall_back_on_any: bool = False
         default_conversion: DefaultConversion = default_serialization
+        exclude_defaults: bool = False
+        exclude_none: bool = False
         exclude_unset: bool = True
         pass_through: PassThroughOptions = PassThroughOptions()

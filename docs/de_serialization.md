@@ -216,6 +216,21 @@ Sometimes, some fields must be serialized, even with their default value; this b
 !!! note
     This metadata has effect only in combination with `with_fields_set` decorator.
 
+### Exclude fields with default value or `None`
+
+Fields metadata [`apischema.skip`](data_model.md#skip-field-serialization-depending-on-condition) already allows skipping fields serialization depending on a condition, for example if the field is `None` or equal to its default value. However, it must be added on each concerned fields, and that can be tedious when you want to set that behavior globally.
+
+That's why *apischema* provides the two following settings:
+
+- `settings.serialization.exclude_defaults`: whether fields which are equal to their default values should be excluded from serialization; default `False`
+- `settings.serialization.exclude_none`: whether fields which are equal to `None` should be excluded from serialization; default `False`
+
+These settings can also be set directly using `serialize` parameters, like in the following example:
+
+```python
+{!exclude_defaults_none.py!}
+```
+
 ### TypedDict additional properties
 
 `TypedDict` can contain additional keys, which are not serialized by default. Setting `additional_properties` parameter to `True` (or `apischema.settings.additional_properties`) will toggle on their serialization (without aliasing).

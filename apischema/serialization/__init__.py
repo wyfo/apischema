@@ -72,6 +72,8 @@ class SerializationMethodVisitor(
         aliaser: Aliaser,
         check_type: bool,
         default_conversion: DefaultConversion,
+        exclude_defaults: bool,
+        exclude_none: bool,
         exclude_unset: bool,
         fall_back_on_any: bool,
         pass_through_options: PassThroughOptions,
@@ -80,6 +82,8 @@ class SerializationMethodVisitor(
         self.additional_properties = additional_properties
         self.aliaser = aliaser
         self.check_type = check_type
+        self.exclude_defaults = exclude_defaults
+        self.exclude_none = exclude_none
         self.exclude_unset = exclude_unset
         self.fall_back_on_any = fall_back_on_any
         self.pass_through_options = pass_through_options
@@ -103,6 +107,8 @@ class SerializationMethodVisitor(
                 aliaser=self.aliaser,
                 conversions=self._conversions,
                 default_conversion=self.default_conversion,
+                exclude_defaults=self.exclude_defaults,
+                exclude_none=self.exclude_none,
                 exclude_unset=self.exclude_unset,
                 options=self.pass_through_options,
             )
@@ -117,6 +123,8 @@ class SerializationMethodVisitor(
             self.check_type,
             self._conversions,
             self.default_conversion,
+            self.exclude_defaults,
+            self.exclude_none,
             self.exclude_unset,
             self.fall_back_on_any,
             self.pass_through_options,
@@ -208,12 +216,11 @@ class SerializationMethodVisitor(
         for field in fields:
             serialize_field = self.visit_with_conv(field.type, field.serialization)
             alias = self.aliaser(field.alias)
+            skip_if = field.skip_if(self.exclude_defaults, self.exclude_none)
             if field.is_aggregate:
-                aggregate_fields.append((field.name, serialize_field, field.skip_if))
-            elif field.skip_if is not None:
-                skipped_if_fields.append(
-                    (field.name, alias, serialize_field, field.skip_if)
-                )
+                aggregate_fields.append((field.name, serialize_field, skip_if))
+            elif skip_if is not None:
+                skipped_if_fields.append((field.name, alias, serialize_field, skip_if))
             elif serialize_field is identity:
                 identity_fields.append((field.name, alias))
             else:
@@ -448,6 +455,8 @@ def serialization_method_factory(
     check_type: Optional[bool],
     conversion: Optional[AnyConversion],
     default_conversion: Optional[DefaultConversion],
+    exclude_defaults: Optional[bool],
+    exclude_none: Optional[bool],
     exclude_unset: Optional[bool],
     fall_back_on_any: Optional[bool],
     pass_through: Optional[PassThroughOptions],
@@ -461,6 +470,8 @@ def serialization_method_factory(
             opt_or(aliaser, settings.aliaser),
             opt_or(check_type, settings.serialization.check_type),
             opt_or(default_conversion, settings.serialization.default_conversion),
+            opt_or(exclude_defaults, settings.serialization.exclude_defaults),
+            opt_or(exclude_none, settings.serialization.exclude_none),
             opt_or(exclude_unset, settings.serialization.exclude_unset),
             opt_or(fall_back_on_any, settings.serialization.fall_back_on_any),
             opt_or(pass_through, settings.serialization.pass_through),
@@ -477,6 +488,8 @@ def serialization_method(
     check_type: bool = None,
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
+    exclude_defaults: bool = None,
+    exclude_none: bool = None,
     exclude_unset: bool = None,
     fall_back_on_any: bool = None,
     pass_through: PassThroughOptions = None,
@@ -487,6 +500,8 @@ def serialization_method(
         check_type,
         conversion,
         default_conversion,
+        exclude_defaults,
+        exclude_none,
         exclude_unset,
         fall_back_on_any,
         pass_through,
@@ -506,6 +521,8 @@ def serialize(
     check_type: bool = None,
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
+    exclude_defaults: bool = None,
+    exclude_none: bool = None,
     exclude_unset: bool = None,
     fall_back_on_any: bool = None,
     pass_through: PassThroughOptions = None,
@@ -522,6 +539,8 @@ def serialize(
     check_type: bool = None,
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
+    exclude_defaults: bool = None,
+    exclude_none: bool = None,
     exclude_unset: bool = None,
     fall_back_on_any: bool = True,
     pass_through: PassThroughOptions = None,
@@ -539,6 +558,8 @@ def serialize(
     check_type: bool = None,
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
+    exclude_defaults: bool = None,
+    exclude_none: bool = None,
     exclude_unset: bool = None,
     fall_back_on_any: bool = None,
     pass_through: PassThroughOptions = None,
@@ -554,6 +575,8 @@ def serialize(
         check_type,
         conversion,
         default_conversion,
+        exclude_defaults,
+        exclude_none,
         exclude_unset,
         fall_back_on_any,
         pass_through,
@@ -565,6 +588,8 @@ def serialization_default(
     additional_properties: bool = None,
     aliaser: Aliaser = None,
     default_conversion: DefaultConversion = None,
+    exclude_defaults: bool = None,
+    exclude_none: bool = None,
     exclude_unset: bool = None,
 ) -> SerializationMethod:
     factory = serialization_method_factory(
@@ -573,6 +598,8 @@ def serialization_default(
         False,
         None,
         default_conversion,
+        exclude_defaults,
+        exclude_none,
         exclude_unset,
         False,
         # Annotations are lost in default fallback, so there will be `Any` everywhere;
