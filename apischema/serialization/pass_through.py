@@ -124,11 +124,7 @@ class PassThroughVisitor(
     def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> bool:
         cls = get_origin_or_type(tp)
         if is_dataclass(cls) and self.options.dataclass_options is not None:
-            if (
-                (self.exclude_unset and support_fields_set(cls))
-                or self.exclude_defaults
-                or self.exclude_none
-            ):
+            if self.exclude_unset and support_fields_set(cls):
                 return False
             dataclass_options = self.options.dataclass_options
         elif (
@@ -147,7 +143,10 @@ class PassThroughVisitor(
                 dataclass_options.properties_fields
                 or not (field.pattern_properties or field.additional_properties)
             )
-            and (dataclass_options.skipped_if_fields or field.skip_if() is None)
+            and (
+                dataclass_options.skipped_if_fields
+                or field.skip_if(self.exclude_defaults, self.exclude_none) is None
+            )
             and self.visit_with_conv(field.type, field.serialization)
             for field in fields
         )
