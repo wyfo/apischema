@@ -47,8 +47,8 @@ class settings(metaclass=MetaSettings):
     class deserialization(metaclass=ResetCache):
         coerce: bool = False
         coercer: Coercer = coerce_
-        default_conversion: DefaultConversion = default_deserialization
         fall_back_on_default: bool = False
+        default_conversion: DefaultConversion = default_deserialization
 
     class serialization(metaclass=ResetCache):
         check_type: bool = False

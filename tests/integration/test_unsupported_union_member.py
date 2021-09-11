@@ -11,9 +11,8 @@ class Foo:
     bar: Union[int, Annotated[None, Unsupported]] = None
 
 
-def test_unsupported_union_member():
-    with raises(ValidationError) as err:
-        deserialize(Foo, {"bar": None})
-    assert err.value.errors == [
-        {"loc": ["bar"], "msg": "expected type integer, found null"}
-    ]
+with raises(ValidationError) as err:
+    deserialize(Foo, {"bar": None})
+assert err.value.errors == [
+    {"loc": ["bar"], "msg": "expected type integer, found null"}
+]
