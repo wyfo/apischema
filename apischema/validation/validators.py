@@ -118,26 +118,22 @@ T = TypeVar("T")
 def validate(
     obj: T,
     validators: Iterable[Validator] = None,
-    kwargs: Mapping[str, Any] = None,
+    kwargs: Optional[Mapping[str, Any]] = None,
     *,
     aliaser: Aliaser = lambda s: s,
 ) -> T:
     if validators is None:
-        validators = get_validators(type(obj))
+        validators = get_validators(obj.__class__)
+    else:
+        validators = list(validators)
     error: Optional[ValidationError] = None
-    validators = iter(validators)
-    for validator in validators:
+    for i, validator in enumerate(validators):
         try:
             if not kwargs:
                 validator.validate(obj)
             elif validator.params == kwargs.keys():
                 validator.validate(obj, **kwargs)
             else:
-                if any(k not in kwargs for k in validator.params):
-                    raise RuntimeError(
-                        f"Missing parameters {kwargs.keys() - validator.params}"
-                        f" for validator {validator.func}"
-                    )
                 validator.validate(obj, **{k: kwargs[k] for k in validator.params})
         except ValidationError as e:
             err = apply_aliaser(e, aliaser)
@@ -158,11 +154,13 @@ def validate(
             try:
                 discarded = set(map(get_field_name, validator.discard))
                 next_validators = (
-                    v for v in validators if not discarded & v.dependencies
+                    v for v in validators[i:] if v.dependencies.isdisjoint(discarded)
                 )
                 validate(obj, next_validators, kwargs, aliaser=aliaser)
             except ValidationError as err:
-                error = merge_errors(error, err)
+                raise merge_errors(error, err)
+            else:
+                raise error
     if error is not None:
         raise error
     return obj

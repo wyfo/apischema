@@ -45,7 +45,7 @@ try:
     from apischema.typing import TypedDict
 
     class LocalizedError(TypedDict):
-        loc: List[ErrorKey]
+        loc: Sequence[ErrorKey]
         msg: ErrorMsg
 
 
@@ -120,13 +120,15 @@ def merge_errors(err1: ValidationError, err2: ValidationError) -> ValidationErro
 
 
 def apply_aliaser(error: ValidationError, aliaser: Aliaser) -> ValidationError:
-    aliased_children = {
-        str(aliaser(key))
-        if isinstance(key, AliasedStr)
-        else key: apply_aliaser(child, aliaser)
-        for key, child in error.children.items()
-    }
-    return replace(error, children=aliased_children)
+    aliased, aliased_children = False, {}
+    for key, child in error.children.items():
+        if isinstance(key, AliasedStr):
+            key = str(aliaser(key))  # str because it could be a str subclass
+            aliased = True
+        child2 = apply_aliaser(child, aliaser)
+        aliased |= child2 is not child
+        aliased_children[key] = child2
+    return replace(error, children=aliased_children) if aliased else error
 
 
 def _rec_build_error(path: Sequence[ErrorKey], msg: ErrorMsg) -> ValidationError:
