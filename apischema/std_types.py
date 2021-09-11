@@ -1,3 +1,4 @@
+import operator
 import re
 import sys
 from base64 import b64decode, b64encode
@@ -88,9 +89,8 @@ for cls in (PurePath, PurePosixPath, PureWindowsPath, Path, PosixPath, WindowsPa
 
 Pattern = type(re.compile(r""))
 deserializer(Conversion(re.compile, source=str, target=Pattern))
-serializer(Conversion(lambda p: p.pattern, source=Pattern, target=str))
-type_name(None)(cls)
-
+serializer(Conversion(operator.attrgetter("pattern"), source=Pattern, target=str))
+type_name(None)(Pattern)
 
 # ==================== uuid =====================
 
