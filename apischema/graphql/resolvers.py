@@ -281,7 +281,7 @@ def resolver_resolve(
 
     serialize_result: Callable[[Any], Any]
     if not serialized:
-        serialize_result = lambda res: res
+        serialize_result = identity
     elif is_async(resolver.func):
         serialize_result = as_async(method_factory(types["return"]))
     else:
