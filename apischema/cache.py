@@ -1,19 +1,21 @@
 __all__ = ["cache", "reset", "set_size"]
 import sys
 from functools import lru_cache
-from typing import Callable, Iterator, MutableMapping, TypeVar, cast
+from typing import Any, Callable, Iterator, List, MutableMapping, TypeVar, cast
 
 from apischema.utils import type_dict_wrapper
 
-_cached: list = []
+_cached: List = []
 
 Func = TypeVar("Func", bound=Callable)
 
 
 def cache(func: Func) -> Func:
-    cached = cast(Func, lru_cache()(func))
+    if func.__qualname__.count(".") > 1:
+        raise ValueError("Cached function must be declared at module level")
+    cached: Any = lru_cache()(func)
     _cached.append(cached)
-    return cached
+    return cast(Func, cached)
 
 
 def reset():

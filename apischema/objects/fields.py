@@ -136,10 +136,7 @@ class ObjectField:
 
     @property
     def fall_back_on_default(self) -> bool:
-        return (
-            FALL_BACK_ON_DEFAULT_METADATA in self.full_metadata
-            and self.default_factory is not None
-        )
+        return FALL_BACK_ON_DEFAULT_METADATA in self.full_metadata
 
     @property
     def flattened(self) -> bool:
