@@ -1,4 +1,3 @@
-from functools import wraps
 from typing import Any, Callable, Dict, Type, TypeVar, Union
 
 from apischema.json_schema.types import bad_type
@@ -25,39 +24,32 @@ STR_NONE_VALUES = {""}
 
 
 def coerce(cls: Type[T], data: Any) -> T:
-    try:
-        if isinstance(data, cls):
-            return data
-        if data is None and cls is not NoneType:
-            raise ValueError
-        if cls is bool and isinstance(data, str):
-            return STR_TO_BOOL[data.lower()]  # type: ignore
-        if cls is NoneType and data in STR_NONE_VALUES:
+    if cls is NoneType:
+        if data is None or data in STR_NONE_VALUES:
             return None  # type: ignore
-        if cls is list and isinstance(data, str):
-            raise ValueError
-        return cls(data)  # type: ignore
-    except (ValueError, TypeError, KeyError):
+        else:
+            raise bad_type(data, cls)
+    elif isinstance(data, cls):
+        return data
+    elif cls is bool:
+        if isinstance(data, str):
+            return STR_TO_BOOL[data.lower()]  # type: ignore
+        elif isinstance(data, int):
+            return bool(data)  # type: ignore
+        else:
+            raise bad_type(data, cls)
+    elif cls in (int, float):
+        try:
+            return cls(data)  # type: ignore
+        except ValueError:
+            raise bad_type(data, cls)
+    elif cls is str:
+        if isinstance(data, (int, float)) and not isinstance(data, bool):
+            return str(data)  # type: ignore
+        else:
+            raise bad_type(data, cls)
+    else:
         raise bad_type(data, cls)
 
 
 Coerce = Union[bool, Coercer]
-
-
-def wrap_coercer(coercer: Coercer) -> Coercer:
-    if coercer is coerce:
-        return coercer
-
-    @wraps(coercer)
-    def wrapper(cls, data):
-        try:
-            result = coercer(cls, data)
-        except AssertionError:
-            raise
-        except Exception:
-            raise bad_type(data, cls)
-        if not isinstance(result, cls):
-            raise bad_type(data, cls)
-        return result
-
-    return wrapper

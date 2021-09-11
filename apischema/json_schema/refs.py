@@ -124,16 +124,16 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
             return super().visit_conversion(tp, conversion, dynamic, next_conversion)
         # 2 because the first type encountered of the recursive cycle can have no ref
         # (see test_recursive_by_conversion_schema)
-        if self._rec_guard[(tp, self._conversions)] > 2:
+        if self._rec_guard[(tp, self._conversion)] > 2:
             raise TypeError(f"Recursive type {tp} need a ref")
-        self._rec_guard[(tp, self._conversions)] += 1
+        self._rec_guard[(tp, self._conversion)] += 1
         try:
             super().visit_conversion(tp, conversion, dynamic, next_conversion)
         except Unsupported:
             for ref_tp in ref_types:
                 self.refs.pop(get_type_name(ref_tp).json_schema, ...)  # type: ignore
         finally:
-            self._rec_guard[(tp, self._conversions)] -= 1
+            self._rec_guard[(tp, self._conversion)] -= 1
 
 
 class DeserializationRefsExtractor(

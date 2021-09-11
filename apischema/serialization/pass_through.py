@@ -6,17 +6,18 @@ from typing import Any, Callable, Collection, Mapping, Optional, Sequence, Type,
 from apischema.aliases import Aliaser
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.visitor import (
-    RecursiveConversionsVisitor,
     Serialization,
     SerializationVisitor,
+    sub_conversion,
 )
 from apischema.fields import support_fields_set
 from apischema.objects import AliasedStr, ObjectField
 from apischema.objects.visitor import SerializationObjectVisitor
+from apischema.recursion import RecursiveConversionsVisitor
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import AnyType
 from apischema.typing import is_typed_dict
-from apischema.utils import Lazy, as_predicate, get_origin_or_type, opt_or
+from apischema.utils import Lazy, as_predicate, get_origin_or_type, identity, opt_or
 
 
 @dataclass(frozen=True)
@@ -145,7 +146,7 @@ class PassThroughVisitor(
             )
             and (
                 dataclass_options.skipped_if_fields
-                or field.skip_if(self.exclude_defaults, self.exclude_none) is None
+                or not field.skippable(self.exclude_defaults, self.exclude_none)
             )
             and self.visit_with_conv(field.type, field.serialization)
             for field in fields
@@ -167,7 +168,9 @@ class PassThroughVisitor(
         dynamic: bool,
         next_conversion: Optional[AnyConversion],
     ) -> bool:
-        return False
+        return conversion.converter is identity and self.visit_with_conv(
+            conversion.target, sub_conversion(conversion, next_conversion)
+        )
 
     def visit_conversion(
         self,

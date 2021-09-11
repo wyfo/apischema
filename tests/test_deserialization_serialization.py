@@ -84,7 +84,7 @@ def test_primitive_error(data):
     [
         (List, [0, SimpleDataclass(0)]),
         (Set, {0, SimpleDataclass(0)}),
-        (Sequence, (0, SimpleDataclass(0))),
+        (Sequence, [0, SimpleDataclass(0)]),
         (AbstractSet, frozenset([0, SimpleDataclass(0)])),
     ],
 )

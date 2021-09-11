@@ -27,35 +27,35 @@ NoneType: Type[None] = type(None)
 Number = Union[int, float]
 
 PRIMITIVE_TYPES = (str, int, bool, float, NoneType)
-COLLECTION_TYPES = {
-    Collection: tuple,
-    collections.abc.Collection: tuple,
-    Sequence: tuple,
-    collections.abc.Sequence: tuple,
-    Tuple: tuple,
-    tuple: tuple,
-    MutableSequence: list,
-    collections.abc.MutableSequence: list,
-    List: list,
-    list: list,
-    AbstractSet: frozenset,
-    collections.abc.Set: frozenset,
-    FrozenSet: frozenset,
-    frozenset: frozenset,
-    MutableSet: set,
-    collections.abc.MutableSet: set,
-    Set: set,
-    set: set,
-}
-MAPPING_TYPES = {
-    Mapping: MappingProxyType,
-    collections.abc.Mapping: MappingProxyType,
-    MutableMapping: dict,
-    collections.abc.MutableMapping: dict,
-    Dict: dict,
-    dict: dict,
-    MappingProxyType: MappingProxyType,
-}
+COLLECTION_TYPES = (
+    Collection,
+    collections.abc.Collection,
+    Sequence,
+    collections.abc.Sequence,
+    Tuple,
+    tuple,
+    MutableSequence,
+    collections.abc.MutableSequence,
+    List,
+    list,
+    AbstractSet,
+    collections.abc.Set,
+    FrozenSet,
+    frozenset,
+    MutableSet,
+    collections.abc.MutableSet,
+    Set,
+    set,
+)
+MAPPING_TYPES = (
+    Mapping,
+    collections.abc.Mapping,
+    MutableMapping,
+    collections.abc.MutableMapping,
+    Dict,
+    dict,
+    MappingProxyType,
+)
 
 
 if sys.version_info >= (3, 7):  # pragma: no cover

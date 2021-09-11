@@ -32,7 +32,6 @@ from apischema.conversions.visitor import (
     Conv,
     Deserialization,
     DeserializationVisitor,
-    RecursiveConversionsVisitor,
     Serialization,
     SerializationVisitor,
 )
@@ -52,6 +51,7 @@ from apischema.objects.visitor import (
     ObjectVisitor,
     SerializationObjectVisitor,
 )
+from apischema.recursion import RecursiveConversionsVisitor
 from apischema.schemas import Schema, get_schema, merge_schema
 from apischema.serialization import SerializationMethod, serialize
 from apischema.serialization.serialized_methods import ErrorHandler
@@ -397,7 +397,9 @@ class SchemaBuilder(
         raise TypeError("Tuple are not supported")
 
     def union(self, alternatives: Sequence[AnyType]) -> TypeFactory[GraphQLTp]:
-        factories = self._union_results(alternatives, skip={NoneType, UndefinedType})
+        factories = self._union_results(
+            (alt for alt in alternatives if alt is not NoneType)
+        )
         if len(factories) == 1:
             factory = factories[0]
         else:
@@ -677,8 +679,8 @@ class OutputSchemaBuilder(
         def get_flattened(obj):
             return partial_serialize(getattr(get_prev_flattened(obj), field_name))
 
-        with context_setter(self) as setter:
-            setter.get_flattened = get_flattened
+        with context_setter(self):
+            self.get_flattened = get_flattened
             return self.visit_with_conv(field.type, field.serialization)
 
     @cache_type

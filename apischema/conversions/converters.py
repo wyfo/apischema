@@ -26,18 +26,11 @@ from apischema.conversions.conversions import (
     resolve_conversion,
 )
 from apischema.conversions.utils import Converter, is_convertible
+from apischema.methods import MethodOrProperty, MethodWrapper, is_method, method_class
 from apischema.type_names import type_name
 from apischema.types import AnyType
 from apischema.typing import is_type_var
-from apischema.utils import (
-    MethodOrProperty,
-    MethodWrapper,
-    get_args2,
-    get_origin_or_type,
-    is_method,
-    method_class,
-    stop_signature_abuse,
-)
+from apischema.utils import get_args2, get_origin_or_type, stop_signature_abuse
 
 if TYPE_CHECKING:
     from apischema.deserialization.coercion import Coerce

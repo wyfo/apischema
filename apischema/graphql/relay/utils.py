@@ -1,6 +1,12 @@
 from base64 import b64decode, b64encode
 
-base64_encoding = (
-    lambda s: b64decode(s).decode(),
-    lambda s: b64encode(s.encode()).decode(),
-)
+
+def decode_base_64(s: str) -> str:
+    return b64decode(s).decode()
+
+
+def encode_base64(s: str) -> str:
+    return b64encode(s.encode()).decode()
+
+
+base64_encoding = (decode_base_64, encode_base64)

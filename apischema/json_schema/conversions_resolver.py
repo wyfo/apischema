@@ -123,7 +123,7 @@ class WithConversionsResolver:
             self: ConversionsVisitor, tp: AnyType
         ) -> Sequence[AnyType]:
             return Resolver(self.default_conversion).visit_with_conv(
-                tp, self._conversions
+                tp, self._conversion
             )
 
         assert issubclass(cls, WithConversionsResolver)

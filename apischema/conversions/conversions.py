@@ -5,40 +5,36 @@ from typing import (
     Callable,
     Collection,
     Dict,
+    Generic,
     List,
     NewType,
     Optional,
     TYPE_CHECKING,
     Tuple,
+    TypeVar,
     Union,
 )
 
 from apischema.conversions.utils import Converter, converter_types
 from apischema.dataclasses import replace
+from apischema.methods import is_method, method_class, method_wrapper
 from apischema.types import AnyType
 from apischema.typing import is_type_var
-from apischema.utils import (
-    deprecate_kwargs,
-    identity,
-    is_method,
-    method_class,
-    method_wrapper,
-)
+from apischema.utils import deprecate_kwargs, identity
 
 if TYPE_CHECKING:
     pass
 
+ConvOrProp = TypeVar("ConvOrProp", Converter, property)
+
 
 @dataclass(frozen=True)
-class Conversion:
-    converter: Union[Converter, property]
+class Conversion(Generic[ConvOrProp]):
+    converter: ConvOrProp
     source: AnyType = None
     target: AnyType = None
     sub_conversion: Optional["AnyConversion"] = None
     inherited: Optional[bool] = None
-
-    def __call__(self, *args, **kwargs):
-        return self.converter(*args, **kwargs)
 
 
 deprecate_kwargs({"sub_conversions": "sub_conversion"})(Conversion)
@@ -62,7 +58,7 @@ AnyConversion = Union[ConvOrFunc, Tuple[ConvOrFunc, ...]]
 DefaultConversion = Callable[[AnyType], Optional[AnyConversion]]
 
 
-ResolvedConversion = NewType("ResolvedConversion", Conversion)
+ResolvedConversion = NewType("ResolvedConversion", Conversion[Converter])
 ResolvedConversions = Tuple[ResolvedConversion, ...]  # Tuple in order to be hashable
 
 
