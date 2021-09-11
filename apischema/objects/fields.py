@@ -37,7 +37,7 @@ from apischema.metadata.keys import (
     SKIP_METADATA,
     VALIDATORS_METADATA,
 )
-from apischema.types import AnyType, ChainMap, NoneType, Undefined, UndefinedType
+from apischema.types import AnyType, ChainMap, NoneType, UndefinedType
 from apischema.typing import get_args, is_annotated
 from apischema.utils import (
     LazyValue,
@@ -45,7 +45,6 @@ from apischema.utils import (
     get_args2,
     is_union_of,
     keep_annotations,
-    merge_opts,
 )
 
 if TYPE_CHECKING:
@@ -61,16 +60,6 @@ class FieldKind(Enum):
 
 # Cannot reuse MISSING for dataclass field because it would be interpreted as no default
 MISSING_DEFAULT = object()
-
-
-@merge_opts
-def merge_skip_if(
-    s1: Callable[[Any], Any], s2: Callable[[Any], Any]
-) -> Callable[[Any], Any]:
-    def merged(obj) -> Any:
-        return s1(obj) or s2(obj)
-
-    return merged
 
 
 @dataclass(frozen=True)
@@ -184,20 +173,21 @@ class ObjectField:
     def skip(self) -> SkipMetadata:
         return self.metadata.get(SKIP_METADATA, SkipMetadata())
 
-    def skip_if(
-        self, default: bool = False, none: bool = False
-    ) -> Optional[Callable[[Any], Any]]:
-        skip_if = self.skip.serialization_if
-        if self.default_factory is not None and (
-            self.skip.serialization_default or default
-        ):
-            default = self.default_factory()  # type: ignore
-            skip_if = merge_skip_if(skip_if, lambda obj: obj == default)
-        if is_union_of(self.type, UndefinedType):
-            skip_if = merge_skip_if(skip_if, lambda obj: obj is Undefined)
-        if self.none_as_undefined or (none and is_union_of(self.type, NoneType)):
-            skip_if = merge_skip_if(skip_if, lambda obj: obj is None)
-        return skip_if
+    def skippable(self, default: bool, none: bool) -> bool:
+        return bool(
+            self.skip.serialization_if
+            or is_union_of(self.type, UndefinedType)
+            or (
+                self.default_factory is not None
+                and (self.skip.serialization_default or default)
+            )
+            or self.none_as_undefined
+            or (none and is_union_of(self.type, NoneType))
+        )
+
+    @property
+    def undefined(self) -> bool:
+        return is_union_of(self.type, UndefinedType)
 
     @property
     def validators(self) -> Sequence["Validator"]:

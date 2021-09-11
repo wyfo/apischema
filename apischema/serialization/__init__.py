@@ -1,6 +1,6 @@
+import collections.abc
+import operator
 from enum import Enum
-from functools import lru_cache, wraps
-from operator import attrgetter
 from typing import (
     Any,
     Callable,
@@ -8,7 +8,9 @@ from typing import (
     Mapping,
     Optional,
     Sequence,
+    Tuple,
     Type,
+    TypeVar,
     Union,
     cast,
     overload,
@@ -19,17 +21,17 @@ from apischema.cache import cache
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.utils import Converter
 from apischema.conversions.visitor import (
-    RecursiveConversionsVisitor,
     Serialization,
     SerializationVisitor,
     sub_conversion,
 )
-from apischema.fields import FIELDS_SET_ATTR, fields_set, support_fields_set
+from apischema.fields import FIELDS_SET_ATTR, support_fields_set
 from apischema.objects import AliasedStr, ObjectField
 from apischema.objects.visitor import SerializationObjectVisitor
+from apischema.recursion import RecursiveConversionsVisitor
 from apischema.serialization.pass_through import PassThroughOptions, pass_through
 from apischema.serialization.serialized_methods import get_serialized_methods
-from apischema.types import AnyType, NoneType, Undefined
+from apischema.types import AnyType, NoneType, Undefined, UndefinedType
 from apischema.typing import is_new_type, is_type, is_type_var, is_typed_dict
 from apischema.utils import (
     Lazy,
@@ -37,28 +39,36 @@ from apischema.utils import (
     get_origin_or_type,
     get_origin_or_type2,
     identity,
+    is_union_of,
     opt_or,
 )
 from apischema.visitor import Unsupported
-
-NEITHER_NONE_NOR_UNDEFINED = object()
-NOT_NONE = object()
-
 
 SerializationMethod = Callable[[Any], Any]
 SerializationMethodFactory = Callable[[AnyType], SerializationMethod]
 
 
-def instance_checker(tp: AnyType) -> Callable[[Any], bool]:
+T = TypeVar("T")
+
+
+def instance_checker(tp: AnyType) -> Tuple[Callable[[Any, Any], bool], Any]:
     tp = get_origin_or_type2(tp)
-    if isinstance(tp, type):
-        return lambda obj: isinstance(obj, tp)
+    if tp is NoneType:
+        return operator.is_, None
+    elif is_typed_dict(tp):
+        return isinstance, collections.abc.Mapping
+    elif is_type(tp):
+        return isinstance, tp
     elif is_new_type(tp):
         return instance_checker(tp.__supertype__)
-    elif is_type_var(tp):
-        return lambda obj: True
+    elif is_type_var(tp) or tp is Any:
+        return isinstance, object
     else:
         raise TypeError(f"{tp} is not supported in union serialization")
+
+
+def identity_as_none(method: SerializationMethod) -> Optional[SerializationMethod]:
+    return method if method is not identity else None
 
 
 class SerializationMethodVisitor(
@@ -66,6 +76,8 @@ class SerializationMethodVisitor(
     SerializationVisitor[SerializationMethod],
     SerializationObjectVisitor[SerializationMethod],
 ):
+    use_cache: bool = True
+
     def __init__(
         self,
         additional_properties: bool,
@@ -87,6 +99,28 @@ class SerializationMethodVisitor(
         self.exclude_unset = exclude_unset
         self.fall_back_on_any = fall_back_on_any
         self.pass_through_options = pass_through_options
+        self._first_visit = True
+
+    @property
+    def _factory(self) -> SerializationMethodFactory:
+        return serialization_method_factory(
+            self.additional_properties,
+            self.aliaser,
+            self.check_type,
+            self._conversion,
+            self.default_conversion,
+            self.exclude_defaults,
+            self.exclude_none,
+            self.exclude_unset,
+            self.fall_back_on_any,
+            self.pass_through_options,
+        )
+
+    def visit_not_recursive(self, tp: AnyType):
+        if self._first_visit or not self.use_cache:
+            self._first_visit = False
+            return super().visit_not_recursive(tp)
+        return self._factory(tp)
 
     def _recursive_result(self, lazy: Lazy[SerializationMethod]) -> SerializationMethod:
         rec_method = None
@@ -105,7 +139,7 @@ class SerializationMethodVisitor(
                 tp,
                 additional_properties=self.additional_properties,
                 aliaser=self.aliaser,
-                conversions=self._conversions,
+                conversions=self._conversion,
                 default_conversion=self.default_conversion,
                 exclude_defaults=self.exclude_defaults,
                 exclude_none=self.exclude_none,
@@ -115,22 +149,9 @@ class SerializationMethodVisitor(
         except (TypeError, Unsupported):  # TypeError because tp can be unhashable
             return False
 
-    @property
-    def _factory(self) -> SerializationMethodFactory:
-        return serialization_method_factory(
-            self.additional_properties,
-            self.aliaser,
-            self.check_type,
-            self._conversions,
-            self.default_conversion,
-            self.exclude_defaults,
-            self.exclude_none,
-            self.exclude_unset,
-            self.fall_back_on_any,
-            self.pass_through_options,
-        )
-
     def any(self) -> SerializationMethod:
+        if self.pass_through_options.any:
+            return identity
         factory = self._factory
 
         def method(obj: Any) -> Any:
@@ -138,21 +159,31 @@ class SerializationMethodVisitor(
 
         return method
 
+    def _any_fallback(self, tp: AnyType) -> SerializationMethod:
+        serialize_any = self.any()
+
+        def method(obj: Any) -> Any:
+            if self.fall_back_on_any:
+                return serialize_any(obj)
+            else:
+                raise TypeError(f"Expected {tp}, found {obj.__class__}")
+
+        return method
+
     def _wrap(self, cls: type, method: SerializationMethod) -> SerializationMethod:
         if not self.check_type:
             return method
-        fall_back_on_any, any_method = self.fall_back_on_any, self.any()
-        if is_typed_dict(cls):
-            cls = Mapping
+        fallback = self._any_fallback(cls)
+        cls_to_check = Mapping if is_typed_dict(cls) else cls
 
-        @wraps(method)
         def wrapper(obj: Any) -> Any:
-            if isinstance(obj, cls):
-                return method(obj)
-            elif fall_back_on_any:
-                return any_method(obj)
+            if isinstance(obj, cls_to_check):
+                try:
+                    return method(obj)
+                except Exception:
+                    return fallback(obj)
             else:
-                raise TypeError(f"Expected {cls}, found {obj.__class__}")
+                return fallback(obj)
 
         return wrapper
 
@@ -161,7 +192,6 @@ class SerializationMethodVisitor(
     ) -> SerializationMethod:
         serialize_value = self.visit(value_type)
 
-        # tuple would be slightly faster, but it's less intuitive to use it here
         if serialize_value is identity:
             method: SerializationMethod = list
         else:
@@ -173,16 +203,14 @@ class SerializationMethodVisitor(
         return self._wrap(cls, method)
 
     def enum(self, cls: Type[Enum]) -> SerializationMethod:
-        any_method = self.any()
-
-        if self.pass_through_options.any or all(
-            self.pass_through(elt.value.__class__) for elt in cls
-        ):
-            method: SerializationMethod = attrgetter("value")
+        pass_through = all(self.pass_through(elt.value.__class__) for elt in cls)
+        serialize_value = identity if pass_through else self.any()
+        if serialize_value is identity:
+            method: SerializationMethod = operator.attrgetter("value")
         else:
 
             def method(obj: Any) -> Any:
-                return any_method(obj.value)
+                return serialize_value(obj.value)
 
         return self._wrap(cls, method)
 
@@ -207,130 +235,87 @@ class SerializationMethodVisitor(
 
     def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> SerializationMethod:
         cls = get_origin_or_type(tp)
-        identity_fields, normal_fields, skipped_if_fields, aggregate_fields = (
-            [],
-            [],
-            [],
-            [],
+        typed_dict = is_typed_dict(cls)
+        getter: Callable[[str], Callable[[Any], Any]] = (
+            operator.itemgetter if typed_dict else operator.attrgetter
         )
-        for field in fields:
-            serialize_field = self.visit_with_conv(field.type, field.serialization)
-            alias = self.aliaser(field.alias)
-            skip_if = field.skip_if(self.exclude_defaults, self.exclude_none)
-            if field.is_aggregate:
-                aggregate_fields.append((field.name, serialize_field, skip_if))
-            elif skip_if is not None:
-                skipped_if_fields.append((field.name, alias, serialize_field, skip_if))
-            elif serialize_field is identity:
-                identity_fields.append((field.name, alias))
-            else:
-                normal_fields.append((field.name, alias, serialize_field))
-        serialized_methods = [
+        serialization_fields = [
             (
+                cast(Optional[str], field.name),
+                self.aliaser(field.alias) if not field.is_aggregate else None,
+                getter(field.name),
+                field.required,
+                field.skip.serialization_if,
+                is_union_of(field.type, UndefinedType) or default is Undefined,
+                (is_union_of(field.type, NoneType) and self.exclude_none)
+                or field.none_as_undefined
+                or (default is None and self.exclude_defaults),
+                (field.skip.serialization_default or self.exclude_defaults)
+                and default not in (None, Undefined),
+                default,
+                identity_as_none(self.visit_with_conv(field.type, field.serialization)),
+            )
+            for field in fields
+            for default in [... if field.required else field.get_default()]
+        ] + [
+            (
+                None,
                 self.aliaser(name),
                 serialized.func,
-                self.visit_with_conv(types["return"], serialized.conversion),
+                True,
+                None,
+                is_union_of(ret_type, UndefinedType),
+                is_union_of(ret_type, NoneType) and self.exclude_none,
+                False,
+                ...,
+                self.visit_with_conv(ret_type, serialized.conversion),
             )
             for name, (serialized, types) in get_serialized_methods(tp).items()
+            for ret_type in [types["return"]]
         ]
-        # Preallocate keys, notably to keep their order
-        make_result = dict.fromkeys(
-            self.aliaser(f.alias) for f in fields if not f.is_aggregate
-        ).copy
-        method: Callable
-        if not is_typed_dict(cls):
+        field_names = {f.name for f in fields}
+        any_method = self.any()
+        exclude_unset = self.exclude_unset and support_fields_set(cls)
+        additional_properties = self.additional_properties and typed_dict
 
-            def method(
-                obj: Any,
-                aggregate_fields=tuple(aggregate_fields),
-                identity_fields=tuple(identity_fields),
-                normal_fields=tuple(normal_fields),
-                skipped_if_fields=tuple(skipped_if_fields),
-                make_result=make_result,
-            ) -> Any:
-                result = make_result()
-                # aggregate before normal fields to avoid overloading
-                for name, field_method, skip_if in aggregate_fields:
-                    attr = getattr(obj, name)
-                    if skip_if is None or not skip_if(attr):
-                        result.update(field_method(attr))
-                for name, alias, field_method, skip_if in skipped_if_fields:
-                    attr = getattr(obj, name)
-                    if skip_if(attr):
-                        result.pop(alias, ...)
-                    else:
-                        result[alias] = field_method(attr)
-                for name, alias in identity_fields:
-                    result[alias] = getattr(obj, name)
-                for name, alias, field_method in normal_fields:
-                    result[alias] = field_method(getattr(obj, name))
-                return result
-
-            if self.exclude_unset and support_fields_set(cls):
-                wrapped_exclude_unset = method
-
-                def method(obj: Any) -> Any:
-                    if hasattr(obj, FIELDS_SET_ATTR):
-                        fields_set_ = fields_set(obj)
-                        new_fields = [
-                            [(name, *_) for name, *_ in fields if name in fields_set_]  # type: ignore
-                            for fields in [
-                                aggregate_fields,
-                                identity_fields,
-                                normal_fields,
-                                skipped_if_fields,
-                            ]
-                        ]
-                        return wrapped_exclude_unset(obj, *new_fields, lambda: {})
-                    return wrapped_exclude_unset(obj)
-
-        else:
-
-            def method(obj: Mapping) -> dict:
-                result = make_result()
-                # aggregate before normal fields to avoid overloading
-                for name, field_method, skip_if in aggregate_fields:
-                    if name in obj and (skip_if is None or not skip_if(obj[name])):
-                        result.update(field_method(obj[name]))
-                for name, alias, field_method, skip_if in skipped_if_fields:
-                    if name in obj and not skip_if(obj[name]):
-                        result[alias] = field_method(obj[name])
-                    else:
-                        del result[alias]
-                for name, alias in identity_fields:
-                    if name in obj:
-                        result[alias] = obj[name]
-                    else:
-                        del result[alias]
-                for name, alias, field_method in normal_fields:
-                    if name in obj:
-                        result[alias] = field_method(obj[name])
-                    else:
-                        del result[alias]
-                return result
-
-            if self.additional_properties:
-                wrapped_additional = method
-                field_names = {f.name for f in fields if not f.is_aggregate}
-                any_method = self.any()
-
-                def method(obj: Mapping) -> Mapping:
-                    result = wrapped_additional(obj)
-                    for key, value in obj.items():
-                        if key not in field_names:
-                            result[key] = any_method(value)
-                    return result
-
-        if serialized_methods:
-            wrapped_serialized = method
-
-            def method(obj: Any) -> Any:
-                result = wrapped_serialized(obj)
-                for alias, func, serialized_method in serialized_methods:
-                    res = func(obj)
-                    if res is not Undefined:
-                        result[alias] = serialized_method(res)
-                return result
+        def method(obj: Any) -> Any:
+            result = {}
+            for (
+                name,
+                alias,
+                get_field,
+                required,
+                skip_if,
+                undefined,
+                skip_none,
+                skip_default,
+                default,
+                serialize_field,
+            ) in serialization_fields:
+                if (exclude_unset and name not in getattr(obj, FIELDS_SET_ATTR)) or (
+                    typed_dict and not required and name not in obj
+                ):
+                    continue
+                field_value = get_field(obj)
+                if (
+                    (skip_if and skip_if(field_value))
+                    or (undefined and field_value is Undefined)
+                    or (skip_none and field_value is None)
+                    or (skip_default and field_value == default)
+                ):
+                    continue
+                if serialize_field:
+                    field_value = serialize_field(field_value)
+                if alias:
+                    result[alias] = field_value
+                else:
+                    result.update(field_value)
+            if additional_properties:
+                assert isinstance(obj, Mapping)
+                for key, value in obj.items():
+                    if key not in field_names and isinstance(key, str):
+                        result[key] = any_method(value)
+            return result
 
         return self._wrap(cls, method)
 
@@ -338,57 +323,60 @@ class SerializationMethodVisitor(
         return self._wrap(cls, identity)
 
     def tuple(self, types: Sequence[AnyType]) -> SerializationMethod:
-        elt_serializers = list(map(self.visit, types))
+        elt_serializers = list(enumerate(map(self.visit, types)))
+        nb_elts = len(elt_serializers)
 
         def method(obj: Any) -> Any:
-            return [
-                serialize_elt(elt) for serialize_elt, elt in zip(elt_serializers, obj)
-            ]
+            return [serialize_elt(obj[i]) for i, serialize_elt in elt_serializers]
 
         if self.check_type:
             wrapped = method
             fall_back_on_any, as_list = self.fall_back_on_any, self._factory(list)
 
             def method(obj: Any) -> Any:
-                if len(obj) == len(elt_serializers):
+                if len(obj) == nb_elts:
                     return wrapped(obj)
                 elif fall_back_on_any:
                     return as_list(obj)
                 else:
-                    raise TypeError(
-                        f"Expected {len(elt_serializers)}-tuple,"
-                        f" found {len(obj)}-tuple"
-                    )
+                    raise TypeError(f"Expected {nb_elts}-tuple, found {len(obj)}-tuple")
 
         return self._wrap(tuple, method)
 
     def union(self, alternatives: Sequence[AnyType]) -> SerializationMethod:
-        methods = self._union_results(alternatives, skip={NoneType})
-        checks = [instance_checker(alt) for alt in alternatives if alt is not NoneType]
-        methods_and_checks = list(zip(methods, checks))
-        none_check = None if NoneType in alternatives else NOT_NONE
-        fall_back_on_any, any_method = self.fall_back_on_any, self.any()
-
-        def method(obj: Any) -> Any:
-            # Optional/Undefined optimization
-            if obj is none_check:
-                return obj
-            error = None
-            for alt_method, instance_check in methods_and_checks:
-                if not instance_check(obj):
-                    continue
-                try:
-                    return alt_method(obj)
-                except Exception as err:
-                    error = err
-            if fall_back_on_any:
-                try:
-                    return any_method(obj)
-                except Exception as err:
-                    error = err
-            raise error or TypeError(
-                f"Expected {Union[alternatives]}, found {obj.__class__}"
+        methods = self._union_results(alternatives)
+        if len(methods) == 1:
+            return methods[0]
+        method_and_checks = [
+            (serialize_alt, is_instance, cls)
+            for serialize_alt, (is_instance, cls) in zip(
+                methods, map(instance_checker, alternatives)
             )
+        ]
+        fallback = self._any_fallback(Union[alternatives])
+        # No need to catch the case with all methods being identity,
+        # because passthrough
+        if alternatives[-1] is NoneType and len(method_and_checks) == 2:
+            serialize_alt, is_instance, cls = method_and_checks[0]
+
+            def method(obj: Any) -> Any:
+                if is_instance(obj, cls):
+                    return serialize_alt(obj)
+                elif obj is None:
+                    return None
+                else:
+                    return fallback(obj)
+
+        else:
+
+            def method(obj: Any) -> Any:
+                for serialize_alt, is_instance, cls in method_and_checks:
+                    if is_instance(obj, cls):
+                        try:
+                            return serialize_alt(obj)
+                        except Exception:
+                            pass
+                return fallback(obj)
 
         return method
 
@@ -397,24 +385,10 @@ class SerializationMethodVisitor(
             return super().unsupported(tp)
         except Unsupported:
             if self.fall_back_on_any and is_type(tp):
-                any_method = self.any()
                 if issubclass(tp, Mapping):
-
-                    def method(obj: Any) -> Any:
-                        return {
-                            any_method(key): any_method(value)
-                            for key, value in obj.items()
-                        }
-
-                    return method
-
+                    return self.visit(Mapping[Any, Any])
                 elif issubclass(tp, Collection):
-
-                    def method(obj: Any) -> Any:
-                        return list(map(any_method, obj))
-
-                    return method
-
+                    return self.visit(Collection[Any])
             raise
 
     def _visit_conversion(
@@ -431,7 +405,7 @@ class SerializationMethodVisitor(
         if converter is identity:
             method = serialize_conv
         elif serialize_conv is identity:
-            return converter
+            method = converter
         else:
 
             def method(obj: Any) -> Any:
@@ -450,31 +424,29 @@ class SerializationMethodVisitor(
 
 @cache
 def serialization_method_factory(
-    additional_properties: Optional[bool],
-    aliaser: Optional[Aliaser],
-    check_type: Optional[bool],
+    additional_properties: bool,
+    aliaser: Aliaser,
+    check_type: bool,
     conversion: Optional[AnyConversion],
-    default_conversion: Optional[DefaultConversion],
-    exclude_defaults: Optional[bool],
-    exclude_none: Optional[bool],
-    exclude_unset: Optional[bool],
-    fall_back_on_any: Optional[bool],
-    pass_through: Optional[PassThroughOptions],
+    default_conversion: DefaultConversion,
+    exclude_defaults: bool,
+    exclude_none: bool,
+    exclude_unset: bool,
+    fall_back_on_any: bool,
+    pass_through: PassThroughOptions,
 ) -> SerializationMethodFactory:
-    @lru_cache(serialization_method_factory.cache_info().maxsize)  # type: ignore
+    @cache
     def factory(tp: AnyType) -> SerializationMethod:
-        from apischema import settings
-
         return SerializationMethodVisitor(
-            opt_or(additional_properties, settings.additional_properties),
-            opt_or(aliaser, settings.aliaser),
-            opt_or(check_type, settings.serialization.check_type),
-            opt_or(default_conversion, settings.serialization.default_conversion),
-            opt_or(exclude_defaults, settings.serialization.exclude_defaults),
-            opt_or(exclude_none, settings.serialization.exclude_none),
-            opt_or(exclude_unset, settings.serialization.exclude_unset),
-            opt_or(fall_back_on_any, settings.serialization.fall_back_on_any),
-            opt_or(pass_through, settings.serialization.pass_through),
+            additional_properties,
+            aliaser,
+            check_type,
+            default_conversion,
+            exclude_defaults,
+            exclude_none,
+            exclude_unset,
+            fall_back_on_any,
+            pass_through,
         ).visit_with_conv(tp, conversion)
 
     return factory
@@ -494,17 +466,19 @@ def serialization_method(
     fall_back_on_any: bool = None,
     pass_through: PassThroughOptions = None,
 ) -> SerializationMethod:
+    from apischema import settings
+
     return serialization_method_factory(
-        additional_properties,
-        aliaser,
-        check_type,
+        opt_or(additional_properties, settings.additional_properties),
+        opt_or(aliaser, settings.aliaser),
+        opt_or(check_type, settings.serialization.check_type),
         conversion,
-        default_conversion,
-        exclude_defaults,
-        exclude_none,
-        exclude_unset,
-        fall_back_on_any,
-        pass_through,
+        opt_or(default_conversion, settings.serialization.default_conversion),
+        opt_or(exclude_defaults, settings.serialization.exclude_defaults),
+        opt_or(exclude_none, settings.serialization.exclude_none),
+        opt_or(exclude_unset, settings.serialization.exclude_unset),
+        opt_or(fall_back_on_any, settings.serialization.fall_back_on_any),
+        opt_or(pass_through, settings.serialization.pass_through),
     )(type)
 
 
@@ -569,18 +543,19 @@ def serialize(
         type, obj = Any, type
         if fall_back_on_any is None:
             fall_back_on_any = True
-    return serialization_method_factory(
-        additional_properties,
-        aliaser,
-        check_type,
-        conversion,
-        default_conversion,
-        exclude_defaults,
-        exclude_none,
-        exclude_unset,
-        fall_back_on_any,
-        pass_through,
-    )(type)(obj)
+    return serialization_method(
+        type,
+        additional_properties=additional_properties,
+        aliaser=aliaser,
+        check_type=check_type,
+        conversion=conversion,
+        default_conversion=default_conversion,
+        exclude_defaults=exclude_defaults,
+        exclude_none=exclude_none,
+        exclude_unset=exclude_unset,
+        fall_back_on_any=fall_back_on_any,
+        pass_through=pass_through,
+    )(obj)
 
 
 def serialization_default(
@@ -592,18 +567,18 @@ def serialization_default(
     exclude_none: bool = None,
     exclude_unset: bool = None,
 ) -> SerializationMethod:
+    from apischema import settings
+
     factory = serialization_method_factory(
-        additional_properties,
-        aliaser,
+        opt_or(additional_properties, settings.additional_properties),
+        opt_or(aliaser, settings.aliaser),
         False,
         None,
-        default_conversion,
-        exclude_defaults,
-        exclude_none,
-        exclude_unset,
+        opt_or(default_conversion, settings.serialization.default_conversion),
+        opt_or(exclude_defaults, settings.serialization.exclude_defaults),
+        opt_or(exclude_none, settings.serialization.exclude_none),
+        opt_or(exclude_unset, settings.serialization.exclude_unset),
         False,
-        # Annotations are lost in default fallback, so there will be `Any` everywhere;
-        # passing through it allows optimizing containers
         PassThroughOptions(any=True),
     )
 

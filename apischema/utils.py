@@ -7,7 +7,7 @@ from contextlib import contextmanager, suppress
 from dataclasses import dataclass, is_dataclass
 from enum import Enum
 from functools import wraps
-from types import FunctionType, MappingProxyType
+from types import MappingProxyType
 from typing import (
     AbstractSet,
     Any,
@@ -86,12 +86,7 @@ if sys.version_info <= (3, 7):  # pragma: no cover
 
 
 def is_hashable(obj: Any) -> bool:
-    try:
-        hash(obj)
-    except TypeError:
-        return False
-    else:
-        return True
+    return isinstance(obj, collections.abc.Hashable)
 
 
 def opt_or(opt: Optional[T], default: U) -> Union[T, U]:
@@ -229,128 +224,6 @@ def is_union_of(tp: AnyType, of: AnyType) -> bool:
     return tp == of or (get_origin_or_type2(tp) == Union and of in get_args2(tp))
 
 
-MethodOrProperty = Union[Callable, property]
-
-
-def _method_location(method: MethodOrProperty) -> Optional[Type]:
-    if isinstance(method, property):
-        assert method.fget is not None
-        method = method.fget
-    while hasattr(method, "__wrapped__"):
-        method = method.__wrapped__  # type: ignore
-    assert isinstance(method, FunctionType)
-    global_name, *class_path = method.__qualname__.split(".")[:-1]
-    if global_name not in method.__globals__:
-        return None
-    location = method.__globals__[global_name]
-    for attr in class_path:
-        if hasattr(location, attr):
-            location = getattr(location, attr)
-        else:
-            break
-    return location
-
-
-def is_method(method: MethodOrProperty) -> bool:
-    """Return if the function is method/property declared in a class"""
-    return (
-        isinstance(method, property)
-        and method.fget is not None
-        and is_method(method.fget)
-    ) or (
-        isinstance(method, FunctionType)
-        and method.__name__ != method.__qualname__
-        and isinstance(_method_location(method), (type, type(None)))
-        and next(iter(inspect.signature(method).parameters), None) == "self"
-    )
-
-
-def method_class(method: MethodOrProperty) -> Optional[Type]:
-    cls = _method_location(method)
-    return cls if isinstance(cls, type) else None
-
-
-METHOD_WRAPPER_ATTR = f"{PREFIX}method_wrapper"
-
-
-def method_wrapper(method: MethodOrProperty, name: str = None) -> Callable:
-    if isinstance(method, property):
-        assert method.fget is not None
-        name = name or method.fget.__name__
-
-        @wraps(method.fget)
-        def wrapper(self):
-            return getattr(self, name)
-
-    else:
-        if hasattr(method, METHOD_WRAPPER_ATTR):
-            return method
-        name = name or method.__name__
-
-        @wraps(method)
-        def wrapper(self, *args, **kwargs):
-            return getattr(self, name)(*args, **kwargs)
-
-    setattr(wrapper, METHOD_WRAPPER_ATTR, True)
-    return wrapper
-
-
-class MethodWrapper(Generic[T]):
-    def __init__(self, method: T):
-        self._method = method
-
-    def getter(self, func):
-        self._method = self._method.getter(func)
-        return self
-
-    def setter(self, func):
-        self._method = self._method.setter(func)
-        return self
-
-    def deleter(self, func):
-        self._method = self._method.deleter(func)
-        return self
-
-    def __set_name__(self, owner, name):
-        setattr(owner, name, self._method)
-
-    def __call__(self, *args, **kwargs):
-        raise RuntimeError("Method __set_name__ has not been called")
-
-
-def method_registerer(
-    arg: Optional[Callable],
-    owner: Optional[Type],
-    register: Callable[[Callable, Type, str], None],
-):
-    def decorator(method: MethodOrProperty):
-        if owner is None and is_method(method) and method_class(method) is None:
-
-            class Descriptor(MethodWrapper[MethodOrProperty]):
-                def __set_name__(self, owner, name):
-                    super().__set_name__(owner, name)
-                    register(method_wrapper(method), owner, name)
-
-            return Descriptor(method)
-        else:
-            owner2 = owner
-            if is_method(method):
-                if owner2 is None:
-                    owner2 = method_class(method)
-                method = method_wrapper(method)
-            if owner2 is None:
-                try:
-                    hints = get_type_hints(method)
-                    owner2 = get_origin_or_type2(hints[next(iter(hints))])
-                except (KeyError, StopIteration):
-                    raise TypeError("First parameter of method must be typed") from None
-            assert not isinstance(method, property)
-            register(cast(Callable, method), owner2, method.__name__)
-            return method
-
-    return decorator if arg is None else decorator(arg)
-
-
 if sys.version_info < (3, 7):
     LIST_ORIGIN = List
     SET_ORIGIN = Set
@@ -400,11 +273,14 @@ def stop_signature_abuse() -> NoReturn:
 
 empty_dict: Mapping[str, Any] = MappingProxyType({})
 
-ITERABLE_TYPES = (
-    COLLECTION_TYPES.keys()
-    | MAPPING_TYPES.keys()
-    | {Iterable, collections.abc.Iterable, Container, collections.abc.Container}
-)
+ITERABLE_TYPES = {
+    *COLLECTION_TYPES,
+    *MAPPING_TYPES,
+    Iterable,
+    collections.abc.Iterable,
+    Container,
+    collections.abc.Container,
+}
 
 
 def subtyping_substitution(
@@ -428,9 +304,10 @@ def subtyping_substitution(
 
 
 def literal_values(values: Sequence[Any]) -> Sequence[Any]:
-    if any(type(v) not in PRIMITIVE_TYPES and not isinstance(v, Enum) for v in values):
+    primitive_values = [v.value if isinstance(v, Enum) else v for v in values]
+    if any(not isinstance(v, PRIMITIVE_TYPES) for v in primitive_values):
         raise TypeError("Only primitive types are supported for Literal/Enum")
-    return [v.value if isinstance(v, Enum) else v for v in values]
+    return primitive_values
 
 
 awaitable_origin = get_origin(Awaitable[Any])
@@ -451,24 +328,13 @@ def is_async(func: Callable, types: Mapping[str, AnyType] = None) -> bool:
 
 
 @contextmanager
-def context_setter(obj: T) -> Iterator[T]:
-    prev_values = {}
-
-    class AttrSetter:
-        def __getattribute__(self, name):
-            return getattr(obj, name)
-
-        def __setattr__(self, name, value):
-            if name not in prev_values:
-                prev_values[name] = getattr(obj, name)
-            setattr(obj, name, value)
-
-    setter = AttrSetter()
+def context_setter(obj: Any):
+    dict_copy = obj.__dict__.copy()
     try:
-        yield cast(T, setter)
+        yield
     finally:
-        for attr, prev_value in prev_values.items():
-            setattr(obj, attr, prev_value)
+        obj.__dict__.clear()
+        obj.__dict__.update(dict_copy)
 
 
 def wrap_generic_init_subclass(init_subclass: Func) -> Func:

@@ -27,6 +27,7 @@ from apischema.cache import CacheAwareDict, cache
 from apischema.conversions import Conversion
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.deserialization import deserialization_method
+from apischema.methods import method_registerer
 from apischema.objects import ObjectField
 from apischema.schemas import Schema
 from apischema.serialization import (
@@ -52,12 +53,13 @@ from apischema.utils import (
     is_async,
     is_union_of,
     keep_annotations,
-    method_registerer,
 )
 from apischema.validation.errors import ValidationError
 
 
 class PartialSerializationMethodVisitor(SerializationMethodVisitor):
+    use_cache = False
+
     @property
     def _factory(self) -> Callable[[type], SerializationMethod]:
         return lambda _: identity

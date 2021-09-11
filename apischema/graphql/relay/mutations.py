@@ -4,6 +4,7 @@ from inspect import Parameter, signature
 from typing import (
     Awaitable,
     Callable,
+    ClassVar,
     Collection,
     Iterator,
     List,
@@ -32,13 +33,13 @@ M = TypeVar("M", bound="Mutation")
 
 
 class Mutation:
-    _error_handler: ErrorHandler = Undefined
-    _schema: Optional[Schema] = None
-    _client_mutation_id: Optional[bool] = None
-    _mutation: Mutation_  # set in __init_subclass__
+    _error_handler: ClassVar[ErrorHandler] = Undefined
+    _schema: ClassVar[Optional[Schema]] = None
+    _client_mutation_id: ClassVar[Optional[bool]] = None
+    _mutation: ClassVar[Mutation_]  # set in __init_subclass__
 
     # Mutate is not defined to prevent Mypy warning about signature of superclass
-    mutate: Callable
+    mutate: ClassVar[Callable]
 
     @wrap_generic_init_subclass
     def __init_subclass__(cls, **kwargs):

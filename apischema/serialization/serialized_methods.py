@@ -20,6 +20,7 @@ from typing import (
 from apischema.cache import CacheAwareDict
 from apischema.conversions.conversions import AnyConversion
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
+from apischema.methods import method_registerer
 from apischema.schemas import Schema
 from apischema.types import AnyType, Undefined, UndefinedType
 from apischema.typing import generic_mro, get_args, get_origin, get_type_hints
@@ -29,7 +30,6 @@ from apischema.utils import (
     get_origin_or_type,
     get_origin_or_type2,
     get_parameters,
-    method_registerer,
     substitute_type_vars,
     subtyping_substitution,
 )

@@ -15,6 +15,7 @@ from typing import (
     Union,
 )
 
+from apischema.methods import is_method, method_wrapper
 from apischema.objects.fields import MISSING_DEFAULT, ObjectField, set_object_fields
 from apischema.objects.getters import object_fields, parameters_as_fields
 from apischema.type_names import type_name
@@ -22,8 +23,6 @@ from apischema.types import OrderedDict
 from apischema.typing import get_type_hints
 from apischema.utils import (
     empty_dict,
-    is_method,
-    method_wrapper,
     substitute_type_vars,
     subtyping_substitution,
     to_pascal_case,

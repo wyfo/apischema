@@ -41,11 +41,6 @@ However, in some cases, data has to be be coerced, for example when parsing acon
 | off | on |
 | ko | ok |
 
-!!! note
-    `bool` coercion from `str` is just a global `dict[str, bool]` named `apischema.data.coercion.STR_TO_BOOL` and it can be customized according to your need (but keys have to be lower cased).
-    
-    There is also a global `set[str]` named `apischema.data.coercion.STR_NONE_VALUES` for `None` coercion.
-    
 `coerce` parameter can also receive a coercion function which will then be used instead of default one.
 
 ```python

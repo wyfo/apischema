@@ -4,10 +4,9 @@ from functools import lru_cache
 from types import new_class
 from typing import (
     Any,
+    ClassVar,
     Collection,
-    Dict,
     Generic,
-    Hashable,
     Iterable,
     Optional,
     Sequence,
@@ -34,11 +33,9 @@ from apischema.type_names import type_name
 from apischema.types import AnyType
 from apischema.typing import get_args
 from apischema.utils import (
-    Lazy,
     context_setter,
     get_origin_or_type,
     has_type_vars,
-    is_hashable,
     is_subclass,
     substitute_type_vars,
     subtyping_substitution,
@@ -51,9 +48,11 @@ Conv = TypeVar("Conv")
 
 
 class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
+    base_conversion_visitor: ClassVar[Type["ConversionsVisitor"]]
+
     def __init__(self, default_conversion: DefaultConversion):
         self.default_conversion = default_conversion
-        self._conversions: Optional[AnyConversion] = None
+        self._conversion: Optional[AnyConversion] = None
 
     def _has_conversion(
         self, tp: AnyType, conversion: Optional[AnyConversion]
@@ -72,17 +71,12 @@ class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
                     return super().annotated(tp, annotations)
         return super().annotated(tp, annotations)
 
-    def _union_results(
-        self, alternatives: Iterable[AnyType], *, skip: Collection[AnyType] = ()
-    ) -> Sequence[Result]:
-        results, skipped = [], False
+    def _union_results(self, alternatives: Iterable[AnyType]) -> Sequence[Result]:
+        results = []
         for alt in alternatives:
-            if alt not in skip:
-                with suppress(Unsupported):
-                    results.append(self.visit(alt))
-            else:
-                skipped = True
-        if not (results or skipped):
+            with suppress(Unsupported):
+                results.append(self.visit(alt))
+        if not results:
             raise Unsupported(Union[tuple(alternatives)])
         return results
 
@@ -94,8 +88,8 @@ class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
 
     @contextmanager
     def _replace_conversion(self, conversion: Optional[AnyConversion]):
-        with context_setter(self) as setter:
-            setter._conversions = resolve_any_conversion(conversion)
+        with context_setter(self):
+            self._conversion = resolve_any_conversion(conversion) or None
             yield
 
     def visit_with_conv(
@@ -128,15 +122,15 @@ class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
 
     def visit(self, tp: AnyType) -> Result:
         if not is_convertible(tp):
-            return self.visit_conversion(tp, None, False, self._conversions)
-        dynamic, conversion = self._has_conversion(tp, self._conversions)
+            return self.visit_conversion(tp, None, False, self._conversion)
+        dynamic, conversion = self._has_conversion(tp, self._conversion)
         if not dynamic:
             _, conversion = self._has_conversion(
                 tp, self.default_conversion(get_origin_or_type(tp))  # type: ignore
             )
         next_conversion = None
         if not dynamic and is_subclass(tp, Collection):
-            next_conversion = self._conversions
+            next_conversion = self._conversion
         return self.visit_conversion(tp, conversion, dynamic, next_conversion)
 
 
@@ -244,36 +238,5 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Result]):
         )
 
 
-class RecursiveConversionsVisitor(ConversionsVisitor[Conv, Result]):
-    def __init__(self, default_conversion: DefaultConversion):
-        super().__init__(default_conversion)
-        self._visit_cache: Dict[
-            Tuple[AnyType, Optional[AnyConversion], Hashable], Result
-        ] = {}
-
-    def _cache_key(self) -> Hashable:
-        """When other attributes are modified during visit, they can be used as
-        additional cache key"""
-        return None
-
-    def _recursive_result(self, lazy: Lazy[Result]) -> Result:
-        raise NotImplementedError
-
-    def visit(self, tp: AnyType) -> Result:
-        if not is_hashable(tp):
-            return super().visit(tp)
-        cache_key = (tp, self._conversions, self._cache_key())
-        if cache_key in self._visit_cache:
-            return self._visit_cache[cache_key]
-        result = None
-
-        def lazy_result():
-            assert result is not None
-            return result
-
-        self._visit_cache[cache_key] = self._recursive_result(lazy_result)
-        try:
-            result = super().visit(tp)
-        finally:
-            del self._visit_cache[cache_key]
-        return result
+DeserializationVisitor.base_conversion_visitor = DeserializationVisitor
+SerializationVisitor.base_conversion_visitor = SerializationVisitor
