@@ -61,7 +61,9 @@ class RecursiveChecker(BaseRecursiveConversionsVisitor[Conv, bool]):
         fields: Sequence[Field],
         init_vars: Sequence[Field],
     ) -> bool:
-        return any(map(self.visit, types.values()))
+        # It's possible to have type without associated field, e.g. an annotation of an
+        # inherited class, so don't map types.values()
+        return any(map(self.visit, (types[f.name] for f in (*fields, *init_vars))))
 
     def enum(self, cls: Type[Enum]) -> bool:
         return False

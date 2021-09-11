@@ -4,6 +4,7 @@ from functools import lru_cache
 from types import new_class
 from typing import (
     Any,
+    ClassVar,
     Collection,
     Generic,
     Iterable,
@@ -47,7 +48,7 @@ Conv = TypeVar("Conv")
 
 
 class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
-    base_conversion_visitor: Type["ConversionsVisitor"]
+    base_conversion_visitor: ClassVar[Type["ConversionsVisitor"]]
 
     def __init__(self, default_conversion: DefaultConversion):
         self.default_conversion = default_conversion

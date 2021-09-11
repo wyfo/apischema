@@ -317,7 +317,7 @@ class DeserializationMethodVisitor(
                 for key, value in data.items():
                     assert isinstance(key, str)
                     try:
-                        items[deserialize_key] = deserialize_value(value)
+                        items[deserialize_key(key)] = deserialize_value(value)
                     except ValidationError as err:
                         item_errors[key] = err
                 if checks:
