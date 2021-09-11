@@ -181,15 +181,18 @@ class ObjectField:
     def skip(self) -> SkipMetadata:
         return self.metadata.get(SKIP_METADATA, SkipMetadata())
 
-    @property
-    def skip_if(self) -> Optional[Callable[[Any], Any]]:
+    def skip_if(
+        self, default: bool = False, none: bool = False
+    ) -> Optional[Callable[[Any], Any]]:
         skip_if = self.skip.serialization_if
-        if self.default_factory is not None and self.skip.serialization_default:
+        if self.default_factory is not None and (
+            self.skip.serialization_default or default
+        ):
             default = self.default_factory()  # type: ignore
             skip_if = merge_skip_if(skip_if, lambda obj: obj == default)
         if is_union_of(self.type, UndefinedType):
             skip_if = merge_skip_if(skip_if, lambda obj: obj is Undefined)
-        if self.none_as_undefined:
+        if self.none_as_undefined or (none and is_union_of(self.type, NoneType)):
             skip_if = merge_skip_if(skip_if, lambda obj: obj is None)
         return skip_if
 

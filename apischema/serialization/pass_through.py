@@ -63,12 +63,16 @@ class PassThroughVisitor(
         additional_properties: bool,
         aliaser: Aliaser,
         default_conversion: DefaultConversion,
+        exclude_defaults: bool,
+        exclude_none: bool,
         exclude_unset: bool,
         options: PassThroughOptions,
     ):
         super().__init__(default_conversion)
         self.additional_properties = additional_properties
         self.aliaser = aliaser
+        self.exclude_defaults = exclude_defaults
+        self.exclude_none = exclude_none
         self.exclude_unset = exclude_unset
         self.options = options
 
@@ -139,7 +143,10 @@ class PassThroughVisitor(
                 dataclass_options.properties_fields
                 or not (field.pattern_properties or field.additional_properties)
             )
-            and (dataclass_options.skipped_if_fields or field.skip_if is None)
+            and (
+                dataclass_options.skipped_if_fields
+                or field.skip_if(self.exclude_defaults, self.exclude_none) is None
+            )
             and self.visit_with_conv(field.type, field.serialization)
             for field in fields
         )
@@ -186,6 +193,8 @@ def pass_through(
     aliaser: Aliaser = None,
     conversions: AnyConversion = None,
     default_conversion: DefaultConversion = None,
+    exclude_defaults: bool = None,
+    exclude_none: bool = None,
     exclude_unset: bool = None,
     options: PassThroughOptions = None,
 ) -> bool:
@@ -195,6 +204,8 @@ def pass_through(
         opt_or(additional_properties, settings.additional_properties),
         opt_or(aliaser, settings.aliaser),
         opt_or(default_conversion, settings.serialization.default_conversion),
+        opt_or(exclude_defaults, settings.serialization.exclude_defaults),
+        opt_or(exclude_none, settings.serialization.exclude_none),
         opt_or(exclude_unset, settings.serialization.exclude_unset),
         opt_or(options, settings.serialization.pass_through),
     ).visit_with_conv(tp, conversions)

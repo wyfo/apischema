@@ -83,13 +83,15 @@ def partial_serialization_method_factory(
     @lru_cache()
     def factory(tp: AnyType) -> SerializationMethod:
         return PartialSerializationMethodVisitor(
-            False,
-            aliaser,
-            False,
-            default_conversion,
-            False,
-            False,
-            PassThroughOptions(),
+            additional_properties=False,
+            aliaser=aliaser,
+            check_type=False,
+            default_conversion=default_conversion,
+            exclude_defaults=False,
+            exclude_none=False,
+            exclude_unset=False,
+            fall_back_on_any=False,
+            pass_through_options=PassThroughOptions(),
         ).visit_with_conv(tp, conversion)
 
     return factory
