@@ -172,8 +172,8 @@ def serializer(
     source: Type = None,
 ):
     if serializer is not None:
-        if is_method(serializer) and method_class(serializer) is None:
-            return SerializerDescriptor(serializer)
+        if is_method(serializer) and method_class(serializer) is None:  # type: ignore
+            return SerializerDescriptor(serializer)  # type: ignore
         elif isinstance(serializer, LazyConversion):
             stop_signature_abuse()
         else:
@@ -274,7 +274,9 @@ def as_names(cls: EnumCls, aliaser: Callable[[str], str] = lambda s: s) -> EnumC
         new_class(cls.__name__, (str, Enum), exec_body=exec_body)
     )
     deserializer(Conversion(partial(getattr, cls), source=name_cls, target=cls))
-    serializer(
-        Conversion(lambda obj: getattr(name_cls, obj.name), source=cls, target=name_cls)
-    )
+
+    def get_name(obj):
+        return getattr(name_cls, obj.name)
+
+    serializer(Conversion(get_name, source=cls, target=name_cls))
     return cls

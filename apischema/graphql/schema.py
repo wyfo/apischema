@@ -32,7 +32,6 @@ from apischema.conversions.visitor import (
     Conv,
     Deserialization,
     DeserializationVisitor,
-    RecursiveConversionsVisitor,
     Serialization,
     SerializationVisitor,
 )
@@ -52,6 +51,7 @@ from apischema.objects.visitor import (
     ObjectVisitor,
     SerializationObjectVisitor,
 )
+from apischema.recursion import RecursiveConversionsVisitor
 from apischema.schemas import Schema, get_schema, merge_schema
 from apischema.serialization import SerializationMethod, serialize
 from apischema.serialization.serialized_methods import ErrorHandler
@@ -62,6 +62,7 @@ from apischema.utils import (
     Lazy,
     as_predicate,
     context_setter,
+    deprecate_kwargs,
     empty_dict,
     get_args2,
     get_origin2,
@@ -837,6 +838,7 @@ def operation_resolver(
     )
 
 
+@deprecate_kwargs({"union_ref": "union_name"})
 def graphql_schema(
     *,
     query: Iterable[Union[Callable, Query]] = (),
@@ -853,8 +855,6 @@ def graphql_schema(
     id_encoding: Tuple[
         Optional[Callable[[str], Any]], Optional[Callable[[Any], str]]
     ] = (None, None),
-    # TODO deprecate union_ref parameter
-    union_ref: UnionNameFactory = "Or".join,
     union_name: UnionNameFactory = "Or".join,
     default_deserialization: DefaultConversion = None,
     default_serialization: DefaultConversion = None,
@@ -968,7 +968,7 @@ def graphql_schema(
         default_serialization,
         id_type,
         is_id,
-        union_name or union_ref,
+        union_name,
         default_deserialization,
     )
 
