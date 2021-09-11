@@ -11,7 +11,6 @@ from inspect import signature
 from typing import AbstractSet, Any, Collection, Set, Type, TypeVar, cast
 
 from apischema.objects.fields import get_field_name
-from apischema.objects.getters import object_fields2
 from apischema.utils import PREFIX
 
 FIELDS_SET_ATTR = f"{PREFIX}fields_set"
@@ -108,16 +107,12 @@ def _field_names(fields: Collection) -> AbstractSet[str]:
 
 
 def _fields_set(obj: Any) -> Set[str]:
-    if not hasattr(obj, FIELDS_SET_ATTR):
-        try:
-            default_fields: Collection[str] = object_fields2(obj)
-        except TypeError:
-            default_fields = ()
-        try:
-            setattr(obj, FIELDS_SET_ATTR, set(default_fields))
-        except AttributeError:  # cannot setattr (builtin, etc.)
-            raise TypeError(f"Cannot track fields set on {obj}")
-    return getattr(obj, FIELDS_SET_ATTR)
+    try:
+        return getattr(obj, FIELDS_SET_ATTR)
+    except AttributeError:
+        raise TypeError(
+            f"Type {obj.__class__} is not decorated" f" with {with_fields_set.__name__}"
+        )
 
 
 def set_fields(obj: T, *fields: Any, overwrite=False) -> T:
