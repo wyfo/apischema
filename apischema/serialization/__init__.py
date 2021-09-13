@@ -28,6 +28,7 @@ from apischema.conversions.visitor import (
 from apischema.fields import FIELDS_SET_ATTR, support_fields_set
 from apischema.objects import AliasedStr, ObjectField
 from apischema.objects.visitor import SerializationObjectVisitor
+from apischema.ordering import sort_by_order
 from apischema.recursion import RecursiveConversionsVisitor
 from apischema.serialization.pass_through import PassThroughOptions, pass_through
 from apischema.serialization.serialized_methods import get_serialized_methods
@@ -241,7 +242,7 @@ class SerializationMethodVisitor(
         )
         serialization_fields = [
             (
-                cast(Optional[str], field.name),
+                field.name,
                 self.aliaser(field.alias) if not field.is_aggregate else None,
                 getter(field.name),
                 field.required,
@@ -254,12 +255,13 @@ class SerializationMethodVisitor(
                 and default not in (None, Undefined),
                 default,
                 identity_as_none(self.visit_with_conv(field.type, field.serialization)),
+                field.ordering,
             )
             for field in fields
             for default in [... if field.required else field.get_default()]
         ] + [
             (
-                None,
+                serialized.func.__name__,
                 self.aliaser(name),
                 serialized.func,
                 True,
@@ -269,10 +271,14 @@ class SerializationMethodVisitor(
                 False,
                 ...,
                 self.visit_with_conv(ret_type, serialized.conversion),
+                serialized.ordering,
             )
             for name, (serialized, types) in get_serialized_methods(tp).items()
             for ret_type in [types["return"]]
         ]
+        serialization_fields = sort_by_order(  # type: ignore
+            cls, serialization_fields, lambda f: f[0], lambda f: f[-1]
+        )
         field_names = {f.name for f in fields}
         any_method = self.any()
         exclude_unset = self.exclude_unset and support_fields_set(cls)
@@ -291,6 +297,7 @@ class SerializationMethodVisitor(
                 skip_default,
                 default,
                 serialize_field,
+                _,
             ) in serialization_fields:
                 if (exclude_unset and name not in getattr(obj, FIELDS_SET_ATTR)) or (
                     typed_dict and not required and name not in obj
@@ -379,17 +386,6 @@ class SerializationMethodVisitor(
                 return fallback(obj)
 
         return method
-
-    def unsupported(self, tp: AnyType) -> SerializationMethod:
-        try:
-            return super().unsupported(tp)
-        except Unsupported:
-            if self.fall_back_on_any and is_type(tp):
-                if issubclass(tp, Mapping):
-                    return self.visit(Mapping[Any, Any])
-                elif issubclass(tp, Collection):
-                    return self.visit(Collection[Any])
-            raise
 
     def _visit_conversion(
         self,

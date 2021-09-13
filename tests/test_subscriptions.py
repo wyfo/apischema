@@ -58,7 +58,13 @@ async def test_subscription(alias, conversion, error_handler, resolver):
         sub_op = events
     else:
         sub_op = Subscription(
-            events, alias, conversion, None, error_handler, resolver=resolver
+            events,
+            alias=alias,
+            conversion=conversion,
+            error_handler=error_handler,
+            order=None,
+            schema=None,
+            resolver=resolver,
         )
     schema = graphql_schema(query=[hello], subscription=[sub_op], types=[Event])
     sub_field = sub_name

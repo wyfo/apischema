@@ -9,7 +9,7 @@ def infer_pattern(tp: AnyType, default_conversion: DefaultConversion) -> Pattern
 
     try:
         builder = DeserializationSchemaBuilder(
-            False, lambda s: s, default_conversion, False, lambda r: r, {}
+            False, default_conversion, False, lambda r: r, {}
         )
         prop_schema = builder.visit(tp)
     except RecursionError:

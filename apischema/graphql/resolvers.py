@@ -29,6 +29,7 @@ from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.deserialization import deserialization_method
 from apischema.methods import method_registerer
 from apischema.objects import ObjectField
+from apischema.ordering import Ordering
 from apischema.schemas import Schema
 from apischema.serialization import (
     PassThroughOptions,
@@ -160,8 +161,9 @@ def resolver(
     alias: str = None,
     *,
     conversion: AnyConversion = None,
-    schema: Schema = None,
     error_handler: ErrorHandler = Undefined,
+    order: Optional[Ordering] = None,
+    schema: Schema = None,
     parameters_metadata: Mapping[str, Mapping] = None,
     serialized: bool = False,
     owner: Type = None,
@@ -175,8 +177,9 @@ def resolver(
     *,
     alias: str = None,
     conversion: AnyConversion = None,
-    schema: Schema = None,
     error_handler: ErrorHandler = Undefined,
+    order: Optional[Ordering] = None,
+    schema: Schema = None,
     parameters_metadata: Mapping[str, Mapping] = None,
     serialized: bool = False,
     owner: Type = None,
@@ -192,8 +195,9 @@ def resolver(
         resolver = Resolver(
             func,
             conversion,
-            schema,
             error_handler2,
+            order,
+            schema,
             parameters,
             parameters_metadata or {},
         )

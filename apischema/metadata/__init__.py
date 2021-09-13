@@ -6,6 +6,7 @@ __all__ = [
     "flatten",
     "init_var",
     "none_as_undefined",
+    "order",
     "post_init",
     "properties",
     "required",
@@ -18,6 +19,7 @@ import sys
 import warnings
 
 from apischema.aliases import alias
+from apischema.ordering import order
 from apischema.schemas import schema
 from .implem import (
     conversion,

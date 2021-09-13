@@ -18,6 +18,7 @@ import graphql
 from apischema import deserialize, deserializer, serialize, serializer, type_name
 from apischema.graphql import ID, interface, resolver
 from apischema.metadata import skip
+from apischema.ordering import order
 from apischema.type_names import get_type_name
 from apischema.typing import generic_mro, get_args, get_origin
 from apischema.utils import PREFIX, has_type_vars, wrap_generic_init_subclass
@@ -117,7 +118,9 @@ class Node(Generic[Id], ABC):
             _tmp_nodes.append(cls)
 
 
-resolver(alias="id")(Node.global_id)  # cannot directly decorate property because py36
+resolver("id", order=order(-1))(
+    Node.global_id
+)  # cannot directly decorate property because py36
 
 _tmp_nodes: List[Type[Node]] = []
 _nodes: Dict[str, Type[Node]] = {}

@@ -23,31 +23,6 @@ class Data:
     data_field: Field = field(metadata=flatten)
 
 
-json_schema = {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
-    "type": "object",
-    "allOf": [
-        {"type": "object", "additionalProperties": False},
-        {
-            "type": "object",
-            "properties": {"attr": {"type": "integer"}},
-            "required": ["attr"],
-            "additionalProperties": False,
-        },
-    ],
-    "unevaluatedProperties": False,
-}
-graphql_schema_str = """\
-type Query {
-  getData: Data
-}
-
-type Data {
-  attr: Int!
-}
-"""
-
-
 def get_data() -> Data:
     return Data(Field(0))
 

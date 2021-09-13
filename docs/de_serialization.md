@@ -226,12 +226,43 @@ These settings can also be set directly using `serialize` parameters, like in th
 {!exclude_defaults_none.py!}
 ```
 
+### Field ordering
+
+Usually, JSON object properties are unordered, but sometimes, order does matter. By default, fields, are ordered according to their declaration; serialized methods are appended after the fields.
+
+However, it's possible to change the ordering using `apischema.order`.
+
+#### Class-level ordering
+
+`order` can be used to decorate a class with the field ordered as expected:
+
+```python
+{!class_ordering.py!}
+```
+
+#### Field-level ordering
+
+Each field has an order "value" (0 by default), and ordering is done by sorting fields using this value; if several fields have the same order value, they are sorted by their declaration order. For instance, assigning `-1` to a field will put it before every other fields, and `999` will surely put it at the end.
+
+This order value is set using `order`, this time as a field metadata (or passed to `order` argument of [serialized methods/properties](#serialized-methodsproperties)). It has the following overloaded signature:
+
+- `order(value: int, /)`: set the order value of the field
+- `order(*, after)`: ignore the order value and put the field after the given field/method/property
+- `order(*, before)`: ignore the order value and put the field before the given field/method/property
+
+!!! note
+    `after` and `before` can be raw strings, but also dataclass fields, methods or properties.
+
+Also, `order` can again be used as class decorator to override ordering metadata, by passing this time a mapping of field with their overridden order.
+
+```python
+{!ordering.py!}
+```
+
+
 ### TypedDict additional properties
 
 `TypedDict` can contain additional keys, which are not serialized by default. Setting `additional_properties` parameter to `True` (or `apischema.settings.additional_properties`) will toggle on their serialization (without aliasing).
-
-## Performances
-
 
 
 ## FAQ
