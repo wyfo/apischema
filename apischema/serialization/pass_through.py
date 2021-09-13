@@ -1,3 +1,4 @@
+import collections.abc
 from dataclasses import dataclass, is_dataclass
 from enum import Enum
 from functools import lru_cache
@@ -91,7 +92,8 @@ class PassThroughVisitor(
 
     def collection(self, cls: Type[Collection], value_type: AnyType) -> bool:
         return (
-            self.options.collections or issubclass(cls, (list, tuple))
+            issubclass(cls, (list, tuple))
+            or (self.options.collections and not issubclass(cls, collections.abc.Set))
         ) and self.visit(value_type)
 
     def enum(self, cls: Type[Enum]) -> bool:
