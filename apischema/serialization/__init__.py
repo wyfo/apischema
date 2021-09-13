@@ -181,6 +181,8 @@ class SerializationMethodVisitor(
             if isinstance(obj, cls_to_check):
                 try:
                     return method(obj)
+                except Unsupported:
+                    raise
                 except Exception:
                     return fallback(obj)
             else:
@@ -381,11 +383,24 @@ class SerializationMethodVisitor(
                     if is_instance(obj, cls):
                         try:
                             return serialize_alt(obj)
+                        except Unsupported:
+                            raise
                         except Exception:
                             pass
                 return fallback(obj)
 
         return method
+
+    def unsupported(self, tp: AnyType) -> SerializationMethod:
+        try:
+            return super().unsupported(tp)
+        except Unsupported:
+            if self.fall_back_on_any and is_type(tp):
+                if issubclass(tp, Mapping):
+                    return self.visit(Mapping[Any, Any])
+                elif issubclass(tp, Collection):
+                    return self.visit(Collection[Any])
+            raise
 
     def _visit_conversion(
         self,

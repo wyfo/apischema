@@ -1,5 +1,4 @@
 from contextlib import suppress
-from dataclasses import dataclass
 from enum import Enum
 from functools import reduce
 from itertools import chain
@@ -20,6 +19,8 @@ from typing import (
     TypeVar,
     Union,
 )
+
+from dataclasses import dataclass
 
 from apischema.aliases import Aliaser
 from apischema.conversions import converters
@@ -494,10 +495,10 @@ def _schema(
         JsonSchema,
         json_schema,
         aliaser=aliaser,
-        fall_back_on_any=True,
         check_type=True,
         conversion=version.conversion,
         default_conversion=converters.default_serialization,
+        fall_back_on_any=True,
     )
     if with_schema and version.schema is not None:
         result["$schema"] = version.schema
