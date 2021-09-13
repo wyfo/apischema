@@ -10,6 +10,7 @@ __all__ = [
     "deserialize",
     "deserializer",
     "identity",
+    "order",
     "properties",
     "schema",
     "schema_ref",
@@ -42,6 +43,7 @@ from .conversions import deserializer, serializer
 from .dependencies import dependent_required
 from .deserialization import deserialization_method, deserialize
 from .metadata import properties
+from .ordering import order
 from .schemas import schema
 from .serialization import serialization_default, serialization_method, serialize
 from .serialization.pass_through import PassThroughOptions

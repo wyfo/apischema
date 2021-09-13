@@ -8,7 +8,7 @@ In fact, `graphql_schema` is just a wrapper around `graphql.GraphQLSchema` (same
 
 ## Operations metadata
 
-*GraphQL* operations can be passed to `graphql_schema` either using simple functions or wrapping it into `apischema.graphql.Query`/`apischema.graphql.Mutation`/`apischema.graphql.Subscription`. These wrappers have the same parameters as `apischema.graphql.resolver`: `alias`, `conversions`, `error_handler` and `schema` (`Subscription` has an [additional parameter](#subscriptions)).
+*GraphQL* operations can be passed to `graphql_schema` either using simple functions or wrapping it into `apischema.graphql.Query`/`apischema.graphql.Mutation`/`apischema.graphql.Subscription`. These wrappers have the same parameters as `apischema.graphql.resolver`: `alias`, `conversions`, `error_handler`, `order` and `schema` (`Subscription` has an [additional parameter](#subscriptions)).
 
 ```python
 {!operation.py!}

@@ -39,6 +39,6 @@ assert serialization_schema(Foo) == {
         "baz": {"type": "integer"},
         "function": {"type": "integer"},
     },
-    "required": ["aliased", "bar", "baz", "function"],
+    "required": ["bar", "baz", "aliased", "function"],
     "additionalProperties": False,
 }

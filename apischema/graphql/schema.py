@@ -2,6 +2,7 @@ from dataclasses import dataclass, field as field_, replace
 from enum import Enum
 from functools import wraps
 from inspect import Parameter, iscoroutinefunction
+from itertools import chain
 from typing import (
     Any,
     AsyncIterable,
@@ -51,6 +52,7 @@ from apischema.objects.visitor import (
     ObjectVisitor,
     SerializationObjectVisitor,
 )
+from apischema.ordering import Ordering, sort_by_order
 from apischema.recursion import RecursiveConversionsVisitor
 from apischema.schemas import Schema, get_schema, merge_schema
 from apischema.serialization import SerializationMethod, serialize
@@ -69,7 +71,6 @@ from apischema.utils import (
     get_origin_or_type,
     identity,
     is_union_of,
-    sort_by_annotations_position,
     to_camel_case,
 )
 
@@ -156,22 +157,6 @@ class ResolverField:
     parameters: Sequence[Parameter]
     metadata: Mapping[str, Mapping]
     subscribe: Optional[Callable] = None
-
-    @property
-    def name(self) -> str:
-        return self.resolver.func.__name__
-
-    @property
-    def type(self) -> AnyType:
-        return self.types["return"]
-
-    @property
-    def description(self) -> Optional[str]:
-        return get_description(self.resolver.schema)
-
-    @property
-    def deprecated(self) -> Optional[str]:
-        return get_deprecated(self.resolver.schema)
 
 
 IdPredicate = Callable[[AnyType], bool]
@@ -320,9 +305,6 @@ class SchemaBuilder(
     ) -> TypeFactory[GraphQLTp]:
         return TypeFactory(lambda *_: graphql.GraphQLList(self.visit(value_type).type))
 
-    def _visit_flattened(self, field: ObjectField) -> TypeFactory[GraphQLTp]:
-        raise NotImplementedError
-
     @cache_type
     def enum(self, cls: Type[Enum]) -> TypeFactory[GraphQLTp]:
         def factory(
@@ -434,30 +416,61 @@ class SchemaBuilder(
 FieldType = TypeVar("FieldType", graphql.GraphQLInputField, graphql.GraphQLField)
 
 
-def merge_fields(
-    cls: Type,
-    fields: Mapping[str, Lazy[FieldType]],
-    flattened_types: Mapping[str, TypeFactory],
-) -> Dict[str, FieldType]:
-    all_flattened_fields: Dict[str, FieldType] = {}
-    for flattened_name, flattened_factory in flattened_types.items():
-        flattened_type = flattened_factory.raw_type
+class BaseField(Generic[FieldType]):
+    name: str
+    ordering: Optional[Ordering]
+
+    def items(self) -> Iterable[Tuple[str, FieldType]]:
+        raise NotImplementedError
+
+
+@dataclass
+class NormalField(BaseField[FieldType]):
+    alias: str
+    name: str
+    field: Lazy[FieldType]
+    ordering: Optional[Ordering]
+
+    def items(self) -> Iterable[Tuple[str, FieldType]]:
+        yield self.alias, self.field()
+
+
+@dataclass
+class FlattenedField(BaseField[FieldType]):
+    name: str
+    ordering: Optional[Ordering]
+    type: TypeFactory
+
+    def items(self) -> Iterable[Tuple[str, FieldType]]:
+        tp = self.type.raw_type
         if not isinstance(
-            flattened_type,
+            tp,
             (
                 graphql.GraphQLObjectType,
                 graphql.GraphQLInterfaceType,
                 graphql.GraphQLInputObjectType,
             ),
         ):
-            raise TypeError(
-                f"Flattened field {cls.__name__}.{flattened_name} must have an object type"
-            )
-        flattened_fields: Mapping[str, FieldType] = flattened_type.fields
-        if flattened_fields.keys() & all_flattened_fields.keys() & fields.keys():
-            raise TypeError(f"Conflict in flattened fields of {cls}")
-        all_flattened_fields.update(flattened_fields)
-    return {**{name: field() for name, field in fields.items()}, **all_flattened_fields}
+            raise FlattenedError(self)
+        yield from tp.fields.items()
+
+
+class FlattenedError(Exception):
+    def __init__(self, field: FlattenedField):
+        self.field = field
+
+
+def merge_fields(cls: type, fields: Sequence[BaseField]) -> Dict[str, FieldType]:
+    try:
+        sorted_fields = sort_by_order(
+            cls, fields, lambda f: f.name, lambda f: f.ordering
+        )
+    except FlattenedError as err:
+        raise TypeError(
+            f"Flattened field {cls.__name__}.{err.field.name}"
+            f" must have an object type"
+        )
+    return OrderedDict(chain.from_iterable(map(lambda f: f.items(), sorted_fields)))
 
 
 class InputSchemaBuilder(
@@ -466,11 +479,6 @@ class InputSchemaBuilder(
     DeserializationObjectVisitor[TypeFactory[graphql.GraphQLInputType]],
 ):
     types = graphql.type.definition.graphql_input_types
-
-    def _visit_flattened(
-        self, field: ObjectField
-    ) -> TypeFactory[graphql.GraphQLInputType]:
-        return self.visit_with_conv(field.type, field.deserialization)
 
     def _field(self, field: ObjectField) -> Lazy[graphql.GraphQLInputField]:
         field_type = field.type
@@ -494,19 +502,29 @@ class InputSchemaBuilder(
             factory.type,  # type: ignore
             default_value=default,
             description=get_description(field.schema, field.type),
-            extensions={field.name: ""},
         )
 
     @cache_type
     def object(
         self, tp: AnyType, fields: Sequence[ObjectField]
     ) -> TypeFactory[graphql.GraphQLInputType]:
-        visited_fields = {
-            self.aliaser(f.alias): self._field(f) for f in fields if not f.is_aggregate
-        }
-        flattened_types = {
-            f.name: self._visit_flattened(f) for f in fields if f.flattened
-        }
+        visited_fields: List[BaseField] = []
+        for field in fields:
+            if not field.is_aggregate:
+                normal_field = NormalField(
+                    self.aliaser(field.alias),
+                    field.name,
+                    self._field(field),
+                    field.ordering,
+                )
+                visited_fields.append(normal_field)
+            elif field.flattened:
+                flattened_fields = FlattenedField(
+                    field.name,
+                    field.ordering,
+                    self.visit_with_conv(field.type, field.deserialization),
+                )
+                visited_fields.append(flattened_fields)
 
         def factory(
             name: Optional[str], description: Optional[str]
@@ -516,7 +534,7 @@ class InputSchemaBuilder(
                 name += "Input"
             return graphql.GraphQLInputObjectType(
                 name,
-                lambda: merge_fields(tp, visited_fields, flattened_types),
+                lambda: merge_fields(get_origin_or_type(tp), visited_fields),
                 description,
             )
 
@@ -657,14 +675,14 @@ class OutputSchemaBuilder(
                     )
 
                 args[self.aliaser(param_field.alias)] = arg_thunk
-        factory = self.visit_with_conv(field.type, field.resolver.conversion)
+        factory = self.visit_with_conv(field.types["return"], field.resolver.conversion)
         return lambda: graphql.GraphQLField(
             factory.type,  # type: ignore
             {name: arg() for name, arg in args.items()} if args else None,
             resolve,
             field.subscribe,
-            field.description,
-            field.deprecated,
+            get_description(field.resolver.schema),
+            get_deprecated(field.resolver.schema),
         )
 
     def _visit_flattened(
@@ -691,10 +709,24 @@ class OutputSchemaBuilder(
         resolvers: Sequence[ResolverField] = (),
     ) -> TypeFactory[graphql.GraphQLOutputType]:
         cls = get_origin_or_type(tp)
-        all_fields = {f.alias: self._field(f) for f in fields if not f.is_aggregate}
-        name_by_aliases = {f.alias: f.name for f in fields}
-        all_fields.update({r.alias: self._resolver(r) for r in resolvers})
-        name_by_aliases.update({r.alias: r.resolver.func.__name__ for r in resolvers})
+        visited_fields: List[BaseField[graphql.GraphQLField]] = []
+        flattened_factories = []
+        for field in fields:
+            if not field.is_aggregate:
+                normal_field = NormalField(
+                    self.aliaser(field.name),
+                    field.name,
+                    self._field(field),
+                    field.ordering,
+                )
+                visited_fields.append(normal_field)
+            elif field.flattened:
+                flattened_factory = self._visit_flattened(field)
+                flattened_factories.append(flattened_factory)
+                visited_fields.append(
+                    FlattenedField(field.name, field.ordering, flattened_factory)
+                )
+        resolvers = list(resolvers)
         for alias, (resolver, types) in get_resolvers(tp).items():
             resolver_field = ResolverField(
                 alias,
@@ -703,36 +735,34 @@ class OutputSchemaBuilder(
                 resolver.parameters,
                 resolver.parameters_metadata,
             )
-            all_fields[alias] = self._resolver(resolver_field)
-            name_by_aliases[alias] = resolver.func.__name__
-        sorted_fields = sort_by_annotations_position(
-            cls, all_fields, name_by_aliases.__getitem__
-        )
-        visited_fields = OrderedDict(
-            (self.aliaser(a), all_fields[a]) for a in sorted_fields
-        )
-        flattened_types = {
-            f.name: self._visit_flattened(f) for f in fields if f.flattened
-        }
+            resolvers.append(resolver_field)
+        for resolver_field in resolvers:
+            normal_field = NormalField(
+                self.aliaser(resolver_field.alias),
+                resolver_field.resolver.func.__name__,
+                self._resolver(resolver_field),
+                resolver_field.resolver.ordering,
+            )
+            visited_fields.append(normal_field)
 
-        def field_thunk() -> graphql.GraphQLFieldMap:
-            return merge_fields(cls, visited_fields, flattened_types)
-
-        interfaces = list(map(self.visit, get_interfaces(cls)))
         interface_thunk = None
-        if interfaces:
+        interfaces = list(map(self.visit, get_interfaces(cls)))
+        if interfaces or flattened_factories:
 
             def interface_thunk() -> Collection[graphql.GraphQLInterfaceType]:
-                result = {
+                all_interfaces = {
                     cast(graphql.GraphQLInterfaceType, i.raw_type) for i in interfaces
                 }
-                for flattened_factory in flattened_types.values():
+                for flattened_factory in flattened_factories:
                     flattened = cast(
                         Union[graphql.GraphQLObjectType, graphql.GraphQLInterfaceType],
                         flattened_factory.raw_type,
                     )
-                    result.update(flattened.interfaces)
-                return sorted(result, key=lambda i: i.name)
+                    if isinstance(flattened, graphql.GraphQLObjectType):
+                        all_interfaces.update(flattened.interfaces)
+                    elif isinstance(flattened, graphql.GraphQLInterfaceType):
+                        all_interfaces.add(flattened)
+                return sorted(all_interfaces, key=lambda i: i.name)
 
         def factory(
             name: Optional[str], description: Optional[str]
@@ -740,12 +770,15 @@ class OutputSchemaBuilder(
             name = unwrap_name(name, cls)
             if is_interface(cls):
                 return graphql.GraphQLInterfaceType(
-                    name, field_thunk, interface_thunk, description=description
+                    name,
+                    lambda: merge_fields(cls, visited_fields),
+                    interface_thunk,
+                    description=description,
                 )
             else:
                 return graphql.GraphQLObjectType(
                     name,
-                    field_thunk,
+                    lambda: merge_fields(cls, visited_fields),
                     interface_thunk,
                     is_type_of=lambda obj, _: isinstance(obj, cls),
                     description=description,
@@ -783,8 +816,9 @@ class Operation(Generic[T]):
     function: Callable[..., T]
     alias: Optional[str] = None
     conversion: Optional[AnyConversion] = None
-    schema: Optional[Schema] = None
     error_handler: ErrorHandler = Undefined
+    order: Optional[Ordering] = None
+    schema: Optional[Schema] = None
     parameters_metadata: Mapping[str, Mapping] = field_(default_factory=dict)
 
 
@@ -833,8 +867,9 @@ def operation_resolver(
     return operation.alias or operation.function.__name__, Resolver(
         wrapper,
         operation.conversion,
-        operation.schema,
         error_handler,
+        operation.order,
+        operation.schema,
         parameters,
         operation.parameters_metadata,
     )
@@ -897,8 +932,9 @@ def graphql_schema(
             resolver = Resolver(
                 sub_op.resolver,
                 sub_op.conversion,
-                sub_op.schema,
                 subscriber2.error_handler,
+                sub_op.order,
+                sub_op.schema,
                 sub_parameters,
                 sub_op.parameters_metadata,
             )
@@ -917,8 +953,9 @@ def graphql_schema(
             resolver = Resolver(
                 lambda _: _,
                 sub_op.conversion,
-                sub_op.schema,
                 subscriber2.error_handler,
+                sub_op.order,
+                sub_op.schema,
                 (),
                 {},
             )

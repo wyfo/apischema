@@ -21,6 +21,7 @@ from apischema.cache import CacheAwareDict
 from apischema.conversions.conversions import AnyConversion
 from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
 from apischema.methods import method_registerer
+from apischema.ordering import Ordering
 from apischema.schemas import Schema
 from apischema.types import AnyType, Undefined, UndefinedType
 from apischema.typing import generic_mro, get_args, get_origin, get_type_hints
@@ -39,8 +40,9 @@ from apischema.utils import (
 class SerializedMethod:
     func: Callable
     conversion: Optional[AnyConversion]
-    schema: Optional[Schema]
     error_handler: Optional[Callable]
+    ordering: Optional[Ordering]
+    schema: Optional[Schema]
 
     def error_type(self) -> AnyType:
         assert self.error_handler is not None
@@ -125,8 +127,9 @@ def serialized(
     alias: str = None,
     *,
     conversion: AnyConversion = None,
-    schema: Schema = None,
     error_handler: ErrorHandler = Undefined,
+    order: Optional[Ordering] = None,
+    schema: Schema = None,
     owner: Type = None,
 ) -> Callable[[MethodOrProp], MethodOrProp]:
     ...
@@ -138,8 +141,9 @@ def serialized(
     *,
     alias: str = None,
     conversion: AnyConversion = None,
-    schema: Schema = None,
     error_handler: ErrorHandler = Undefined,
+    order: Optional[Ordering] = None,
+    schema: Schema = None,
     owner: Type = None,
 ):
     def register(func: Callable, owner: Type, alias2: str):
@@ -167,7 +171,7 @@ def serialized(
                     return error_handler(error, self, alias2)
 
         assert not isinstance(error_handler2, UndefinedType)
-        serialized = SerializedMethod(func, conversion, schema, error_handler2)
+        serialized = SerializedMethod(func, conversion, error_handler2, order, schema)
         _serialized_methods[owner][alias2] = serialized
 
     if isinstance(__arg, str):

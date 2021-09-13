@@ -1,5 +1,6 @@
 from dataclasses import Field, InitVar, MISSING, dataclass, field
 from enum import Enum, auto
+from types import FunctionType
 from typing import (
     Any,
     Callable,
@@ -30,6 +31,7 @@ from apischema.metadata.keys import (
     FALL_BACK_ON_DEFAULT_METADATA,
     FLATTEN_METADATA,
     NONE_AS_UNDEFINED_METADATA,
+    ORDERING_METADATA,
     POST_INIT_METADATA,
     PROPERTIES_METADATA,
     REQUIRED_METADATA,
@@ -48,6 +50,7 @@ from apischema.utils import (
 )
 
 if TYPE_CHECKING:
+    from apischema.ordering import Ordering
     from apischema.schemas import Schema
     from apischema.validation.validators import Validator
 
@@ -112,7 +115,7 @@ class ObjectField:
 
     @property
     def _conversion(self) -> Optional[ConversionMetadata]:
-        return self.metadata.get(CONVERSION_METADATA, None)
+        return self.metadata.get(CONVERSION_METADATA)
 
     @property
     def default_as_set(self) -> bool:
@@ -153,16 +156,20 @@ class ObjectField:
         return NONE_AS_UNDEFINED_METADATA in self.full_metadata
 
     @property
+    def ordering(self) -> Optional["Ordering"]:
+        return self.full_metadata.get(ORDERING_METADATA)
+
+    @property
     def post_init(self) -> bool:
         return POST_INIT_METADATA in self.full_metadata
 
     @property
     def pattern_properties(self) -> Union[Pattern, "ellipsis", None]:  # noqa: F821
-        return self.full_metadata.get(PROPERTIES_METADATA, None)
+        return self.full_metadata.get(PROPERTIES_METADATA)
 
     @property
     def schema(self) -> Optional["Schema"]:
-        return self.metadata.get(SCHEMA_METADATA, None)
+        return self.metadata.get(SCHEMA_METADATA)
 
     @property
     def serialization(self) -> Optional[AnyConversion]:
@@ -202,24 +209,34 @@ class ObjectField:
 FieldOrName = Union[str, ObjectField, Field]
 
 
-def _bad_field(obj: Any) -> NoReturn:
+def _bad_field(obj: Any, methods: bool) -> NoReturn:
+    method_types = "property/types.FunctionType" if methods else ""
     raise TypeError(
-        f"Expected dataclasses.Field/apischema.ObjectField/str, found {obj}"
+        f"Expected dataclasses.Field/apischema.ObjectField/str{method_types}, found {obj}"
     )
 
 
-def check_field_or_name(field_or_name: Any):
-    if not isinstance(field_or_name, (str, ObjectField, Field)):
-        _bad_field(field_or_name)
+def check_field_or_name(field_or_name: Any, *, methods: bool = False):
+    method_types = (property, FunctionType) if methods else ()
+    if not isinstance(field_or_name, (str, ObjectField, Field, *method_types)):
+        _bad_field(field_or_name, methods)
 
 
-def get_field_name(field_or_name: Any) -> str:
+def get_field_name(field_or_name: Any, *, methods: bool = False) -> str:
     if isinstance(field_or_name, (Field, ObjectField)):
         return field_or_name.name
     elif isinstance(field_or_name, str):
         return field_or_name
+    elif (
+        methods
+        and isinstance(field_or_name, property)
+        and field_or_name.fget is not None
+    ):
+        return field_or_name.fget.__name__
+    elif methods and isinstance(field_or_name, FunctionType):
+        return field_or_name.__name__
     else:
-        _bad_field(field_or_name)
+        _bad_field(field_or_name, methods)
 
 
 _class_fields: MutableMapping[
