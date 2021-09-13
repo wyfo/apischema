@@ -54,12 +54,14 @@ To take advantage of that, *apischema* provides `apischema.PassThroughOptions` c
 
 #### `collections` — pass through collections
 
-Standard collections `list`, `tuple` and `dict` are natively handled by JSON libraries, but `set`, for example, isn't. Moreover, standard abstract
-collections like `Collection` or `Mapping`, which are a lot used, are
+Standard collections `list`, `tuple` and `dict` are natively handled by JSON libraries, but `set`, for example, isn't. Moreover, standard abstract collections like `Collection` or `Mapping`, which are a lot used, are
 not guaranteed to have their runtime type supported (having a `set` annotated with
-`Collection` for instance).
+`Collection` for instance). 
 
-However, most of the time collections runtime types are `list`/`dict`. That's why it's always recommended to use `PassThroughOptions(collections=True)`, with other collections handled in `default` fallback.
+But, most of the time, collections runtime types are `list`/`dict`, so others can be handled in `default` fallback.
+
+!!! note
+    Set-like type will not be passed through.
 
 #### `dataclasses` — pass through dataclasses
 
@@ -83,7 +85,9 @@ Either a collection of types, or a predicate to determine if type has to be pass
 
 ### Passing through is not always faster
 
-*apischema* is well optimized and can perform better than using `default` fallback. That's why passthrough optimization should be used wisely.
+*apischema* is quite optimized and can perform better than using `default` fallback, as shown in the following example:
+
+. That's why passthrough optimization should be used wisely.
 
 ```python
 {!vs_default.py!}
