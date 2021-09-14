@@ -66,6 +66,9 @@ class ConversionsResolver(ConversionsVisitor[Conv, Sequence[AnyType]]):
     ) -> Sequence[AnyType]:
         return merge_results([self.visit(key_type), self.visit(value_type)], Mapping)
 
+    def new_type(self, tp: AnyType, super_type: AnyType) -> Sequence[AnyType]:
+        raise NotImplementedError
+
     def tuple(self, types: Sequence[AnyType]) -> Sequence[AnyType]:
         return merge_results(map(self.visit, types), Tuple)
 
