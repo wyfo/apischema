@@ -172,7 +172,7 @@ class SerializationMethodVisitor(
                     aggregate_fields.append((field.name, serialize_field))
                 else:
                     normal_fields.append(
-                        (field.name, self.aliaser(field.alias), serialize_field)
+                        (field.name, str(self.aliaser(field.alias)), serialize_field)
                     )
             serialized_methods = [
                 (
