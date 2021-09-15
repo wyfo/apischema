@@ -1,6 +1,7 @@
 from collections import defaultdict
 from functools import wraps
 from inspect import Parameter, isgeneratorfunction, signature
+from itertools import chain
 from types import MethodType
 from typing import (
     AbstractSet,
@@ -20,7 +21,6 @@ from typing import (
 
 from apischema.aliases import Aliaser
 from apischema.cache import CacheAwareDict
-from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
 from apischema.methods import is_method, method_class
 from apischema.objects import get_alias
 from apischema.objects.fields import FieldOrName, check_field_or_name, get_field_name
@@ -40,15 +40,9 @@ _validators: MutableMapping[Type, List["Validator"]] = CacheAwareDict(defaultdic
 
 
 def get_validators(tp: AnyType) -> Sequence["Validator"]:
-    validators = []
-    if hasattr(tp, "__mro__"):
-        for sub_cls in tp.__mro__:
-            validators.extend(_validators[sub_cls])
-    else:
-        validators.extend(_validators[tp])
-    if has_model_origin(tp):
-        validators.extend(get_validators(get_model_origin(tp)))
-    return validators
+    return list(
+        chain.from_iterable(_validators[cls] for cls in getattr(tp, "__mro__", [tp]))
+    )
 
 
 class Discard(Exception):
