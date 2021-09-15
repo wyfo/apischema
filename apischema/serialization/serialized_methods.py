@@ -19,18 +19,16 @@ from typing import (
 
 from apischema.cache import CacheAwareDict
 from apischema.conversions.conversions import AnyConversion
-from apischema.conversions.dataclass_models import get_model_origin, has_model_origin
 from apischema.methods import method_registerer
 from apischema.ordering import Ordering
 from apischema.schemas import Schema
 from apischema.types import AnyType, Undefined, UndefinedType
-from apischema.typing import generic_mro, get_args, get_origin, get_type_hints
+from apischema.typing import generic_mro, get_type_hints
 from apischema.utils import (
     deprecate_kwargs,
     get_args2,
     get_origin_or_type,
     get_origin_or_type2,
-    get_parameters,
     substitute_type_vars,
     subtyping_substitution,
 )
@@ -92,12 +90,6 @@ def _get_methods(
     for base in reversed(generic_mro(tp)):
         for name, method in all_methods[get_origin_or_type(base)].items():
             result[name] = (method, method.types(base))
-    if has_model_origin(tp):
-        origin = get_model_origin(tp)
-        if get_args(tp):
-            substitution = dict(zip(get_parameters(get_origin(tp)), get_args(tp)))
-            origin = substitute_type_vars(origin, substitution)
-        result.update(_get_methods(origin, all_methods))
     return result
 
 

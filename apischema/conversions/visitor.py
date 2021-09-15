@@ -26,7 +26,6 @@ from apischema.conversions.conversions import (
     is_identity,
     resolve_any_conversion,
 )
-from apischema.conversions.dataclass_models import handle_dataclass_model
 from apischema.conversions.utils import is_convertible
 from apischema.metadata.implem import ConversionMetadata
 from apischema.type_names import type_name
@@ -174,7 +173,6 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Result]):
                     if get_args(tp):
                         wrapper = wrapper[get_args(tp)]
                     conv = ResolvedConversion(replace(conv, source=wrapper))
-                conv = handle_dataclass_model(conv)
                 _, substitution = subtyping_substitution(tp, conv.target)
                 source = substitute_type_vars(conv.source, substitution)
                 result.append(
@@ -214,7 +212,6 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Result]):
             if is_subclass(tp, conv.source):
                 if is_identity(conv):
                     return True, None
-                conv = handle_dataclass_model(conv)
                 substitution, _ = subtyping_substitution(conv.source, tp)
                 target = substitute_type_vars(conv.target, substitution)
                 return True, ResolvedConversion(replace(conv, source=tp, target=target))

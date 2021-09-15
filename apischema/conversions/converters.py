@@ -1,5 +1,4 @@
 import sys
-import warnings
 from collections import defaultdict
 from dataclasses import replace
 from enum import Enum
@@ -33,7 +32,7 @@ from apischema.typing import is_type_var
 from apischema.utils import get_args2, get_origin_or_type, stop_signature_abuse
 
 if TYPE_CHECKING:
-    from apischema.deserialization.coercion import Coerce
+    pass
 
 
 _deserializers: MutableMapping[AnyType, List[ConvOrFunc]] = CacheAwareDict(
@@ -214,33 +213,6 @@ class InheritedDeserializer:
 
 
 ClsMethod = TypeVar("ClsMethod")
-
-
-@overload
-def inherited_deserializer(method: ClsMethod) -> ClsMethod:
-    ...
-
-
-@overload
-def inherited_deserializer(
-    *,
-    sub_conversions: AnyConversion = None,
-    additional_properties: Optional[bool] = None,
-    coercion: Optional["Coerce"] = None,
-    fall_back_on_default: Optional[bool] = None,
-) -> Callable[[ClsMethod], ClsMethod]:
-    ...
-
-
-def inherited_deserializer(method=None, **kwargs):
-    warnings.warn(
-        "inherited_deserializer is deprecated; __init_subclasses", DeprecationWarning
-    )
-    if method is None:
-        return lambda func: inherited_deserializer(func, **kwargs)  # type: ignore
-    if not isinstance(method, classmethod):
-        raise TypeError("inherited_deserializer must be called on classmethod")
-    return InheritedDeserializer(method, **kwargs)
 
 
 Cls = TypeVar("Cls", bound=type)

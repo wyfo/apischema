@@ -5,9 +5,7 @@ __all__ = [
     "as_names",
     "as_str",
     "dataclass_input_wrapper",
-    "dataclass_model",
     "deserializer",
-    "inherited_deserializer",
     "reset_deserializers",
     "reset_serializer",
     "serializer",
@@ -21,12 +19,10 @@ from .converters import (
     as_names,
     as_str,
     deserializer,
-    inherited_deserializer,
     reset_deserializers,
     reset_serializer,
     serializer,
 )
-from .dataclass_models import dataclass_model
 from .wrappers import dataclass_input_wrapper
 
 if sys.version_info >= (3, 7):
