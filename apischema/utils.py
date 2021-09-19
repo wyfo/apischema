@@ -286,6 +286,8 @@ ITERABLE_TYPES = {
 def subtyping_substitution(
     supertype: AnyType, subtype: AnyType
 ) -> Tuple[Mapping[AnyType, AnyType], Mapping[AnyType, AnyType]]:
+    if not get_args(subtype) and not isinstance(subtype, type):
+        return {}, {}
     supertype, subtype = with_parameters(supertype), with_parameters(subtype)
     supertype_to_subtype, subtype_to_supertype = {}, {}
     super_origin = get_origin_or_type2(supertype)
