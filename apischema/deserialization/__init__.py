@@ -17,7 +17,6 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    cast,
     overload,
 )
 
@@ -251,26 +250,14 @@ class DeserializationMethodVisitor(
                         raise ValidationError(errors, elt_errors)
                 elif elt_errors:
                     raise ValidationError([], elt_errors)
-                return values if constructor is None else constructor(values)
+                return constructor(values) if constructor else values
 
             return self._wrap(method, validators, list)
 
         return DeserializationMethodFactory(factory)
 
     def enum(self, cls: Type[Enum]) -> DeserializationMethodFactory:
-        literal_factory = self.literal(list(cls))
-
-        def factory(
-            constraints: Optional[Constraints], validators: Sequence[Validator]
-        ) -> DeserializationMethod:
-            deserialize_literal = literal_factory.merge(constraints, validators).method
-
-            def method(data: Any) -> Any:
-                return cls(deserialize_literal(data))
-
-            return method
-
-        return DeserializationMethodFactory(factory)
+        return self.literal(list(cls))
 
     def literal(self, values: Sequence[Any]) -> DeserializationMethodFactory:
         def factory(
@@ -397,7 +384,8 @@ class DeserializationMethodVisitor(
                             field.name,
                             self.aliaser(field.alias),
                             deserialize_field,
-                            field.required or requiring[field.name],
+                            field.required,
+                            requiring[field.name],
                             fall_back_on_default,
                         )
                     )
@@ -431,24 +419,31 @@ class DeserializationMethodVisitor(
                     alias,
                     deserialize_field,
                     required,
+                    required_by,
                     fall_back_on_default,
                 ) in normal_fields:
-                    if alias in data:
+                    if required:
+                        try:
+                            value = data[alias]
+                        except KeyError:
+                            field_errors[alias] = ValidationError([MISSING_PROPERTY])
+                        else:
+                            fields_count += 1
+                            try:
+                                values[name] = deserialize_field(value)
+                            except ValidationError as err:
+                                field_errors[alias] = err
+                    elif alias in data:
                         fields_count += 1
                         try:
                             values[name] = deserialize_field(data[alias])
                         except ValidationError as err:
                             if not fall_back_on_default:
                                 field_errors[alias] = err
-                    elif required:
-                        if required is True:
-                            field_errors[alias] = ValidationError([MISSING_PROPERTY])
-                        else:
-                            assert isinstance(required, AbstractSet)
-                            if not required.isdisjoint(data):
-                                requiring = sorted(required & data.keys())
-                                msg = f"missing property (required by {requiring})"
-                                field_errors[alias] = ValidationError([msg])
+                    elif required_by and not required_by.isdisjoint(data):
+                        requiring = sorted(required_by & data.keys())
+                        msg = f"missing property (required by {requiring})"
+                        field_errors[alias] = ValidationError([msg])
                 if has_aggregate_field:
                     remain = data.keys() - all_aliases
                     for (
@@ -485,7 +480,7 @@ class DeserializationMethodVisitor(
                             if not fall_back_on_default:
                                 errors.extend(err.messages)
                                 field_errors.update(err.children)
-                    if additional_field is not None:
+                    if additional_field:
                         name, deserialize_field, fall_back_on_default = additional_field
                         additional = {key: data[key] for key in remain}
                         try:
@@ -559,6 +554,7 @@ class DeserializationMethodVisitor(
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
+            checks = get_constraint_checks(constraints, cls)
             if cls is NoneType:
 
                 def method(data: Any) -> Any:
@@ -566,12 +562,24 @@ class DeserializationMethodVisitor(
                         raise bad_type(data, cls)
                     return data
 
+            elif cls is not float and not checks:
+
+                def method(data: Any) -> Any:
+                    if not isinstance(data, cls):
+                        raise bad_type(data, cls)
+                    return data
+
+            elif cls is not float and len(checks) == 1:
+                ((check, attr, err),) = checks
+
+                def method(data: Any) -> Any:
+                    if not isinstance(data, cls):
+                        raise bad_type(data, cls)
+                    elif check(data, attr):
+                        raise ValidationError([err])
+                    return data
+
             else:
-                checks = get_constraint_checks(constraints, cls)
-                if checks:
-                    (check0, attr0, err0), *other_checks = checks
-                else:
-                    check0, attr0, err0, other_checks = cast(Any, (..., ..., ..., ...))
                 is_float = cls is float
 
                 def method(data: Any) -> Any:
@@ -581,14 +589,11 @@ class DeserializationMethodVisitor(
                         else:
                             raise bad_type(data, cls)
                     if checks:
-                        if other_checks:
-                            errors = [
-                                err for check, attr, err in checks if check(data, attr)
-                            ]
-                            if errors:
-                                raise ValidationError(errors)
-                        elif check0(data, attr0):
-                            raise ValidationError([err0])
+                        errors = [
+                            err for check, attr, err in checks if check(data, attr)
+                        ]
+                        if errors:
+                            raise ValidationError(errors)
                     return data
 
             return self._wrap(method, validators, cls)
