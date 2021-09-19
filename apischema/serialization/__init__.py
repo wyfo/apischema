@@ -226,6 +226,11 @@ class SerializationMethodVisitor(
         serialize_key, serialize_value = self.visit(key_type), self.visit(value_type)
         if serialize_key is serialize_value is identity:
             method: SerializationMethod = dict
+        elif serialize_key is identity:
+
+            def method(obj: Any) -> Any:
+                return {key: serialize_value(value) for key, value in obj.items()}
+
         else:
 
             def method(obj: Any) -> Any:
@@ -301,24 +306,22 @@ class SerializationMethodVisitor(
                 serialize_field,
                 _,
             ) in serialization_fields:
-                if (exclude_unset and name not in getattr(obj, FIELDS_SET_ATTR)) or (
-                    typed_dict and not required and name not in obj
+                if (not exclude_unset or name in getattr(obj, FIELDS_SET_ATTR)) and (
+                    not typed_dict or required or name in obj
                 ):
-                    continue
-                field_value = get_field(obj)
-                if (
-                    (skip_if and skip_if(field_value))
-                    or (undefined and field_value is Undefined)
-                    or (skip_none and field_value is None)
-                    or (skip_default and field_value == default)
-                ):
-                    continue
-                if serialize_field:
-                    field_value = serialize_field(field_value)
-                if alias:
-                    result[alias] = field_value
-                else:
-                    result.update(field_value)
+                    field_value = get_field(obj)
+                    if not (
+                        (skip_if and skip_if(field_value))
+                        or (undefined and field_value is Undefined)
+                        or (skip_none and field_value is None)
+                        or (skip_default and field_value == default)
+                    ):
+                        if serialize_field:
+                            field_value = serialize_field(field_value)
+                        if alias:
+                            result[alias] = field_value
+                        else:
+                            result.update(field_value)
             if additional_properties:
                 assert isinstance(obj, Mapping)
                 for key, value in obj.items():
