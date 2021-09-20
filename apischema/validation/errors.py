@@ -1,13 +1,7 @@
-import collections.abc
-import re
-import sys
-import warnings
 from dataclasses import dataclass, field, replace
-from functools import reduce, wraps
-from inspect import isgeneratorfunction
+from functools import reduce
 from typing import (
     Any,
-    Callable,
     Collection,
     Dict,
     Generator,
@@ -25,8 +19,7 @@ from typing import (
 
 from apischema.aliases import Aliaser
 from apischema.objects import AliasedStr
-from apischema.typing import get_args, is_annotated
-from apischema.utils import get_args2, get_origin2, merge_opts
+from apischema.utils import merge_opts
 
 try:
     from apischema.typing import Annotated
@@ -156,49 +149,3 @@ def build_validation_error(errors: Iterable[Error]) -> ValidationError:
                 children.get(key), _rec_build_error(remain, msg)
             )
     return ValidationError(messages, children)
-
-
-if sys.version_info >= (3, 7):  # pragma: no cover
-    GeneratorOrigin = collections.abc.Generator
-else:
-    GeneratorOrigin = Generator  # pragma: no cover
-
-
-# Looking forward to PEP 612
-def gather_errors(func: Callable[..., ValidatorResult[T]]) -> Callable[..., T]:
-    if not isgeneratorfunction(func):
-        raise TypeError("func must be a generator returning a ValidatorResult")
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        result, errors = func(*args, **kwargs), []
-        while True:
-            try:
-                errors.append(next(result))
-            except StopIteration as stop:
-                if errors:
-                    raise build_validation_error(errors)
-                return stop.value
-
-    if "return" in func.__annotations__:
-        ret = func.__annotations__["return"]
-        if isinstance(ret, str):
-            match = re.match(r"ValidatorResult\[(?P<ret>.*)\]", ret)
-            if match is not None:
-                ret = match.groupdict("ret")
-        else:
-            annotations = get_args(ret)[1:] if is_annotated(ret) else ()
-            if get_origin2(ret) == GeneratorOrigin:
-                ret = get_args2(ret)[2]
-                if annotations:
-                    ret = Annotated[(ret, *annotations)]
-        wrapper.__annotations__["return"] = ret
-    return wrapper
-
-
-def with_validation_error(*args, **kwargs):
-    warnings.warn(
-        "with_validation_error is deprecated, use gather_errors instead",
-        DeprecationWarning,
-    )
-    return gather_errors(*args, **kwargs)
