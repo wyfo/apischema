@@ -24,7 +24,7 @@ class Foo:
 
 assert serialize(Foo, Foo()) == {"bar": None}  # Logs "Serialization error in Foo.bar"
 assert serialization_schema(Foo) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "type": "object",
     "properties": {"bar": {"type": ["integer", "null"]}},
     "required": ["bar"],

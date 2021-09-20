@@ -148,10 +148,7 @@ However when the schema of the key has a `pattern`, it will give a `"patternProp
     
 ## Property dependencies
 
-*apischema* support [property dependencies](https://json schema.org/understanding-json schema/reference/object.html#property-dependencies) for dataclass through a class member. Dependencies are also used in validation.
-
-!!! note
-    JSON schema draft 2019-09 renames properties dependencies `dependentRequired` to disambiguate with schema dependencies
+*apischema* support [property dependencies](https://json-schema.org/understanding-json-schema/reference/conditionals.html#dependentrequired) for dataclass through a class member. Dependencies are also used in validation.
 
 ```python
 {!dependent_required.py!}
@@ -204,7 +201,7 @@ The default behavior can also be customized using `apischema.settings.default_ty
 
 ### Reference factory
 
-In JSON schema, `$ref` looks like `#/$defs/Foo`, not just `Foo`. In fact, schema generation use the ref given by `type_name`/`default_type_name` and pass it to a `ref_factory` function (a parameter of schema generation functions) which will convert it to its final form. [JSON schema version](#json-schemaopenapi-version) comes with its default `ref_factory`, for draft 2019-09, it prefixes the ref with `#/$defs/`, while it prefixes with `#/components/schema` in case of *OpenAPI*.
+In JSON schema, `$ref` looks like `#/$defs/Foo`, not just `Foo`. In fact, schema generation use the ref given by `type_name`/`default_type_name` and pass it to a `ref_factory` function (a parameter of schema generation functions) which will convert it to its final form. [JSON schema version](#json-schemaopenapi-version) comes with its default `ref_factory`, for draft 2020-12, it prefixes the ref with `#/$defs/`, while it prefixes with `#/components/schema` in case of *OpenAPI*.
 
 ```python
 {!ref_factory.py!}
@@ -227,7 +224,7 @@ Definitions schemas can also be extracted using `apischema.json_schema.definitio
 
 ## JSON schema / *OpenAPI* version
 
-JSON schema has several versions — *OpenAPI* is treated as a JSON schema version. If *apischema* natively use the last one: draft 2019-09, it is possible to specify a schema version which will be used for the generation.
+JSON schema has several versions — *OpenAPI* is treated as a JSON schema version. If *apischema* natively use the last one: draft 2020-12, it is possible to specify a schema version which will be used for the generation.
 
 ```python
 {!schema_versions.py!}

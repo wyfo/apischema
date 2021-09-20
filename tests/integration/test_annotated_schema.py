@@ -28,7 +28,7 @@ def test_annotated_schema():
         deserialization_schema(A)
         == serialization_schema(A)
         == {
-            "$schema": "http://json-schema.org/draft/2019-09/schema#",
+            "$schema": "http://json-schema.org/draft/2020-12/schema#",
             "type": "object",
             "properties": {
                 "a": {
@@ -46,7 +46,7 @@ def test_annotated_schema():
         deserialization_schema(A, all_refs=True)
         == serialization_schema(A, all_refs=True)
         == {
-            "$schema": "http://json-schema.org/draft/2019-09/schema#",
+            "$schema": "http://json-schema.org/draft/2020-12/schema#",
             "$ref": "#/$defs/A",
             "$defs": {
                 "A": {

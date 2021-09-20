@@ -32,7 +32,7 @@ def test_recursive_by_conversion_schema():
                 "additionalProperties": False,
             }
         },
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
+        "$schema": "http://json-schema.org/draft/2020-12/schema#",
     }
 
 
@@ -48,7 +48,7 @@ class WithSchema:
 
 def test_flattened_schema():
     assert deserialization_schema(WithSchema) == {
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
+        "$schema": "http://json-schema.org/draft/2020-12/schema#",
         "type": "object",
         "properties": {
             "attr1": {"type": "integer", "minimum": 3},

@@ -30,7 +30,7 @@ def test_typed_dict():
             },
             "required": ["key2"],
             "additionalProperties": False,
-            "$schema": "http://json-schema.org/draft/2019-09/schema#",
+            "$schema": "http://json-schema.org/draft/2020-12/schema#",
         }
     )
     assert deserialize(TD3, {"Key2": 0, "Key3": True}, aliaser=str.capitalize) == {

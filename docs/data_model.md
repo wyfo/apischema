@@ -271,7 +271,7 @@ Dataclass fields which are themselves dataclass can be "flattened" into the owni
 ```
 
 !!! note
-    This feature use JSON schema draft 2019-09 [`unevaluatedProperties` keyword](https://json-schema.org/draft/2019-09/json-schema-core.html#unevaluatedProperties). However, this keyword is removed when JSON schema is converted in a version that doesn't support it, like OpenAPI 3.0.
+    Generated JSON schema use [`unevaluatedProperties` keyword](https://json-schema.org/understanding-json-schema/reference/object.html?highlight=unevaluated#unevaluated-properties).
 
 This feature is very convenient for building model by composing smaller components. If some kind of reuse could also be achieved with inheritance, it can be less practical when it comes to use it in code, because there is no easy way to build an inherited class when you have an instance of the super class ; you have to copy all the fields by hand. On the other hand, using composition (of flattened fields), it's easy to instantiate the class when the smaller component is just a field of it.
 

@@ -42,7 +42,7 @@ class settings(metaclass=MetaSettings):
     ] = default_object_fields_
     default_schema: Callable[[AnyType], Optional[Schema]] = default_schema_
     default_type_name: Callable[[AnyType], Optional[TypeName]] = default_type_name_
-    json_schema_version: JsonSchemaVersion = JsonSchemaVersion.DRAFT_2019_09
+    json_schema_version: JsonSchemaVersion = JsonSchemaVersion.DRAFT_2020_12
 
     class deserialization(metaclass=ResetCache):
         coerce: bool = False

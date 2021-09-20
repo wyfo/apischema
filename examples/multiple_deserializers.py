@@ -21,7 +21,7 @@ def expression_from_value(value: int) -> Expression:
 
 
 assert deserialization_schema(Expression) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "type": ["string", "integer"],
 }
 assert deserialize(Expression, 0) == deserialize(Expression, "1 - 1") == Expression(0)

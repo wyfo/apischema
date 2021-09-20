@@ -26,7 +26,7 @@ class Foo:
 
 # Use Annotated with OneOf to make a "strict" Union
 assert deserialization_schema(Annotated[Union[Foo, int], OneOf]) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "oneOf": [  # oneOf instead of anyOf
         {"$ref": "http://some-domain.org/path/to/schema.json#/$defs/Foo"},
         {"type": "integer"},

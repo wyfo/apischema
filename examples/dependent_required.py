@@ -22,7 +22,7 @@ class Billing:
 
 
 assert deserialization_schema(Billing) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "additionalProperties": False,
     "dependentRequired": {"credit_card": ["billing_address"]},
     "properties": {

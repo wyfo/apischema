@@ -15,7 +15,7 @@ class Foo:
 
 
 assert deserialization_schema(Foo) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "additionalProperties": False,
     "properties": {"foo_field1": {}, "field2": {}, "foo_field03": {}, "field04": {}},
     "required": ["foo_field1", "field2", "foo_field03", "field04"],

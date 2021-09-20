@@ -28,6 +28,6 @@ with raises(ValidationError):
 assert serialize(Wrapper[str], Wrapper("wrapped")) == "wrapped"
 assert (
     deserialization_schema(Wrapper[int])
-    == {"$schema": "http://json-schema.org/draft/2019-09/schema#", "type": "integer"}
+    == {"$schema": "http://json-schema.org/draft/2020-12/schema#", "type": "integer"}
     == serialization_schema(Wrapper[int])
 )

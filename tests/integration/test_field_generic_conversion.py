@@ -31,5 +31,5 @@ def test_field_generic_conversion():
         "properties": {"values": {"type": "array", "items": {"type": "string"}}},
         "required": ["values"],
         "additionalProperties": False,
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
+        "$schema": "http://json-schema.org/draft/2020-12/schema#",
     }

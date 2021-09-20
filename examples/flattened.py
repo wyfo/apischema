@@ -27,17 +27,17 @@ class RootJsonSchema:
 
 
 data = {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "title": "flattened example",
 }
 root_schema = RootJsonSchema(
-    schema="http://json-schema.org/draft/2019-09/schema#",
+    schema="http://json-schema.org/draft/2020-12/schema#",
     json_schema=JsonSchema(title="flattened example"),
 )
 assert deserialize(RootJsonSchema, data) == root_schema
 assert serialize(RootJsonSchema, root_schema) == data
 assert deserialization_schema(RootJsonSchema) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "$defs": {
         "JsonSchema": {
             "type": "object",
