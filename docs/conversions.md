@@ -14,8 +14,6 @@ An *apischema* conversion is composed of a source type, let's call it `Source`, 
 
 When a class (actually, a non-builtin class, so not `int`/`list`/etc.) is deserialized, *apischema* will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then the converter will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply then converter, and get the target type.
 
-Conversion can only be applied on classes, not other types like `NewType`, etc. (see [FAQ](#why-dynamic-conversion-cannot-apply-on-the-whole-data-model))
-
 Conversions are also handled in schema generation: for a deserialization schema, source schema is merged to target schema, while target schema is merged to source schema for a serialization schema.
 
 
@@ -73,7 +71,7 @@ Pseudo-inheritance could be achieved by registering a conversion (using for exam
 {!generic_conversions.py!}
 ```
 
-However, it's not allowed to register a conversion of a specialized generic type, like `Foo[int]`(see [FAQ](#why-conversion-can-only-be-applied-on-classes-and-not-on-others-types-newtype-fooint-etc)).
+However, it's not allowed to register a conversion of a specialized generic type, like `Foo[int]`.
 
 ## Conversion object
 
