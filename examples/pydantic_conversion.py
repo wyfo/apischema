@@ -66,7 +66,7 @@ assert (  # schema is inherited from deserialized type
     apischema.json_schema.deserialization_schema(RGB)
     == apischema.json_schema.deserialization_schema(HexaRGB)
     == {
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
+        "$schema": "http://json-schema.org/draft/2020-12/schema#",
         "type": "string",
         "pattern": "#[0-9A-Fa-f]{6}",
     }

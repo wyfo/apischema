@@ -49,12 +49,12 @@ type B {
                 "additionalProperties": False,
             },
         },
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
+        "$schema": "http://json-schema.org/draft/2020-12/schema#",
     }
     assert serialization_schema(B) == {
         "type": "object",
         "properties": {"a": {"type": "integer"}},
         "required": ["a"],
         "additionalProperties": False,
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
+        "$schema": "http://json-schema.org/draft/2020-12/schema#",
     }

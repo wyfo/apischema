@@ -1,4 +1,5 @@
 from contextlib import suppress
+from dataclasses import dataclass
 from enum import Enum
 from functools import reduce
 from itertools import chain
@@ -19,8 +20,6 @@ from typing import (
     TypeVar,
     Union,
 )
-
-from dataclasses import dataclass
 
 from apischema.aliases import Aliaser
 from apischema.conversions import converters
@@ -275,7 +274,8 @@ class SchemaBuilder(
     def tuple(self, types: Sequence[AnyType]) -> JsonSchema:
         return json_schema(
             type=JsonType.ARRAY,
-            items=[self.visit(cls) for cls in types],
+            prefixItems=[self.visit(cls) for cls in types],
+            items=False,
             minItems=len(types),
             maxItems=len(types),
         )
@@ -485,7 +485,7 @@ def _schema(
         additional_properties, default_conversion, False, ref_factory, refs
     ).visit_with_conv(tp, conversion)
     json_schema = full_schema(json_schema, schema)
-    if add_defs:
+    if add_defs and version.defs:
         defs = _refs_schema(
             builder, default_conversion, refs, ref_factory, additional_properties
         )

@@ -74,21 +74,21 @@ def test_generic_ref_error(cls):
 
 def test_generic_schema():
     assert deserialization_schema(DataGeneric, all_refs=True) == {
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
+        "$schema": "http://json-schema.org/draft/2020-12/schema#",
         "type": "object",
         "properties": {"a": {}},
         "required": ["a"],
         "additionalProperties": False,
     }
     assert deserialization_schema(DataGeneric[int], all_refs=True) == {
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
+        "$schema": "http://json-schema.org/draft/2020-12/schema#",
         "type": "object",
         "properties": {"a": {"type": "integer"}},
         "required": ["a"],
         "additionalProperties": False,
     }
     assert deserialization_schema(DataGeneric[str], all_refs=True) == {
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
+        "$schema": "http://json-schema.org/draft/2020-12/schema#",
         "$ref": "#/$defs/StrData",
         "$defs": {
             "StrData": {

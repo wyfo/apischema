@@ -32,7 +32,7 @@ assert (
     serialization_schema(Foo[int])
     == serialization_schema(FooInt)
     == {
-        "$schema": "http://json-schema.org/draft/2019-09/schema#",
+        "$schema": "http://json-schema.org/draft/2020-12/schema#",
         "type": "object",
         "properties": {"bar": {"type": "integer"}, "baz": {"type": "integer"}},
         "required": ["bar", "baz"],

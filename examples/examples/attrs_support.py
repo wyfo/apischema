@@ -32,7 +32,7 @@ class Foo:
 assert deserialize(Foo, {"bar": 0}) == Foo(0)
 assert serialize(Foo, Foo(0)) == {"bar": 0}
 assert deserialization_schema(Foo) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "type": "object",
     "properties": {"bar": {"type": "integer"}},
     "required": ["bar"],

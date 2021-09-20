@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import Any, Callable, ClassVar, Dict, Mapping, Optional
+from typing import Any, Callable, ClassVar, Dict, Optional
 
 from apischema.conversions import Conversion, LazyConversion
-from apischema.json_schema.types import JsonSchema
+from apischema.json_schema.types import JsonSchema, JsonType
 
 RefFactory = Callable[[str], str]
 
@@ -18,8 +18,17 @@ def isolate_ref(schema: Dict[str, Any]):
         schema.setdefault("allOf", []).append({"$ref": schema.pop("$ref")})
 
 
-def to_json_schema_7(schema: JsonSchema) -> Mapping[str, Any]:
+def to_json_schema_2019_09(schema: JsonSchema) -> Dict[str, Any]:
     result = schema.copy()
+    if "prefixItems" in result:
+        if "items" in result:
+            result["additionalItems"] = result.pop("items")
+        result["items"] = result["prefixItems"]
+    return result
+
+
+def to_json_schema_7(schema: JsonSchema) -> Dict[str, Any]:
+    result = to_json_schema_2019_09(schema)
     isolate_ref(result)
     if "$defs" in result:
         result["definitions"] = {**result.pop("$defs"), **result.get("definitions", {})}
@@ -31,21 +40,31 @@ def to_json_schema_7(schema: JsonSchema) -> Mapping[str, Any]:
     return result
 
 
-def to_open_api_3_0(schema: JsonSchema) -> Mapping[str, Any]:
-    result = schema.copy()
-    for key in ("dependentRequired", "unevaluatedProperties", "$defs"):
+OPEN_API_3_0_UNSUPPORTED = [
+    "dependentRequired",
+    "unevaluatedProperties",
+    "additionalItems",
+]
+
+
+def to_open_api_3_0(schema: JsonSchema) -> Dict[str, Any]:
+    result = to_json_schema_2019_09(schema)
+    for key in OPEN_API_3_0_UNSUPPORTED:
         result.pop(key, ...)
     isolate_ref(result)
-    if "null" in result.get("type", ()):
-        result.setdefault("nullable", True)
-        if result["type"] == "null":
-            result.pop("type")
-        else:
-            types = [t for t in result["type"] if t != "null"]
-            result["type"] = types if len(types) > 1 else types[0]
     if {"type": "null"} in result.get("anyOf", ()):
         result.setdefault("nullable", True)
         result["anyOf"] = [a for a in result["anyOf"] if a != {"type": "null"}]
+    if "type" in result and not isinstance(result["type"], (str, JsonType)):
+        if "null" in result["type"]:
+            result.setdefault("nullable", True)
+        result["type"] = [t for t in result["type"] if t != "null"]
+        if len(result["type"]) > 1:
+            result.setdefault("anyOf", []).extend(
+                {"type": t} for t in result.pop("type")
+            )
+        else:
+            result["type"] = result["type"][0]
     if "examples" in result:
         result.setdefault("example", result.pop("examples")[0])
     if "const" in result:
@@ -59,6 +78,7 @@ class JsonSchemaVersion:
     ref_prefix: str = ""
     serialization: Optional[Callable] = None
     all_refs: bool = True
+    defs: bool = True
 
     @property
     def conversion(self) -> Optional[Conversion]:
@@ -77,17 +97,33 @@ class JsonSchemaVersion:
     def ref_factory(self) -> RefFactory:
         return ref_prefix(self.ref_prefix)
 
+    DRAFT_2020_12: ClassVar["JsonSchemaVersion"]
     DRAFT_2019_09: ClassVar["JsonSchemaVersion"]
     DRAFT_7: ClassVar["JsonSchemaVersion"]
     OPEN_API_3_0: ClassVar["JsonSchemaVersion"]
+    OPEN_API_3_1: ClassVar["JsonSchemaVersion"]
 
 
+JsonSchemaVersion.DRAFT_2020_12 = JsonSchemaVersion(
+    "http://json-schema.org/draft/2020-12/schema#", "#/$defs/", None, False, True
+)
 JsonSchemaVersion.DRAFT_2019_09 = JsonSchemaVersion(
-    "http://json-schema.org/draft/2019-09/schema#", "#/$defs/", None, False
+    "http://json-schema.org/draft/2020-12/schema#",
+    "#/$defs/",
+    to_json_schema_2019_09,
+    False,
+    True,
 )
 JsonSchemaVersion.DRAFT_7 = JsonSchemaVersion(
-    "http://json-schema.org/draft-07/schema#", "#/definitions/", to_json_schema_7, False
+    "http://json-schema.org/draft-07/schema#",
+    "#/definitions/",
+    to_json_schema_7,
+    False,
+    True,
 )
 JsonSchemaVersion.OPEN_API_3_0 = JsonSchemaVersion(
-    None, "#/components/schemas/", to_open_api_3_0, True
+    None, "#/components/schemas/", to_open_api_3_0, True, False
+)
+JsonSchemaVersion.OPEN_API_3_1 = JsonSchemaVersion(
+    None, "#/components/schemas/", None, True, False
 )

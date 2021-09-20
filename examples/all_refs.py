@@ -15,7 +15,7 @@ class Foo:
 
 
 assert deserialization_schema(Foo, all_refs=False) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "$defs": {
         "Bar": {
             "additionalProperties": False,
@@ -30,7 +30,7 @@ assert deserialization_schema(Foo, all_refs=False) == {
     "type": "object",
 }
 assert deserialization_schema(Foo, all_refs=True) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "$defs": {
         "Bar": {
             "additionalProperties": False,

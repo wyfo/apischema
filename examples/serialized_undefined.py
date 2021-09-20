@@ -14,7 +14,7 @@ class Foo:
 
 assert serialize(Foo, Foo()) == {}
 assert serialization_schema(Foo) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "type": "object",
     "properties": {"bar": {"type": "integer"}},
     "additionalProperties": False,

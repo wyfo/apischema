@@ -16,7 +16,7 @@ assert deserialize(Foo, {}) == Foo(Undefined, Undefined)
 assert serialize(Foo, Foo(Undefined, 42)) == {"baz": 42}
 # Foo.bar and Foo.baz are not required
 assert deserialization_schema(Foo) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "type": "object",
     "properties": {"bar": {"type": "integer"}, "baz": {"type": ["integer", "null"]}},
     "additionalProperties": False,

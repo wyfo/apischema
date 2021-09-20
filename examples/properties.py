@@ -28,7 +28,7 @@ assert deserialize(
     {"use_lightsaber": True},
 )
 assert deserialization_schema(Config) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "type": "object",
     "properties": {"active": {"type": "boolean", "default": True}},
     "additionalProperties": {"type": "boolean"},

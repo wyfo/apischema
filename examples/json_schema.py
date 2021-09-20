@@ -10,7 +10,7 @@ class Foo:
 
 assert deserialization_schema(Foo) == serialization_schema(Foo)
 assert deserialization_schema(Foo) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "additionalProperties": False,
     "properties": {"bar": {"type": "string"}},
     "required": ["bar"],

@@ -13,6 +13,6 @@ def ref_factory(ref: str) -> str:
 
 
 assert deserialization_schema(Foo, all_refs=True, ref_factory=ref_factory) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "$ref": "http://some-domain.org/path/to/Foo.json#",
 }

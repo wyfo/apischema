@@ -58,5 +58,5 @@ assert err.value.raw == "bad"
 assert (
     deserialization_schema(Recoverable[int])
     == serialization_schema(Recoverable[int])
-    == {"$schema": "http://json-schema.org/draft/2019-09/schema#", "type": "integer"}
+    == {"$schema": "http://json-schema.org/draft/2020-12/schema#", "type": "integer"}
 )

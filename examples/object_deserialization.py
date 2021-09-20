@@ -12,7 +12,7 @@ range_conv = object_deserialization(create_range, type_name("Range"))
 deserializer(range_conv)
 assert deserialize(range, {"start": 0, "stop": 10}) == range(0, 10)
 assert deserialization_schema(range) == {
-    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "type": "object",
     "properties": {
         "start": {"type": "integer"},

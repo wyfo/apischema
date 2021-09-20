@@ -35,7 +35,7 @@ def test_flattened_dataclass_model():
         deserialization_schema(Data)
         == serialization_schema(Data)
         == {
-            "$schema": "http://json-schema.org/draft/2019-09/schema#",
+            "$schema": "http://json-schema.org/draft/2020-12/schema#",
             "type": "object",
             "allOf": [
                 {"type": "object", "additionalProperties": False},
@@ -103,7 +103,7 @@ def test_flattened_converted():
         deserialization_schema(Data)
         == serialization_schema(Data)
         == {
-            "$schema": "http://json-schema.org/draft/2019-09/schema#",
+            "$schema": "http://json-schema.org/draft/2020-12/schema#",
             "type": "object",
             "allOf": [
                 {"type": "object", "additionalProperties": False},
