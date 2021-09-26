@@ -1,6 +1,6 @@
 # Data model
 
-*apischema* handle every classes/types you need.
+*apischema* handles every class/type you need.
 
 By the way, it's done in an additive way, meaning that it doesn't affect your types.
 
@@ -11,9 +11,9 @@ apischema fully support 3.9 and PEP 585, as shown in the different examples. How
 
 ## Dataclasses
 
-Because the library aims to bring the minimum boilerplate, it's build on the top of standard library. [Dataclasses](https://docs.python.org/3/library/dataclasses.html) are thus the core structure of the data model.
+Because the library aims to bring the minimum boilerplate, it's built on the top of standard library. [Dataclasses](https://docs.python.org/3/library/dataclasses.html) are thus the core structure of the data model.
 
-Dataclasses bring the possibility of field customization, with more than just a default value. In addition to the common parameters of [`dataclasses.field`](https://docs.python.org/3/library/dataclasses.html#dataclasses.field), customization is done with `metadata` parameter; metadata can also be passed using PEP 593 `typing.Annotated`.
+Dataclasses bring the possibility of field customization, with more than just a default value. In addition to the common parameters of [`dataclasses.field`](https://docs.python.org/3/library/dataclasses.html#dataclasses.field), customization is done with the `metadata` parameter; metadata can also be passed using PEP 593 `typing.Annotated`.
 
 With some teasing of features presented later:
 
@@ -22,20 +22,20 @@ With some teasing of features presented later:
 ```
 
 !!! note
-    Field's metadata are just an ordinary `dict`; *apischema* provides some functions to enrich these metadata with it's own keys (`alias("foo_bar)` is roughly equivalent to `{"_apischema_alias": "foo_bar"}) and use them when the time comes, but metadata are not reserved to *apischema* and other keys can be added.
+    Field's metadata are just an ordinary `dict`; *apischema* provides some functions to enrich these metadata with its own keys (`alias("foo_bar)` is roughly equivalent to `{"_apischema_alias": "foo_bar"}) and use them when the time comes, but metadata are not reserved to *apischema* and other keys can be added.
    
     Because [PEP 584](https://www.python.org/dev/peps/pep-0584/) is painfully missing before Python 3.9, *apischema* metadata use their own subclass of `dict` just to add `|` operator for convenience in all Python versions.
     
-Dataclasses `__post_init__` and `field(init=False)` are fully supported. Implication of this feature usage is documented in the relative sections.
+Dataclasses `__post_init__` and `field(init=False)` are fully supported. Implications of this feature usage are documented in the relative sections.
 
 !!! warning
-    Before 3.8, `InitVar` is doing [type erasure](https://bugs.python.org/issue33569), that's why it's not possible for *apischema* to retrieve type information of init variables. To fix this behavior, a field metadata `init_var` can be used to put back the type of the field (`init_var` also accepts stringified type annotations).
+    Before 3.8, `InitVar` is doing [type erasure](https://bugs.python.org/issue33569), which is why it's not possible for *apischema* to retrieve type information of init variables. To fix this behavior, a field metadata `init_var` can be used to put back the type of the field (`init_var` also accepts stringified type annotations).
 
-Dataclass-like types (*attrs*/*SQLAlchemy*/etc.) can also get support with a few lines of code, see [next section](#dataclass-like-types)
+Dataclass-like types (*attrs*/*SQLAlchemy*/etc.) can also be supported with a few lines of code, see [next section](#dataclass-like-types)
 
 ## Standard library types
 
-*apischema* handle natively most of the types provided by the standard library. They are sorted in the following categories:
+*apischema* natively handles most of the types provided by the standard library. They are sorted in the following categories:
 
 #### Primitive
 `str`, `int`, `float`, `bool`, `None`, subclasses of them
@@ -156,7 +156,7 @@ Here with PEP 563 (requires 3.7+)
 
 ## `null` vs. `undefined`
 
-Contrary to Javascript, Python doesn't have an `undefined` equivalent (if we consider `None` to be `null` equivalent). But it can be useful to distinguish (especially when thinkinn about HTTP `PATCH` method) between a `null` field and an `undefined`/absent field.
+Contrary to Javascript, Python doesn't have an `undefined` equivalent (if we consider `None` to be the equivalent of `null`). But it can be useful to distinguish (especially when thinking about HTTP `PATCH` method) between a `null` field and an `undefined`/absent field.
 
 That's why *apischema* provides an `Undefined` constant (a single instance of `UndefinedType` class) which can be used as a default value everywhere where this distinction is needed. In fact, default values are used when field are absent, thus a default `Undefined` will *mark* the field as absent. 
 
@@ -188,7 +188,7 @@ That's why *apischema* provides `none_as_undefined` metadata, allowing `None` to
 
 ## Custom types
 
-*apischema* can support almost all of your custom types in a few lines of code, using [conversion feature](conversions.md). However, it also provides a simple and direct way to support dataclass-like types, as presented [below](#dataclass-like-types-aka-object-types).
+*apischema* can support almost all of your custom types in a few lines of code, using the [conversion feature](conversions.md). However, it also provides a simple and direct way to support dataclass-like types, as presented [below](#dataclass-like-types-aka-object-types).
 
 Otherwise, when *apischema* encounters a type that it doesn't support, `apischema.Unsupported` exception will be raised.
 
@@ -245,7 +245,7 @@ Examples of [*SQLAlchemy* support](examples/sqlalchemy_support.md) and [attrs su
 
 ## Skip field
 
-Dataclass fields can be excluded from *apischema* processing by using `apischema.metadata.skip` in the field metadata. It can be parametrized with `deserialization`/`serialization` boolean parameters to skip field only for the given operations.
+Dataclass fields can be excluded from *apischema* processing by using `apischema.metadata.skip` in the field metadata. It can be parametrized with `deserialization`/`serialization` boolean parameters to skip a field only for the given operations.
 
 ```python
 {!skip.py!}   
@@ -256,7 +256,7 @@ Dataclass fields can be excluded from *apischema* processing by using `apischema
 
 ### Skip field serialization depending on condition
 
-Field can also be skipped when serializing, depending on condition given by `serialization_if`, or when the field value is equal to its default value with `serialization_default=True`.
+Field can also be skipped when serializing, depending on the condition given by `serialization_if`, or when the field value is equal to its default value with `serialization_default=True`.
 
 ```python
 {!skip_if.py!}   
@@ -264,7 +264,7 @@ Field can also be skipped when serializing, depending on condition given by `ser
     
 ## Composition over inheritance - composed dataclasses flattening
 
-Dataclass fields which are themselves dataclass can be "flattened" into the owning one by using `flatten` metadata. Then, when the class will be (de)serialized, "flattened" fields will be (de)serialized at the same level than the owning class.
+Dataclass fields which are themselves dataclass can be "flattened" into the owning one by using `flatten` metadata. Then, when the class is (de)serialized, "flattened" fields will be (de)serialized at the same level as the owning class.
 
 ```python
 {!flattened.py!}
@@ -273,12 +273,12 @@ Dataclass fields which are themselves dataclass can be "flattened" into the owni
 !!! note
     Generated JSON schema use [`unevaluatedProperties` keyword](https://json-schema.org/understanding-json-schema/reference/object.html?highlight=unevaluated#unevaluated-properties).
 
-This feature is very convenient for building model by composing smaller components. If some kind of reuse could also be achieved with inheritance, it can be less practical when it comes to use it in code, because there is no easy way to build an inherited class when you have an instance of the super class ; you have to copy all the fields by hand. On the other hand, using composition (of flattened fields), it's easy to instantiate the class when the smaller component is just a field of it.
+This feature is very convenient for building model by composing smaller components. If some kind of reuse could also be achieved with inheritance, it can be less practical when it comes to use it in code, because there is no easy way to build an inherited class when you have an instance of the super class; you have to copy all the fields by hand. On the other hand, using composition (of flattened fields), it's easy to instantiate the class when the smaller component is just a field of it.
 
 ## FAQ
 
-#### Why `Iterable` is not handled with other collection type?
-Iterable could be handled (actually, it was at the beginning), however, this doesn't really make sense from a data point of view. Iterable are computation objects, they can be infinite, etc. They don't correspond to a serialized data; `Collection` is way more appropriate in this context.
+#### Why isn't `Iterable` handled with other collection types?
+Iterable could be handled (actually, it was at the beginning), however, this doesn't really make sense from a data point of view. Iterables are computation objects, they can be infinite, etc. They don't correspond to a serialized data; `Collection` is way more appropriate in this context.
 
 #### What happens if I override dataclass `__init__`?
-*apischema* always assumes that dataclass `__init__` can be called with all its fields as kwargs parameters. If that's no more the case after a modification of `__init__` (what means if an exception is thrown when the constructor is called because of bad parameters), *apischema* treats then the class as [not supported](#unsupported-types).
+*apischema* always assumes that dataclass `__init__` can be called with all its fields as kwargs parameters. If that's no longer the case after a modification of `__init__` (what means if an exception is thrown when the constructor is called because of bad parameters), *apischema* treats then the class as [not supported](#unsupported-types).

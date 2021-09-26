@@ -4,10 +4,10 @@
 
 ## Precomputed (de)serialization methods
 
-*apischema* precompute (de)serialization methods depending on the (de)serialized type (and other parameters); type annotations processing is done in the precomputation. Methods are then cached using `functools.lru_cache`, so `deserialize` and `serialize` don't recompute them every time.
+*apischema* precomputes (de)serialization methods depending on the (de)serialized type (and other parameters); type annotations processing is done in the precomputation. Methods are then cached using `functools.lru_cache`, so `deserialize` and `serialize` don't recompute them every time.
 
 !!! note
-    Cache is automatically reset when global settings are modified, because it impacts the generated methods.
+    The cache is automatically reset when global settings are modified, because it impacts the generated methods.
 
 However, if `lru_cache` is fast, using the methods directly is faster, so *apischema* provides `apischema.deserialization_method` and `apischema.serialization_method`. These functions share the same parameters than `deserialize`/`serialize`, except the data/object parameter to (de)serialize. Using the computed methods directly can increase performances by 10%.
 
@@ -35,7 +35,7 @@ Container types like `list` or `dict` are passed through only when the contained
 
 ### Passthrough options
 
-Some JSON serialization libraries support natively types like `UUID` or `datetime`, with sometimes faster implementation than *apischema* one — [orjson](https://github.com/ijl/orjson), written in Rust, is a good example.
+Some JSON serialization libraries natively support types like `UUID` or `datetime`, sometimes with a faster implementation than the *apischema* one — [orjson](https://github.com/ijl/orjson), written in Rust, is a good example.
 
 To take advantage of that, *apischema* provides `apischema.PassThroughOptions` class to specify which type should be passed through, whether they are supported natively by JSON libraries (or handled in a `default` fallback). 
 
@@ -54,7 +54,7 @@ To take advantage of that, *apischema* provides `apischema.PassThroughOptions` c
 
 #### `collections` — pass through collections
 
-Standard collections `list`, `tuple` and `dict` are natively handled by JSON libraries, but `set`, for example, isn't. Moreover, standard abstract collections like `Collection` or `Mapping`, which are a lot used, are
+Standard collections `list`, `tuple` and `dict` are natively handled by JSON libraries, but `set`, for example, isn't. Moreover, standard abstract collections like `Collection` or `Mapping`, which are used a lot, are
 not guaranteed to have their runtime type supported (having a `set` annotated with
 `Collection` for instance). 
 
@@ -65,7 +65,7 @@ But, most of the time, collections runtime types are `list`/`dict`, so others ca
 
 #### `dataclasses` — pass through dataclasses
 
-Some JSON serialization libraries also support dataclasses. However, *apischema* has a few features concerning dataclasses, which may not have equivalent in these libraries. To specify which features are supported, `dataclasses` parameter can be an instance of `PassThroughOptions.Dataclasses`, whose each boolean field refers to a particular feature :  
+Some JSON serialization libraries also support dataclasses. However, *apischema* has a few features concerning dataclasses, which may not have equivalents in these libraries. To specify which features are supported, the `dataclasses` parameter can be an instance of `PassThroughOptions.Dataclasses`, whose each boolean field refers to a particular feature :  
 
 - [`aliaser`](json_schema.md#dynamic-aliasing-and-default-aliaser)
 - [`aliased_fields`](json_schema.md#field-alias)
@@ -75,7 +75,7 @@ Some JSON serialization libraries also support dataclasses. However, *apischema*
 - [`skipped_if_fields`](data_model.md#skip-field-serialization-depending-on-condition)
 
 !!! note
-    `dataclasses=True` is equivalent to `dataclasses=PassThroughOptions.Dataclasses()` (which is equivalent to `dataclasses=PassThroughOptions.Dataclasses(False, False, False, False, False))`
+    `dataclasses=True` is equivalent to `dataclasses=PassThroughOptions.Dataclasses()` (which is equivalent to `dataclasses=PassThroughOptions.Dataclasses(False, False, False, False, False)`)
 
 #### `enums` — pass through enums
 

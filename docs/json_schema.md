@@ -2,7 +2,7 @@
 
 ## JSON schema generation
 
-JSON schema can be generated from data model. However, because of all possible [customizations](conversions.md), schema can be differ between deserilialization and serialization. In common cases, `deserialization_schema` and `serialization_schema` will give the same result.
+JSON schema can be generated from data model. However, because of all possible [customizations](conversions.md), the schema can differ between deserilialization and serialization. In common cases, `deserialization_schema` and `serialization_schema` will give the same result.
 
 ```python
 {!json_schema.py!}
@@ -10,7 +10,7 @@ JSON schema can be generated from data model. However, because of all possible [
 
 ## Field alias
 
-Sometimes dataclass field names can clash with language keyword, sometimes the property name is not convenient. Hopefully, field can define an `alias` which will be used in schema and  deserialization/serialization.
+Sometimes dataclass field names can clash with a language keyword, sometimes the property name is not convenient. Hopefully, field can define an `alias` which will be used in schema and  deserialization/serialization.
 
 ```python
 {!alias.py!}
@@ -86,7 +86,7 @@ max_props | maxProperties | `dict`
 
 ### Constraints validation
 
-JSON schema constrains the data deserialized; this constraints are naturally used for validation.
+JSON schema constrains the data deserialized; these constraints are naturally used for validation.
 
 ```python
 {!validation_error.py!}
@@ -148,7 +148,7 @@ However when the schema of the key has a `pattern`, it will give a `"patternProp
     
 ## Property dependencies
 
-*apischema* support [property dependencies](https://json-schema.org/understanding-json-schema/reference/conditionals.html#dependentrequired) for dataclass through a class member. Dependencies are also used in validation.
+*apischema* supports [property dependencies](https://json-schema.org/understanding-json-schema/reference/conditionals.html#dependentrequired) for dataclass through a class member. Dependencies are also used in validation.
 
 ```python
 {!dependent_required.py!}

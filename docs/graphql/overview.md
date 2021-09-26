@@ -1,6 +1,6 @@
 # GraphQL Overview
 
-*apischema* supports *GraphQL* through [*graphql-core*](https://github.com/graphql-python/graphql-core) library.
+*apischema* supports *GraphQL* through the [*graphql-core*](https://github.com/graphql-python/graphql-core) library.
 
 You can install this dependency directly with *apischema* using the following extra requirement:
 ```shell

@@ -1,8 +1,8 @@
 # (De)serialization
 
-*apischema* aims to help API with deserialization/serialization of data, mostly JSON.
+*apischema* aims to help with deserialization/serialization of API data, mostly JSON.
 
-Let start again with the [overview example](index.md#example)
+Let's start again with the [overview example](index.md#example)
 ```python
 {!quickstart.py!}
 ```
@@ -23,7 +23,7 @@ Deserialization performs a validation of data, based on typing annotations and o
 
 *apischema* is strict by default. You ask for an integer, you have to receive an integer. 
 
-However, in some cases, data has to be be coerced, for example when parsing aconfiguration file. That can be done using `coerce` parameter; when set to `True`, all primitive types will be coerce to the expected type of the data model like the following:
+However, in some cases, data has to be be coerced, for example when parsing a configuration file. That can be done using `coerce` parameter; when set to `True`, all primitive types will be coerced to the expected type of the data model like the following:
 
 ```python
 {!coercion.py!}
@@ -41,7 +41,7 @@ However, in some cases, data has to be be coerced, for example when parsing acon
 | off | on |
 | ko | ok |
 
-`coerce` parameter can also receive a coercion function which will then be used instead of default one.
+The `coerce` parameter can also receive a coercion function which will then be used instead of default one.
 
 ```python
 {!coercion_function.py!}
@@ -55,9 +55,9 @@ However, in some cases, data has to be be coerced, for example when parsing acon
     
 #### Additional properties
 
-*apischema* is strict too about number of fields received for an *object*. In JSON schema terms, *apischema* put `"additionalProperties": false` by default (this can be configured by class with [properties field](#additional-and-pattern-properties)). 
+*apischema* is strict too about the number of fields received for an *object*. In JSON schema terms, *apischema* put `"additionalProperties": false` by default (this can be configured by class with [properties field](#additional-and-pattern-properties)). 
 
-This behavior can be controlled by `additional_properties` parameter. When set to `True`, it prevents the reject of unexpected properties. 
+This behavior can be controlled by `additional_properties` parameter. When set to `True`, it prevents the rejection of unexpected properties. 
 
 ```python
 {!additional_properties.py!}
@@ -65,7 +65,7 @@ This behavior can be controlled by `additional_properties` parameter. When set t
 
 #### Fall back on default
 
-Validation error can happen when deserializing an ill-formed field. However, if this field has a default value/factory, deserialization can fall back on this default; this is enabled by `fall_back_on_default` parameter. This behavior can also be configured for each field using metadata. 
+Validation errors can happen when deserializing an ill-formed field. However, if this field has a default value/factory, deserialization can fall back on this default; this is enabled by `fall_back_on_default` parameter. This behavior can also be configured for each field using metadata. 
 
 ```python
 {!fall_back_on_default.py!}
@@ -104,7 +104,7 @@ settings.coercer = coercer
 
 ## Fields set
 
-Sometimes, it can be useful to know which field has been set by the deserialization, for example in the case of a *PATCH* requests, to know which field has been updated. Moreover, it is also used in serialization to limit the fields serialized (see [next section](#exclude-unset-fields))
+Sometimes, it can be useful to know which field has been set by the deserialization, for example in the case of *PATCH* requests, to know which field has been updated. Moreover, it is also used in serialization to limit the fields serialized (see [next section](#exclude-unset-fields))
 
 Because *apischema* use vanilla dataclasses, this feature is not enabled by default and must be set explicitly on a per-class basis. *apischema* provides a simple API to get/set this metadata.  
 
@@ -113,7 +113,7 @@ Because *apischema* use vanilla dataclasses, this feature is not enabled by defa
 ```
 
 !!! warning
-    `with_fields_set` decorator MUST be put above `dataclass` one. This is because both of them modify `__init__` method, but only the first is built to take the second in account.
+    The `with_fields_set` decorator MUST be put above `dataclass` one. This is because both of them modify `__init__` method, but only the first is built to take the second in account.
     
 !!! warning
     `dataclasses.replace` works by setting all the fields of the replaced object. Because of this issue, *apischema* provides a little wrapper `apischema.dataclasses.replace`.
@@ -134,8 +134,8 @@ Because *apischema* use vanilla dataclasses, this feature is not enabled by defa
 
 ### Type checking
 
-Serialization can be configured using `check_type` (default to `False`) and `fall_back_on_any` (default to `False`) parameters. If `check_type` is `True`, serialized object type will be checked to match the serialized type.
-If it doesn't, `fall_back_on_any` allows bypassing serialized type to use `typing.Any` instead, i.e. to use the serialized object class.
+Serialization can be configured using `check_type` (default to `False`) and `fall_back_on_any` (default to `False`) parameters. If `check_type` is `True`, the serialized object type will be checked to match the serialized type.
+If it doesn't, `fall_back_on_any` allows bypassing the serialized type to use `typing.Any` instead, i.e. to use the serialized object class.
 
 The default values of these parameters can be modified through `apischema.settings.serialization.check_type` and `apischema.settings.serialization.fall_back_on_any`.
 
@@ -153,16 +153,16 @@ The function name is used unless an alias is given in decorator argument.
 ```
 
 !!! note
-    Serialized methods must not have parameters without default, as *apischema* need to execute them without arguments
+    Serialized methods must not have parameters without default, as *apischema* needs to execute them without arguments
 
 !!! note
-    Overriding of a serialized method in a subclass will also override the serialization of the subclass. 
+    Overriding of a serialized method in a subclass will also override the serialization of the subclass.
 
 #### Error handling
 
 Errors occurring in serialized methods can be caught in a dedicated error handler registered with `error_handler` parameter. This function takes in parameters the exception, the object and the alias of the serialized method; it can return a new value or raise the current or another exception — it can for example be used to log errors without throwing the complete serialization.
 
-The resulting serialization type will be a `Union` of the normal type and the error handling type ; if the error handler always raises, use [`typing.NoReturn`](https://docs.python.org/3/library/typing.html#typing.NoReturn) annotation. 
+The resulting serialization type will be a `Union` of the normal type and the error handling type; if the error handler always raises, use [`typing.NoReturn`](https://docs.python.org/3/library/typing.html#typing.NoReturn) annotation.
 
 `error_handler=None` correspond to a default handler which only return `None` — exception is thus discarded and serialization type becomes `Optional`.
 
@@ -174,7 +174,7 @@ The error handler is only executed by *apischema* serialization process, it's no
 
 #### Non-required serialized methods
 
-Serialized methods (or their error handler) can return `apischema.Undefined`, in which case the property will not be included into the serialization; accordingly, the property loose the *required* qualification in the JSON schema.
+Serialized methods (or their error handler) can return `apischema.Undefined`, in which case the property will not be included into the serialization; accordingly, the property loses the *required* qualification in the JSON schema.
 
 ```python
 {!serialized_undefined.py!}
@@ -202,7 +202,7 @@ Using the previous feature of [fields set tracking](#fields-set), `serialize` ca
 !!! note
     As written in comment in the example, `with_fields_set` is necessary to benefit from the feature. If the dataclass don't use it, the feature will have no effect.
     
-Sometimes, some fields must be serialized, even with their default value; this behavior can be enforced using field metadata. With it, field will be marked as set even if its default value is used at initialization.
+Sometimes, some fields must be serialized, even with their default value; this behavior can be enforced using field metadata. With it, a field will be marked as set even if its default value is used at initialization.
 
 ```python
 {!default_as_set.py!}
@@ -267,13 +267,13 @@ Also, `order` can again be used as class decorator to override ordering metadata
 
 ## FAQ
 
-#### Why coercion is not default behavior?
+#### Why isn't coercion the default behavior?
 Because ill-formed data can be symptomatic of deeper issues, it has been decided that highlighting them would be better than hiding them. By the way, this is easily globally configurable.
 
-#### Why `with_fields_set` feature is not enable by default?
+#### Why isn't `with_fields_set` enabled by default?
 It's true that this feature has the little cost of adding a decorator everywhere. However, keeping dataclass decorator allows IDEs/linters/type checkers/etc. to handle the class as such, so there is no need to develop a plugin for them. Standard compliance can be worth the additional decorator. (And little overhead can be avoided when not useful)
 
-#### Why serialization type checking not enabled by default?
+#### Why isn't serialization type checking enabled by default?
 
 Type checking has a runtime cost, which means poorer performance. Moreover, as explained in [performances section](performance_and_benchmark.md#serialization-passthrough), it prevents "passthrough" optimization. At last, code is supposed to be statically verified, and thus types already checked. (If some silly things are done and leads to have unsupported types passed to the JSON library, an error will be raised anyway).
 
