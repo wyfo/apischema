@@ -1,8 +1,8 @@
 # apischema
 
-Makes your life easier when it comes to python API.
+`apischema` makes your life easier when dealing with API data.
 
-JSON (de)serialization, *GraphQL* and JSON schema generation through python typing, with a spoonful of sugar.
+This library offers JSON (de)serialization, *GraphQL* and JSON schema generation through python typing, with a spoonful of sugar.
 
 ## Documentation
 
@@ -18,11 +18,11 @@ It requires only Python 3.6+ (and dataclasses [official backport](https://pypi.o
 
 ## Why another library?
 
-(If you wonder what the difference is with *pydantic* library, see the [dedicated section of the documentation](https://wyfo.github.io/apischema/difference_with_pydantic/), you will find a lot of difference.)
+(If you wonder how this differs from the *pydantic* library, see the [dedicated section of the documentation](https://wyfo.github.io/apischema/difference_with_pydantic/) — there are many differences.)
 
 This library fulfills the following goals:
 
-- stay as close as possible to the standard library (dataclasses, typing, etc.) — as a consequence do not need plugins for editors/linters/etc.;
+- stay as close as possible to the standard library (dataclasses, typing, etc.) — as a consequence we do not need plugins for editors/linters/etc.;
 - be adaptable, provide tools to support any types (ORM, etc.);
 - avoid dynamic things like using raw strings for attributes name - play nicely with your IDE.
 
