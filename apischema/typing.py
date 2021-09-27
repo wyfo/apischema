@@ -12,6 +12,7 @@ from typing import (  # type: ignore
     Tuple,
     Type,
     TypeVar,
+    Union,
     _eval_type,
 )
 
@@ -301,3 +302,7 @@ else:
 def is_type(tp: Any) -> bool:
     """isinstance is not enough because in py39: isinstance(list[int], type) == True"""
     return isinstance(tp, type) and not get_args(tp)
+
+
+def is_union(tp: Any) -> bool:
+    return get_origin(tp) is Union

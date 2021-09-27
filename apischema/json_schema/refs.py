@@ -18,7 +18,13 @@ from apischema.conversions.visitor import (
     DeserializationVisitor,
     SerializationVisitor,
 )
+from apischema.discriminators import (
+    discriminate_types,
+    discriminate_union,
+    inherited_discriminator,
+)
 from apischema.json_schema.conversions_resolver import WithConversionsResolver
+from apischema.metadata.keys import DISCRIMINATOR_METADATA
 from apischema.objects import ObjectField
 from apischema.objects.visitor import (
     DeserializationObjectVisitor,
@@ -26,7 +32,7 @@ from apischema.objects.visitor import (
     SerializationObjectVisitor,
 )
 from apischema.type_names import TypeNameFactory, get_type_name
-from apischema.types import AnyType
+from apischema.types import AnyType, NoneType, UndefinedType
 from apischema.utils import is_hashable, replace_builtins
 from apischema.visitor import Unsupported
 
@@ -65,7 +71,12 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
             self.refs[ref] = (ref_cls, count + 1)
             return count > 0
 
+    def _discriminate(self, property_name: str, mapping: Mapping[str, AnyType]):
+        for discriminated in mapping.values():
+            self._incr_ref(get_type_name(discriminated).json_schema, discriminated)
+
     def annotated(self, tp: AnyType, annotations: Sequence[Any]):
+        discriminator = None
         for i, annotation in enumerate(reversed(annotations)):
             if isinstance(annotation, TypeNameFactory):
                 ref = annotation.to_type_name(tp).json_schema
@@ -75,7 +86,14 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
                 annotated = Annotated[(tp, *ref_annotations)]  # type: ignore
                 if self._incr_ref(ref, annotated):
                     return
-        return super().annotated(tp, annotations)
+            if isinstance(annotation, Mapping):
+                if DISCRIMINATOR_METADATA in annotation:
+                    discriminator = discriminate_union(
+                        tp, self.has_conversion, annotation[DISCRIMINATOR_METADATA]
+                    )
+        super().annotated(tp, annotations)
+        if discriminator:
+            self._discriminate(*discriminator)
 
     def any(self):
         pass
@@ -96,6 +114,11 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
     def object(self, tp: AnyType, fields: Sequence[ObjectField]):
         for field in fields:
             self.visit_with_conv(field.type, self._field_conversion(field))
+        inherited = inherited_discriminator(tp)
+        if inherited is not None:
+            self._incr_ref(
+                get_type_name(inherited).json_schema or inherited.__name__, inherited
+            )
 
     def primitive(self, cls: Type):
         pass
@@ -103,6 +126,17 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
     def tuple(self, types: Sequence[AnyType]):
         for cls in types:
             self.visit(cls)
+
+    def union(self, alternatives: Sequence[AnyType]):
+        # visiting must be done before self._discriminate, because it would otherwise
+        # make _incr_ref return True in self.visit
+        self._union_results(alternatives)
+        discriminator = discriminate_types(
+            [alt for alt in alternatives if alt not in (NoneType, UndefinedType)],
+            self.has_conversion,
+        )
+        if discriminator is not None:
+            self._discriminate(*discriminator)
 
     def _visited_union(self, results: Sequence):
         pass

@@ -9,6 +9,7 @@ __all__ = [
     "deserialization_method",
     "deserialize",
     "deserializer",
+    "discriminator",
     "identity",
     "order",
     "properties",
@@ -42,6 +43,7 @@ from .aliases import alias
 from .conversions import deserializer, serializer
 from .dependencies import dependent_required
 from .deserialization import deserialization_method, deserialize
+from .discriminators import discriminator
 from .metadata import properties
 from .ordering import order
 from .schemas import schema

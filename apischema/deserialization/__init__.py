@@ -31,17 +31,22 @@ from apischema.conversions.visitor import (
 from apischema.dependencies import get_dependent_required
 from apischema.deserialization.coercion import Coerce, Coercer
 from apischema.deserialization.flattened import get_deserialization_flattened_aliases
+from apischema.discriminators import discriminate_types, discriminate_union
 from apischema.json_schema.patterns import infer_pattern
 from apischema.json_schema.types import bad_type
 from apischema.metadata.implem import ValidatorsMetadata
-from apischema.metadata.keys import SCHEMA_METADATA, VALIDATORS_METADATA
+from apischema.metadata.keys import (
+    DISCRIMINATOR_METADATA,
+    SCHEMA_METADATA,
+    VALIDATORS_METADATA,
+)
 from apischema.objects import ObjectField
 from apischema.objects.fields import FieldKind
 from apischema.objects.visitor import DeserializationObjectVisitor
 from apischema.recursion import RecursiveConversionsVisitor
 from apischema.schemas import Schema, get_schema
 from apischema.schemas.constraints import Check, Constraints, merge_constraints
-from apischema.types import AnyType, NoneType
+from apischema.types import AnyType, NoneType, UndefinedType
 from apischema.typing import get_args, get_origin
 from apischema.utils import (
     Lazy,
@@ -157,20 +162,6 @@ class DeserializationMethodVisitor(
             self.fall_back_on_default,
         )
 
-    def annotated(
-        self, tp: AnyType, annotations: Sequence[Any]
-    ) -> DeserializationMethodFactory:
-        factory = super().annotated(tp, annotations)
-        for annotation in reversed(annotations):
-            if isinstance(annotation, Mapping):
-                factory = factory.merge(
-                    get_constraints(annotation.get(SCHEMA_METADATA)),
-                    annotation.get(
-                        VALIDATORS_METADATA, ValidatorsMetadata(())
-                    ).validators,
-                )
-        return factory
-
     def _wrap(
         self,
         method: DeserializationMethod,
@@ -193,6 +184,70 @@ class DeserializationMethodVisitor(
                 return result
 
         return method
+
+    def _discriminate(
+        self, property_name: str, mapping: Mapping[str, AnyType]
+    ) -> DeserializationMethodFactory:
+        factories = {k: self.visit(t) for k, t in mapping.items()}
+        coercer = self.coercer
+
+        def factory(
+            constraints: Optional[Constraints], validators: Sequence[Validator]
+        ) -> DeserializationMethod:
+            deserializers = {
+                key: fact.merge(constraints, validators).method
+                for key, fact in factories.items()
+            }
+            alias = self.aliaser(property_name)
+            error = f"not one of {list(deserializers)} (discriminator)"
+
+            def method(data: Any) -> Any:
+                try:
+                    value = data[alias]
+                except KeyError:
+                    if not isinstance(data, dict):
+                        raise bad_type(data, dict) from None
+                    raise ValidationError(
+                        [], {alias: ValidationError([MISSING_PROPERTY])}
+                    ) from None
+                except Exception:
+                    raise bad_type(data, dict) from None
+                try:
+                    if coercer:
+                        value = coercer(str, value)
+                    if not isinstance(value, str):
+                        raise ValidationError([], {alias: bad_type(value, str)})
+                    deserialize_discriminated = deserializers[value]
+                except KeyError:
+                    raise ValidationError(
+                        [], {alias: ValidationError([error])}
+                    ) from None
+                return deserialize_discriminated(data)
+
+            return self._wrap(method, validators, dict)
+
+        return DeserializationMethodFactory(factory)
+
+    def annotated(
+        self, tp: AnyType, annotations: Sequence[Any]
+    ) -> DeserializationMethodFactory:
+        factory = super().annotated(tp, annotations)
+        discriminator = None
+        for annotation in reversed(annotations):
+            if isinstance(annotation, Mapping):
+                factory = factory.merge(
+                    get_constraints(annotation.get(SCHEMA_METADATA)),
+                    annotation.get(
+                        VALIDATORS_METADATA, ValidatorsMetadata(())
+                    ).validators,
+                )
+                if DISCRIMINATOR_METADATA in annotation:
+                    discriminator = discriminate_union(
+                        tp, self.has_conversion, annotation[DISCRIMINATOR_METADATA]
+                    )
+        # In case of discriminator, tp will have been visited for nothing, but the
+        # code is simpler like this
+        return factory if discriminator is None else self._discriminate(*discriminator)
 
     def any(self) -> DeserializationMethodFactory:
         def factory(
@@ -655,7 +710,17 @@ class DeserializationMethodVisitor(
         return DeserializationMethodFactory(factory)
 
     def union(self, alternatives: Sequence[AnyType]) -> DeserializationMethodFactory:
-        alt_factories = self._union_results(alternatives)
+        discriminator = discriminate_types(
+            [alt for alt in alternatives if alt not in (NoneType, UndefinedType)],
+            self.has_conversion,
+        )
+        alt_factories = (
+            self._union_results((alt for alt in alternatives if alt is not NoneType))
+            if discriminator is None
+            else [self._discriminate(*discriminator)]
+        )
+        if NoneType in alternatives:
+            alt_factories = [*alt_factories, self.visit(NoneType)]
         if len(alt_factories) == 1:
             return alt_factories[0]
 
@@ -666,7 +731,7 @@ class DeserializationMethodVisitor(
                 fact.merge(constraints, validators).method for fact in alt_factories
             ]
             coercer = self.coercer
-            if NoneType is alternatives[-1] and len(alt_methods) == 2:
+            if NoneType in alternatives and len(alt_methods) == 2:
                 deserialize_alt = alt_methods[0]
 
                 def method(data: Any) -> Any:

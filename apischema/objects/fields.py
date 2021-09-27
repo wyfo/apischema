@@ -28,6 +28,7 @@ from apischema.metadata.keys import (
     ALIAS_NO_OVERRIDE_METADATA,
     CONVERSION_METADATA,
     DEFAULT_AS_SET_METADATA,
+    DISCRIMINATOR_METADATA,
     FALL_BACK_ON_DEFAULT_METADATA,
     FLATTEN_METADATA,
     NONE_AS_UNDEFINED_METADATA,
@@ -127,6 +128,10 @@ class ObjectField:
         return conversion.deserialization if conversion is not None else None
 
     @property
+    def discriminator(self) -> bool:
+        return DISCRIMINATOR_METADATA in self.full_metadata
+
+    @property
     def fall_back_on_default(self) -> bool:
         return (
             FALL_BACK_ON_DEFAULT_METADATA in self.full_metadata
@@ -178,7 +183,7 @@ class ObjectField:
 
     @property
     def skip(self) -> SkipMetadata:
-        return self.metadata.get(SKIP_METADATA, SkipMetadata())
+        return self.full_metadata.get(SKIP_METADATA, SkipMetadata())
 
     def skippable(self, default: bool, none: bool) -> bool:
         return bool(

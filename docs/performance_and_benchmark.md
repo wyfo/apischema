@@ -96,6 +96,11 @@ Either a collection of types, or a predicate to determine if type has to be pass
 !!! note
     The example above doesn't even use `serialization_method` with `pass_through`, or `serialization_default`, and is still slower.
 
+
+## Discriminator
+
+OpenAPI defines a [discriminator object](https://spec.openapis.org/oas/v3.1.0#discriminator-object) which can be used to shortcut deserialization of union of object types.
+
 ## Benchmark 
 
 !!! note
