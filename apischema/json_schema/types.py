@@ -52,10 +52,11 @@ TYPE_TO_JSON_TYPE = JsonTypes(
 )
 
 
-def bad_type(data: Any, expected: type) -> ValidationError:
+def bad_type(data: Any, *expected: type) -> ValidationError:
     msgs = [
-        f"expected type {JsonType.from_type(expected)},"
+        f"expected type {JsonType.from_type(tp)},"
         f" found {JsonType.from_type(data.__class__)}"
+        for tp in expected
     ]
     return ValidationError(msgs)
 

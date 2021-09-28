@@ -68,18 +68,18 @@ T = TypeVar("T")
 
 
 DeserializationMethod = Callable[[Any], T]
+Factory = Callable[[Optional[Constraints], Sequence[Validator]], DeserializationMethod]
 
 
 @dataclass(frozen=True)
 class DeserializationMethodFactory:
-    factory: Callable[
-        [Optional[Constraints], Sequence[Validator]], DeserializationMethod
-    ]
+    factory: Factory
+    cls: Optional[type] = None
     constraints: Optional[Constraints] = None
-    validators: Sequence[Validator] = ()
+    validators: Tuple[Validator, ...] = ()
 
     def merge(
-        self, constraints: Optional[Constraints], validators: Sequence[Validator]
+        self, constraints: Optional[Constraints], validators: Sequence[Validator] = ()
     ) -> "DeserializationMethodFactory":
         if constraints is None and not validators:
             return self
@@ -171,33 +171,39 @@ class DeserializationMethodVisitor(
                 )
         return factory
 
-    def _wrap(
-        self,
-        method: DeserializationMethod,
-        validators: Sequence[Validator],
-        cls: Optional[type] = None,
-    ) -> DeserializationMethod:
-        if self.coercer is not None and cls is not None:
-            wrapped_for_coercer, coercer = method, self.coercer
-
-            def method(data: Any) -> Any:
-                assert cls is not None
-                return wrapped_for_coercer(coercer(cls, data))
-
-        if validators:
-            wrapped_for_validators, aliaser = method, self.aliaser
-
-            def method(data: Any) -> Any:
-                result = wrapped_for_validators(data)
-                validate(result, validators, aliaser=aliaser)
-                return result
-
-        return method
-
-    def any(self) -> DeserializationMethodFactory:
-        def factory(
+    def _factory(
+        self, factory: Factory, cls: Optional[type] = None, validation: bool = True
+    ) -> DeserializationMethodFactory:
+        def wrapper(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
+            method: DeserializationMethod
+            if validation and validators:
+                wrapped, aliaser = factory(constraints, ()), self.aliaser
+
+                def method(data: Any) -> Any:
+                    result = wrapped(data)
+                    validate(result, validators, aliaser=aliaser)
+                    return result
+
+            else:
+                method = factory(constraints, validators)
+            if self.coercer is not None and cls is not None:
+                coercer = self.coercer
+
+                def wrapper(data: Any) -> Any:
+                    assert cls is not None
+                    return method(coercer(cls, data))
+
+                return wrapper
+
+            else:
+                return method
+
+        return DeserializationMethodFactory(wrapper, cls)
+
+    def any(self) -> DeserializationMethodFactory:
+        def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
             checks = None if constraints is None else constraints.checks_by_type
 
             def method(data: Any) -> Any:
@@ -212,18 +218,16 @@ class DeserializationMethodVisitor(
                             raise ValidationError(errors)
                 return data
 
-            return self._wrap(method, validators)
+            return method
 
-        return DeserializationMethodFactory(factory)
+        return self._factory(factory)
 
     def collection(
         self, cls: Type[Collection], value_type: AnyType
     ) -> DeserializationMethodFactory:
         value_factory = self.visit(value_type)
 
-        def factory(
-            constraints: Optional[Constraints], validators: Sequence[Validator]
-        ) -> DeserializationMethod:
+        def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
             deserialize_value = value_factory.method
             checks = get_constraint_checks(constraints, list)
             constructor: Optional[Callable[[list], Collection]] = None
@@ -252,17 +256,15 @@ class DeserializationMethodVisitor(
                     raise ValidationError([], elt_errors)
                 return constructor(values) if constructor else values
 
-            return self._wrap(method, validators, list)
+            return method
 
-        return DeserializationMethodFactory(factory)
+        return self._factory(factory, list)
 
     def enum(self, cls: Type[Enum]) -> DeserializationMethodFactory:
         return self.literal(list(cls))
 
     def literal(self, values: Sequence[Any]) -> DeserializationMethodFactory:
-        def factory(
-            constraints: Optional[Constraints], validators: Sequence[Validator]
-        ) -> DeserializationMethod:
+        def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
             value_map = dict(zip(literal_values(values), values))
             types = list(set(map(type, value_map))) if self.coercer else []
             error = f"not one of {list(value_map)}"
@@ -282,16 +284,14 @@ class DeserializationMethodVisitor(
 
             return method
 
-        return DeserializationMethodFactory(factory)
+        return self._factory(factory)
 
     def mapping(
         self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType
     ) -> DeserializationMethodFactory:
         key_factory, value_factory = self.visit(key_type), self.visit(value_type)
 
-        def factory(
-            constraints: Optional[Constraints], validators: Sequence[Validator]
-        ) -> DeserializationMethod:
+        def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
             deserialize_key = key_factory.method
             deserialize_value = value_factory.method
             checks = get_constraint_checks(constraints, dict)
@@ -315,9 +315,9 @@ class DeserializationMethodVisitor(
                     raise ValidationError([], item_errors)
                 return items
 
-            return self._wrap(method, validators, dict)
+            return method
 
-        return DeserializationMethodFactory(factory)
+        return self._factory(factory, dict)
 
     def object(
         self, tp: Type, fields: Sequence[ObjectField]
@@ -546,14 +546,12 @@ class DeserializationMethodVisitor(
                     validate(res, validators2, init, aliaser=aliaser)
                 return res
 
-            return self._wrap(method, (), dict)
+            return method
 
-        return DeserializationMethodFactory(factory)
+        return self._factory(factory, dict, validation=False)
 
     def primitive(self, cls: Type) -> DeserializationMethodFactory:
-        def factory(
-            constraints: Optional[Constraints], validators: Sequence[Validator]
-        ) -> DeserializationMethod:
+        def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
             checks = get_constraint_checks(constraints, cls)
             if cls is NoneType:
 
@@ -596,9 +594,9 @@ class DeserializationMethodVisitor(
                             raise ValidationError(errors)
                     return data
 
-            return self._wrap(method, validators, cls)
+            return method
 
-        return DeserializationMethodFactory(factory)
+        return self._factory(factory, cls)
 
     def subprimitive(self, cls: Type, superclass: Type) -> DeserializationMethodFactory:
         primitive_factory = self.primitive(superclass)
@@ -615,14 +613,12 @@ class DeserializationMethodVisitor(
 
             return method
 
-        return DeserializationMethodFactory(factory)
+        return replace(primitive_factory, factory=factory)
 
     def tuple(self, types: Sequence[AnyType]) -> DeserializationMethodFactory:
         elt_factories = [self.visit(tp) for tp in types]
 
-        def factory(
-            constraints: Optional[Constraints], validators: Sequence[Validator]
-        ) -> DeserializationMethod:
+        def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
             expected_len = len(types)
             (_, _, min_err), (_, _, max_err) = Constraints(
                 min_items=len(types), max_items=len(types)
@@ -650,24 +646,27 @@ class DeserializationMethodVisitor(
                     raise ValidationError([], elt_errors)
                 return tuple(elts)
 
-            return self._wrap(method, validators, list)
+            return method
 
-        return DeserializationMethodFactory(factory)
+        return self._factory(factory, list)
 
     def union(self, alternatives: Sequence[AnyType]) -> DeserializationMethodFactory:
         alt_factories = self._union_results(alternatives)
         if len(alt_factories) == 1:
             return alt_factories[0]
 
-        def factory(
-            constraints: Optional[Constraints], validators: Sequence[Validator]
-        ) -> DeserializationMethod:
-            alt_methods = [
-                fact.merge(constraints, validators).method for fact in alt_factories
-            ]
-            coercer = self.coercer
-            if NoneType is alternatives[-1] and len(alt_methods) == 2:
-                deserialize_alt = alt_methods[0]
+        def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
+            alt_methods = [fact.merge(constraints).method for fact in alt_factories]
+            # method_by_cls cannot replace alt_methods, because there could be several
+            # methods for one class
+            method_by_cls = dict(zip((f.cls for f in alt_factories), alt_methods))
+            if NoneType in alternatives and len(alt_methods) == 2:
+                deserialize_alt = next(
+                    meth
+                    for fact, meth in zip(alt_factories, alt_methods)
+                    if fact.cls is not NoneType
+                )
+                coercer = self.coercer
 
                 def method(data: Any) -> Any:
                     if data is None:
@@ -679,6 +678,20 @@ class DeserializationMethodVisitor(
                             return None
                         else:
                             raise merge_errors(err, bad_type(data, NoneType))
+
+            elif None not in method_by_cls and len(method_by_cls) == len(alt_factories):
+                classes = tuple(cls for cls in method_by_cls if cls is not None)
+
+                def method(data: Any) -> Any:
+                    try:
+                        return method_by_cls[data.__class__](data)
+                    except KeyError:
+                        raise bad_type(data, *classes) from None
+                    except ValidationError as err:
+                        other_classes = (
+                            cls for cls in classes if cls is not data.__class__
+                        )
+                        raise merge_errors(err, bad_type(data, *other_classes))
 
             else:
 
@@ -694,7 +707,7 @@ class DeserializationMethodVisitor(
 
             return method
 
-        return DeserializationMethodFactory(factory)
+        return self._factory(factory)
 
     def _visit_conversion(
         self,
@@ -709,14 +722,9 @@ class DeserializationMethodVisitor(
             for conv in conversion
         ]
 
-        def factory(
-            constraints: Optional[Constraints], validators: Sequence[Validator]
-        ) -> DeserializationMethod:
+        def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
             conv_methods = [
-                (
-                    (fact if dynamic else fact.merge(constraints, validators)).method,
-                    conv.converter,
-                )
+                ((fact if dynamic else fact.merge(constraints)).method, conv.converter)
                 for conv, fact in zip(conversion, conv_factories)
             ]
             method: DeserializationMethod
@@ -752,7 +760,7 @@ class DeserializationMethodVisitor(
 
             return method
 
-        return DeserializationMethodFactory(factory)
+        return self._factory(factory, validation=not dynamic)
 
     def visit_conversion(
         self,
