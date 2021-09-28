@@ -1,6 +1,8 @@
 import collections.abc
 import operator
+from contextlib import suppress
 from enum import Enum
+from functools import lru_cache
 from typing import (
     Any,
     Callable,
@@ -33,10 +35,11 @@ from apischema.recursion import RecursiveConversionsVisitor
 from apischema.serialization.pass_through import PassThroughOptions, pass_through
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import AnyType, NoneType, Undefined, UndefinedType
-from apischema.typing import is_new_type, is_type, is_type_var, is_typed_dict
+from apischema.typing import is_new_type, is_type, is_type_var, is_typed_dict, is_union
 from apischema.utils import (
     Lazy,
     deprecate_kwargs,
+    get_args2,
     get_origin_or_type,
     get_origin_or_type2,
     identity,
@@ -53,17 +56,20 @@ T = TypeVar("T")
 
 
 def instance_checker(tp: AnyType) -> Tuple[Callable[[Any, Any], bool], Any]:
-    tp = get_origin_or_type2(tp)
-    if tp is NoneType:
+    origin = get_origin_or_type2(tp)
+    if origin is NoneType:
         return operator.is_, None
-    elif is_typed_dict(tp):
+    elif is_typed_dict(origin):
         return isinstance, collections.abc.Mapping
-    elif is_type(tp):
-        return isinstance, tp
-    elif is_new_type(tp):
-        return instance_checker(tp.__supertype__)
-    elif is_type_var(tp) or tp is Any:
-        return isinstance, object
+    elif is_type(origin):
+        return isinstance, origin
+    elif is_new_type(origin):
+        return instance_checker(origin.__supertype__)
+    elif is_type_var(origin) or origin is Any:
+        return (lambda data, _: True), ...
+    elif is_union(origin):
+        checks = list(map(instance_checker, get_args2(tp)))
+        return (lambda data, _: any(check(data, arg) for check, arg in checks)), ...
     else:
         raise TypeError(f"{tp} is not supported in union serialization")
 
@@ -161,10 +167,10 @@ class SerializationMethodVisitor(
         return method
 
     def _any_fallback(self, tp: AnyType) -> SerializationMethod:
-        serialize_any = self.any()
+        fallback, serialize_any = self.fall_back_on_any, self.any()
 
         def method(obj: Any) -> Any:
-            if self.fall_back_on_any:
+            if fallback:
                 return serialize_any(obj)
             else:
                 raise TypeError(f"Expected {tp}, found {obj.__class__}")
@@ -181,12 +187,9 @@ class SerializationMethodVisitor(
             if isinstance(obj, cls_to_check):
                 try:
                     return method(obj)
-                except Unsupported:
-                    raise
                 except Exception:
-                    return fallback(obj)
-            else:
-                return fallback(obj)
+                    pass
+            return fallback(obj)
 
         return wrapper
 
@@ -356,38 +359,30 @@ class SerializationMethodVisitor(
         return self._wrap(tuple, method)
 
     def union(self, alternatives: Sequence[AnyType]) -> SerializationMethod:
-        methods = self._union_results(alternatives)
-        if len(methods) == 1:
-            return methods[0]
-        method_and_checks = [
-            (serialize_alt, is_instance, cls)
-            for serialize_alt, (is_instance, cls) in zip(
-                methods, map(instance_checker, alternatives)
-            )
-        ]
-        fallback = self._any_fallback(Union[alternatives])
+        methods = []
+        for tp in alternatives:
+            with suppress(Unsupported):
+                methods.append((self.visit(tp), *instance_checker(tp)))
         # No need to catch the case with all methods being identity,
         # because passthrough
-        if alternatives[-1] is NoneType and len(method_and_checks) == 2:
-            serialize_alt, is_instance, cls = method_and_checks[0]
+        if not methods:
+            raise Unsupported(Union[tuple(alternatives)])  # type: ignore
+        elif len(methods) == 1:
+            return methods[0][0]
+        elif len(methods) == 2 and NoneType in alternatives:
+            serialize_alt = next(meth for meth, _, arg in methods if arg is not None)
 
             def method(obj: Any) -> Any:
-                if is_instance(obj, cls):
-                    return serialize_alt(obj)
-                elif obj is None:
-                    return None
-                else:
-                    return fallback(obj)
+                return serialize_alt(obj) if obj is not None else None
 
         else:
+            fallback = self._any_fallback(Union[alternatives])
 
             def method(obj: Any) -> Any:
-                for serialize_alt, is_instance, cls in method_and_checks:
-                    if is_instance(obj, cls):
+                for serialize_alt, check, arg in methods:
+                    if check(obj, arg):
                         try:
                             return serialize_alt(obj)
-                        except Unsupported:
-                            raise
                         except Exception:
                             pass
                 return fallback(obj)
@@ -449,7 +444,7 @@ def serialization_method_factory(
     fall_back_on_any: bool,
     pass_through: PassThroughOptions,
 ) -> SerializationMethodFactory:
-    @cache
+    @lru_cache()
     def factory(tp: AnyType) -> SerializationMethod:
         return SerializationMethodVisitor(
             additional_properties,

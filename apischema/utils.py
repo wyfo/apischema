@@ -49,6 +49,7 @@ from apischema.typing import (
     get_type_hints,
     is_annotated,
     is_type_var,
+    is_union,
     typing_origin,
 )
 
@@ -221,7 +222,7 @@ def with_parameters(tp: AnyType) -> AnyType:
 
 
 def is_union_of(tp: AnyType, of: AnyType) -> bool:
-    return tp == of or (get_origin_or_type2(tp) == Union and of in get_args2(tp))
+    return tp == of or (is_union(get_origin_or_type2(tp)) and of in get_args2(tp))
 
 
 if sys.version_info < (3, 7):
