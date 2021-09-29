@@ -11,6 +11,7 @@ class Base:
 
     # You can use __init_subclass__ to register new subclass automatically
     def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
         # Deserializers stack directly as a Union
         deserializer(Conversion(identity, source=cls, target=Base))
         # Only Base serializer must be registered (and updated for each subclass) as

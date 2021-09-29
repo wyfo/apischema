@@ -128,6 +128,7 @@ class TaggedUnion:
 
     @wrap_generic_init_subclass
     def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
         tags = set(getattr(cls, TAGS_ATTR, ()))
         types = get_type_hints(cls, include_extras=True)
         for tag, tp in types.items():
