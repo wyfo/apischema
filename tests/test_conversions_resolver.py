@@ -9,6 +9,7 @@ from apischema.json_schema.conversions_resolver import (
     WithConversionsResolver,
     merge_results,
 )
+from apischema.objects import set_object_fields
 from apischema.types import AnyType
 from apischema.utils import identity
 
@@ -43,6 +44,13 @@ rec_conversion = Conversion(identity, A, Collection[A], LazyConversion(lambda: t
 tmp = rec_conversion
 
 
+class B:
+    pass
+
+
+set_object_fields(B, [])
+
+
 @mark.parametrize(
     "tp, conversions, expected",
     [
@@ -63,6 +71,7 @@ tmp = rec_conversion
         (A, None, [A]),
         (Collection[A], None, [Collection[A], Collection[int]]),
         (A, rec_conversion, []),
+        (B, None, [B]),
     ],
 )
 def test_resolve_conversion(tp, conversions, expected):

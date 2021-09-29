@@ -75,7 +75,7 @@ def object_deserialization(
         def wrapper(input):
             return func(**input.kwargs)
 
-    wrapper.__annotations__["input"] = input_cls
+    wrapper.__annotations__["input"] = with_parameters(input_cls)
     wrapper.__annotations__["return"] = return_type
     return wrapper
 
@@ -115,9 +115,7 @@ def _fields_and_init(
         elif callable(elt):
             types = get_type_hints(elt)
             first_param = next(iter(inspect.signature(elt).parameters))
-            substitution, _ = subtyping_substitution(
-                types.get(first_param, with_parameters(cls)), cls
-            )
+            substitution, _ = subtyping_substitution(types.get(first_param, cls), cls)
             ret = substitute_type_vars(types.get("return", Any), substitution)
             output_fields[elt.__name__] = ObjectField(
                 elt.__name__, ret, metadata=metadata

@@ -30,9 +30,10 @@ from apischema.conversions.utils import is_convertible
 from apischema.metadata.implem import ConversionMetadata
 from apischema.type_names import type_name
 from apischema.types import AnyType
-from apischema.typing import get_args
+from apischema.typing import get_args, is_type_var
 from apischema.utils import (
     context_setter,
+    get_args2,
     get_origin_or_type,
     has_type_vars,
     is_subclass,
@@ -173,11 +174,14 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Result]):
                     if get_args(tp):
                         wrapper = wrapper[get_args(tp)]
                     conv = ResolvedConversion(replace(conv, source=wrapper))
-                _, substitution = subtyping_substitution(tp, conv.target)
-                source = substitute_type_vars(conv.source, substitution)
-                result.append(
-                    ResolvedConversion(replace(conv, source=source, target=tp))
-                )
+                if is_type_var(conv.source) or any(
+                    map(is_type_var, get_args2(conv.source))
+                ):
+                    _, substitution = subtyping_substitution(tp, conv.target)
+                    conv = replace(
+                        conv, source=substitute_type_vars(conv.source, substitution)
+                    )
+                result.append(ResolvedConversion(replace(conv, target=tp)))
         if identity_conv and len(result) == 1:
             return True, None
         else:
@@ -212,9 +216,14 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Result]):
             if is_subclass(tp, conv.source):
                 if is_identity(conv):
                     return True, None
-                substitution, _ = subtyping_substitution(conv.source, tp)
-                target = substitute_type_vars(conv.target, substitution)
-                return True, ResolvedConversion(replace(conv, source=tp, target=target))
+                if is_type_var(conv.target) or any(
+                    map(is_type_var, get_args2(conv.target))
+                ):
+                    substitution, _ = subtyping_substitution(conv.source, tp)
+                    conv = replace(
+                        conv, target=substitute_type_vars(conv.target, substitution)
+                    )
+                return True, ResolvedConversion(replace(conv, source=tp))
         else:
             return False, None
 
