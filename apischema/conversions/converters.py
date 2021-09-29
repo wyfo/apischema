@@ -1,6 +1,5 @@
 import sys
 from collections import defaultdict
-from dataclasses import replace
 from enum import Enum
 from functools import partial
 from types import new_class
@@ -121,15 +120,7 @@ def deserializer(
             _add_deserializer(deserializer, resolved.target)  # type: ignore
             return deserializer
     elif lazy is not None and target is not None:
-
-        def replace_target():
-            conversion = lazy()
-            if isinstance(conversion, Conversion):
-                return replace(conversion, target=target)
-            else:
-                return Conversion(conversion, target=target)
-
-        _add_deserializer(LazyConversion(replace_target), target)
+        _add_deserializer(LazyConversion(lazy), target)
     else:
         stop_signature_abuse()
 
@@ -173,15 +164,7 @@ def serializer(
             _add_serializer(serializer, resolved.source)
             return serializer
     elif lazy is not None and source is not None:
-
-        def replace_source():
-            conversion = lazy()
-            if isinstance(conversion, Conversion):
-                return replace(conversion, source=source)
-            else:
-                return Conversion(conversion, source=source)
-
-        _add_serializer(LazyConversion(replace_source), source)
+        _add_serializer(LazyConversion(lazy), source)
     else:
         stop_signature_abuse()
 

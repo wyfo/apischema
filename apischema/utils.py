@@ -297,7 +297,7 @@ def subtyping_substitution(
         if base_origin == super_origin or (
             base_origin in ITERABLE_TYPES and super_origin in ITERABLE_TYPES
         ):
-            for base_arg, super_arg in zip(get_args(base), get_args(supertype)):
+            for base_arg, super_arg in zip(get_args2(base), get_args2(supertype)):
                 if is_type_var(super_arg):
                     supertype_to_subtype[super_arg] = base_arg
                 if is_type_var(base_arg):
