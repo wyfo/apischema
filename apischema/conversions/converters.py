@@ -177,27 +177,6 @@ def reset_serializer(cls: Type):
     _serializers.pop(cls, ...)
 
 
-class InheritedDeserializer:
-    def __init__(self, method: classmethod, **kwargs):
-        self.method = method
-        self.kwargs = kwargs
-
-    def __set_name__(self, owner, name):
-        prev_init_subclass = owner.__init_subclass__
-
-        def init_subclass(cls, **kwargs):
-            prev_init_subclass(**kwargs)
-            method = self.method.__get__(None, cls)
-            deserializer(Conversion(method, target=cls, **self.kwargs))
-
-        owner.__init_subclass__ = classmethod(init_subclass)
-        init_subclass(owner)
-        setattr(owner, name, self.method)
-
-
-ClsMethod = TypeVar("ClsMethod")
-
-
 Cls = TypeVar("Cls", bound=type)
 
 
