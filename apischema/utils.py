@@ -347,6 +347,7 @@ def wrap_generic_init_subclass(init_subclass: Func) -> Func:
     @wraps(init_subclass)
     def wrapper(cls, **kwargs):
         if getattr(cls, "__origin__", None) is not None:
+            super(cls).__init_subclass__(**kwargs)
             return
         init_subclass(cls, **kwargs)
 
