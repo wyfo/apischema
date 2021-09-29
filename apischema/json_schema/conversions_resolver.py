@@ -108,6 +108,7 @@ class WithConversionsResolver:
         raise NotImplementedError
 
     def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
         resolver: Type[ConversionsResolver]
         if issubclass(cls, DeserializationVisitor):
 

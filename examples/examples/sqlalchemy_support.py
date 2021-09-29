@@ -32,7 +32,8 @@ def column_field(name: str, column: Column) -> ObjectField:
 # Very basic SQLAlchemy support
 @as_declarative()
 class Base:
-    def __init_subclass__(cls):
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
         columns = getmembers(cls, lambda m: isinstance(m, Column))
         if not columns:
             return
