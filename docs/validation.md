@@ -1,6 +1,6 @@
 # Validation
 
-Validation is an important part of deserialization. By default, *apischema* validate types of data according to typing annotations, and [`schema`](json_schema.md#constraints-validation) constraints. But custom validators can also be add for a more precise validation.
+Validation is an important part of deserialization. By default, *apischema* validates types of data according to typing annotations, and [`schema`](json_schema.md#constraints-validation) constraints. But custom validators can also be add for a more precise validation.
 
 ## Deserialization and validation error
 
@@ -24,7 +24,7 @@ Dataclass validation can be completed by custom validators. These are simple dec
 ```
 
 !!! warning
-    **DO NOT use `assert`** statement to validate external data, never. In fact, this statement is made to be disabled when executed in optimized mode (see [documentation](https://docs.python.org/3/reference/simple_stmts.html#the-assert-statement)), so validation would be disabled too. This warning doesn't concern only *apischema*; `assert` is only for internal assertion in debug/development environment. That's why *apischema* will not catch `AssertionError` as a validation error but reraises it, making `deserialize` fail. 
+    **DO NOT use `assert`** statement to validate external data, ever. In fact, this statement is made to be disabled when executed in optimized mode (see [documentation](https://docs.python.org/3/reference/simple_stmts.html#the-assert-statement)), so validation would be disabled too. This warning doesn't concern only *apischema*; `assert` is only for internal assertion in debug/development environment. That's why *apischema* will not catch `AssertionError` as a validation error but reraises it, making `deserialize` fail. 
     
 !!! note
     Validators are always executed in order of declaration.
@@ -38,13 +38,13 @@ It makes no sense to execute a validator using a field that is ill-formed. Hopef
 ```
 
 !!! note
-    Despite the fact that validator use `self` argument, it can be called during validation even if all the fields of the class are not ok and the class not really instantiated. In fact, instance is kind of mocked for validation with only the needed field.
+    Despite the fact that validator uses the `self` argument, it can be called during validation even if all the fields of the class are not ok and the class not really instantiated. In fact, instance is kind of mocked for validation with only the needed field.
 
 ### Raise more than one error with `yield`
 
-Validation of list field can require to raise several exception, one for each bad elements. With `raise`, this is not possible, because you can raise only once.
+Validation of a list field can require raising several exceptions, one for each bad element. With `raise`, this is not possible, because you can raise only once.
 
-However, *apischema* provides a way or raising as many errors as needed by using `yield`. Moreover, with this syntax, it is possible to add a "path" (see [below](#error-path)) to the error to precise its location in the validated data. This path will be added to the `loc` key of the error.
+However, *apischema* provides a way of raising as many errors as needed by using `yield`. Moreover, with this syntax, it is possible to add a "path" (see [below](#error-path)) to the error to precise its location in the validated data. This path will be added to the `loc` key of the error.
 
 ```python
 {!validator_yield.py!}
@@ -52,7 +52,7 @@ However, *apischema* provides a way or raising as many errors as needed by using
 
 #### Error path
 
-In the example, validator yield a tuple of an "error path" and the error message. Error path can be:
+In the example, the validator yields a tuple of an "error path" and the error message. Error path can be:
 
 - a field alias (obtained with `apischema.objects.get_alias`);
 - an integer, for list indices;
@@ -63,17 +63,17 @@ In the example, validator yield a tuple of an "error path" and the error message
 `yield` can also be used with only an error message.
 
 !!! note
-    For dataclass field error path, it's advised to use `apischema.objects.get_alias` instead of raw string, because it will take in account potential aliasing and it will be better handled by IDE (refactoring, cross-referencing, etc.)
+    For dataclass field error path, it's advised to use `apischema.objects.get_alias` instead of raw string, because it will take into account potential aliasing and it will be better handled by IDE (refactoring, cross-referencing, etc.)
 
 ### Discard
 
-If one of your validators fails because a field is corrupted, maybe you don't want following validators to be executed. `validator` decorator provides a `discard` parameter to discard fields of the remaining validation. All the remaining validators having discarded fields in [dependencies](#automatic-dependencies-management) will not be executed.
+If one of your validators fails because a field is corrupted, maybe you don't want subsequent validators to be executed. `validator` decorator provides a `discard` parameter to discard fields of the remaining validation. All the remaining validators having discarded fields in [dependencies](#automatic-dependencies-management) will not be executed.
 
 ```python
 {!discard.py!}
 ```
 
-You can notice in this example that *apischema* tries avoiding using raw strings to identify fields. In every function of the library using fields identifier (`apischema.validator`, `apischema.dependent_required`, `apischema.fields.set_fields`, etc.), you have always three ways to pass them:
+You can notice in this example that *apischema* tries to avoid using raw strings to identify fields. In every function of the library using fields identifier (`apischema.validator`, `apischema.dependent_required`, `apischema.fields.set_fields`, etc.), you have always three ways to pass them:
 - using field object, preferred in dataclass definition;
 - using `apischema.objects.get_field`, to be used outside of class definition; it works with `NamedTuple` too — the object returned is the *apischema* internal field representation, common to `dataclass`, `NamedTuple` and `TypedDict`;
 - using raw strings, thus not handled by static tools like refactoring, but it works;
@@ -81,16 +81,16 @@ You can notice in this example that *apischema* tries avoiding using raw strings
 ### Field validators
 
 #### At field level
-Fields are validated according to their types and schema. But it's also possible to add validators to fields
+Fields are validated according to their types and schema. But it's also possible to add validators to fields.
 
 ```python
 {!field_validator.py!}
 ```
 
-When validation fails for a field, it is discarded and cannot be used in class validators, as it is the case when field schema validation fails.
+When validation fails for a field, it is discarded and cannot be used in class validators, as is the case when field schema validation fails.
 
 !!! note
-    `field_validator` allow to reuse the the same validator for several fields. However in this case, using a custom type (for example a `NewType`) with validators (see [next section](#validators-for-every-new-types)) could often be a better solution.
+    `field_validator` allows reusing the the same validator for several fields. However in this case, using a custom type (for example a `NewType`) with validators (see [next section](#validators-for-every-new-types)) could often be a better solution.
 
 #### Using other fields
 
@@ -110,7 +110,7 @@ Validators are inherited just like other class fields.
 
 ### Validator with `InitVar`
 
-Dataclasses `InitVar` are accessible in validators by using parameters the same way `__post_init__` does. Only the needed fields has to be put in parameters, they are then added to validator dependencies.
+Dataclasses `InitVar` are accessible in validators by using parameters the same way `__post_init__` does. Only the needed fields have to be put in parameters, they are then added to validator dependencies.
 
 ```python
 {!validator_post_init.py!}
@@ -125,7 +125,7 @@ If all validator dependencies are initialized with their default values, they ar
 
 ## Validators for every type
 
-Validators can also be declared as regular function, in which case annotation of the first param is used to associate it to the validated type (you can also use the `owner` parameter); this allows to add validator to every type.
+Validators can also be declared as regular functions, in which case annotation of the first param is used to associate it to the validated type (you can also use the `owner` parameter); this allows adding a validator to every type.
 
 Last but not least, validators can be embedded directly into `Annotated` arguments using `validators` metadata.
 
@@ -135,7 +135,7 @@ Last but not least, validators can be embedded directly into `Annotated` argumen
 
 ## FAQ
 
-#### How are computed validator dependencies?
+#### How are validator dependencies computed?
 
 `ast.NodeVisitor` and the Python black magic begins...
 

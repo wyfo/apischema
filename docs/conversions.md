@@ -1,18 +1,18 @@
 # Conversions – (de)serialization customization
 
-*apischema* covers majority of standard data types, but it's of course not enough, that's why it gives you the way to add support for all your classes and the libraries you use.
+*apischema* covers the majority of standard data types, but of course that's not enough, which is why it enables you to add support for all your classes and the libraries you use.
 
-Actually, *apischema* uses its own feature to provide a basic support for standard library data types like UUID/datetime/etc. (see [std_types.py](https://github.com/wyfo/apischema/blob/master/apischema/std_types.py))
+Actually, *apischema* itself uses this conversion feature to provide a basic support for standard library data types like UUID/datetime/etc. (see [std_types.py](https://github.com/wyfo/apischema/blob/master/apischema/std_types.py))
 
 ORM support can easily be achieved with this feature (see [SQLAlchemy example](examples/sqlalchemy_support.md)).
 
-In fact, you can even add support of competitor libraries like *Pydantic* (see [*Pydantic* compatibility example](examples/pydantic_support.md))
+In fact, you can even add support for competitor libraries like *Pydantic* (see [*Pydantic* compatibility example](examples/pydantic_support.md))
 
 ## Principle - apischema conversions
 
-An *apischema* conversion is composed of a source type, let's call it `Source`, a target type `Target` and a converter function of signature `(Source) -> Target`.
+An *apischema* conversion is composed of a source type, let's call it `Source`, a target type `Target` and a converter function with signature `(Source) -> Target`.
 
-When a class (actually, a non-builtin class, so not `int`/`list`/etc.) is deserialized, *apischema* will look if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then the converter will be applied to get an object of the expected type. Serialization works the same (inverted) way: look for a conversion with type as source, apply then converter, and get the target type.
+When a class (actually, a non-builtin class, so not `int`/`list`/etc.) is deserialized, *apischema* will check if there is a conversion where this type is the target. If found, the source type of conversion will be deserialized, then the converter will be applied to get an object of the expected type. Serialization works the same way but inverted: look for a conversion with type as source, apply then converter, and get the target type.
 
 Conversions are also handled in schema generation: for a deserialization schema, source schema is merged to target schema, while target schema is merged to source schema for a serialization schema.
 
@@ -21,7 +21,7 @@ Conversions are also handled in schema generation: for a deserialization schema,
 
 Conversion is registered using `apischema.deserializer`/`apischema.serializer` for deserialization/serialization respectively.
 
-When used as function decorator, the `Source`/`Target` types are directly extracted from conversion function signature. 
+When used as function decorator, the `Source`/`Target` types are directly extracted from the conversion function signature. 
 
 `serializer` can be called on methods/properties, in which case `Source` type is inferred to be th owning type.
 
@@ -30,17 +30,17 @@ When used as function decorator, the `Source`/`Target` types are directly extrac
 ```
 
 !!! warning
-    (De)serializer methods cannot be used with `typing.NamedTuple`; in fact, *apischema* uses `__set_name__` magic method but it is not called on `NamedTuple` subclass fields. 
+    (De)serializer methods cannot be used with `typing.NamedTuple`; in fact, *apischema* uses the `__set_name__` magic method but it is not called on `NamedTuple` subclass fields. 
 
 ### Multiple deserializers
 
-Sometimes, you want to have several possibilities to deserialize a type. If it's possible to register a deserializer with an `Union` param, it's not very practical. That's why *apischema* make it possible to register several deserializers for the same type. They will be handled with an `Union` source type (ordered by deserializers registration), with the right serializer selected according to the matching alternative.
+Sometimes, you want to have several possibilities to deserialize a type. If it's possible to register a deserializer with a `Union` param, it's not very practical. That's why *apischema* make it possible to register several deserializers for the same type. They will be handled with a `Union` source type (ordered by deserializers registration), with the right serializer selected according to the matching alternative.
 
 ```python
 {!multiple_deserializers.py!}
 ```
 
-On the other hand, serializer registration overwrite the previous registration if any. 
+On the other hand, serializer registration overwrites the previous registration if any. 
 
 `apischema.conversions.reset_deserializers`/`apischema.conversions.reset_serializers` can be used to reset (de)serializers (even those of the standard types embedded in *apischema*)
 
@@ -71,11 +71,11 @@ Pseudo-inheritance could be achieved by registering a conversion (using for exam
 {!generic_conversions.py!}
 ```
 
-However, it's not allowed to register a conversion of a specialized generic type, like `Foo[int]`.
+However, you're not allowed to register a conversion of a specialized generic type, like `Foo[int]`.
 
 ## Conversion object
 
-In previous example, conversions where registered using only converter functions. However, it can also be done by passing a `apischema.conversions.Conversion` instance. It allows specifying additional metadata to conversion (see [next sections](#sub-conversions) for examples) and precise converter source/target when annotations are not available.
+In the previous example, conversions were registered using only converter functions. However, it can also be done by passing a `apischema.conversions.Conversion` instance. It allows specifying additional metadata to conversion (see [next sections](#sub-conversions) for examples) and precise converter source/target when annotations are not available.
 
 ```python
 {!conversion_object.py!}
@@ -83,7 +83,7 @@ In previous example, conversions where registered using only converter functions
 
 ## Dynamic conversions — select conversions at runtime
 
-No matter if a conversion is registered or not for a given type, conversions can also be provided at runtime, using `conversion` parameter of `deserialize`/`serialize`/`deserialization_schema`/`serialization_schema`.
+Whether or not a conversion is registered for a given type, conversions can also be provided at runtime, using the `conversion` parameter of `deserialize`/`serialize`/`deserialization_schema`/`serialization_schema`.
 
 ```python
 {!dynamic_conversions.py!}
@@ -92,12 +92,12 @@ No matter if a conversion is registered or not for a given type, conversions can
 !!! note
     For `definitions_schema`, conversions can be added with types by using a tuple instead, for example `definitions_schema(serializations=[(list[Foo], foo_to_bar)])`. 
 
-`conversion` parameter can also take a tuple of conversions, when you have a `Union`, a `tuple` or when you want to have several deserializations for the same type.
+The `conversion` parameter can also take a tuple of conversions, when you have a `Union`, a `tuple` or when you want to have several deserializations for the same type.
 
 
 ### Dynamic conversions are local
 
-Dynamic conversions are discarded after having been applied (or after class without conversion having been encountered). For example, you can't apply directly a dynamic conversion to a dataclass field when calling `serialize` on an instance of this dataclass. Reasons of this design are detailed in the [FAQ](#whats-the-difference-between-conversion-and-default_conversion-parameters). 
+Dynamic conversions are discarded after having been applied (or after class without conversion having been encountered). For example, you can't apply directly a dynamic conversion to a dataclass field when calling `serialize` on an instance of this dataclass. Reasons for this design are detailed in the [FAQ](#whats-the-difference-between-conversion-and-default_conversion-parameters). 
 
 ```python
 {!local_conversions.py!}
@@ -116,7 +116,7 @@ Dynamic conversions are applied before looking for a ref registered with `type_n
 
 ### Bypass registered conversion
 
-Using `apischema.identity` as a dynamic conversion allows to bypass a registered conversion, i.e. to (de)serialize the given type as it would be without conversion registered.
+Using `apischema.identity` as a dynamic conversion allows you to bypass a registered conversion, i.e. to (de)serialize the given type as it would be without conversion registered.
 
 ```python
 {!bypass_conversions.py!}
@@ -127,7 +127,7 @@ Using `apischema.identity` as a dynamic conversion allows to bypass a registered
 
 ### Liskov substitution principle
 
-LSP is taken in account when applying dynamic conversion: serializer source can be a subclass of the actual class and deserializer target can be a superclass of the actual class.
+LSP is taken into account when applying dynamic conversion: the serializer source can be a subclass of the actual class and the deserializer target can be a superclass of the actual class.
 
 ```python
 {!dynamic_conversions_lsp.py!}
@@ -162,7 +162,7 @@ Serialized methods can also have dedicated conversions for their return
 
 ## String conversions
 
-A common pattern of conversion concerns class having a string constructor and a `__str__` method; standard types `uuid.UUID`, `pathlib.Path`, `ipaddress.IPv4Address` are concerned. Using `apischema.conversions.as_str` will register a string-deserializer from the constructor and a string-serializer from the `__str__` method.
+A common pattern of conversion concerns classes that have a string constructor and a `__str__` method; standard types `uuid.UUID`, `pathlib.Path`, `ipaddress.IPv4Address` are concerned. Using `apischema.conversions.as_str` will register a string-deserializer from the constructor and a string-serializer from the `__str__` method.
 
 ```python
 {!as_str.py!}
@@ -203,7 +203,7 @@ It can be used for example to build a deserialization conversion from an alterna
 
 ## Default conversions
 
-As almost every default behavior in *apischema*, default conversions can be configured using `apischema.settings.deserialization.default_conversion`/`apischema.settings.serialization.default_conversion`. The initial value of these settings are the function which retrieved conversions registered with `deserializer`/`serializer`.
+As with almost every default behavior in *apischema*, default conversions can be configured using `apischema.settings.deserialization.default_conversion`/`apischema.settings.serialization.default_conversion`. The initial value of these settings are the function which retrieved conversions registered with `deserializer`/`serializer`.
 
 You can for example [support *attrs*](examples/attrs_support.md) classes with this feature:
 
@@ -225,7 +225,7 @@ Sub-conversions can also be used to [bypass registered conversions](#bypass-regi
 
 ## Lazy/recursive conversions
 
-Conversions can be defined lazily, i.e. using a function returning `Conversion` (single, or a tuple of it); this function must be wrap into a `apischema.conversions.LazyConversion` instance.
+Conversions can be defined lazily, i.e. using a function returning `Conversion` (single, or a tuple of it); this function must be wrapped into a `apischema.conversions.LazyConversion` instance.
 
 It allows creating recursive conversions or using a conversion object which can be modified after its definition (for example a conversion for a base class modified by `__init_subclass__`)
 
@@ -250,8 +250,8 @@ Lazy conversions can also be registered, but the deserialization target/serializ
 
 Dynamic conversions (`conversion` parameter) exists to ensure consistency and reuse of subschemas referenced (with a `$ref`) in the JSON/*OpenAPI* schema. 
 
-In fact, different global conversions (`default_conversion` parameter) could lead to have a field with different schemas depending on global conversions, so class would not be able to be referenced consistently. Because dynamic conversions are local, they cannot mess with an objet field schema.
+In fact, different global conversions (`default_conversion` parameter) could lead to having a field with different schemas depending on global conversions, so a class would not be able to be referenced consistently. Because dynamic conversions are local, they cannot mess with an object field schema.
 
-Schema generation use the same default conversions for all definitions (which can have associated dynamic conversion).
+Schema generation uses the same default conversions for all definitions (which can have associated dynamic conversion).
 
 `default_conversion` parameter allows having different (de)serialization contexts, for example to map date to string between frontend and backend, and to timestamp between backend services.

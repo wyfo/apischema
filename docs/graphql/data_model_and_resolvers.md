@@ -1,12 +1,12 @@
 # Data model and resolvers
 
-Almost everything of the [Data model section](../data_model.md) remains valid in *GraphQL* integration, with a few differences
+Almost everything in the [Data model section](../data_model.md) remains valid in *GraphQL* integration, with a few differences.
 
 ## *GraphQL* specific data model
 
 ### `Enum`
 
-`Enum` members are represented in the schema using their **name** instead of their value. This is more coherent with the way *GraphQL* represents enumerations.
+`Enum` members are represented in the schema using their **name** instead of their value. This is more consistent with the way *GraphQL* represents enumerations.
 
 ### `TypedDict`
 
@@ -26,7 +26,7 @@ There are 2 exceptions which can be always be used in `Union`:
 Types are assumed to be non-null by default, as in Python typing. Nullable types are obtained using `typing.Optional` (or `typing.Union` with a `None` argument).
 
 !!! note
-    There is one exception, when resolver parameter default value is not serializable (and thus cannot be included in the schema), parameter type is then set as nullable to make the parameter non-required. For example parameters not `Optional` but with `Undefined` default value will be marked as nullable. This is only for the schema, default value is still used at execution.
+    There is one exception, when resolver parameter default value is not serializable (and thus cannot be included in the schema), the parameter type is then set as nullable to make the parameter non-required. For example parameters not `Optional` but with `Undefined` default value will be marked as nullable. This is only for the schema, the default value is still used at execution.
 
 ## Undefined
 
@@ -36,7 +36,7 @@ In input, fields become nullable when `Undefined` is their default value.
 
 ## Interfaces
 
-Interfaces are simply classes marked with `apischema.graphql.interface` decorator. An object type implements an interface when its class inherits of interface-marked class, or when it has [flattened fields](../data_model.md#composition-over-inheritance---composed-dataclasses-flattening) of interface-marked dataclass.
+Interfaces are simply classes marked with `apischema.graphql.interface` decorator. An object type implements an interface when its class inherits from an interface-marked class, or when it has [flattened fields](../data_model.md#composition-over-inheritance---composed-dataclasses-flattening) of interface-marked dataclass.
 
 ```python
 {!interface.py!}
@@ -72,7 +72,7 @@ Resolvers can have an additional parameter of type [`graphql.GraphQLResolveInfo`
 
 Errors occurring in resolvers can be caught in a dedicated error handler registered with `error_handler` parameter. This function takes in parameters the exception, the object, the [info](#graphqlresolveinfo-parameter) and the *kwargs* of the failing resolver; it can return a new value or raise the current or another exception — it can for example be used to log errors without throwing the complete serialization.
 
-The resulting serialization type will be a `Union` of the normal type and the error handling type ; if the error handler always raises, use [`typing.NoReturn`](https://docs.python.org/3/library/typing.html#typing.NoReturn) annotation.
+The resulting serialization type will be a `Union` of the normal type and the error handling type; if the error handler always raises, use [`typing.NoReturn`](https://docs.python.org/3/library/typing.html#typing.NoReturn) annotation.
 
 `error_handler=None` correspond to a default handler which only return `None` — exception is thus discarded and the resolver type becomes `Optional`.
 
@@ -149,7 +149,7 @@ Tagged unions JSON schema uses `minProperties: 1` and `maxProperties: 1`.
 
 ### GraphQL schema
 
-As tagged union are not (yet?) part of the *GraphQL* spec, so they are just implemented as normal (input) object type with nullable fields. An error is raised if several tags are passed in input.
+As tagged unions are not (yet?) part of the *GraphQL* spec, they are just implemented as normal (input) object type with nullable fields. An error is raised if several tags are passed in input.
 
 ```python
 {!tagged_union_graphql_schema.py!}
@@ -159,4 +159,4 @@ As tagged union are not (yet?) part of the *GraphQL* spec, so they are just impl
 
 #### Why `TypedDict` is not supported as an output type?
 
-At first, `TypedDict` subclasses are not real classes, so they cannot be used to check types at runtime. Runtime check is however requried to disambiguate unions/interfaces. A hack could be done to solve this issue, but there is another one which cannot be hacked: `TypedDict` inheritance hierarchy is lost at runtime, so they don't play nicely with interface concept. 
+At first, `TypedDict` subclasses are not real classes, so they cannot be used to check types at runtime. Runtime check is however requried to disambiguate unions/interfaces. A hack could be done to solve this issue, but there is another one which cannot be hacked: `TypedDict` inheritance hierarchy is lost at runtime, so they don't play nicely with the interface concept. 

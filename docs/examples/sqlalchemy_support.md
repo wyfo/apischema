@@ -1,6 +1,6 @@
 # SQLAlchemy support
 
-This example shows a simple support of *SQLAlchemy*.
+This example shows simple support for *SQLAlchemy*.
 
 ```python
 {!examples/sqlalchemy_support.py!}

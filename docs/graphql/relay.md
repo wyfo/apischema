@@ -3,7 +3,7 @@
 *apischema* provides some facilities to implement a *GraphQL* server following [*Relay* *GraphQL* server specification](https://relay.dev/docs/en/graphql-server-specification). They are included in the module `apischema.graphql.relay`.
 
 !!! note
-    These facilities are independent of each others — you could keep only mutations part and use your own identification and connection system for example.
+    These facilities are independent of each others — you could keep only the mutations part and use your own identification and connection system for example.
 
 
 ## (Global) Object Identification
@@ -20,7 +20,7 @@ All nodes defined can be retrieved using `relay.nodes`, while the `node` query i
 ```
 
 !!! warning
-    For now, even if its result is note used, `relay.nodes` must be called before generating the schema.
+    For now, even if its result is not used, `relay.nodes` must be called before generating the schema.
 
 ### Global ID
 
@@ -73,7 +73,7 @@ Here is an example of `Connection` use:
 
 ### Custom connections/edges
 
-Connections can be customizes by simply subclassing `relay.Connection` class and adding the additional fields.
+Connections can be customized by simply subclassing `relay.Connection` class and adding the additional fields.
 
 For the edges, `relay.Edge` can be subclassed too, and the subclass has then to be passed as type argument to the generic connection.
 

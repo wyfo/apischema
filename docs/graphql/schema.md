@@ -53,7 +53,7 @@ Contrary to dataclasses, `Enum` doesn't provide a way to set metadata for its me
 
 ## Subscriptions
 
-Subscriptions are particular operations which must return an `AsyncIterable`; this event generator can come with a dedicated resolver to post process the event.
+Subscriptions are particular operations which must return an `AsyncIterable`; this event generator can come with a dedicated resolver to post-process the event.
 
 ### Event generator only
 
