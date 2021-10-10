@@ -22,6 +22,7 @@ setup(
         "examples": [
             "graphql-core>=3.1.2",
             "attrs",
+            "docstring_parser",
             "bson",
             "orjson",
             "pydantic",
