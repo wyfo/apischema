@@ -12,7 +12,7 @@ setup(
     license="MIT",
     packages=find_packages(include=["apischema*"]),
     package_data={"apischema": ["py.typed"]},
-    description="JSON (de)serialization + GraphQL and JSON schema generation through python typing, with a spoonful of sugar.",
+    description="JSON (de)serialization, *GraphQL* and JSON schema generation using Python typing.",
     long_description=README,
     long_description_content_type="text/markdown",
     python_requires=">=3.6",
