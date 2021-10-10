@@ -45,6 +45,7 @@ from apischema.graphql.resolvers import (
     resolver_parameters,
     resolver_resolve,
 )
+from apischema.json_schema.schema import get_field_schema, get_method_schema, get_schema
 from apischema.metadata.keys import SCHEMA_METADATA
 from apischema.objects import ObjectField
 from apischema.objects.visitor import (
@@ -54,7 +55,7 @@ from apischema.objects.visitor import (
 )
 from apischema.ordering import Ordering, sort_by_order
 from apischema.recursion import RecursiveConversionsVisitor
-from apischema.schemas import Schema, get_schema, merge_schema
+from apischema.schemas import Schema, merge_schema
 from apischema.serialization import SerializationMethod, serialize
 from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.type_names import TypeName, TypeNameFactory, get_type_name
@@ -111,6 +112,16 @@ def exec_thunk(thunk: TypeThunk, *, non_null=None) -> Any:
     return result
 
 
+def get_parameter_schema(
+    func: Callable, parameter: Parameter, field: ObjectField
+) -> Optional[Schema]:
+    from apischema import settings
+
+    return merge_schema(
+        settings.base_schema.parameter(func, parameter, field.alias), field.schema
+    )
+
+
 def merged_schema(
     schema: Optional[Schema], tp: Optional[AnyType]
 ) -> Tuple[Optional[Schema], Mapping[str, Any]]:
@@ -151,7 +162,6 @@ def get_deprecated(
 
 @dataclass(frozen=True)
 class ResolverField:
-    alias: str
     resolver: Resolver
     types: Mapping[str, AnyType]
     parameters: Sequence[Parameter]
@@ -480,7 +490,9 @@ class InputSchemaBuilder(
 ):
     types = graphql.type.definition.graphql_input_types
 
-    def _field(self, field: ObjectField) -> Lazy[graphql.GraphQLInputField]:
+    def _field(
+        self, tp: AnyType, field: ObjectField
+    ) -> Lazy[graphql.GraphQLInputField]:
         field_type = field.type
         field_default = graphql.Undefined if field.required else field.get_default()
         default: Any = graphql.Undefined
@@ -501,7 +513,7 @@ class InputSchemaBuilder(
         return lambda: graphql.GraphQLInputField(
             factory.type,  # type: ignore
             default_value=default,
-            description=get_description(field.schema, field.type),
+            description=get_description(get_field_schema(tp, field), field.type),
         )
 
     @cache_type
@@ -514,7 +526,7 @@ class InputSchemaBuilder(
                 normal_field = NormalField(
                     self.aliaser(field.alias),
                     field.name,
-                    self._field(field),
+                    self._field(tp, field),
                     field.ordering,
                 )
                 visited_fields.append(normal_field)
@@ -602,7 +614,7 @@ class OutputSchemaBuilder(
 
             return cast(Func, resolve_wrapper)
 
-    def _field(self, field: ObjectField) -> Lazy[graphql.GraphQLField]:
+    def _field(self, tp: AnyType, field: ObjectField) -> Lazy[graphql.GraphQLField]:
         field_name = field.name
         partial_serialize = self._field_serialization_method(field)
 
@@ -611,15 +623,18 @@ class OutputSchemaBuilder(
             return partial_serialize(getattr(obj, field_name))
 
         factory = self.visit_with_conv(field.type, field.serialization)
+        field_schema = get_field_schema(tp, field)
         return lambda: graphql.GraphQLField(
             factory.type,
             None,
             resolve,
-            description=get_description(field.schema, field.type),
-            deprecation_reason=get_deprecated(field.schema, field.type),
+            description=get_description(field_schema, field.type),
+            deprecation_reason=get_deprecated(field_schema, field.type),
         )
 
-    def _resolver(self, field: ResolverField) -> Lazy[graphql.GraphQLField]:
+    def _resolver(
+        self, tp: AnyType, field: ResolverField
+    ) -> Lazy[graphql.GraphQLField]:
         resolve = self._wrap_resolve(
             resolver_resolve(
                 field.resolver,
@@ -665,7 +680,10 @@ class OutputSchemaBuilder(
                 arg_factory = self.input_builder.visit_with_conv(
                     param_type, param_field.deserialization
                 )
-                description = get_description(param_field.schema, param_field.type)
+                description = get_description(
+                    get_parameter_schema(field.resolver.func, param, param_field),
+                    param_field.type,
+                )
 
                 def arg_thunk(
                     arg_factory=arg_factory, default=default, description=description
@@ -676,13 +694,14 @@ class OutputSchemaBuilder(
 
                 args[self.aliaser(param_field.alias)] = arg_thunk
         factory = self.visit_with_conv(field.types["return"], field.resolver.conversion)
+        field_schema = get_method_schema(tp, field.resolver)
         return lambda: graphql.GraphQLField(
             factory.type,  # type: ignore
             {name: arg() for name, arg in args.items()} if args else None,
             resolve,
             field.subscribe,
-            get_description(field.resolver.schema),
-            get_deprecated(field.resolver.schema),
+            get_description(field_schema),
+            get_deprecated(field_schema),
         )
 
     def _visit_flattened(
@@ -716,7 +735,7 @@ class OutputSchemaBuilder(
                 normal_field = NormalField(
                     self.aliaser(field.name),
                     field.name,
-                    self._field(field),
+                    self._field(tp, field),
                     field.ordering,
                 )
                 visited_fields.append(normal_field)
@@ -727,20 +746,16 @@ class OutputSchemaBuilder(
                     FlattenedField(field.name, field.ordering, flattened_factory)
                 )
         resolvers = list(resolvers)
-        for alias, (resolver, types) in get_resolvers(tp).items():
+        for resolver, types in get_resolvers(tp):
             resolver_field = ResolverField(
-                alias,
-                resolver,
-                types,
-                resolver.parameters,
-                resolver.parameters_metadata,
+                resolver, types, resolver.parameters, resolver.parameters_metadata
             )
             resolvers.append(resolver_field)
         for resolver_field in resolvers:
             normal_field = NormalField(
-                self.aliaser(resolver_field.alias),
+                self.aliaser(resolver_field.resolver.alias),
                 resolver_field.resolver.func.__name__,
-                self._resolver(resolver_field),
+                self._resolver(tp, resolver_field),
                 resolver_field.resolver.ordering,
             )
             visited_fields.append(normal_field)
@@ -838,9 +853,7 @@ class Subscription(Operation[AsyncIterable]):
 Op = TypeVar("Op", bound=Operation)
 
 
-def operation_resolver(
-    operation: Union[Callable, Op], op_class: Type[Op]
-) -> Tuple[str, Resolver]:
+def operation_resolver(operation: Union[Callable, Op], op_class: Type[Op]) -> Resolver:
     if not isinstance(operation, op_class):
         operation = op_class(operation)  # type: ignore
     error_handler: Optional[Callable]
@@ -864,8 +877,9 @@ def operation_resolver(
     wrapper.__annotations__ = op.__annotations__
 
     (*parameters,) = resolver_parameters(operation.function, check_first=True)
-    return operation.alias or operation.function.__name__, Resolver(
+    return Resolver(
         wrapper,
+        operation.alias or operation.function.__name__,
         operation.conversion,
         error_handler,
         operation.order,
@@ -912,9 +926,8 @@ def graphql_schema(
         (mutation, Mutation, mutation_fields),
     ]:
         for operation in operations:  # type: ignore
-            alias, resolver = operation_resolver(operation, op_class)
+            resolver = operation_resolver(operation, op_class)
             resolver_field = ResolverField(
-                alias,
                 resolver,
                 resolver.types(),
                 resolver.parameters,
@@ -926,11 +939,11 @@ def graphql_schema(
             sub_op = Subscription(sub_op)  # type: ignore
         sub_parameters: Sequence[Parameter]
         if sub_op.resolver is not None:
-            alias = sub_op.alias or sub_op.resolver.__name__
-            _, subscriber2 = operation_resolver(sub_op, Subscription)
+            subscriber2 = operation_resolver(sub_op, Subscription)
             _, *sub_parameters = resolver_parameters(sub_op.resolver, check_first=False)
             resolver = Resolver(
                 sub_op.resolver,
+                sub_op.alias or sub_op.resolver.__name__,
                 sub_op.conversion,
                 subscriber2.error_handler,
                 sub_op.order,
@@ -949,9 +962,10 @@ def graphql_schema(
                 serialized=False,
             )
         else:
-            alias, subscriber2 = operation_resolver(sub_op, Subscription)
+            subscriber2 = operation_resolver(sub_op, Subscription)
             resolver = Resolver(
                 lambda _: _,
+                subscriber2.alias,
                 sub_op.conversion,
                 subscriber2.error_handler,
                 sub_op.order,
@@ -978,12 +992,7 @@ def graphql_schema(
             sub_types = {**sub_types, "return": resolver.return_type(event_type)}
 
         resolver_field = ResolverField(
-            alias,
-            resolver,
-            sub_types,
-            sub_parameters,
-            sub_op.parameters_metadata,
-            subscribe,
+            resolver, sub_types, sub_parameters, sub_op.parameters_metadata, subscribe
         )
         subscription_fields.append(resolver_field)
 

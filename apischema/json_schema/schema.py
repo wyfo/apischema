@@ -1,7 +1,6 @@
 from contextlib import suppress
 from dataclasses import dataclass
 from enum import Enum
-from functools import reduce
 from itertools import chain
 from typing import (
     AbstractSet,
@@ -51,9 +50,12 @@ from apischema.objects.visitor import (
     SerializationObjectVisitor,
 )
 from apischema.ordering import Ordering, sort_by_order
-from apischema.schemas import Schema, get_schema
+from apischema.schemas import Schema, get_schema as _get_schema, merge_schema
 from apischema.serialization import serialize
-from apischema.serialization.serialized_methods import get_serialized_methods
+from apischema.serialization.serialized_methods import (
+    SerializedMethod,
+    get_serialized_methods,
+)
 from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.types import AnyType, OrderedDict, UndefinedType
 from apischema.typing import get_args, is_typed_dict
@@ -66,6 +68,29 @@ from apischema.utils import (
 )
 
 
+def get_schema(tp: AnyType) -> Optional[Schema]:
+    from apischema import settings
+
+    return merge_schema(settings.base_schema.type(tp), _get_schema(tp))
+
+
+def get_field_schema(tp: AnyType, field: ObjectField) -> Optional[Schema]:
+    from apischema import settings
+
+    assert not field.is_aggregate
+    return merge_schema(
+        settings.base_schema.field(tp, field.name, field.alias), field.schema
+    )
+
+
+def get_method_schema(tp: AnyType, method: SerializedMethod) -> Optional[Schema]:
+    from apischema import settings
+
+    return merge_schema(
+        settings.base_schema.method(tp, method.func, method.alias), method.schema
+    )
+
+
 def full_schema(base_schema: JsonSchema, schema: Optional[Schema]) -> JsonSchema:
     if schema is not None:
         base_schema = JsonSchema(base_schema)
@@ -76,9 +101,9 @@ def full_schema(base_schema: JsonSchema, schema: Optional[Schema]) -> JsonSchema
 Method = TypeVar("Method", bound=Callable)
 
 
-@dataclass
+@dataclass(frozen=True)
 class Property:
-    alias: str
+    alias: AliasedStr
     name: str
     ordering: Optional[Ordering]
     required: bool
@@ -115,18 +140,16 @@ class SchemaBuilder(
             return JsonSchema({"$ref": self.ref_factory(ref)})
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> JsonSchema:
-        schemas: List[Optional[Schema]] = []
+        schema = None
         for annotation in reversed(annotations):
             if isinstance(annotation, TypeNameFactory):
                 ref = annotation.to_type_name(tp).json_schema
                 ref_schema = self.ref_schema(ref)
                 if ref_schema is not None:
-                    return reduce(full_schema, reversed(schemas), ref_schema)
+                    return full_schema(ref_schema, schema)
             if isinstance(annotation, Mapping):
-                schemas.append(annotation.get(SCHEMA_METADATA))
-        return reduce(
-            full_schema, reversed(schemas), super().annotated(tp, annotations)
-        )
+                schema = merge_schema(annotation.get(SCHEMA_METADATA), schema)
+        return full_schema(super().annotated(tp, annotations), schema)
 
     def any(self) -> JsonSchema:
         return JsonSchema()
@@ -170,12 +193,15 @@ class SchemaBuilder(
         else:
             return json_schema(type=JsonType.OBJECT, additionalProperties=value)
 
-    def visit_field(self, field: ObjectField, required: bool = True) -> JsonSchema:
+    def visit_field(
+        self, tp: AnyType, field: ObjectField, required: bool = True
+    ) -> JsonSchema:
+        assert not field.is_aggregate
         result = full_schema(
             self.visit_with_conv(field.type, self._field_conversion(field)),
-            field.schema,
+            get_field_schema(tp, field) if tp is not None else field.schema,
         )
-        if not field.is_aggregate and not required and "default" not in result:
+        if not required and "default" not in result:
             result = JsonSchema(result)
             with suppress(Exception):
                 result["default"] = serialize(
@@ -191,7 +217,10 @@ class SchemaBuilder(
         assert field.is_aggregate
         with context_setter(self):
             self._ignore_first_ref = True
-            object_schema = self.visit_field(field)
+            object_schema = full_schema(
+                self.visit_with_conv(field.type, self._field_conversion(field)),
+                field.schema,
+            )
         if object_schema.get("type") not in {JsonType.OBJECT, "object"}:
             field_type = "Flattened" if field.flattened else "Properties"
             raise TypeError(
@@ -233,7 +262,12 @@ class SchemaBuilder(
         for field in fields:
             if field.flattened:
                 self._object_schema(cls, field)  # check the field is an object
-                flattened_schemas.append(self.visit_field(field))
+                flattened_schemas.append(
+                    full_schema(
+                        self.visit_with_conv(field.type, self._field_conversion(field)),
+                        field.schema,
+                    )
+                )
             elif field.pattern_properties is not None:
                 if field.pattern_properties is ...:
                     pattern = infer_pattern(field.type, self.default_conversion)
@@ -318,17 +352,17 @@ class SchemaBuilder(
         dynamic: bool,
         next_conversion: Optional[AnyConversion] = None,
     ) -> JsonSchema:
-        schemas = []
+        schema = None
         if not dynamic:
             for ref_tp in self.resolve_conversion(tp):
                 ref_schema = self.ref_schema(get_type_name(ref_tp).json_schema)
                 if ref_schema is not None:
                     return ref_schema
             if get_args(tp):
-                schemas.append(get_schema(get_origin_or_type(tp)))
-            schemas.append(get_schema(tp))
+                schema = merge_schema(schema, get_schema(get_origin_or_type(tp)))
+            schema = merge_schema(schema, get_schema(tp))
         result = super().visit_conversion(tp, conversion, dynamic, next_conversion)
-        return reduce(full_schema, schemas, result)
+        return full_schema(result, schema)
 
     RefsExtractor: ClassVar[Type[RefsExtractor_]]
 
@@ -345,11 +379,11 @@ class DeserializationSchemaBuilder(
     ) -> Sequence[Property]:
         return [
             Property(
-                field.alias,
+                AliasedStr(field.alias),
                 field.name,
                 field.ordering,
                 field.required,
-                self.visit_field(field, field.required),
+                self.visit_field(tp, field, field.required),
             )
             for field in fields
             if not field.is_aggregate
@@ -378,11 +412,11 @@ class SerializationSchemaBuilder(
 
         return [
             Property(
-                field.alias,
+                AliasedStr(field.alias),
                 field.name,
                 field.ordering,
                 required,
-                self.visit_field(field, required),
+                self.visit_field(tp, field, required),
             )
             for field in fields
             if not field.is_aggregate
@@ -396,16 +430,16 @@ class SerializationSchemaBuilder(
             ]
         ] + [
             Property(
-                AliasedStr(alias),
+                AliasedStr(serialized.alias),
                 serialized.func.__name__,
                 serialized.ordering,
                 not is_union_of(types["return"], UndefinedType),
                 full_schema(
                     self.visit_with_conv(types["return"], serialized.conversion),
-                    serialized.schema,
+                    get_method_schema(tp, serialized),
                 ),
             )
-            for alias, (serialized, types) in get_serialized_methods(tp).items()
+            for serialized, types in get_serialized_methods(tp)
         ]
 
 

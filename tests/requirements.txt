@@ -2,6 +2,7 @@ dataclasses;python_version<'3.7'
 graphql-core
 attrs
 bson
+docstring_parser
 pydantic
 pytest
 pytest-cov

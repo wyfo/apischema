@@ -1,3 +1,4 @@
+import collections.abc
 import warnings
 from contextlib import suppress
 from dataclasses import dataclass
@@ -5,7 +6,7 @@ from typing import Callable, MutableMapping, NamedTuple, Optional, TypeVar, Unio
 
 from apischema.cache import CacheAwareDict
 from apischema.types import AnyType, PRIMITIVE_TYPES
-from apischema.typing import get_args, get_origin, is_type_var
+from apischema.typing import get_args, get_origin, is_named_tuple, is_type_var
 from apischema.utils import has_type_vars, merge_opts, replace_builtins
 
 
@@ -70,6 +71,11 @@ def default_type_name(tp: AnyType) -> Optional[TypeName]:
         and not get_args(tp)
         and not has_type_vars(tp)
         and tp not in PRIMITIVE_TYPES
+        and (
+            not isinstance(tp, type)
+            or not issubclass(tp, collections.abc.Collection)
+            or is_named_tuple(tp)
+        )
     ):
         return TypeName(tp.__name__, tp.__name__)
     else:

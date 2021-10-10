@@ -92,24 +92,6 @@ JSON schema constrains the data deserialized; these constraints are naturally us
 {!validation_error.py!}
 ```
 
-### Default `schema`
-
-When no schema are defined, a default schema can be computed using `settings.default_schema` like this:
-
-```python
-from typing import Optional
-from apischema import schema, settings
-from apischema.schemas import Schema
-
-
-def default_schema(cls) -> Optional[Schema]:
-    return schema(...) if ... else None
-
-settings.default_schema = default_schema
-``` 
-
-Default implementation returns `None` for every types.
-
 ### Extra schema
 
 `schema` has two other arguments: `extra` and `override`, which give a finer control of the JSON schema generated: `extra` and `override`. It can be used for example to build "strict" unions (using `oneOf` instead of `anyOf`)
@@ -117,6 +99,16 @@ Default implementation returns `None` for every types.
 ```python
 {!strict_union.py!}
 ```
+
+### Base `schema`
+
+`apischema.settings.base_schema` can be used to define "base schema" for the different kind of objects: types, object fields or (serialized) methods.
+
+```python
+{!base_schema.py!}
+```
+
+Base schema will be merged with `schema` defined at type/field/method level.
 
 ## Required field with default value
 

@@ -7,6 +7,7 @@ from typing import (
     Any,
     Awaitable,
     Callable,
+    Collection,
     Dict,
     Iterator,
     Mapping,
@@ -124,7 +125,7 @@ _resolvers: MutableMapping[Type, Dict[str, Resolver]] = CacheAwareDict(
 )
 
 
-def get_resolvers(tp: AnyType) -> Mapping[str, Tuple[Resolver, Mapping[str, AnyType]]]:
+def get_resolvers(tp: AnyType) -> Collection[Tuple[Resolver, Mapping[str, AnyType]]]:
     return _get_methods(tp, _resolvers)
 
 
@@ -194,6 +195,7 @@ def resolver(
             error_handler2 = None
         resolver = Resolver(
             func,
+            alias2,
             conversion,
             error_handler2,
             order,
