@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, get_origin
 
 import docstring_parser
@@ -15,7 +15,7 @@ class Foo:
 
     :var bar: bar attribute"""
 
-    bar: str
+    bar: str = field(metadata=schema(max_len=10))
 
     @serialized
     @property
@@ -59,7 +59,12 @@ assert serialization_schema(Foo) == {
     "title": "Foo",
     "description": "Foo class",
     "properties": {
-        "bar": {"description": "bar attribute", "title": "Bar", "type": "string"},
+        "bar": {
+            "description": "bar attribute",
+            "title": "Bar",
+            "type": "string",
+            "maxLength": 10,
+        },
         "baz": {"description": "baz method", "title": "Baz", "type": "integer"},
     },
     "required": ["bar", "baz"],
