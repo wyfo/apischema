@@ -9,6 +9,9 @@ import typing
 from typing import *
 from unittest.mock import MagicMock
 
+import pytest
+
+from apischema import settings
 from apischema.typing import (
     Annotated,
     Literal,
@@ -64,3 +67,31 @@ __timeit = timeit.timeit
 timeit.timeit = lambda stmt, number=None, **kwargs: __timeit(stmt, number=1, **kwargs)
 
 sys.modules["orjson"] = json
+
+settings_classes = (
+    settings,
+    settings.base_schema,
+    settings.deserialization,
+    settings.serialization,
+)
+settings_dicts = {cls: dict(cls.__dict__) for cls in settings_classes}
+
+## test body
+
+
+def set_settings(dicts: Mapping[type, Mapping[str, Any]]):
+    for cls, dict_ in dicts.items():
+        for key, value in dict_.items():
+            if not key.startswith("_"):
+                setattr(cls, key, value)
+
+
+test_dicts = {cls: dict(cls.__dict__) for cls in settings_classes}
+set_settings(settings_dicts)
+
+
+@pytest.fixture(autouse=True)
+def test_settings(monkeypatch):
+    set_settings(test_dicts)
+    yield
+    set_settings(settings_dicts)
