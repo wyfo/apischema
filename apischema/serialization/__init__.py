@@ -272,7 +272,7 @@ class SerializationMethodVisitor(
         ] + [
             (
                 serialized.func.__name__,
-                self.aliaser(name),
+                self.aliaser(serialized.alias),
                 serialized.func,
                 True,
                 None,
@@ -283,7 +283,7 @@ class SerializationMethodVisitor(
                 self.visit_with_conv(ret_type, serialized.conversion),
                 serialized.ordering,
             )
-            for name, (serialized, types) in get_serialized_methods(tp).items()
+            for serialized, types in get_serialized_methods(tp)
             for ret_type in [types["return"]]
         ]
         serialization_fields = sort_by_order(  # type: ignore

@@ -5,6 +5,7 @@ from inspect import Parameter, isclass, signature
 from typing import (
     Any,
     Callable,
+    Collection,
     Dict,
     Mapping,
     MutableMapping,
@@ -37,6 +38,7 @@ from apischema.utils import (
 @dataclass(frozen=True)
 class SerializedMethod:
     func: Callable
+    alias: str
     conversion: Optional[AnyConversion]
     error_handler: Optional[Callable]
     ordering: Optional[Ordering]
@@ -85,17 +87,17 @@ S = TypeVar("S", bound=SerializedMethod)
 
 def _get_methods(
     tp: AnyType, all_methods: Mapping[Type, Mapping[str, S]]
-) -> Mapping[str, Tuple[S, Mapping[str, AnyType]]]:
+) -> Collection[Tuple[S, Mapping[str, AnyType]]]:
     result = {}
     for base in reversed(generic_mro(tp)):
         for name, method in all_methods[get_origin_or_type(base)].items():
             result[name] = (method, method.types(base))
-    return result
+    return result.values()
 
 
 def get_serialized_methods(
     tp: AnyType,
-) -> Mapping[str, Tuple[SerializedMethod, Mapping[str, AnyType]]]:
+) -> Collection[Tuple[SerializedMethod, Mapping[str, AnyType]]]:
     return _get_methods(tp, _serialized_methods)
 
 
@@ -163,8 +165,9 @@ def serialized(
                     return error_handler(error, self, alias2)
 
         assert not isinstance(error_handler2, UndefinedType)
-        serialized = SerializedMethod(func, conversion, error_handler2, order, schema)
-        _serialized_methods[owner][alias2] = serialized
+        _serialized_methods[owner][alias2] = SerializedMethod(
+            func, alias2, conversion, error_handler2, order, schema
+        )
 
     if isinstance(__arg, str):
         alias = __arg

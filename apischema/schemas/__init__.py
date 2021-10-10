@@ -128,13 +128,11 @@ _schemas: Dict[Any, Schema] = {}
 
 
 def get_schema(tp: AnyType) -> Optional[Schema]:
-    from apischema import settings
-
     tp = replace_builtins(tp)
     try:
-        return _schemas[tp]
-    except (KeyError, TypeError):
-        return settings.default_schema(tp)
+        return _schemas.get(tp)
+    except TypeError:
+        return None
 
 
 @merge_opts

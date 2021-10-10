@@ -95,6 +95,13 @@ Resolvers parameters can have metadata like dataclass fields. They can be passed
 !!! note
 Metadata can also be passed with `parameters_metadata` parameter; it takes a mapping of parameter names as key and mapped metadata as value.
 
+### Parameters base schema
+
+Following the example of [type/field/method base schema](../json_schema.md#base-schema), resolver parameters also support a base schema definition
+
+```python
+{!base_schema_parameter.py!}
+```
 
 ## ID type
 *GraphQL* `ID` has no precise specification and is defined according API needs; it can be a UUID or and ObjectId, etc.
