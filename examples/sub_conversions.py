@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Generic, Optional, TypeVar
+from typing import Generic, TypeVar
 
 from apischema.conversions import Conversion
 from apischema.json_schema import serialization_schema
@@ -15,7 +15,7 @@ def query_to_list(q: Query[T]) -> list[T]:
     ...
 
 
-def query_to_scalar(q: Query[T]) -> Optional[T]:
+def query_to_scalar(q: Query[T]) -> T | None:
     ...
 
 

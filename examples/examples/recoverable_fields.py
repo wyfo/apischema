@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generic, TypeVar, Union
+from typing import Any, Dict, Generic, TypeVar
 
 from pytest import raises
 
@@ -28,7 +28,7 @@ def remove_recoverable_schema(json_schema: Dict[str, Any]):
 
 @schema(extra=remove_recoverable_schema)
 class Recoverable(Generic[T]):
-    def __init__(self, value: Union[T, RecoverableRaw]):
+    def __init__(self, value: T | RecoverableRaw):
         self._value = value
 
     @property

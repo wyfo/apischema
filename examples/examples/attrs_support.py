@@ -1,4 +1,4 @@
-from typing import Optional, Sequence
+from typing import Sequence
 
 import attr
 
@@ -9,7 +9,7 @@ from apischema.objects import ObjectField
 prev_default_object_fields = settings.default_object_fields
 
 
-def attrs_fields(cls: type) -> Optional[Sequence[ObjectField]]:
+def attrs_fields(cls: type) -> Sequence[ObjectField] | None:
     if hasattr(cls, "__attrs_attrs__"):
         return [
             ObjectField(

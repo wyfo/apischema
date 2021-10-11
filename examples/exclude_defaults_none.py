@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from apischema import serialize
 
@@ -7,7 +6,7 @@ from apischema import serialize
 @dataclass
 class Foo:
     bar: int = 0
-    baz: Optional[str] = None
+    baz: str | None = None
 
 
 assert serialize(Foo, Foo(), exclude_defaults=True) == {}

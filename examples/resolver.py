@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from graphql import print_schema
 
@@ -18,7 +17,7 @@ class Foo:
         ...
 
 
-async def foo() -> Optional[Foo]:
+async def foo() -> Foo | None:
     ...
 
 

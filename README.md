@@ -35,7 +35,6 @@ On top of that, because APIs are not only JSON, *apischema* is also a complete *
 ```python
 from collections.abc import Collection
 from dataclasses import dataclass, field
-from typing import Optional
 from uuid import UUID, uuid4
 
 from graphql import print_schema
@@ -83,7 +82,7 @@ assert deserialization_schema(Resource) == {
 
 
 # Define GraphQL operations
-def resources(tags: Optional[Collection[str]] = None) -> Optional[Collection[Resource]]:
+def resources(tags: Collection[str] | None = None) -> Collection[Resource] | None:
     ...
 
 

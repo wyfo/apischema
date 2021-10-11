@@ -79,7 +79,7 @@ py37 = [
     (Dict[str, int], Visitor.mapping, [dict, str, int]),
 ]
 
-pep_585: List = []
+pep_585: list = []
 if sys.version_info >= (3, 9):
     pep_585 = [
         (list[int], Visitor.collection, [list, int]),
@@ -97,12 +97,17 @@ if sys.version_info >= (3, 9):
         (dict[str, int], Visitor.mapping, [dict, str, int]),
     ]
 
+py310: list = []
+if sys.version_info >= (3, 10):
+    py310 = [(int | str, Visitor.union, [(int, str)])]
+
 
 @mark.parametrize(
     "cls, method, args",
     [
         *(py37 if sys.version_info >= (3, 7) else py36),
         *pep_585,
+        *py310,
         (Annotated[int, 42, "42"], Visitor.annotated, [int, (42, "42")]),
         (Any, Visitor.any, []),
         (

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import os
+import re
 import sys
 from itertools import takewhile
 from pathlib import Path
@@ -25,15 +27,40 @@ def iter_paths() -> Iterator[Tuple[Path, Path]]:
 
 
 INDENTATION = 4 * " "
+union_regex = re.compile(r"..(\w+(\[.+?\])? \| )+(\w+)")
+# regex is not recursive and thus cannot catch things like Connection[Ship | None] | None
+
+try:
+    from re import Match
+except ImportError:
+    Match = ...  # type: ignore
 
 
-def generate():
+def replace_union(match: Match) -> str:
+    args = list(map(str.strip, match.group(0)[2:].split("|")))
+    if match.group(0)[0] == "=" and args[-1] != "None":  # graphql types
+        return match.group(0)
+    joined = ", ".join(args)
+    return match.group(0)[:2] + f"Union[{joined}]"
+
+
+def handle_union(line: str) -> str:
+    return union_regex.sub(replace_union, line)
+
+
+def main():
     if GENERATED_PATH.exists():
         rmtree(GENERATED_PATH)
     GENERATED_PATH.mkdir(parents=True)
     for example_path, test_path in iter_paths():
         with open(example_path) as example:
             with open(test_path, "w") as test:
+                if (
+                    sys.version_info < (3, 10)
+                    or os.getenv("TOXENV", None) != "py310"
+                    or True
+                ):
+                    example = map(handle_union, example)
                 # 3.9 compatibility is added after __future__ import
                 # However, Annotated/Literal/etc. can be an issue
                 first_line = next(example)
@@ -74,27 +101,6 @@ def generate():
     for path in GENERATED_PATH.glob("**"):
         if path.is_dir():
             open(path / "__init__.py", "w").close()
-
-
-def retro_propagate():
-    for example_path, test_path in iter_paths():
-        if not test_path.exists():
-            continue
-        with open(test_path) as test:
-            with open(example_path, "w") as example:
-                for line in test:
-                    if line.startswith("##"):
-                        for l in test:
-                            if l.startswith("##"):
-                                break
-                    if line.startswith("def test_"):
-                        example.writelines(l[4:] for l in test)
-                        break
-                    example.write(line)
-
-
-def main():
-    retro_propagate() if "-r" in sys.argv else generate()
 
 
 if __name__ == "__main__":

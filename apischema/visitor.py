@@ -37,6 +37,7 @@ from apischema.typing import (
     is_named_tuple,
     is_type_var,
     is_typed_dict,
+    is_union,
     required_keys,
 )
 from apischema.utils import PREFIX, get_origin_or_type, has_type_vars, is_dataclass
@@ -167,7 +168,7 @@ class Visitor(Generic[Result]):
         if args:
             if is_annotated(tp):
                 return self.annotated(args[0], args[1:])
-            if origin is Union:
+            if is_union(origin):
                 return self.union(args[0]) if len(args) == 1 else self.union(args)
             if origin is TUPLE_TYPE:
                 if len(args) < 2 or args[1] is not ...:

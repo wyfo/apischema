@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Literal
 
 from apischema.json_schema import (
     JsonSchemaVersion,
@@ -10,7 +10,7 @@ from apischema.json_schema import (
 
 @dataclass
 class Bar:
-    baz: Optional[int]
+    baz: int | None
     constant: Literal[0] = 0
 
 

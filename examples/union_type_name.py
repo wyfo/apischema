@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Union
 
 from graphql import print_schema
 
@@ -16,7 +15,7 @@ class Bar:
     bar: int
 
 
-def foo_or_bar() -> Union[Foo, Bar]:
+def foo_or_bar() -> Foo | Bar:
     ...
 
 

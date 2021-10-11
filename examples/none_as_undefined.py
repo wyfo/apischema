@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Optional
 
 from pytest import raises
 
@@ -10,7 +9,7 @@ from apischema.metadata import none_as_undefined
 
 @dataclass
 class Foo:
-    bar: Optional[str] = field(default=None, metadata=none_as_undefined)
+    bar: str | None = field(default=None, metadata=none_as_undefined)
 
 
 assert (

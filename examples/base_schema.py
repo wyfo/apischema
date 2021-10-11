@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional, get_origin
+from typing import Any, Callable, get_origin
 
 import docstring_parser
 
@@ -24,7 +24,7 @@ class Foo:
         ...
 
 
-def type_base_schema(tp: Any) -> Optional[Schema]:
+def type_base_schema(tp: Any) -> Schema | None:
     if not hasattr(tp, "__doc__"):
         return None
     return schema(
@@ -33,7 +33,7 @@ def type_base_schema(tp: Any) -> Optional[Schema]:
     )
 
 
-def field_base_schema(tp: Any, name: str, alias: str) -> Optional[Schema]:
+def field_base_schema(tp: Any, name: str, alias: str) -> Schema | None:
     title = alias.replace("_", " ").capitalize()
     tp = get_origin(tp) or tp  # tp can be generic
     for meta in docstring_parser.parse(tp.__doc__).meta:
@@ -42,7 +42,7 @@ def field_base_schema(tp: Any, name: str, alias: str) -> Optional[Schema]:
     return schema(title=title)
 
 
-def method_base_schema(tp: Any, method: Callable, alias: str) -> Optional[Schema]:
+def method_base_schema(tp: Any, method: Callable, alias: str) -> Schema | None:
     return schema(
         title=alias.replace("_", " ").capitalize(),
         description=docstring_parser.parse(method.__doc__).short_description,

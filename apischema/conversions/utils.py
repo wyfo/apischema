@@ -1,14 +1,16 @@
 from inspect import Parameter, isclass, signature
-from typing import Any, Callable, Dict, Generic, Optional, Tuple, Type, Union, cast
+from typing import Any, Callable, Dict, Generic, Optional, Tuple, Type, cast
 
 from apischema.types import AnyType
-from apischema.typing import get_type_hints, is_new_type, is_type
+from apischema.typing import (
+    get_type_hints,
+    is_annotated,
+    is_literal,
+    is_new_type,
+    is_type,
+    is_union,
+)
 from apischema.utils import get_origin_or_type
-
-try:
-    from apischema.typing import Annotated, Literal
-except ImportError:
-    Annotated, Literal = ..., ...  # type: ignore
 
 Converter = Callable[[Any], Any]
 
@@ -71,11 +73,8 @@ def converter_types(
     return source, target
 
 
-INVALID_CONVERSION_TYPES = {Union, Annotated, Literal}
-
-
 def is_convertible(tp: AnyType) -> bool:
     origin = get_origin_or_type(tp)
     return is_new_type(tp) or (
-        is_type(origin) and origin not in INVALID_CONVERSION_TYPES
+        is_type(origin) and not (is_literal(tp) or is_annotated(tp) or is_union(origin))
     )

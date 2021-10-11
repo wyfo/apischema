@@ -1,6 +1,6 @@
 import inspect
 from collections.abc import Mapping
-from typing import Any, Optional
+from typing import Any
 
 import pydantic
 from pytest import raises
@@ -21,7 +21,7 @@ from apischema.schemas import Schema
 prev_deserialization = settings.deserialization.default_conversion
 
 
-def default_deserialization(tp: Any) -> Optional[AnyConversion]:
+def default_deserialization(tp: Any) -> AnyConversion | None:
     if inspect.isclass(tp) and issubclass(tp, pydantic.BaseModel):
 
         def deserialize_pydantic(data):
@@ -44,7 +44,7 @@ settings.deserialization.default_conversion = default_deserialization
 prev_schema = settings.default_schema
 
 
-def default_schema(tp: Any) -> Optional[Schema]:
+def default_schema(tp: Any) -> Schema | None:
     if inspect.isclass(tp) and issubclass(tp, pydantic.BaseModel):
         return schema(extra=tp.schema(), override=True)
     else:

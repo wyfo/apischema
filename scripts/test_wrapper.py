@@ -16,10 +16,13 @@ from apischema.typing import (
     Annotated,
     Literal,
     TypedDict,
+    Union,
     get_args,
     get_origin,
     is_type,
 )
+
+Union = Union  # to prevent import removal
 
 typing.get_origin, typing.get_args = get_origin, get_args
 typing.Annotated, typing.Literal, typing.TypedDict = Annotated, Literal, TypedDict

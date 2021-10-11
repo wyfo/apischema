@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Union
 
 from apischema import Undefined, UndefinedType, alias, deserialize, serialize
 from apischema.fields import with_fields_set
@@ -9,18 +8,16 @@ from apischema.metadata import flatten
 
 @dataclass
 class JsonSchema:
-    title: Union[str, UndefinedType] = Undefined
-    description: Union[str, UndefinedType] = Undefined
-    format: Union[str, UndefinedType] = Undefined
+    title: str | UndefinedType = Undefined
+    description: str | UndefinedType = Undefined
+    format: str | UndefinedType = Undefined
     ...
 
 
 @with_fields_set
 @dataclass
 class RootJsonSchema:
-    schema: Union[str, UndefinedType] = field(
-        default=Undefined, metadata=alias("$schema")
-    )
+    schema: str | UndefinedType = field(default=Undefined, metadata=alias("$schema"))
     defs: list[JsonSchema] = field(default_factory=list, metadata=alias("$defs"))
     # This field schema is flattened inside the owning one
     json_schema: JsonSchema = field(default=JsonSchema(), metadata=flatten)

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Collection, Optional
+from typing import Collection
 from uuid import UUID, uuid4
 
 from graphql import graphql_sync, print_schema
@@ -12,7 +12,7 @@ from apischema.graphql import graphql_schema, resolver
 class User:
     id: UUID
     username: str
-    birthday: Optional[date] = None
+    birthday: date | None = None
 
     @resolver
     def posts(self) -> Collection["Post"]:
@@ -39,7 +39,7 @@ def posts() -> Collection[Post]:
     return POSTS
 
 
-def user(username: str) -> Optional[User]:
+def user(username: str) -> User | None:
     for user in users():
         if user.username == username:
             return user

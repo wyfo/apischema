@@ -10,7 +10,7 @@ class Foo:
     elements: list[Union[int, "Foo"]]
 
 
-def foo_elements(foo: Foo) -> list[Union[int, Foo]]:
+def foo_elements(foo: Foo) -> list[int | Foo]:
     return foo.elements
 
 
