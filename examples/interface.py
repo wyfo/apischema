@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from graphql import print_schema
 
@@ -17,7 +16,7 @@ class Foo(Bar):
     baz: str
 
 
-def foo() -> Optional[Foo]:
+def foo() -> Foo | None:
     ...
 
 

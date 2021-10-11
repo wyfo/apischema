@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Annotated, Any, Union
+from typing import Annotated, Any
 
 from apischema import schema
 from apischema.json_schema import deserialization_schema
@@ -25,7 +25,7 @@ class Foo:
 
 
 # Use Annotated with OneOf to make a "strict" Union
-assert deserialization_schema(Annotated[Union[Foo, int], OneOf]) == {
+assert deserialization_schema(Annotated[Foo | int, OneOf]) == {
     "$schema": "http://json-schema.org/draft/2020-12/schema#",
     "oneOf": [  # oneOf instead of anyOf
         {"$ref": "http://some-domain.org/path/to/schema.json#/$defs/Foo"},

@@ -252,6 +252,8 @@ def replace_builtins(tp: AnyType) -> AnyType:
             replacement = LIST_ORIGIN
     elif origin in MAPPING_TYPES:
         replacement = DICT_ORIGIN
+    elif is_union(origin):
+        replacement = Union
     else:
         replacement = typing_origin(origin)
     res = replacement[args] if args else replacement

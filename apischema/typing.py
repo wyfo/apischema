@@ -305,4 +305,9 @@ def is_type(tp: Any) -> bool:
 
 
 def is_union(tp: Any) -> bool:
-    return tp is Union
+    try:
+        from types import UnionType  # type: ignore
+
+        return tp in (UnionType, Union)
+    except ImportError:
+        return tp is Union

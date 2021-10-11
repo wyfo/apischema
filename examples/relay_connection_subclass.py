@@ -17,7 +17,7 @@ class MyConnection(relay.Connection[Node, Cursor, Edge]):
 
 @dataclass
 class MyEdge(relay.Edge[Node, Cursor]):
-    edge_field: Optional[int]
+    edge_field: int | None
 
 
 Connection = MyConnection[Node, MyEdge[Node]]
@@ -32,12 +32,12 @@ class Ship:
 class Faction:
     @resolver
     def ships(
-        self, first: Optional[int], after: Optional[Cursor]
-    ) -> Optional[Connection[Optional[Ship]]]:
+        self, first: int | None, after: Cursor | None
+    ) -> Connection[Optional[Ship]] | None:
         ...
 
 
-def faction() -> Optional[Faction]:
+def faction() -> Faction | None:
     return Faction()
 
 

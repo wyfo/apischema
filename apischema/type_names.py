@@ -2,7 +2,7 @@ import collections.abc
 import warnings
 from contextlib import suppress
 from dataclasses import dataclass
-from typing import Callable, MutableMapping, NamedTuple, Optional, TypeVar, Union
+from typing import Any, Callable, MutableMapping, NamedTuple, Optional, TypeVar, Union
 
 from apischema.cache import CacheAwareDict
 from apischema.types import AnyType, PRIMITIVE_TYPES
@@ -65,12 +65,15 @@ def type_name(
     return TypeNameFactory(json_schema or ref, graphql or ref)
 
 
+no_type_name = {*PRIMITIVE_TYPES, Any}
+
+
 def default_type_name(tp: AnyType) -> Optional[TypeName]:
     if (
         hasattr(tp, "__name__")
         and not get_args(tp)
         and not has_type_vars(tp)
-        and tp not in PRIMITIVE_TYPES
+        and tp not in no_type_name
         and (
             not isinstance(tp, type)
             or not issubclass(tp, collections.abc.Collection)

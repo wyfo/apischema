@@ -1,7 +1,7 @@
+from dataclasses import dataclass
 from typing import Optional, TypeVar
 
 import graphql
-from dataclasses import dataclass
 from graphql.utilities import print_schema
 
 from apischema.graphql import graphql_schema, relay, resolver
@@ -9,7 +9,7 @@ from apischema.graphql import graphql_schema, relay, resolver
 Cursor = int  # let's use an integer cursor in all our connection
 Node = TypeVar("Node")
 Connection = relay.Connection[Node, Cursor, relay.Edge[Node, Cursor]]
-# Connection can now be used just like Connection[Ship] or Connection[Optional[Faction]]
+# Connection can now be used just like Connection[Ship] or Connection[Faction | None]
 
 
 @dataclass
@@ -21,13 +21,13 @@ class Ship:
 class Faction:
     @resolver
     def ships(
-        self, first: Optional[int], after: Optional[Cursor]
-    ) -> Optional[Connection[Optional[Ship]]]:
+        self, first: int | None, after: Cursor | None
+    ) -> Connection[Optional[Ship]] | None:
         edges = [relay.Edge(Ship("X-Wing"), 0), relay.Edge(Ship("B-Wing"), 1)]
         return Connection(edges, relay.PageInfo.from_edges(edges))
 
 
-def faction() -> Optional[Faction]:
+def faction() -> Faction | None:
     return Faction()
 
 

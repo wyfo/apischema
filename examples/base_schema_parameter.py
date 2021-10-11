@@ -1,6 +1,6 @@
 import inspect
 from dataclasses import dataclass
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 import docstring_parser
 from graphql.utilities import print_schema
@@ -21,13 +21,13 @@ class Foo:
         ...
 
 
-def method_base_schema(tp: Any, method: Callable, alias: str) -> Optional[Schema]:
+def method_base_schema(tp: Any, method: Callable, alias: str) -> Schema | None:
     return schema(description=docstring_parser.parse(method.__doc__).short_description)
 
 
 def parameter_base_schema(
     method: Callable, parameter: inspect.Parameter, alias: str
-) -> Optional[Schema]:
+) -> Schema | None:
     for doc_param in docstring_parser.parse(method.__doc__).params:
         if doc_param.arg_name == parameter.name:
             return schema(description=doc_param.description)

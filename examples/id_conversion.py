@@ -1,6 +1,5 @@
 from base64 import b64decode, b64encode
 from dataclasses import dataclass
-from typing import Optional
 from uuid import UUID
 
 from graphql import graphql_sync
@@ -13,7 +12,7 @@ class Foo:
     id: UUID
 
 
-def foo() -> Optional[Foo]:
+def foo() -> Foo | None:
     return Foo(UUID("58c88e87-5769-4723-8974-f9ec5007a38b"))
 
 

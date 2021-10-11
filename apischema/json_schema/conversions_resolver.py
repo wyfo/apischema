@@ -25,7 +25,7 @@ from apischema.utils import is_hashable
 from apischema.visitor import Unsupported
 
 try:
-    from apischema.typing import Annotated
+    from apischema.typing import Annotated, is_union
 except ImportError:
     Annotated = ...  # type: ignore
 
@@ -42,7 +42,7 @@ def merge_results(
             yield ()
 
     result_list = list(results)
-    return [origin[tuple(r)] for r in rec()]
+    return [(Union if is_union(origin) else origin)[tuple(r)] for r in rec()]
 
 
 class ConversionsResolver(ConversionsVisitor[Conv, Sequence[AnyType]]):

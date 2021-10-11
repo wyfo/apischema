@@ -1,12 +1,10 @@
-from typing import Optional, Union
-
 from graphql import graphql_sync
 
 from apischema import Undefined, UndefinedType
 from apischema.graphql import graphql_schema
 
 
-def arg_is_absent(arg: Optional[Union[int, UndefinedType]] = Undefined) -> bool:
+def arg_is_absent(arg: int | UndefinedType | None = Undefined) -> bool:
     return arg is Undefined
 
 

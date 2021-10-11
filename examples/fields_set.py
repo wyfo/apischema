@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from apischema import deserialize
 from apischema.fields import (
@@ -16,7 +15,7 @@ from apischema.fields import (
 @dataclass
 class Foo:
     bar: int
-    baz: Optional[str] = None
+    baz: str | None = None
 
 
 # Retrieve fields set

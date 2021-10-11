@@ -2,7 +2,7 @@ from collections import defaultdict
 from collections.abc import AsyncIterable, Callable, Iterator
 from dataclasses import dataclass, field
 from types import new_class
-from typing import Annotated, Any, Optional, TypeVar, get_type_hints
+from typing import Annotated, Any, TypeVar, get_type_hints
 
 import graphql
 
@@ -131,7 +131,7 @@ class Concat(Drawing):
             yield point
 
 
-def echo(drawing: Drawing = None) -> Optional[Drawing]:
+def echo(drawing: Drawing = None) -> Drawing | None:
     return drawing
 
 

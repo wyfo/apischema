@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 from uuid import UUID
 
 from graphql import print_schema
@@ -12,7 +11,7 @@ class Foo:
     bar: UUID
 
 
-def foo() -> Optional[Foo]:
+def foo() -> Foo | None:
     ...
 
 

@@ -1,7 +1,7 @@
 from collections.abc import Collection
 from inspect import getmembers
 from itertools import starmap
-from typing import Any, Optional
+from typing import Any
 
 from graphql import print_schema
 from sqlalchemy import Column, Integer, String
@@ -25,7 +25,8 @@ def column_field(name: str, column: Column) -> ObjectField:
     else:
         required = True
     col_type = column.type.python_type
-    col_type = Optional[col_type] if column.nullable else col_type
+    if column.nullable:
+        col_type = col_type | None
     return ObjectField(column.name or name, col_type, required, default=default)
 
 
@@ -62,7 +63,7 @@ assert deserialization_schema(Foo) == {
 }
 
 
-def foos() -> Optional[Collection[Foo]]:
+def foos() -> Collection[Foo] | None:
     ...
 
 
