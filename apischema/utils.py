@@ -111,7 +111,7 @@ def to_camel_case(s: str) -> str:
 
 
 def to_snake_case(s: str) -> str:
-    return SNAKE_CASE_REGEX.sub(lambda m: "_" + m.group(1).lower(), s)
+    return CAMEL_CASE_REGEX.sub(lambda m: "_" + m.group(1).lower(), s)
 
 
 def to_pascal_case(s: str) -> str:

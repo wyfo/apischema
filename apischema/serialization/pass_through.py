@@ -18,7 +18,7 @@ from apischema.recursion import RecursiveConversionsVisitor
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import AnyType
 from apischema.typing import is_typed_dict
-from apischema.utils import Lazy, as_predicate, get_origin_or_type, identity, opt_or
+from apischema.utils import Lazy, as_predicate, get_origin_or_type, identity
 
 
 @dataclass(frozen=True)
@@ -189,28 +189,38 @@ class PassThroughVisitor(
     def visit(self, tp: AnyType) -> bool:
         return tp is not AliasedStr and super().visit(tp)
 
+    def visit_not_recursive(self, tp: AnyType) -> bool:
+        return pass_through(
+            tp,
+            self.additional_properties,
+            self.aliaser,
+            self._conversion,
+            self.default_conversion,
+            self.exclude_defaults,
+            self.exclude_none,
+            self.exclude_unset,
+            self.options,
+        )
+
 
 @lru_cache()
 def pass_through(
     tp: AnyType,
-    *,
-    additional_properties: bool = None,
-    aliaser: Aliaser = None,
-    conversions: AnyConversion = None,
-    default_conversion: DefaultConversion = None,
-    exclude_defaults: bool = None,
-    exclude_none: bool = None,
-    exclude_unset: bool = None,
-    options: PassThroughOptions = None,
+    additional_properties: bool,
+    aliaser: Aliaser,
+    conversion: Optional[AnyConversion],
+    default_conversion: DefaultConversion,
+    exclude_defaults: bool,
+    exclude_none: bool,
+    exclude_unset: bool,
+    options: PassThroughOptions,
 ) -> bool:
-    from apischema import settings
-
     return PassThroughVisitor(
-        opt_or(additional_properties, settings.additional_properties),
-        opt_or(aliaser, settings.aliaser),
-        opt_or(default_conversion, settings.serialization.default_conversion),
-        opt_or(exclude_defaults, settings.serialization.exclude_defaults),
-        opt_or(exclude_none, settings.serialization.exclude_none),
-        opt_or(exclude_unset, settings.serialization.exclude_unset),
-        opt_or(options, settings.serialization.pass_through),
-    ).visit_with_conv(tp, conversions)
+        additional_properties,
+        aliaser,
+        default_conversion,
+        exclude_defaults,
+        exclude_none,
+        exclude_unset,
+        options,
+    ).visit_with_conv(tp, conversion)

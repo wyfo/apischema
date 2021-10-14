@@ -123,7 +123,6 @@ class DeserializationMethodVisitor(
         self.aliaser = aliaser
         self.coercer = coercer
         self.fall_back_on_default = fall_back_on_default
-        self._first_visit = True
 
     def _recursive_result(
         self, lazy: Lazy[DeserializationMethodFactory]
@@ -144,9 +143,6 @@ class DeserializationMethodVisitor(
         return DeserializationMethodFactory(factory)
 
     def visit_not_recursive(self, tp: AnyType) -> DeserializationMethodFactory:
-        if self._first_visit:
-            self._first_visit = False
-            return super().visit_not_recursive(tp)
         return deserialization_method_factory(
             tp,
             self.additional_properties,
