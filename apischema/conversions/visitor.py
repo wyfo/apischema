@@ -4,7 +4,6 @@ from functools import lru_cache
 from types import new_class
 from typing import (
     Any,
-    ClassVar,
     Collection,
     Generic,
     Iterable,
@@ -48,8 +47,6 @@ Conv = TypeVar("Conv")
 
 
 class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
-    base_conversion_visitor: ClassVar[Type["ConversionsVisitor"]]
-
     def __init__(self, default_conversion: DefaultConversion):
         self.default_conversion = default_conversion
         self._conversion: Optional[AnyConversion] = None
@@ -242,7 +239,3 @@ class SerializationVisitor(ConversionsVisitor[Serialization, Result]):
         return self.visit_with_conv(
             conversion.target, sub_conversion(conversion, next_conversion)
         )
-
-
-DeserializationVisitor.base_conversion_visitor = DeserializationVisitor
-SerializationVisitor.base_conversion_visitor = SerializationVisitor

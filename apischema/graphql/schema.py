@@ -594,7 +594,7 @@ class OutputSchemaBuilder(
             self.id_type,
             self.is_id,
         )
-        # Share the same cache for input_builder in order to share
+        # Share the same cache for input_builder in order to share scalar types
         self.input_builder._cache_by_name = self._cache_by_name
         self.get_flattened: Optional[Callable[[Any], Any]] = None
 

@@ -106,7 +106,6 @@ class SerializationMethodVisitor(
         self.exclude_unset = exclude_unset
         self.fall_back_on_any = fall_back_on_any
         self.pass_through_options = pass_through_options
-        self._first_visit = True
 
     @property
     def _factory(self) -> SerializationMethodFactory:
@@ -124,10 +123,7 @@ class SerializationMethodVisitor(
         )
 
     def visit_not_recursive(self, tp: AnyType):
-        if self._first_visit or not self.use_cache:
-            self._first_visit = False
-            return super().visit_not_recursive(tp)
-        return self._factory(tp)
+        return self._factory(tp) if self.use_cache else super().visit_not_recursive(tp)
 
     def _recursive_result(self, lazy: Lazy[SerializationMethod]) -> SerializationMethod:
         rec_method = None
@@ -144,14 +140,14 @@ class SerializationMethodVisitor(
         try:
             return pass_through(
                 tp,
-                additional_properties=self.additional_properties,
-                aliaser=self.aliaser,
-                conversions=self._conversion,
-                default_conversion=self.default_conversion,
-                exclude_defaults=self.exclude_defaults,
-                exclude_none=self.exclude_none,
-                exclude_unset=self.exclude_unset,
-                options=self.pass_through_options,
+                self.additional_properties,
+                self.aliaser,
+                self._conversion,
+                self.default_conversion,
+                self.exclude_defaults,
+                self.exclude_none,
+                self.exclude_unset,
+                self.pass_through_options,
             )
         except (TypeError, Unsupported):  # TypeError because tp can be unhashable
             return False

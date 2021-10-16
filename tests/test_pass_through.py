@@ -1,10 +1,11 @@
 from dataclasses import dataclass, field, make_dataclass
+from functools import partial
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from pytest import mark
 
-from apischema import UndefinedType, alias, properties
+from apischema import UndefinedType, alias, properties, settings
 from apischema.metadata import flatten, skip
 from apischema.serialization import PassThroughOptions, pass_through
 from apischema.utils import to_camel_case
@@ -45,8 +46,15 @@ def test_pass_through_dataclasses(option_and_field, has_field, has_option, uuid_
         dataclasses=PassThroughOptions.Dataclass(**{option_and_field[0]: has_option})
     )
     pass_through_result = not uuid_field and (has_option or not has_field)
-    assert (
-        pass_through(cls, aliaser=to_camel_case, options=options)
-        == pass_through(rec_cls, aliaser=to_camel_case, options=options)
-        == pass_through_result
+    pass_through2 = partial(
+        pass_through,
+        additional_properties=False,
+        aliaser=to_camel_case,
+        conversion=None,
+        default_conversion=settings.serialization.default_conversion,
+        exclude_defaults=False,
+        exclude_none=False,
+        exclude_unset=False,
+        options=options,
     )
+    assert pass_through2(cls) == pass_through2(rec_cls) == pass_through_result
