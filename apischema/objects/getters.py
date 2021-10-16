@@ -48,7 +48,7 @@ def object_fields(
 
     try:
         return OrderedDict((f.name, f) for f in GetFields().visit(tp))
-    except Unsupported:
+    except (Unsupported, NotImplementedError):
         raise TypeError(f"{tp} doesn't have fields")
 
 
