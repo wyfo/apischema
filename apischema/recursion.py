@@ -1,6 +1,16 @@
-from dataclasses import Field
 from enum import Enum
-from typing import Any, Collection, Dict, Mapping, Optional, Sequence, Set, Tuple, Type
+from typing import (
+    Any,
+    Collection,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+)
 
 from apischema.cache import cache
 from apischema.conversions import AnyConversion
@@ -10,126 +20,118 @@ from apischema.conversions.visitor import (
     ConversionsVisitor,
     Deserialization,
     DeserializationVisitor,
+    Serialization,
     SerializationVisitor,
+)
+from apischema.objects import ObjectField
+from apischema.objects.visitor import (
+    DeserializationObjectVisitor,
+    ObjectVisitor,
+    SerializationObjectVisitor,
 )
 from apischema.types import AnyType
 from apischema.utils import Lazy
 from apischema.visitor import Result
 
-
-class RecursionGuard(Set[Tuple[AnyType, Optional[AnyConversion]]]):
-    def __hash__(self):
-        return hash(None)
-
-    def __eq__(self, other):
-        return isinstance(other, RecursionGuard)
+RecursionKey = Tuple[AnyType, Optional[AnyConversion]]
 
 
-class RecursiveChecker(ConversionsVisitor[Conv, bool]):
-    def __init__(self, default_conversion: DefaultConversion, guard: RecursionGuard):
+class RecursiveChecker(ConversionsVisitor[Conv, Any], ObjectVisitor[Any]):
+    def __init__(self, default_conversion: DefaultConversion):
         super().__init__(default_conversion)
-        self.guard = guard
-        self._first_visit = True
+        self._cache = recursion_cache(self.__class__)
+        self._recursive: Dict[RecursionKey, Set[RecursionKey]] = {}
+        self._all_recursive: Set[RecursionKey] = set()
+        self._guard: List[RecursionKey] = []
+        self._guard_indices: Dict[RecursionKey, int] = {}
 
-    def any(self) -> bool:
-        return False
+    def any(self):
+        pass
 
-    def collection(self, cls: Type[Collection], value_type: AnyType) -> bool:
+    def collection(self, cls: Type[Collection], value_type: AnyType):
         return self.visit(value_type)
 
-    def dataclass(
-        self,
-        tp: AnyType,
-        types: Mapping[str, AnyType],
-        fields: Sequence[Field],
-        init_vars: Sequence[Field],
-    ) -> bool:
-        # It's possible to have type without associated field, e.g. an annotation of an
-        # inherited class, so don't map types.values()
-        return any(map(self.visit, (types[f.name] for f in (*fields, *init_vars))))
+    def enum(self, cls: Type[Enum]):
+        pass
 
-    def enum(self, cls: Type[Enum]) -> bool:
-        return False
+    def literal(self, values: Sequence[Any]):
+        pass
 
-    def literal(self, values: Sequence[Any]) -> bool:
-        return False
+    def mapping(self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType):
+        self.visit(key_type)
+        self.visit(value_type)
 
-    def mapping(
-        self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType
-    ) -> bool:
-        return self.visit(key_type) or self.visit(value_type)
+    def object(self, tp: AnyType, fields: Sequence[ObjectField]):
+        for field in fields:
+            self.visit_with_conv(field.type, self._field_conversion(field))
 
-    def named_tuple(
-        self, tp: AnyType, types: Mapping[str, AnyType], defaults: Mapping[str, Any]
-    ) -> bool:
-        return any(map(self.visit, types.values()))
+    def primitive(self, cls: Type):
+        pass
 
-    def primitive(self, cls: Type) -> bool:
-        return False
+    def tuple(self, types: Sequence[AnyType]):
+        for tp in types:
+            self.visit(tp)
 
-    def tuple(self, types: Sequence[AnyType]) -> bool:
-        return any(map(self.visit, types))
+    def _visited_union(self, results: Sequence):
+        pass
 
-    def typed_dict(
-        self, tp: AnyType, types: Mapping[str, AnyType], required_keys: Collection[str]
-    ) -> bool:
-        return any(map(self.visit, types))
+    def unsupported(self, tp: AnyType):
+        pass
 
-    def _visited_union(self, results: Sequence[bool]) -> bool:
-        return any(results)
-
-    def unsupported(self, tp: AnyType) -> bool:
-        return False
-
-    def visit(self, tp: AnyType) -> bool:
-        if self._first_visit:
-            self._first_visit = False
-            return super().visit(tp)
-        return _is_recursive_type(
-            tp, self.__class__, self._conversion, self.default_conversion, self.guard
-        )
+    def visit(self, tp: AnyType):
+        rec_key = (tp, self._conversion)
+        if rec_key in self._cache:
+            pass
+        elif rec_key in self._guard_indices:
+            recursive = self._guard[self._guard_indices[rec_key] :]
+            self._recursive.setdefault(rec_key, set()).update(recursive)
+            self._all_recursive.update(recursive)
+        else:
+            self._guard_indices[rec_key] = len(self._guard)
+            self._guard.append(rec_key)
+            try:
+                super().visit(tp)
+            finally:
+                self._guard.pop()
+                self._guard_indices.pop(rec_key)
+            if rec_key in self._recursive:
+                for key in self._recursive[rec_key]:
+                    self._cache[key] = True
+                assert self._cache[rec_key]
+            elif rec_key not in self._all_recursive:
+                self._cache[rec_key] = False
 
 
 class DeserializationRecursiveChecker(
-    DeserializationVisitor[bool], RecursiveChecker[Deserialization]
+    DeserializationVisitor,
+    DeserializationObjectVisitor,
+    RecursiveChecker[Deserialization],
 ):
     pass
 
 
 class SerializationRecursiveChecker(
-    SerializationVisitor[bool], RecursiveChecker[SerializationVisitor]
+    SerializationVisitor, SerializationObjectVisitor, RecursiveChecker[Serialization]
 ):
     pass
 
 
+@cache  # use @cache for reset
+def recursion_cache(checker_cls: Type[RecursiveChecker]) -> Dict[RecursionKey, bool]:
+    return {}
+
+
 @cache
-def _is_recursive_type(
+def is_recursive(
     tp: AnyType,
-    checker: Type[RecursiveChecker],
     conversion: Optional[AnyConversion],
-    default_conversions: DefaultConversion,
-    sentinel: RecursionGuard,
+    default_conversion: DefaultConversion,
+    checker_cls: Type[RecursiveChecker],
 ) -> bool:
-    recursion_key = tp, conversion
-    if recursion_key in sentinel:
-        return True
-    sentinel.add(recursion_key)
-    try:
-        return checker(default_conversions, sentinel).visit_with_conv(tp, conversion)
-    finally:
-        sentinel.remove(recursion_key)
-
-
-def is_recursive_type(tp: AnyType, visitor: ConversionsVisitor):
-    return _is_recursive_type(
-        tp,
-        DeserializationRecursiveChecker  # type: ignore
-        if isinstance(visitor, DeserializationVisitor)
-        else SerializationRecursiveChecker,
-        visitor._conversion,
-        visitor.default_conversion,
-        RecursionGuard(),
-    )
+    cache, rec_key = recursion_cache(checker_cls), (tp, conversion)
+    if rec_key not in cache:
+        checker_cls(default_conversion).visit_with_conv(tp, conversion)
+    return cache[rec_key]
 
 
 class RecursiveConversionsVisitor(ConversionsVisitor[Conv, Result]):
@@ -145,7 +147,15 @@ class RecursiveConversionsVisitor(ConversionsVisitor[Conv, Result]):
         return super().visit(tp)
 
     def visit(self, tp: AnyType) -> Result:
-        if is_recursive_type(tp, self):
+        if is_recursive(
+            tp,
+            self._conversion,
+            self.default_conversion,
+            DeserializationRecursiveChecker  # type: ignore
+            if isinstance(self, DeserializationVisitor)
+            else SerializationRecursiveChecker,
+            # None,
+        ):
             cache_key = tp, self._conversion
             if cache_key in self._cache:
                 return self._cache[cache_key]
