@@ -7,6 +7,7 @@ from typing import (
     Collection,
     Generic,
     Iterable,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
@@ -27,6 +28,7 @@ from apischema.conversions.conversions import (
 )
 from apischema.conversions.utils import is_convertible
 from apischema.metadata.implem import ConversionMetadata
+from apischema.metadata.keys import CONVERSION_METADATA
 from apischema.type_names import type_name
 from apischema.types import AnyType
 from apischema.typing import get_args, is_type_var
@@ -63,8 +65,10 @@ class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
 
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> Result:
         for annotation in reversed(annotations):
-            if isinstance(annotation, ConversionMetadata):
-                with self._replace_conversion(self._annotated_conversion(annotation)):
+            if isinstance(annotation, Mapping) and CONVERSION_METADATA in annotation:
+                with self._replace_conversion(
+                    self._annotated_conversion(annotation[CONVERSION_METADATA])
+                ):
                     return super().annotated(tp, annotations)
         return super().annotated(tp, annotations)
 
