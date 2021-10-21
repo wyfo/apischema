@@ -1,6 +1,7 @@
 import collections.abc
 import operator
 from contextlib import suppress
+from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
 from typing import (
@@ -32,12 +33,12 @@ from apischema.objects import AliasedStr, ObjectField
 from apischema.objects.visitor import SerializationObjectVisitor
 from apischema.ordering import sort_by_order
 from apischema.recursion import RecursiveConversionsVisitor
-from apischema.serialization.pass_through import PassThroughOptions, pass_through
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import AnyType, NoneType, Undefined, UndefinedType
 from apischema.typing import is_new_type, is_type, is_type_var, is_typed_dict, is_union
 from apischema.utils import (
     Lazy,
+    as_predicate,
     deprecate_kwargs,
     get_args2,
     get_origin_or_type,
@@ -78,6 +79,17 @@ def identity_as_none(method: SerializationMethod) -> Optional[SerializationMetho
     return method if method is not identity else None
 
 
+@dataclass(frozen=True)
+class PassThroughOptions:
+    any: bool = False
+    collections: bool = False
+    enums: bool = False
+    types: Union[Collection[AnyType], Callable[[AnyType], bool]] = ()
+
+    def __post_init__(self):
+        object.__setattr__(self, "types", as_predicate(self.types))
+
+
 class SerializationMethodVisitor(
     RecursiveConversionsVisitor[Serialization, SerializationMethod],
     SerializationVisitor[SerializationMethod],
@@ -106,6 +118,7 @@ class SerializationMethodVisitor(
         self.exclude_unset = exclude_unset
         self.fall_back_on_any = fall_back_on_any
         self.pass_through_options = pass_through_options
+        self.pass_through_type = as_predicate(self.pass_through_options.types)
 
     @property
     def _factory(self) -> SerializationMethodFactory:
@@ -135,22 +148,6 @@ class SerializationMethodVisitor(
             return rec_method(obj)
 
         return method
-
-    def pass_through(self, tp: AnyType) -> bool:
-        try:
-            return pass_through(
-                tp,
-                self.additional_properties,
-                self.aliaser,
-                self._conversion,
-                self.default_conversion,
-                self.exclude_defaults,
-                self.exclude_none,
-                self.exclude_unset,
-                self.pass_through_options,
-            )
-        except (TypeError, Unsupported):  # TypeError because tp can be unhashable
-            return False
 
     def any(self) -> SerializationMethod:
         if self.pass_through_options.any:
@@ -194,49 +191,64 @@ class SerializationMethodVisitor(
     ) -> SerializationMethod:
         serialize_value = self.visit(value_type)
 
-        if serialize_value is identity:
-            method: SerializationMethod = list
-        else:
+        method: SerializationMethod
+        if serialize_value is not identity:
 
             def method(obj: Any) -> Any:
                 # using map is faster than comprehension
                 return list(map(serialize_value, obj))
 
+        elif issubclass(cls, (list, tuple)) or (
+            self.pass_through_options.collections
+            and not issubclass(cls, collections.abc.Set)
+        ):
+            method = identity
+        else:
+            method = list
+
         return self._wrap(cls, method)
 
     def enum(self, cls: Type[Enum]) -> SerializationMethod:
-        pass_through = all(self.pass_through(elt.value.__class__) for elt in cls)
-        serialize_value = identity if pass_through else self.any()
-        if serialize_value is identity:
+        if self.pass_through_options.enums or issubclass(cls, (int, str)):
+            return identity
+        elif all(
+            method is identity
+            for method in map(self.visit, {elt.value.__class__ for elt in cls})
+        ):
             method: SerializationMethod = operator.attrgetter("value")
         else:
+            any_method = self.any()
 
             def method(obj: Any) -> Any:
-                return serialize_value(obj.value)
+                return any_method(obj.value)
 
         return self._wrap(cls, method)
 
     def literal(self, values: Sequence[Any]) -> SerializationMethod:
-        return self.any()
+        if self.pass_through_options.enums or all(
+            isinstance(v, (int, str)) for v in values
+        ):
+            return identity
+        else:
+            return self.any()
 
     def mapping(
         self, cls: Type[Mapping], key_type: AnyType, value_type: AnyType
     ) -> SerializationMethod:
         serialize_key, serialize_value = self.visit(key_type), self.visit(value_type)
-        if serialize_key is serialize_value is identity:
-            method: SerializationMethod = dict
-        elif serialize_key is identity:
-
-            def method(obj: Any) -> Any:
-                return {key: serialize_value(value) for key, value in obj.items()}
-
-        else:
+        method: SerializationMethod
+        if serialize_key is not identity or serialize_value is not identity:
 
             def method(obj: Any) -> Any:
                 return {
                     serialize_key(key): serialize_value(value)
                     for key, value in obj.items()
                 }
+
+        elif self.pass_through_options.collections or issubclass(cls, dict):
+            method = identity
+        else:
+            method = dict
 
         return self._wrap(cls, method)
 
@@ -333,14 +345,22 @@ class SerializationMethodVisitor(
     def primitive(self, cls: Type) -> SerializationMethod:
         return self._wrap(cls, identity)
 
+    def subprimitive(self, cls: Type, superclass: Type) -> SerializationMethod:
+        if cls is AliasedStr:
+            return self.aliaser
+        else:
+            return super().subprimitive(cls, superclass)
+
     def tuple(self, types: Sequence[AnyType]) -> SerializationMethod:
         elt_serializers = list(enumerate(map(self.visit, types)))
-        nb_elts = len(elt_serializers)
+        if all(method is identity for method in elt_serializers):
+            return identity
 
         def method(obj: Any) -> Any:
             return [serialize_elt(obj[i]) for i, serialize_elt in elt_serializers]
 
         if self.check_type:
+            nb_elts = len(elt_serializers)
             wrapped = method
             fall_back_on_any, as_list = self.fall_back_on_any, self._factory(list)
 
@@ -365,6 +385,8 @@ class SerializationMethodVisitor(
             raise Unsupported(Union[tuple(alternatives)])  # type: ignore
         elif len(methods) == 1:
             return methods[0][0]
+        elif all(method is identity for method, _, _ in methods):
+            return identity
         elif len(methods) == 2 and NoneType in alternatives:
             serialize_alt = next(meth for meth, _, arg in methods if arg is not None)
 
@@ -418,13 +440,17 @@ class SerializationMethodVisitor(
 
         return self._wrap(get_origin_or_type(tp), method)
 
-    def visit(self, tp: AnyType) -> SerializationMethod:
-        if tp is AliasedStr:
-            return self._wrap(AliasedStr, self.aliaser)
-        elif not self.check_type and self.pass_through(tp):
+    def visit_conversion(
+        self,
+        tp: AnyType,
+        conversion: Optional[Serialization],
+        dynamic: bool,
+        next_conversion: Optional[AnyConversion] = None,
+    ) -> SerializationMethod:
+        if not dynamic and self.pass_through_type(tp):
             return identity
         else:
-            return super().visit(tp)
+            return super().visit_conversion(tp, conversion, dynamic, next_conversion)
 
 
 @cache

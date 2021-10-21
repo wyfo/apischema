@@ -20,6 +20,9 @@ However, if `lru_cache` is fast, using the methods directly is faster, so *apisc
 
 ## Serialization passthrough
 
+!!! warning
+    This feature has been released on a provisional basis. It has also been partially rolled back (it was initially covering dataclasses) to simplify the code for the next version; in fact the feature will then maybe not be as much useful, as *apischema* performance will normally be improved significantly enough to offer its own JSON dump implementation.
+
 JSON serialization libraries expect primitive data types (`dict`/`list`/`str`/etc.). A non-negligible part of objects to be serialized are primitive.
 
 When [type checking](#type-checking) is disabled (this is default), objects annotated with primitive types doesn't need to be transformed or checked; *apischema* can simply "pass through" them, and it will result into an identity serialization method.
@@ -63,20 +66,6 @@ But, most of the time, collections runtime types are `list`/`dict`, so others ca
 !!! note
     Set-like type will not be passed through.
 
-#### `dataclasses` — pass through dataclasses
-
-Some JSON serialization libraries also support dataclasses. However, *apischema* has a few features concerning dataclasses, which may not have equivalents in these libraries. To specify which features are supported, the `dataclasses` parameter can be an instance of `PassThroughOptions.Dataclasses`, whose each boolean field refers to a particular feature :  
-
-- [`aliaser`](json_schema.md#dynamic-aliasing-and-default-aliaser)
-- [`aliased_fields`](json_schema.md#field-alias)
-- [`flattened_fields`](data_model.md#composition-over-inheritance---composed-dataclasses-flattening)
-- [`properties_fields`](#additional-properties)
-- [`skipped_fields`](data_model.md#skip-field)
-- [`skipped_if_fields`](data_model.md#skip-field-serialization-depending-on-condition)
-
-!!! note
-    `dataclasses=True` is equivalent to `dataclasses=PassThroughOptions.Dataclasses()` (which is equivalent to `dataclasses=PassThroughOptions.Dataclasses(False, False, False, False, False)`)
-
 #### `enums` — pass through enums
 
 #### `types` — pass through arbitrary types
@@ -87,14 +76,10 @@ Either a collection of types, or a predicate to determine if type has to be pass
 
 *apischema* is quite optimized and can perform better than using `default` fallback, as shown in the following example:
 
-. That's why passthrough optimization should be used wisely.
-
 ```python
 {!vs_default.py!}
 ```
-
-!!! note
-    The example above doesn't even use `serialization_method` with `pass_through`, or `serialization_default`, and is still slower.
+That's why passthrough optimization should be used wisely.
 
 ## Benchmark 
 

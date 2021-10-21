@@ -16,8 +16,8 @@ assert (
     == dumps(uuids, default=str)  # equivalent to previous one, but faster
 )
 print(timeit("dumps(serialize_uuids(uuids))", globals=globals()))
-# 18.171754636
+# 18.171754636 -> without passthrough
 print(timeit("dumps(uuids, default=str)", globals=globals()))
-# 21.188269333
+# 21.188269333 -> with passthrough and faster default
 print(timeit("dumps(serialize_uuids2(uuids), default=default)", globals=globals()))
-# 24.494076885
+# 24.494076885 -> with passthrough and default
