@@ -353,7 +353,7 @@ class SerializationMethodVisitor(
 
     def tuple(self, types: Sequence[AnyType]) -> SerializationMethod:
         elt_serializers = list(enumerate(map(self.visit, types)))
-        if all(method is identity for method in elt_serializers):
+        if all(method is identity for _, method in elt_serializers):
             return identity
 
         def method(obj: Any) -> Any:
