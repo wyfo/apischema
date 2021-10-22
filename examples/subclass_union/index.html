@@ -11,7 +11,7 @@
       
       
       <link rel="shortcut icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.5.0">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-5.5.0">
     
     
       
@@ -365,18 +365,6 @@
 
 
   <li class="md-nav__item">
-    <a href="../open_rpc/" title="OpenRPC" class="md-nav__link">
-      OpenRPC
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
     <a href="../sqlalchemy_support/" title="SQLAlchemy support" class="md-nav__link">
       SQLAlchemy support
     </a>
@@ -475,8 +463,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../benchmark/" title="Benchmark" class="md-nav__link">
-      Benchmark
+    <a href="../../performance_and_benchmark/" title="Performance and benchmark" class="md-nav__link">
+      Performance and benchmark
     </a>
   </li>
 
@@ -542,12 +530,12 @@
                 
                 <h1 id="class-as-union-of-its-subclasses">Class as union of its subclasses<a class="headerlink" href="#class-as-union-of-its-subclasses" title="Permanent link">&para;</a></h1>
 <p><em>Inspired by <a href="https://github.com/samuelcolvin/pydantic/issues/2036">https://github.com/samuelcolvin/pydantic/issues/2036</a></em></p>
-<p>A class can easily be deserialized as a union of its subclasses using deserializers. Indeed, when more than one deserializer are registered, it results in a union.</p>
+<p>A class can easily be deserialized as a union of its subclasses using deserializers. Indeed, when more than one deserializer is registered, it results in a union.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">serializer</span>
-<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">Conversion</span><span class="p">,</span> <span class="n">identity</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">identity</span><span class="p">,</span> <span class="n">serializer</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">Conversion</span>
 <span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span><span class="p">,</span> <span class="n">serialization_schema</span>
 
 
@@ -556,6 +544,7 @@
 
     <span class="c1"># You can use __init_subclass__ to register new subclass automatically</span>
     <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init_subclass__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1"># Deserializers stack directly as a Union</span>
         <span class="n">deserializer</span><span class="p">(</span><span class="n">Conversion</span><span class="p">(</span><span class="n">identity</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">cls</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">Base</span><span class="p">))</span>
         <span class="c1"># Only Base serializer must be registered (and updated for each subclass) as</span>
@@ -594,7 +583,7 @@
                 <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
             <span class="p">},</span>
         <span class="p">],</span>
-        <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2020-12/schema#&quot;</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">)</span>
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Base</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;foo&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>

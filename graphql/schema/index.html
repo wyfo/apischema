@@ -11,7 +11,7 @@
       
       
       <link rel="shortcut icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.5.0">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-5.5.0">
     
     
       
@@ -367,6 +367,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#enum-metadata" class="md-nav__link">
+    Enum metadata
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#additional-types" class="md-nav__link">
     Additional types
   </a>
@@ -448,18 +455,6 @@
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../examples/open_rpc/" title="OpenRPC" class="md-nav__link">
-      OpenRPC
-    </a>
-  </li>
-
         
           
           
@@ -556,8 +551,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../benchmark/" title="Benchmark" class="md-nav__link">
-      Benchmark
+    <a href="../../performance_and_benchmark/" title="Performance and benchmark" class="md-nav__link">
+      Performance and benchmark
     </a>
   </li>
 
@@ -633,6 +628,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#enum-metadata" class="md-nav__link">
+    Enum metadata
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#additional-types" class="md-nav__link">
     Additional types
   </a>
@@ -691,7 +693,7 @@
 <p>Functions parameters and return types are then processed by <em>apischema</em> to generate the <code>Query</code>/<code>Mutation</code>/<code>Subscription</code> types with their resolvers/subscribers, which are then passed to <code>graphql.GraphQLSchema</code>.</p>
 <p>In fact, <code>graphql_schema</code> is just a wrapper around <code>graphql.GraphQLSchema</code> (same parameters plus a few extras); it just uses <em>apischema</em> abstraction to build <code>GraphQL</code> object types directly from your code. </p>
 <h2 id="operations-metadata">Operations metadata<a class="headerlink" href="#operations-metadata" title="Permanent link">&para;</a></h2>
-<p><em>GraphQL</em> operations can be passed to <code>graphql_schema</code> either using simple functions or wrapping it into <code>apischema.graphql.Query</code>/<code>apischema.graphql.Mutation</code>/<code>apischema.graphql.Subscription</code>. These wrappers have the same parameters as <code>apischema.graphql.resolver</code>: <code>alias</code>, <code>conversions</code>, <code>error_handler</code> and <code>schema</code> (<code>Subscription</code> has an <a href="#subscriptions">additional parameter</a>).</p>
+<p><em>GraphQL</em> operations can be passed to <code>graphql_schema</code> either using simple functions or wrapping it into <code>apischema.graphql.Query</code>/<code>apischema.graphql.Mutation</code>/<code>apischema.graphql.Subscription</code>. These wrappers have the same parameters as <code>apischema.graphql.resolver</code>: <code>alias</code>, <code>conversions</code>, <code>error_handler</code>, <code>order</code> and <code>schema</code> (<code>Subscription</code> has an <a href="#subscriptions">additional parameter</a>).</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
@@ -728,7 +730,6 @@
 <h2 id="type-names">Type names<a class="headerlink" href="#type-names" title="Permanent link">&para;</a></h2>
 <p>Schema types are named the same way they are in generated JSON schema: type name is used by default, and it can be overridden using <a href="../../json_schema/#customize-ref"><code>apischema.type_name</code></a></p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
 
@@ -742,7 +743,7 @@
     <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
 
 
-<span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FooFoo</span><span class="p">]:</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">FooFoo</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
     <span class="o">...</span>
 
 
@@ -765,7 +766,6 @@
 </div>
 <p>However, in <em>GraphQL</em> schema, unions must be named, so <code>typing.Union</code> used should be annotated with <code>apischema.type_name</code>. <code>graphql_schema</code> also provides a <code>union_ref</code> parameter which can be passed as a function to generate a type name from the union argument. Default <code>union_ref</code> is <code>"Or".join</code> meaning <code>typing.Union[Foo, Bar]</code> will result in <code>union FooOrBar = Foo | Bar</code></p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
 
@@ -782,7 +782,7 @@
     <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
 
 
-<span class="k">def</span> <span class="nf">foo_or_bar</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Bar</span><span class="p">]:</span>
+<span class="k">def</span> <span class="nf">foo_or_bar</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span> <span class="o">|</span> <span class="n">Bar</span><span class="p">:</span>
     <span class="o">...</span>
 
 
@@ -804,6 +804,44 @@
 <span class="s2">}</span>
 <span class="s2">&quot;&quot;&quot;</span>
 <span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+</code></pre></div>
+
+<h2 id="enum-metadata"><code>Enum</code> metadata<a class="headerlink" href="#enum-metadata" title="Permanent link">&para;</a></h2>
+<p>Contrary to dataclasses, <code>Enum</code> doesn't provide a way to set metadata for its members, especially description, but also deprecation reason. They can however be passed using <code>enum_schemas</code> parameter of <code>graphql_schema</code>. </p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+
+<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">graphql_sync</span>
+<span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span>
+<span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+
+
+<span class="k">class</span> <span class="nc">MyEnum</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">FOO</span> <span class="o">=</span> <span class="s2">&quot;FOO&quot;</span>
+    <span class="n">BAR</span> <span class="o">=</span> <span class="s2">&quot;BAR&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">echo</span><span class="p">(</span><span class="n">enum</span><span class="p">:</span> <span class="n">MyEnum</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyEnum</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">enum</span>
+
+
+<span class="n">schema_</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span>
+    <span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">echo</span><span class="p">],</span> <span class="n">enum_schemas</span><span class="o">=</span><span class="p">{</span><span class="n">MyEnum</span><span class="o">.</span><span class="n">FOO</span><span class="p">:</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="p">)}</span>
+<span class="p">)</span>
+<span class="n">schema_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span><span class="se">\</span>
+<span class="s1">type Query {</span>
+<span class="s1">  echo(enum: MyEnum!): MyEnum!</span>
+<span class="s1">}</span>
+
+<span class="s1">enum MyEnum {</span>
+<span class="s1">  &quot;&quot;&quot;foo&quot;&quot;&quot;</span>
+<span class="s1">  FOO</span>
+<span class="s1">  BAR</span>
+<span class="s1">}</span>
+<span class="s1">&#39;&#39;&#39;</span>
+<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema_</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema_</span><span class="p">,</span> <span class="s2">&quot;{echo(enum: FOO)}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;echo&quot;</span><span class="p">:</span> <span class="s2">&quot;FOO&quot;</span><span class="p">}</span>
 </code></pre></div>
 
 <h2 id="additional-types">Additional types<a class="headerlink" href="#additional-types" title="Permanent link">&para;</a></h2>
@@ -850,7 +888,7 @@
 </code></pre></div>
 
 <h2 id="subscriptions">Subscriptions<a class="headerlink" href="#subscriptions" title="Permanent link">&para;</a></h2>
-<p>Subscriptions are particular operations which must return an <code>AsyncIterable</code>; this event generator can come with a dedicated resolver to post process the event.</p>
+<p>Subscriptions are particular operations which must return an <code>AsyncIterable</code>; this event generator can come with a dedicated resolver to post-process the event.</p>
 <h3 id="event-generator-only">Event generator only<a class="headerlink" href="#event-generator-only" title="Permanent link">&para;</a></h3>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">AsyncIterable</span>

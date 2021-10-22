@@ -11,7 +11,7 @@
       
       
       <link rel="shortcut icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.5.0">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-5.5.0">
     
     
       
@@ -474,18 +474,6 @@
 
 
   <li class="md-nav__item">
-    <a href="../../examples/open_rpc/" title="OpenRPC" class="md-nav__link">
-      OpenRPC
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
     <a href="../../examples/sqlalchemy_support/" title="SQLAlchemy support" class="md-nav__link">
       SQLAlchemy support
     </a>
@@ -575,8 +563,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../benchmark/" title="Benchmark" class="md-nav__link">
-      Benchmark
+    <a href="../../performance_and_benchmark/" title="Performance and benchmark" class="md-nav__link">
+      Performance and benchmark
     </a>
   </li>
 
@@ -728,7 +716,7 @@
 <p><em>apischema</em> provides some facilities to implement a <em>GraphQL</em> server following <a href="https://relay.dev/docs/en/graphql-server-specification"><em>Relay</em> <em>GraphQL</em> server specification</a>. They are included in the module <code>apischema.graphql.relay</code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>These facilities are independent of each others — you could keep only mutations part and use your own identification and connection system for example.</p>
+<p>These facilities are independent of each others — you could keep only the mutations part and use your own identification and connection system for example.</p>
 </div>
 <h2 id="global-object-identification">(Global) Object Identification<a class="headerlink" href="#global-object-identification" title="Permanent link">&para;</a></h2>
 <p><em>apischema</em> defines a generic <code>relay.Node[Id]</code> interface which can be used which can be used as base class of all identified resources. This class contains a unique generic field of type <code>Id</code>, which will be automatically converted into an <code>ID!</code> in the schema. The <code>Id</code> type chosen has to be serializable into a string-convertible value (it can register <a href="../../conversions/">conversions</a> if needed).</p>
@@ -786,7 +774,7 @@
 
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>For now, even if its result is note used, <code>relay.nodes</code> must be called before generating the schema.</p>
+<p>For now, even if its result is not used, <code>relay.nodes</code> must be called before generating the schema.</p>
 </div>
 <h3 id="global-id">Global ID<a class="headerlink" href="#global-id" title="Permanent link">&para;</a></h3>
 <p><em>apischema</em> defines a <code>relay.GlobalId</code> type with the following signature :</p>
@@ -852,10 +840,10 @@
 
 <p>The <code>pageInfo</code> field is computed by a resolver; it uses the cursors of the first and the last edge when they are not provided.</p>
 <p>Here is an example of <code>Connection</code> use:</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span>
 
 <span class="kn">import</span> <span class="nn">graphql</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
 
 <span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">relay</span><span class="p">,</span> <span class="n">resolver</span>
@@ -863,7 +851,7 @@
 <span class="n">Cursor</span> <span class="o">=</span> <span class="nb">int</span>  <span class="c1"># let&#39;s use an integer cursor in all our connection</span>
 <span class="n">Node</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Node&quot;</span><span class="p">)</span>
 <span class="n">Connection</span> <span class="o">=</span> <span class="n">relay</span><span class="o">.</span><span class="n">Connection</span><span class="p">[</span><span class="n">Node</span><span class="p">,</span> <span class="n">Cursor</span><span class="p">,</span> <span class="n">relay</span><span class="o">.</span><span class="n">Edge</span><span class="p">[</span><span class="n">Node</span><span class="p">,</span> <span class="n">Cursor</span><span class="p">]]</span>
-<span class="c1"># Connection can now be used just like Connection[Ship] or Connection[Optional[Faction]]</span>
+<span class="c1"># Connection can now be used just like Connection[Ship] or Connection[Faction | None]</span>
 
 
 <span class="nd">@dataclass</span>
@@ -875,13 +863,13 @@
 <span class="k">class</span> <span class="nc">Faction</span><span class="p">:</span>
     <span class="nd">@resolver</span>
     <span class="k">def</span> <span class="nf">ships</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">first</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">after</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Cursor</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Connection</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Ship</span><span class="p">]]]:</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">first</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">after</span><span class="p">:</span> <span class="n">Cursor</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Connection</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Ship</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">edges</span> <span class="o">=</span> <span class="p">[</span><span class="n">relay</span><span class="o">.</span><span class="n">Edge</span><span class="p">(</span><span class="n">Ship</span><span class="p">(</span><span class="s2">&quot;X-Wing&quot;</span><span class="p">),</span> <span class="mi">0</span><span class="p">),</span> <span class="n">relay</span><span class="o">.</span><span class="n">Edge</span><span class="p">(</span><span class="n">Ship</span><span class="p">(</span><span class="s2">&quot;B-Wing&quot;</span><span class="p">),</span> <span class="mi">1</span><span class="p">)]</span>
         <span class="k">return</span> <span class="n">Connection</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">relay</span><span class="o">.</span><span class="n">PageInfo</span><span class="o">.</span><span class="n">from_edges</span><span class="p">(</span><span class="n">edges</span><span class="p">))</span>
 
 
-<span class="k">def</span> <span class="nf">faction</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Faction</span><span class="p">]:</span>
+<span class="k">def</span> <span class="nf">faction</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Faction</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">Faction</span><span class="p">()</span>
 
 
@@ -949,7 +937,7 @@
 </code></pre></div>
 
 <h3 id="custom-connectionsedges">Custom connections/edges<a class="headerlink" href="#custom-connectionsedges" title="Permanent link">&para;</a></h3>
-<p>Connections can be customizes by simply subclassing <code>relay.Connection</code> class and adding the additional fields.</p>
+<p>Connections can be customized by simply subclassing <code>relay.Connection</code> class and adding the additional fields.</p>
 <p>For the edges, <code>relay.Edge</code> can be subclassed too, and the subclass has then to be passed as type argument to the generic connection.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span>
@@ -970,7 +958,7 @@
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">MyEdge</span><span class="p">(</span><span class="n">relay</span><span class="o">.</span><span class="n">Edge</span><span class="p">[</span><span class="n">Node</span><span class="p">,</span> <span class="n">Cursor</span><span class="p">]):</span>
-    <span class="n">edge_field</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">edge_field</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
 
 
 <span class="n">Connection</span> <span class="o">=</span> <span class="n">MyConnection</span><span class="p">[</span><span class="n">Node</span><span class="p">,</span> <span class="n">MyEdge</span><span class="p">[</span><span class="n">Node</span><span class="p">]]</span>
@@ -985,12 +973,12 @@
 <span class="k">class</span> <span class="nc">Faction</span><span class="p">:</span>
     <span class="nd">@resolver</span>
     <span class="k">def</span> <span class="nf">ships</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">first</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">after</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Cursor</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Connection</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Ship</span><span class="p">]]]:</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">first</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">after</span><span class="p">:</span> <span class="n">Cursor</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Connection</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Ship</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="o">...</span>
 
 
-<span class="k">def</span> <span class="nf">faction</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Faction</span><span class="p">]:</span>
+<span class="k">def</span> <span class="nf">faction</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Faction</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">Faction</span><span class="p">()</span>
 
 
@@ -1209,13 +1197,13 @@
           </a>
         
         
-          <a href="../../examples/open_rpc/" title="OpenRPC" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../../examples/sqlalchemy_support/" title="SQLAlchemy support" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                OpenRPC
+                SQLAlchemy support
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

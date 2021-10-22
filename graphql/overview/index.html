@@ -11,7 +11,7 @@
       
       
       <link rel="shortcut icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-5.5.0">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-5.5.0">
     
     
       
@@ -420,18 +420,6 @@
 
 
   <li class="md-nav__item">
-    <a href="../../examples/open_rpc/" title="OpenRPC" class="md-nav__link">
-      OpenRPC
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
     <a href="../../examples/sqlalchemy_support/" title="SQLAlchemy support" class="md-nav__link">
       SQLAlchemy support
     </a>
@@ -521,8 +509,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../benchmark/" title="Benchmark" class="md-nav__link">
-      Benchmark
+    <a href="../../performance_and_benchmark/" title="Performance and benchmark" class="md-nav__link">
+      Performance and benchmark
     </a>
   </li>
 
@@ -617,7 +605,7 @@
                 
                 
                 <h1 id="graphql-overview">GraphQL Overview<a class="headerlink" href="#graphql-overview" title="Permanent link">&para;</a></h1>
-<p><em>apischema</em> supports <em>GraphQL</em> through <a href="https://github.com/graphql-python/graphql-core"><em>graphql-core</em></a> library.</p>
+<p><em>apischema</em> supports <em>GraphQL</em> through the <a href="https://github.com/graphql-python/graphql-core"><em>graphql-core</em></a> library.</p>
 <p>You can install this dependency directly with <em>apischema</em> using the following extra requirement:</p>
 <div class="codehilite"><pre><span></span><code>pip install apischema<span class="o">[</span>graphql<span class="o">]</span>
 </code></pre></div>
@@ -625,7 +613,7 @@
 <p><em>GraphQL</em> supports consists of generating a <em>GraphQL</em> schema <code>graphql.GraphQLSchema</code> from your data model and endpoints (queries/mutations/subscribtions), in a similar way than the JSON schema generation. This schema can then be used through <em>graphql-core</em> library to query/mutate/subscribe.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Collection</span>
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">uuid4</span>
 
 <span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">graphql_sync</span><span class="p">,</span> <span class="n">print_schema</span>
@@ -637,7 +625,7 @@
 <span class="k">class</span> <span class="nc">User</span><span class="p">:</span>
     <span class="nb">id</span><span class="p">:</span> <span class="n">UUID</span>
     <span class="n">username</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">birthday</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">birthday</span><span class="p">:</span> <span class="n">date</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@resolver</span>
     <span class="k">def</span> <span class="nf">posts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Collection</span><span class="p">[</span><span class="s2">&quot;Post&quot;</span><span class="p">]:</span>
@@ -664,7 +652,7 @@
     <span class="k">return</span> <span class="n">POSTS</span>
 
 
-<span class="k">def</span> <span class="nf">user</span><span class="p">(</span><span class="n">username</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">User</span><span class="p">]:</span>
+<span class="k">def</span> <span class="nf">user</span><span class="p">(</span><span class="n">username</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">User</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span> <span class="o">==</span> <span class="n">username</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">user</span>
