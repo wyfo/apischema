@@ -127,9 +127,16 @@ def sort_by_order(
     if not after and not before and len(groups) == 1:
         return next(iter(groups.values()))
     result = []
+
+    def add_to_result(elt: T):
+        elt_name = name(elt)
+        for before_elt in before[elt_name]:
+            add_to_result(before_elt)
+        result.append(elt)
+        for after_elt in after[elt_name]:
+            add_to_result(after_elt)
+
     for value in sorted(groups):
         for elt in groups[value]:
-            result.extend(before[name(elt)])
-            result.append(elt)
-            result.extend(after[name(elt)])
+            add_to_result(elt)
     return result
