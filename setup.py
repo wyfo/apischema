@@ -1,4 +1,5 @@
 import os
+import platform
 import sys
 
 from setuptools import find_packages, setup
@@ -18,6 +19,7 @@ if "clean" in sys.argv:
 if (
     not any(arg in sys.argv for arg in ["clean", "check"])
     and "SKIP_CYTHON" not in os.environ
+    and platform.python_implementation() != "PyPy"
 ):
     try:
         from Cython.Build import cythonize
