@@ -25,7 +25,7 @@ However, if `lru_cache` is fast, using the methods directly is faster, so *apisc
 
 JSON serialization libraries expect primitive data types (`dict`/`list`/`str`/etc.). A non-negligible part of objects to be serialized are primitive.
 
-When [type checking](#type-checking) is disabled (this is default), objects annotated with primitive types doesn't need to be transformed or checked; *apischema* can simply "pass through" them, and it will result into an identity serialization method.
+When [type checking](#type-checking) is disabled (this is default), objects annotated with primitive types doesn't need to be transformed or checked; *apischema* can simply "pass through" them, and it will result into an identity serialization method, just returning its argument.
 
 Container types like `list` or `dict` are passed through only when the contained types are passed through too.
 

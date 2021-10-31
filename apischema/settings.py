@@ -66,6 +66,30 @@ class settings(metaclass=MetaSettings):
         ] = lambda *_: None
         type: Callable[[AnyType], Optional[Schema]] = lambda *_: None
 
+    class errors:
+        minimum: str = "less than {constraint} (minimum)"
+        maximum: str = "greater than {constraint} (maximum)"
+        exclusive_minimum: str = "less than or equal to {constraint} (exclusiveMinimum)"
+        exclusive_maximum: str = (
+            "greater than or equal to {constraint} (exclusiveMinimum)"
+        )
+        multiple_of: str = "not a multiple of {constraint} (multipleOf)"
+
+        min_length: str = "string length lower than {constraint} (minLength)"
+        max_length: str = "string length greater than {constraint} (maxLength)"
+        pattern: str = 'not matching pattern "{constraint}" (pattern)'
+
+        min_items: str = "item count lower than {constraint} (minItems)"
+        max_items: str = "item count greater than {constraint} (maxItems)"
+        unique_items: str = "duplicate items (uniqueItems)"
+
+        min_properties: str = "property count lower than {constraint} (minProperties)"
+        max_properties: str = "property count greater than {constraint} (maxProperties)"
+
+        one_of: str = "not one of {constraint} (oneOf)"
+        unexpected_property: str = "unexpected property"
+        missing_property: str = "missing property"
+
     class deserialization(metaclass=ResetCache):
         coerce: bool = False
         coercer: Coercer = coerce_

@@ -157,7 +157,7 @@ class Visitor(Generic[Result]):
     ) -> Result:
         raise NotImplementedError
 
-    def union(self, alternatives: Sequence[AnyType]) -> Result:
+    def union(self, types: Sequence[AnyType]) -> Result:
         raise NotImplementedError
 
     def unsupported(self, tp: AnyType) -> Result:

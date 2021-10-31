@@ -1,7 +1,32 @@
+import os
+import sys
+
 from setuptools import find_packages, setup
 
-with open("README.md") as f:
-    README = f.read()
+import scripts.generate_pyx
+
+README = None
+# README cannot be read by older python version run by tox
+if "TOX_ENV_NAME" not in os.environ:
+    with open("README.md") as f:
+        README = f.read()
+
+
+ext_modules = None
+if "clean" in sys.argv:
+    scripts.generate_pyx.clean()
+if (
+    not any(arg in sys.argv for arg in ["clean", "check"])
+    and "SKIP_CYTHON" not in os.environ
+):
+    try:
+        from Cython.Build import cythonize
+    except ImportError:
+        pass
+    else:
+        scripts.generate_pyx.main()
+        os.environ["CFLAGS"] = "-O3 " + os.environ.get("CFLAGS", "")
+        ext_modules = cythonize(["apischema/**/*.pyx"], language_level=3)
 
 setup(
     name="apischema",
@@ -16,7 +41,7 @@ setup(
     long_description=README,
     long_description_content_type="text/markdown",
     python_requires=">=3.6",
-    install_requires=["dataclasses==0.7;python_version<'3.7'"],
+    install_requires=["dataclasses>=0.7;python_version<'3.7'"],
     extras_require={
         "graphql": ["graphql-core>=3.1.2"],
         "examples": [
@@ -41,4 +66,7 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
+    ext_modules=ext_modules
+    # ext_modules=cythonize("apischema/deserialization/methods.py", language_level=3),
+    # ext_modules=cythonize(["cythonized.pyx", "cythonized2.py"], language_level=3),
 )

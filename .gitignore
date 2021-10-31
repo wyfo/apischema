@@ -106,3 +106,6 @@ venv.bak/
 .idea
 __generated__
 cov-*
+*.c
+*.pyx
+*.pxd
