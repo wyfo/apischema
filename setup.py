@@ -66,7 +66,5 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    ext_modules=ext_modules
-    # ext_modules=cythonize("apischema/deserialization/methods.py", language_level=3),
-    # ext_modules=cythonize(["cythonized.pyx", "cythonized2.py"], language_level=3),
+    ext_modules=ext_modules,
 )
