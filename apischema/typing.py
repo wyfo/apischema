@@ -53,6 +53,7 @@ else:  # pragma: no cover
     try:
         from typing_extensions import get_origin, get_args
     except ImportError:
+        Annotated = ...  # noqa # type: ignore
 
         def _assemble_tree(tree: Tuple[Any]) -> Any:
             if not isinstance(tree, tuple):

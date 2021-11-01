@@ -31,7 +31,7 @@ from Cython.Build import cythonize
 try:
     from typing import Literal
 
-    CythonDef = Literal["cdef", "cpdef", "cdef inline"]
+    CythonDef = Literal["cdef", "cpdef", "cdef inline", "cpdef inline"]
 except ImportError:
     CythonDef = str  # type: ignore
 
@@ -257,7 +257,7 @@ def write_class(pyx: IndentedWriter, cls: type):
 
 
 def write_function(pyx: IndentedWriter, func: FunctionType):
-    pyx.writeln(cython_signature("cdef inline", func))
+    pyx.writeln(cython_signature("cpdef inline", func))
     pyx.writelines(get_body(func))
 
 
@@ -279,7 +279,7 @@ def write_methods(pyx: IndentedWriter, method: Method):
 
 
 def write_dispatch(pyx: IndentedWriter, method: Method):
-    with pyx.write_block(cython_signature("cdef", method.function, method.base_class)):  # type: ignore
+    with pyx.write_block(cython_signature("cdef inline", method.function, method.base_class)):  # type: ignore
         pyx.writeln(f"cdef int {DISPATCH_FIELD} = self.{DISPATCH_FIELD}")
         for cls, dispatch in get_dispatch(method.base_class).items():
             if method.name in cls.__dict__:
