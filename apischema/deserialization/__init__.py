@@ -187,7 +187,7 @@ class DeserializationMethodVisitor(
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            return RecMethod(lazy, constraints, validators)
+            return RecMethod(lambda: lazy().merge(constraints, validators).method)
 
         return DeserializationMethodFactory(factory)
 

@@ -15,7 +15,6 @@ from apischema.aliases import Aliaser
 from apischema.conversions.utils import Converter
 from apischema.deserialization.coercion import Coercer
 from apischema.json_schema.types import bad_type
-from apischema.schemas.constraints import Constraints
 from apischema.types import NoneType
 from apischema.utils import Lazy
 from apischema.validation.errors import ValidationError, merge_errors
@@ -24,7 +23,7 @@ from apischema.validation.validators import Validator, validate
 from apischema.visitor import Unsupported
 
 if TYPE_CHECKING:
-    from apischema.deserialization import DeserializationMethodFactory
+    pass
 
 
 @dataclass
@@ -170,9 +169,7 @@ class DeserializationMethod:
 
 @dataclass
 class RecMethod(DeserializationMethod):
-    lazy: Lazy["DeserializationMethodFactory"]
-    constraints: Optional[Constraints]
-    validators: Sequence[Validator]
+    lazy: Lazy[DeserializationMethod]
     method: Optional[DeserializationMethod] = field(init=False)
 
     def __post_init__(self):
@@ -180,7 +177,7 @@ class RecMethod(DeserializationMethod):
 
     def deserialize(self, data: Any) -> Any:
         if self.method is None:
-            self.method = self.lazy().merge(self.constraints, self.validators).method
+            self.method = self.lazy()
         return self.method.deserialize(data)
 
 

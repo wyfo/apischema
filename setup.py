@@ -1,10 +1,7 @@
 import os
 import platform
-import sys
 
-from setuptools import find_packages, setup
-
-import scripts.generate_pyx
+from setuptools import Extension, find_packages, setup
 
 README = None
 # README cannot be read by older python version run by tox
@@ -12,23 +9,15 @@ if "TOX_ENV_NAME" not in os.environ:
     with open("README.md") as f:
         README = f.read()
 
-
 ext_modules = None
-if "clean" in sys.argv:
-    scripts.generate_pyx.clean()
-if (
-    not any(arg in sys.argv for arg in ["clean", "check"])
-    and "SKIP_CYTHON" not in os.environ
-    and platform.python_implementation() != "PyPy"
-):
-    try:
-        from Cython.Build import cythonize
-    except ImportError:
-        pass
-    else:
-        scripts.generate_pyx.main()
-        os.environ["CFLAGS"] = "-O3 " + os.environ.get("CFLAGS", "")
-        ext_modules = cythonize(["apischema/**/*.pyx"], language_level=3)
+# Cythonization makes apischema a lot slower using PyPy
+if platform.python_implementation() != "PyPy":
+    ext_modules = [
+        Extension(
+            f"apischema.{package}.methods", sources=[f"apischema/{package}/methods.c"]
+        )
+        for package in ("deserialization", "serialization")
+    ]
 
 setup(
     name="apischema",
