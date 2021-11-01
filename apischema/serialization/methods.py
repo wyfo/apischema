@@ -5,7 +5,6 @@ from apischema.conversions.utils import Converter
 from apischema.fields import FIELDS_SET_ATTR
 from apischema.types import AnyType, Undefined
 from apischema.utils import Lazy
-from apischema.visitor import Unsupported
 
 
 class SerializationMethod:
@@ -93,7 +92,7 @@ class AnyFallback(Fallback):
 
 @dataclass
 class TypeCheckIdentityMethod(SerializationMethod):
-    expected: type
+    expected: AnyType  # `type` would require exact match (i.e. no EnumMeta)
     fallback: Fallback
 
     def serialize(self, obj: Any) -> Any:
@@ -105,14 +104,11 @@ class TypeCheckMethod(TypeCheckIdentityMethod):
     method: SerializationMethod
 
     def serialize(self, obj: Any) -> Any:
-        if isinstance(obj, self.expected):
-            try:
-                return self.method.serialize(obj)
-            except Unsupported:
-                raise
-            except Exception:
-                pass
-        return self.fallback.fall_back(obj)
+        return (
+            self.method.serialize(obj)
+            if isinstance(obj, self.expected)
+            else self.fallback.fall_back(obj)
+        )
 
 
 @dataclass
@@ -328,7 +324,7 @@ class OptionalMethod(SerializationMethod):
 
 @dataclass
 class UnionAlternative:
-    cls: type
+    cls: AnyType  # `type` would require exact match (i.e. no EnumMeta)
     method: SerializationMethod
 
     def __post_init__(self):
