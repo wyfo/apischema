@@ -140,7 +140,7 @@ def rec_subclasses(cls: type) -> Iterable[type]:
         yield from rec_subclasses(sub_cls)
 
 
-@lru_cache
+@lru_cache()
 def get_dispatch(base_class: type) -> Mapping[type, int]:
     return {cls: i for i, cls in enumerate(rec_subclasses(base_class))}
 
