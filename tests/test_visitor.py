@@ -83,7 +83,7 @@ pep_585: list = []
 if sys.version_info >= (3, 9):
     pep_585 = [
         (list[int], Visitor.collection, [list, int]),
-        (tuple[str, ...], Visitor.collection, [tuple, str]),
+        (tuple[str, ...], Visitor.collection, [tuple, str]),  # type: ignore
         (
             collections.abc.Collection[int],
             Visitor.collection,
@@ -165,10 +165,10 @@ def test_default_implementations(visitor):
 
     with raises(Unsupported) as err:
         Visitor.unsupported(..., Generic)
-    assert err.value.cls == Generic
+    assert err.value.type == Generic
     with raises(Unsupported) as err:
         Visitor.unsupported(..., Generic[T])
-    assert err.value.cls == Generic[T]
+    assert err.value.type == Generic[T]
 
     with raises(NotImplementedError):
         Visitor.named_tuple(..., ..., ..., ...)
