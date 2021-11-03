@@ -104,15 +104,6 @@ def to_pascal_case(s: str) -> str:
     return camel[0].upper() + camel[1:] if camel else camel
 
 
-class PartialFormatter(dict):
-    def __missing__(self, key):
-        return "{%s}" % key
-
-
-def partial_format(s: str, **kwargs) -> str:
-    return s.format_map(PartialFormatter(kwargs))
-
-
 def merge_opts(
     func: Callable[[T, T], T]
 ) -> Callable[[Optional[T], Optional[T]], Optional[T]]:

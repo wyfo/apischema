@@ -1,6 +1,6 @@
 import warnings
 from inspect import Parameter
-from typing import Callable, Optional, Sequence
+from typing import Any, Callable, Optional, Sequence, Union
 
 from apischema import cache
 from apischema.aliases import Aliaser
@@ -48,6 +48,9 @@ class MetaSettings(ResetCache):
             super().__setattr__(name, value)
 
 
+ConstraintError = Union[str, Callable[[Any, Any], str]]
+
+
 class settings(metaclass=MetaSettings):
     additional_properties: bool = False
     aliaser: Aliaser = lambda s: s
@@ -67,26 +70,31 @@ class settings(metaclass=MetaSettings):
         type: Callable[[AnyType], Optional[Schema]] = lambda *_: None
 
     class errors:
-        minimum: str = "less than {constraint} (minimum)"
-        maximum: str = "greater than {constraint} (maximum)"
-        exclusive_minimum: str = "less than or equal to {constraint} (exclusiveMinimum)"
-        exclusive_maximum: str = (
-            "greater than or equal to {constraint} (exclusiveMinimum)"
+        minimum: ConstraintError = "less than {} (minimum)"
+        maximum: ConstraintError = "greater than {} (maximum)"
+        exclusive_minimum: ConstraintError = (
+            "less than or equal to {} (exclusiveMinimum)"
         )
-        multiple_of: str = "not a multiple of {constraint} (multipleOf)"
+        exclusive_maximum: ConstraintError = (
+            "greater than or equal to {} (exclusiveMinimum)"
+        )
+        multiple_of: ConstraintError = "not a multiple of {} (multipleOf)"
 
-        min_length: str = "string length lower than {constraint} (minLength)"
-        max_length: str = "string length greater than {constraint} (maxLength)"
-        pattern: str = 'not matching pattern "{constraint}" (pattern)'
+        min_length: ConstraintError = "string length lower than {} (minLength)"
+        max_length: ConstraintError = "string length greater than {} (maxLength)"
+        pattern: ConstraintError = "not matching pattern {} (pattern)"
 
-        min_items: str = "item count lower than {constraint} (minItems)"
-        max_items: str = "item count greater than {constraint} (maxItems)"
-        unique_items: str = "duplicate items (uniqueItems)"
+        min_items: ConstraintError = "item count lower than {} (minItems)"
+        max_items: ConstraintError = "item count greater than {} (maxItems)"
+        unique_items: ConstraintError = "duplicate items (uniqueItems)"
 
-        min_properties: str = "property count lower than {constraint} (minProperties)"
-        max_properties: str = "property count greater than {constraint} (maxProperties)"
+        min_properties: ConstraintError = "property count lower than {} (minProperties)"
+        max_properties: ConstraintError = (
+            "property count greater than {} (maxProperties)"
+        )
 
-        one_of: str = "not one of {constraint} (oneOf)"
+        one_of: ConstraintError = "not one of {} (oneOf)"
+
         unexpected_property: str = "unexpected property"
         missing_property: str = "missing property"
 

@@ -9,6 +9,7 @@ from typing import (
     Sequence,
     TYPE_CHECKING,
     Tuple,
+    Union,
 )
 
 from apischema.aliases import Aliaser
@@ -25,10 +26,12 @@ from apischema.visitor import Unsupported
 if TYPE_CHECKING:
     pass
 
+PreformatedConstraintError = Union[str, Callable[[Any], str]]
+
 
 @dataclass
 class Constraint:
-    error: str
+    error: PreformatedConstraintError
 
     def validate(self, data: Any) -> bool:
         raise NotImplementedError
@@ -124,7 +127,13 @@ def to_hashable(data: Any) -> Any:
         return data
 
 
+@dataclass
 class UniqueItemsConstraint(Constraint):
+    unique: bool
+
+    def __post_init__(self):
+        assert self.unique
+
     def validate(self, data: list) -> bool:
         return len(set(map(to_hashable, data))) == len(data)
 
@@ -145,17 +154,21 @@ class MaxPropertiesConstraint(Constraint):
         return len(data) <= self.max_properties
 
 
+def format_error(err: PreformatedConstraintError, data: Any) -> str:
+    return err if isinstance(err, str) else err(data)
+
+
 def validate_constraints(
     data: Any, constraints: Tuple[Constraint, ...], children_errors: Optional[dict]
 ) -> Any:
     for i in range(len(constraints)):
         constraint: Constraint = constraints[i]
         if not constraint.validate(data):
-            errors: list = [constraint.error.format(data)]
+            errors: list = [format_error(constraint.error, data)]
             for j in range(i + 1, len(constraints)):
                 constraint = constraints[j]
                 if not constraint.validate(data):
-                    errors.append(constraint.error.format(data))
+                    errors.append(format_error(constraint.error, data))
             raise ValidationError(errors, children_errors or {})
     if children_errors:
         raise ValidationError([], children_errors)
@@ -248,7 +261,7 @@ class VariadicTupleMethod(CollectionMethod):
 @dataclass
 class LiteralMethod(DeserializationMethod):
     value_map: dict
-    error: str
+    error: PreformatedConstraintError
     coercer: Optional[Coercer]
     types: Tuple[type, ...]
 
@@ -262,7 +275,7 @@ class LiteralMethod(DeserializationMethod):
                         return self.value_map[self.coercer(cls, data)]
                     except IndexError:
                         pass
-            raise ValidationError([self.error.format(data)])
+            raise ValidationError([format_error(self.error, data)])
 
 
 @dataclass
@@ -559,8 +572,8 @@ class SubprimitiveMethod(DeserializationMethod):
 @dataclass
 class TupleMethod(DeserializationMethod):
     constraints: Tuple[Constraint, ...]
-    min_len_error: str
-    max_len_error: str
+    min_len_error: PreformatedConstraintError
+    max_len_error: PreformatedConstraintError
     elt_methods: Tuple[DeserializationMethod, ...]
 
     def deserialize(self, data: Any) -> Any:
@@ -569,9 +582,9 @@ class TupleMethod(DeserializationMethod):
         data2: list = data
         if len(data2) != len(self.elt_methods):
             if len(data2) < len(self.elt_methods):
-                raise ValidationError([self.min_len_error % len(data2)])
+                raise ValidationError([format_error(self.min_len_error, data2)])
             elif len(data2) > len(self.elt_methods):
-                raise ValidationError([self.max_len_error % len(data2)])
+                raise ValidationError([format_error(self.max_len_error, data2)])
             else:
                 raise NotImplementedError
         elt_errors: dict = {}

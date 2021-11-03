@@ -92,6 +92,9 @@ JSON schema constrains the data deserialized; these constraints are naturally us
 {!validation_error.py!}
 ```
 
+!!! note
+    Error message are fully [customizable](validation.md#constraint-errors-customization)
+
 ### Extra schema
 
 `schema` has two other arguments: `extra` and `override`, which give a finer control of the JSON schema generated: `extra` and `override`. It can be used for example to build "strict" unions (using `oneOf` instead of `anyOf`)

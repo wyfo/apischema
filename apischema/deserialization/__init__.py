@@ -3,7 +3,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from enum import Enum
-from functools import lru_cache
+from functools import lru_cache, partial
 from typing import (
     Any,
     Callable,
@@ -14,6 +14,7 @@ from typing import (
     Pattern,
     Sequence,
     Set,
+    TYPE_CHECKING,
     Tuple,
     Type,
     TypeVar,
@@ -55,6 +56,7 @@ from apischema.deserialization.methods import (
     ObjectMethod,
     OptionalMethod,
     PatternField,
+    PreformatedConstraintError,
     RecMethod,
     SetMethod,
     StrMethod,
@@ -82,12 +84,14 @@ from apischema.utils import (
     get_origin_or_type,
     literal_values,
     opt_or,
-    partial_format,
     to_pascal_case,
     to_snake_case,
 )
 from apischema.validation import get_validators
 from apischema.validation.validators import Validator
+
+if TYPE_CHECKING:
+    from apischema.settings import ConstraintError
 
 MISSING_PROPERTY = "missing property"
 UNEXPECTED_PROPERTY = "unexpected property"
@@ -133,6 +137,16 @@ def get_constraints(schema: Optional[Schema]) -> Optional[Constraints]:
 constraint_classes = {cls.__name__: cls for cls in Constraint.__subclasses__()}
 
 
+def preformat_error(
+    error: "ConstraintError", constraint: Any
+) -> PreformatedConstraintError:
+    return (
+        error.format(constraint)
+        if isinstance(error, str)
+        else partial(error, constraint)
+    )
+
+
 def constraints_validators(
     constraints: Optional[Constraints],
 ) -> Mapping[type, Tuple[Constraint, ...]]:
@@ -143,20 +157,14 @@ def constraints_validators(
         for name, attr, metadata in constraints.attr_and_metata:
             if attr is None or attr is False:
                 continue
-            error = getattr(settings.errors, to_snake_case(metadata.alias))
-            error = partial_format(
-                error,
-                constraint=attr
-                if not isinstance(attr, type(re.compile(r"")))
-                else attr.pattern,
+            error = preformat_error(
+                getattr(settings.errors, to_snake_case(metadata.alias)),
+                attr if not isinstance(attr, type(re.compile(r""))) else attr.pattern,
             )
             constraint_cls = constraint_classes[
                 to_pascal_case(metadata.alias) + "Constraint"
             ]
-            result[metadata.cls] = (
-                *result[metadata.cls],
-                constraint_cls(error) if attr is True else constraint_cls(error, attr),  # type: ignore
-            )
+            result[metadata.cls] = (*result[metadata.cls], constraint_cls(error, attr))  # type: ignore
     if float in result:
         result[int] = result[float]
     return result
@@ -270,7 +278,7 @@ class DeserializationMethodVisitor(
             value_map = dict(zip(literal_values(values), values))
             return LiteralMethod(
                 value_map,
-                partial_format(settings.errors.one_of, constraint=list(value_map)),
+                preformat_error(settings.errors.one_of, list(value_map)),
                 self.coercer,
                 tuple(set(map(type, value_map))),
             )
@@ -420,7 +428,7 @@ class DeserializationMethodVisitor(
         elt_factories = [self.visit(tp) for tp in types]
 
         def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
-            def len_error(constraints: Constraints) -> str:
+            def len_error(constraints: Constraints) -> PreformatedConstraintError:
                 return constraints_validators(constraints)[list][0].error
 
             return TupleMethod(
