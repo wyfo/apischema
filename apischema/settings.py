@@ -28,24 +28,32 @@ class ResetCache(type):
 
 class MetaSettings(ResetCache):
     @property
-    def camel_case(self) -> bool:
+    def camel_case(cls) -> bool:
         raise NotImplementedError
 
     @camel_case.setter
-    def camel_case(self, value: bool):
+    def camel_case(cls, value: bool):
         settings.aliaser = to_camel_case if value else lambda s: s
 
-    def __setattr__(self, name, value):
-        if name == "default_schema" and not isinstance(value, ResetCache):
-            warnings.warn(
-                "settings.default_schema is deprecated,"
-                " use settings.base_schema.type instead",
-                DeprecationWarning,
-            )
-            assert self is settings
-            self.base_schema.type = value  # type: ignore
-        else:
-            super().__setattr__(name, value)
+    @property
+    def default_schema(cls) -> Callable[[AnyType], Optional[Schema]]:
+        warnings.warn(
+            "settings.default_schema is deprecated,"
+            " use settings.base_schema.type instead",
+            DeprecationWarning,
+        )
+        assert cls is settings
+        return cls.base_schema.type  # type: ignore
+
+    @default_schema.setter
+    def default_schema(cls, value: Callable[[AnyType], Optional[Schema]]):
+        warnings.warn(
+            "settings.default_schema is deprecated,"
+            " use settings.base_schema.type instead",
+            DeprecationWarning,
+        )
+        assert cls is settings
+        cls.base_schema.type = value  # type: ignore
 
 
 class settings(metaclass=MetaSettings):
@@ -54,7 +62,6 @@ class settings(metaclass=MetaSettings):
     default_object_fields: Callable[
         [type], Optional[Sequence[ObjectField]]
     ] = default_object_fields_
-    default_schema: Callable[[AnyType], Optional[Schema]] = lambda *_: None
     default_type_name: Callable[[AnyType], Optional[TypeName]] = default_type_name_
     json_schema_version: JsonSchemaVersion = JsonSchemaVersion.DRAFT_2020_12
 

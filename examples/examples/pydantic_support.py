@@ -41,7 +41,7 @@ def default_deserialization(tp: Any) -> AnyConversion | None:
 
 settings.deserialization.default_conversion = default_deserialization
 
-prev_schema = settings.default_schema
+prev_schema = settings.base_schema.type
 
 
 def default_schema(tp: Any) -> Schema | None:
@@ -51,7 +51,7 @@ def default_schema(tp: Any) -> Schema | None:
         return prev_schema(tp)
 
 
-settings.default_schema = default_schema
+settings.base_schema.type = default_schema
 
 # No need to use settings.serialization because serializer is inherited
 @serializer
