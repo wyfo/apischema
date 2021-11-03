@@ -388,15 +388,13 @@ class SchemaBuilder(
     def tuple(self, types: Sequence[AnyType]) -> TypeFactory[GraphQLTp]:
         raise TypeError("Tuple are not supported")
 
-    def union(self, alternatives: Sequence[AnyType]) -> TypeFactory[GraphQLTp]:
-        factories = self._union_results(
-            (alt for alt in alternatives if alt is not NoneType)
-        )
+    def union(self, types: Sequence[AnyType]) -> TypeFactory[GraphQLTp]:
+        factories = self._union_results((alt for alt in types if alt is not NoneType))
         if len(factories) == 1:
             factory = factories[0]
         else:
             factory = self._visited_union(factories)
-        if NoneType in alternatives or UndefinedType in alternatives:
+        if NoneType in types or UndefinedType in types:
 
             def nullable(name: Optional[str], description: Optional[str]) -> GraphQLTp:
                 res = factory.factory(name, description)  # type: ignore
@@ -616,7 +614,7 @@ class OutputSchemaBuilder(
 
     def _field(self, tp: AnyType, field: ObjectField) -> Lazy[graphql.GraphQLField]:
         field_name = field.name
-        partial_serialize = self._field_serialization_method(field)
+        partial_serialize = self._field_serialization_method(field).serialize
 
         @self._wrap_resolve
         def resolve(obj, _):
@@ -711,7 +709,7 @@ class OutputSchemaBuilder(
             self.get_flattened if self.get_flattened is not None else identity
         )
         field_name = field.name
-        partial_serialize = self._field_serialization_method(field)
+        partial_serialize = self._field_serialization_method(field).serialize
 
         def get_flattened(obj):
             return partial_serialize(getattr(get_prev_flattened(obj), field_name))

@@ -33,6 +33,8 @@ from apischema.objects import ObjectField
 from apischema.ordering import Ordering
 from apischema.schemas import Schema
 from apischema.serialization import (
+    IDENTITY_METHOD,
+    METHODS,
     PassThroughOptions,
     SerializationMethod,
     SerializationMethodVisitor,
@@ -64,18 +66,16 @@ class PartialSerializationMethodVisitor(SerializationMethodVisitor):
 
     @property
     def _factory(self) -> Callable[[type], SerializationMethod]:
-        return lambda _: identity
+        raise NotImplementedError
 
     def enum(self, cls: Type[Enum]) -> SerializationMethod:
-        return identity
+        return IDENTITY_METHOD
 
     def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> SerializationMethod:
-        return identity
+        return IDENTITY_METHOD
 
     def visit(self, tp: AnyType) -> SerializationMethod:
-        if tp is UndefinedType:
-            return lambda obj: None
-        return super().visit(tp)
+        return METHODS[NoneType] if tp is UndefinedType else super().visit(tp)
 
 
 @cache
@@ -291,16 +291,16 @@ def resolver_resolve(
     if not serialized:
         serialize_result = identity
     elif is_async(resolver.func):
-        serialize_result = as_async(method_factory(types["return"]))
+        serialize_result = as_async(method_factory(types["return"]).serialize)
     else:
-        serialize_result = method_factory(types["return"])
+        serialize_result = method_factory(types["return"]).serialize
     serialize_error: Optional[Callable[[Any], Any]]
     if error_handler is None:
         serialize_error = None
     elif is_async(error_handler):
-        serialize_error = as_async(method_factory(resolver.error_type()))
+        serialize_error = as_async(method_factory(resolver.error_type()).serialize)
     else:
-        serialize_error = method_factory(resolver.error_type())
+        serialize_error = method_factory(resolver.error_type()).serialize
 
     def resolve(__self, __info, **kwargs):
         values = {}

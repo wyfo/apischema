@@ -72,20 +72,20 @@ class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
                     return super().annotated(tp, annotations)
         return super().annotated(tp, annotations)
 
-    def _union_results(self, alternatives: Iterable[AnyType]) -> Sequence[Result]:
+    def _union_results(self, types: Iterable[AnyType]) -> Sequence[Result]:
         results = []
-        for alt in alternatives:
+        for alt in types:
             with suppress(Unsupported):
                 results.append(self.visit(alt))
         if not results:
-            raise Unsupported(Union[tuple(alternatives)])
+            raise Unsupported(Union[tuple(types)])
         return results
 
     def _visited_union(self, results: Sequence[Result]) -> Result:
         raise NotImplementedError
 
-    def union(self, alternatives: Sequence[AnyType]) -> Result:
-        return self._visited_union(self._union_results(alternatives))
+    def union(self, types: Sequence[AnyType]) -> Result:
+        return self._visited_union(self._union_results(types))
 
     @contextmanager
     def _replace_conversion(self, conversion: Optional[AnyConversion]):
@@ -130,7 +130,7 @@ class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
                 tp, self.default_conversion(get_origin_or_type(tp))  # type: ignore
             )
         next_conversion = None
-        if not dynamic and is_subclass(tp, Collection):
+        if not dynamic and is_subclass(tp, Collection) and not is_subclass(tp, str):
             next_conversion = self._conversion
         return self.visit_conversion(tp, conversion, dynamic, next_conversion)
 

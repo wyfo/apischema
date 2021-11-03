@@ -2,6 +2,7 @@
 __all__ = ["get_args", "get_origin", "get_type_hints"]
 
 import sys
+from contextlib import suppress
 from types import ModuleType, new_class
 from typing import (  # type: ignore
     Any,
@@ -59,10 +60,10 @@ else:  # pragma: no cover
                 return tree
             else:
                 origin, *args = tree  # type: ignore
-                if origin is Annotated:
-                    return Annotated[(_assemble_tree(args[0]), *args[1])]
-                else:
-                    return origin[tuple(map(_assemble_tree, args))]
+                with suppress(NameError):
+                    if origin is Annotated:
+                        return Annotated[(_assemble_tree(args[0]), *args[1])]
+                return origin[tuple(map(_assemble_tree, args))]
 
         def get_origin(tp):  # type: ignore
             # In Python 3.6: List[Collection[T]][int].__args__ == int != Collection[int]

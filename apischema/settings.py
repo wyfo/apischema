@@ -1,6 +1,6 @@
 import warnings
 from inspect import Parameter
-from typing import Callable, Optional, Sequence
+from typing import Any, Callable, Optional, Sequence, Union
 
 from apischema import cache
 from apischema.aliases import Aliaser
@@ -56,6 +56,9 @@ class MetaSettings(ResetCache):
         cls.base_schema.type = value  # type: ignore
 
 
+ConstraintError = Union[str, Callable[[Any, Any], str]]
+
+
 class settings(metaclass=MetaSettings):
     additional_properties: bool = False
     aliaser: Aliaser = lambda s: s
@@ -72,6 +75,35 @@ class settings(metaclass=MetaSettings):
             [Callable, Parameter, str], Optional[Schema]
         ] = lambda *_: None
         type: Callable[[AnyType], Optional[Schema]] = lambda *_: None
+
+    class errors:
+        minimum: ConstraintError = "less than {} (minimum)"
+        maximum: ConstraintError = "greater than {} (maximum)"
+        exclusive_minimum: ConstraintError = (
+            "less than or equal to {} (exclusiveMinimum)"
+        )
+        exclusive_maximum: ConstraintError = (
+            "greater than or equal to {} (exclusiveMinimum)"
+        )
+        multiple_of: ConstraintError = "not a multiple of {} (multipleOf)"
+
+        min_length: ConstraintError = "string length lower than {} (minLength)"
+        max_length: ConstraintError = "string length greater than {} (maxLength)"
+        pattern: ConstraintError = "not matching pattern {} (pattern)"
+
+        min_items: ConstraintError = "item count lower than {} (minItems)"
+        max_items: ConstraintError = "item count greater than {} (maxItems)"
+        unique_items: ConstraintError = "duplicate items (uniqueItems)"
+
+        min_properties: ConstraintError = "property count lower than {} (minProperties)"
+        max_properties: ConstraintError = (
+            "property count greater than {} (maxProperties)"
+        )
+
+        one_of: ConstraintError = "not one of {} (oneOf)"
+
+        unexpected_property: str = "unexpected property"
+        missing_property: str = "missing property"
 
     class deserialization(metaclass=ResetCache):
         coerce: bool = False

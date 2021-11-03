@@ -73,6 +73,7 @@ sys.modules["orjson"] = json
 
 settings_classes = (
     settings,
+    settings.errors,
     settings.base_schema,
     settings.deserialization,
     settings.serialization,

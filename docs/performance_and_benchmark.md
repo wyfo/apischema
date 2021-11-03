@@ -1,6 +1,6 @@
 # Performance and benchmark
 
-*apischema* is [faster](#benchmark) than its known alternatives, thanks to advanced optimizations.    
+*apischema* is (a lot) [faster](#benchmark) than its known alternatives, thanks to advanced optimizations.    
 
 ## Precomputed (de)serialization methods
 
@@ -25,7 +25,7 @@ However, if `lru_cache` is fast, using the methods directly is faster, so *apisc
 
 JSON serialization libraries expect primitive data types (`dict`/`list`/`str`/etc.). A non-negligible part of objects to be serialized are primitive.
 
-When [type checking](#type-checking) is disabled (this is default), objects annotated with primitive types doesn't need to be transformed or checked; *apischema* can simply "pass through" them, and it will result into an identity serialization method.
+When [type checking](#type-checking) is disabled (this is default), objects annotated with primitive types doesn't need to be transformed or checked; *apischema* can simply "pass through" them, and it will result into an identity serialization method, just returning its argument.
 
 Container types like `list` or `dict` are passed through only when the contained types are passed through too.
 
@@ -80,6 +80,16 @@ Either a collection of types, or a predicate to determine if type has to be pass
 {!vs_default.py!}
 ```
 That's why passthrough optimization should be used wisely.
+
+## Binary compilation using Cython
+
+*apischema* use Cython in order to compile critical parts of the code, i.e. the (de)serialization methods.
+
+However, *apischema* remains a pure Python library — it can work without binary modules. Cython source files (`.pyx`) are in fact generated from Python modules. It allows notably keeping the code simple, by adding *switch-case* optimization to replace dynamic dispatch, avoiding big chains of `elif` in Python code.
+
+!!! note
+    Compilation is disabled when using PyPy, because it's even faster with the bare Python code.
+    That's another interest of generating `.pyx` files: keeping Python source for PyPy.
 
 ## Benchmark 
 

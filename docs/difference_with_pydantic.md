@@ -2,9 +2,9 @@
 
 As the question is often asked, it is answered in a dedicated section. Here are some the key differences between *apischema* and *pydantic*:
 
-### *apischema* is faster
+### *apischema* is (a lot) faster
 
-*pydantic* uses Cython to improve its performance; *apischema* doesn't need it and is still 1.5x faster according to [*pydantic* benchmark](performance_and_benchmark.md) — more than 2x when *pydantic* is not compiled with Cython.
+According to [*pydantic* benchmark](performance_and_benchmark.md), *apischema* is a lot faster than *pydantic*, especially for serialization. Both use Cython to optimize the code, but even without compilation (running only Python modules), *apischema* is still faster than Cythonized *pydantic*.
 
 Better performance, but not at the cost of fewer functionalities; that's rather the opposite: [dynamic aliasing](json_schema.md#dynamic-aliasing-and-default-aliaser), [conversions](conversions.md), [flattened fields](data_model.md#composition-over-inheritance---composed-dataclasses-flattening), etc.
 

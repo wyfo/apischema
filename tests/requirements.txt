@@ -9,3 +9,4 @@ pytest-cov
 pytest-asyncio
 sqlalchemy
 typing_extensions
+cython

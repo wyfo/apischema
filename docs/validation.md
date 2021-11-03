@@ -15,6 +15,21 @@ As shown in the example, *apischema* will not stop at the first error met but tr
 !!! note
     `ValidationError` can also be serialized using `apischema.serialize` (this will use `errors` internally).
 
+## Constraint errors customization
+
+Constraints are validated at deserialization, with *apischema* providing default error messages.
+Messages can be customized by setting the corresponding attribute of `apischema.settings.errors`. They can be either a string which will be formatted with the constraint value (using `str.format`), e.g. `less than {} (minimum)`, or a function with 2 parameters: the constraint value and the invalid data. 
+
+```python
+{!settings_errors.py!}
+```
+
+!!! note
+    Default error messages doesn't include the invalid data for security reason (data could for example be a password too short).
+
+!!! note
+    Other error message can be customized, for example `missing property` for missing required properties, etc.
+
 ## Dataclass validators
 
 Dataclass validation can be completed by custom validators. These are simple decorated methods which will be executed during validation, after all fields having been deserialized.

@@ -1,3 +1,4 @@
-from apischema import identity, serialization_method
+from apischema import serialize
 
-assert serialization_method(list[int]) == identity
+ints = list(range(5))
+assert serialize(list[int], ints) is ints

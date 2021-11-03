@@ -17,7 +17,6 @@ from typing import (
     Container,
     Dict,
     Generic,
-    Hashable,
     Iterable,
     Iterator,
     List,
@@ -34,13 +33,7 @@ from typing import (
     cast,
 )
 
-from apischema.types import (
-    AnyType,
-    COLLECTION_TYPES,
-    MAPPING_TYPES,
-    OrderedDict,
-    PRIMITIVE_TYPES,
-)
+from apischema.types import AnyType, COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES
 from apischema.typing import (
     _collect_type_vars,
     generic_mro,
@@ -94,16 +87,8 @@ def opt_or(opt: Optional[T], default: U) -> Union[T, U]:
     return opt if opt is not None else default
 
 
-def to_hashable(data: Union[None, int, float, str, bool, list, dict]) -> Hashable:
-    if isinstance(data, list):
-        return tuple(map(to_hashable, data))
-    if isinstance(data, dict):
-        return tuple(sorted((to_hashable(k), to_hashable(v)) for k, v in data.items()))
-    return data  # type: ignore
-
-
 SNAKE_CASE_REGEX = re.compile(r"_([a-z\d])")
-CAMEL_CASE_REGEX = re.compile(r"[a-z\d]([A-Z])")
+CAMEL_CASE_REGEX = re.compile(r"([a-z\d])([A-Z])")
 
 
 def to_camel_case(s: str) -> str:
@@ -111,15 +96,12 @@ def to_camel_case(s: str) -> str:
 
 
 def to_snake_case(s: str) -> str:
-    return CAMEL_CASE_REGEX.sub(lambda m: "_" + m.group(1).lower(), s)
+    return CAMEL_CASE_REGEX.sub(lambda m: m.group(1) + "_" + m.group(2).lower(), s)
 
 
 def to_pascal_case(s: str) -> str:
     camel = to_camel_case(s)
     return camel[0].upper() + camel[1:] if camel else camel
-
-
-MakeDataclassField = Union[Tuple[str, AnyType], Tuple[str, AnyType, Any]]
 
 
 def merge_opts(
@@ -258,16 +240,6 @@ def replace_builtins(tp: AnyType) -> AnyType:
         replacement = typing_origin(origin)
     res = replacement[args] if args else replacement
     return keep_annotations(res, tp)
-
-
-def sort_by_annotations_position(
-    cls: Type, elts: Collection[T], key: Callable[[T], str]
-) -> List[T]:
-    annotations: Dict[str, Any] = OrderedDict()
-    for base in reversed(cls.__mro__):
-        annotations.update(getattr(base, "__annotations__", ()))
-    positions = {key: i for i, key in enumerate(annotations)}
-    return sorted(elts, key=lambda elt: positions.get(key(elt), len(positions)))
 
 
 def stop_signature_abuse() -> NoReturn:
