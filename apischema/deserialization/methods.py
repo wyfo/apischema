@@ -26,12 +26,10 @@ from apischema.visitor import Unsupported
 if TYPE_CHECKING:
     pass
 
-PreformatedConstraintError = Union[str, Callable[[Any], str]]
-
 
 @dataclass
 class Constraint:
-    error: PreformatedConstraintError
+    error: Union[str, Callable[[Any], str]]
 
     def validate(self, data: Any) -> bool:
         raise NotImplementedError
@@ -154,7 +152,7 @@ class MaxPropertiesConstraint(Constraint):
         return len(data) <= self.max_properties
 
 
-def format_error(err: PreformatedConstraintError, data: Any) -> str:
+def format_error(err: Union[str, Callable[[Any], str]], data: Any) -> str:
     return err if isinstance(err, str) else err(data)
 
 
@@ -261,7 +259,7 @@ class VariadicTupleMethod(CollectionMethod):
 @dataclass
 class LiteralMethod(DeserializationMethod):
     value_map: dict
-    error: PreformatedConstraintError
+    error: Union[str, Callable[[Any], str]]
     coercer: Optional[Coercer]
     types: Tuple[type, ...]
 
@@ -572,8 +570,8 @@ class SubprimitiveMethod(DeserializationMethod):
 @dataclass
 class TupleMethod(DeserializationMethod):
     constraints: Tuple[Constraint, ...]
-    min_len_error: PreformatedConstraintError
-    max_len_error: PreformatedConstraintError
+    min_len_error: Union[str, Callable[[Any], str]]
+    max_len_error: Union[str, Callable[[Any], str]]
     elt_methods: Tuple[DeserializationMethod, ...]
 
     def deserialize(self, data: Any) -> Any:

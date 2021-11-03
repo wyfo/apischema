@@ -18,6 +18,7 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    Union,
     overload,
 )
 
@@ -56,7 +57,6 @@ from apischema.deserialization.methods import (
     ObjectMethod,
     OptionalMethod,
     PatternField,
-    PreformatedConstraintError,
     RecMethod,
     SetMethod,
     StrMethod,
@@ -139,7 +139,7 @@ constraint_classes = {cls.__name__: cls for cls in Constraint.__subclasses__()}
 
 def preformat_error(
     error: "ConstraintError", constraint: Any
-) -> PreformatedConstraintError:
+) -> Union[str, Callable[[Any], str]]:
     return (
         error.format(constraint)
         if isinstance(error, str)
@@ -428,7 +428,7 @@ class DeserializationMethodVisitor(
         elt_factories = [self.visit(tp) for tp in types]
 
         def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
-            def len_error(constraints: Constraints) -> PreformatedConstraintError:
+            def len_error(constraints: Constraints) -> Union[str, Callable[[Any], str]]:
                 return constraints_validators(constraints)[list][0].error
 
             return TupleMethod(
