@@ -77,8 +77,8 @@ from apischema.objects.visitor import DeserializationObjectVisitor
 from apischema.recursion import RecursiveConversionsVisitor
 from apischema.schemas import Schema, get_schema
 from apischema.schemas.constraints import Constraints, merge_constraints
-from apischema.types import AnyType, NoneType
-from apischema.typing import get_args, get_origin, is_typed_dict
+from apischema.types import AnyType, NoneType, PRIMITIVE_TYPES
+from apischema.typing import get_args, get_origin, is_type, is_typed_dict
 from apischema.utils import (
     CollectionOrPredicate,
     Lazy,
@@ -103,6 +103,8 @@ T = TypeVar("T")
 
 
 Factory = Callable[[Optional[Constraints], Sequence[Validator]], DeserializationMethod]
+
+JSON_TYPES = {dict, list, *PRIMITIVE_TYPES}
 
 
 @dataclass(frozen=True)
@@ -250,19 +252,6 @@ class DeserializationMethodVisitor(
 
         return DeserializationMethodFactory(wrapper, cls)
 
-    def _check_type(
-        self, cls: type, factory: DeserializationMethodFactory
-    ) -> DeserializationMethodFactory:
-        if is_typed_dict(cls) or not self.allow_type(cls):
-            return factory
-
-        def wrapper(
-            constraints: Optional[Constraints], validators: Sequence[Validator]
-        ) -> DeserializationMethod:
-            return TypeCheckMethod(cls, factory.factory(constraints, validators))  # type: ignore
-
-        return replace(factory, factory=wrapper)
-
     def any(self) -> DeserializationMethodFactory:
         def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
             return AnyMethod(dict(constraints_validators(constraints)))
@@ -289,7 +278,7 @@ class DeserializationMethodVisitor(
         return self._factory(factory, list)
 
     def enum(self, cls: Type[Enum]) -> DeserializationMethodFactory:
-        return self._check_type(cls, self.literal(list(cls)))
+        return self.literal(list(cls))
 
     def literal(self, values: Sequence[Any]) -> DeserializationMethodFactory:
         def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
@@ -410,7 +399,7 @@ class DeserializationMethodVisitor(
                 settings.errors.unexpected_property,
             )
 
-        return self._check_type(cls, self._factory(factory, dict, validation=False))
+        return self._factory(factory, dict, validation=False)
 
     def primitive(self, cls: Type) -> DeserializationMethodFactory:
         def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
@@ -519,10 +508,7 @@ class DeserializationMethodVisitor(
             else:
                 return ConversionUnionMethod(conv_alternatives)
 
-        return self._check_type(
-            get_origin_or_type(tp) if not dynamic else None,
-            self._factory(factory, validation=not dynamic),
-        )
+        return self._factory(factory, validation=not dynamic)
 
     def visit_conversion(
         self,
@@ -539,6 +525,20 @@ class DeserializationMethodVisitor(
                     get_constraints(get_schema(get_origin(tp))),
                     get_validators(get_origin(tp)),
                 )
+        cls = get_origin_or_type(tp)
+        if (
+            is_type(cls)
+            and not is_typed_dict(cls)
+            and self.allow_type(cls)
+            and cls not in JSON_TYPES
+        ):
+
+            def wrapper(
+                constraints: Optional[Constraints], _: Sequence[Validator]
+            ) -> DeserializationMethod:
+                return TypeCheckMethod(cls, factory.merge(constraints, ()).method)
+
+            return self._factory(wrapper)
         return factory
 
 
@@ -575,6 +575,7 @@ def deserialization_method(
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     schema: Schema = None,
+    validators: Collection[Callable] = ()
 ) -> Callable[[Any], T]:
     ...
 
@@ -591,6 +592,7 @@ def deserialization_method(
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     schema: Schema = None,
+    validators: Collection[Callable] = ()
 ) -> Callable[[Any], Any]:
     ...
 
@@ -606,6 +608,7 @@ def deserialization_method(
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     schema: Schema = None,
+    validators: Collection[Callable] = ()
 ) -> Callable[[Any], Any]:
     from apischema import settings
 
@@ -628,7 +631,7 @@ def deserialization_method(
             opt_or(default_conversion, settings.deserialization.default_conversion),
             opt_or(fall_back_on_default, settings.deserialization.fall_back_on_default),
         )
-        .merge(get_constraints(schema), ())
+        .merge(get_constraints(schema), tuple(map(Validator, validators)))
         .method.deserialize
     )
 
@@ -646,6 +649,7 @@ def deserialize(
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     schema: Schema = None,
+    validators: Collection[Callable] = ()
 ) -> T:
     ...
 
@@ -663,6 +667,7 @@ def deserialize(
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     schema: Schema = None,
+    validators: Collection[Callable] = ()
 ) -> Any:
     ...
 
@@ -686,6 +691,7 @@ def deserialize(
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     schema: Schema = None,
+    validators: Collection[Callable] = ()
 ) -> Any:
     return deserialization_method(
         type,
@@ -697,4 +703,5 @@ def deserialize(
         default_conversion=default_conversion,
         fall_back_on_default=fall_back_on_default,
         schema=schema,
+        validators=validators,
     )(data)
