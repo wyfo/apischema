@@ -106,11 +106,11 @@ class settings(metaclass=MetaSettings):
         missing_property: str = "missing property"
 
     class deserialization(metaclass=ResetCache):
+        allowed_types: CollectionOrPredicate[type] = ()
         coerce: bool = False
         coercer: Coercer = coerce_
         default_conversion: DefaultConversion = default_deserialization
         fall_back_on_default: bool = False
-        pass_through: CollectionOrPredicate[AnyType] = ()
 
     class serialization(metaclass=ResetCache):
         check_type: bool = False
