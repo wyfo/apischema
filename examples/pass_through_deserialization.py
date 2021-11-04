@@ -1,6 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from apischema import deserialize
 
-now = datetime.now()
-assert deserialize(list[datetime], [now], allowed_types={datetime}) == [now]
+start = datetime.now()
+end = datetime.now() + timedelta(1)
+assert deserialize(
+    tuple[datetime, datetime], [start, end], allowed_types={datetime}
+) == (start, end)
