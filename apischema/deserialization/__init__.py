@@ -527,10 +527,10 @@ class DeserializationMethodVisitor(
                 )
         cls = get_origin_or_type(tp)
         if (
-            is_type(cls)
-            and not is_typed_dict(cls)
+            is_type(cls)  # check for type first in order to have it hashable
+            and cls not in JSON_TYPES  # eliminate most common types
             and self.allow_type(cls)
-            and cls not in JSON_TYPES
+            and not is_typed_dict(cls)  # typed dict isinstance cannot be checked
         ):
 
             def wrapper(
