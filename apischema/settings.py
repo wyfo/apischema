@@ -17,7 +17,7 @@ from apischema.schemas import Schema
 from apischema.serialization import PassThroughOptions
 from apischema.type_names import TypeName, default_type_name as default_type_name_
 from apischema.types import AnyType
-from apischema.utils import to_camel_case
+from apischema.utils import CollectionOrPredicate, to_camel_case
 
 
 class ResetCache(type):
@@ -110,6 +110,7 @@ class settings(metaclass=MetaSettings):
         coercer: Coercer = coerce_
         default_conversion: DefaultConversion = default_deserialization
         fall_back_on_default: bool = False
+        pass_through: CollectionOrPredicate[AnyType] = ()
 
     class serialization(metaclass=ResetCache):
         check_type: bool = False

@@ -74,6 +74,7 @@ from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import AnyType, NoneType, Undefined, UndefinedType
 from apischema.typing import is_new_type, is_type, is_type_var, is_typed_dict
 from apischema.utils import (
+    CollectionOrPredicate,
     Lazy,
     as_predicate,
     deprecate_kwargs,
@@ -124,10 +125,11 @@ class PassThroughOptions:
     any: bool = False
     collections: bool = False
     enums: bool = False
-    types: Union[Collection[AnyType], Callable[[AnyType], bool]] = ()
+    types: CollectionOrPredicate[AnyType] = ()
 
     def __post_init__(self):
-        object.__setattr__(self, "types", as_predicate(self.types))
+        if isinstance(self.types, Collection) and not isinstance(self.types, tuple):
+            object.__setattr__(self, "types", tuple(self.types))
 
 
 @dataclass
