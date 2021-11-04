@@ -78,7 +78,7 @@ from apischema.recursion import RecursiveConversionsVisitor
 from apischema.schemas import Schema, get_schema
 from apischema.schemas.constraints import Constraints, merge_constraints
 from apischema.types import AnyType, NoneType
-from apischema.typing import get_args, get_origin
+from apischema.typing import get_args, get_origin, is_typed_dict
 from apischema.utils import (
     CollectionOrPredicate,
     Lazy,
@@ -253,7 +253,7 @@ class DeserializationMethodVisitor(
     def _check_type(
         self, cls: type, factory: DeserializationMethodFactory
     ) -> DeserializationMethodFactory:
-        if not self.allow_type(cls):
+        if is_typed_dict(cls) or not self.allow_type(cls):
             return factory
 
         def wrapper(
