@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field, replace
+from dataclasses import replace
 from functools import reduce
 from typing import (
     Any,
@@ -46,11 +46,7 @@ except ImportError:
     LocalizedError = Mapping[str, Any]  # type: ignore
 
 
-@dataclass(frozen=True)
 class ValidationError(Exception):
-    messages: Sequence[ErrorMsg] = field(default_factory=list)
-    children: Mapping[ErrorKey, "ValidationError"] = field(default_factory=dict)
-
     @overload
     def __init__(self, __message: str):
         ...
@@ -70,11 +66,11 @@ class ValidationError(Exception):
     ):
         if isinstance(messages, str):
             messages = [messages]
-        super().__setattr__("messages", messages or [])
-        super().__setattr__("children", children or {})
+        self.messages: Sequence[str] = messages or []
+        self.children: Mapping[ErrorKey, "ValidationError"] = children or {}
 
     def __str__(self):
-        return repr(self)
+        return f"{ValidationError.__name__}: {self.errors}"
 
     def _errors(self) -> Iterator[Tuple[List[ErrorKey], ErrorMsg]]:
         for msg in self.messages:
