@@ -11,7 +11,12 @@ if sys.version_info < (3, 7):
 
     @deserializer
     def to_datetime(s: str) -> datetime:
-        return datetime.strptime(s, "%Y-%m-%d")
+        if "T" not in s:
+            return datetime.strptime(s, "%Y-%m-%d")
+        elif "." not in s:
+            return datetime.strptime(s, "%Y-%m-%dT%H:%M:%S")
+        else:
+            return datetime.strptime(s, "%Y-%m-%dT%H:%M:%S.%f")
 
     @serializer
     def from_datetime(obj: datetime) -> str:

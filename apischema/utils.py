@@ -404,11 +404,16 @@ def deprecate_kwargs(
     return decorator
 
 
+CollectionOrPredicate = Union[Collection[T], Callable[[T], bool]]
+
+
 def as_predicate(
-    collection_or_predicate: Union[Collection[T], Callable[[T], bool]]
+    collection_or_predicate: CollectionOrPredicate[T],
 ) -> Callable[[T], bool]:
     if not isinstance(collection_or_predicate, Collection):
         return collection_or_predicate
+    elif not collection_or_predicate:
+        return lambda _: False
     collection = collection_or_predicate
     if not isinstance(collection, AbstractSet):
         with suppress(Exception):

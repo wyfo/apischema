@@ -16,7 +16,7 @@ from apischema.aliases import Aliaser
 from apischema.conversions.utils import Converter
 from apischema.deserialization.coercion import Coercer
 from apischema.json_schema.types import bad_type
-from apischema.types import NoneType
+from apischema.types import AnyType, NoneType
 from apischema.utils import Lazy
 from apischema.validation.errors import ValidationError, merge_errors
 from apischema.validation.mock import ValidatorMock
@@ -211,6 +211,17 @@ class CoercerMethod(DeserializationMethod):
 
     def deserialize(self, data: Any) -> Any:
         return self.method.deserialize(self.coercer(self.cls, data))
+
+
+@dataclass
+class TypeCheckMethod(DeserializationMethod):
+    expected: AnyType  # `type` would require exact match (i.e. no EnumMeta)
+    fallback: DeserializationMethod
+
+    def deserialize(self, data: Any) -> Any:
+        if isinstance(data, self.expected):
+            return data
+        return self.fallback.deserialize(data)
 
 
 @dataclass
