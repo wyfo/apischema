@@ -27,12 +27,17 @@ from apischema.utils import (
     is_async,
     replace_builtins,
     to_camel_case,
+    to_snake_case,
     type_dict_wrapper,
 )
 
 
 def test_to_camel_case():
     assert to_camel_case("min_length") == "minLength"
+
+
+def test_to_snake_case():
+    assert to_snake_case("aCAPSString123Numbered") == "a_caps_string_123_numbered"
 
 
 def sync_func():

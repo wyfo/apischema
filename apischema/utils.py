@@ -88,7 +88,7 @@ def opt_or(opt: Optional[T], default: U) -> Union[T, U]:
 
 
 SNAKE_CASE_REGEX = re.compile(r"_([a-z\d])")
-CAMEL_CASE_REGEX = re.compile(r"([a-z\d])([A-Z])")
+CAMEL_CASE_REGEX = re.compile(r"(?<![A-Z])[A-Z]|[A-Z][a-z/d]|(?<=[a-z])\d")
 
 
 def to_camel_case(s: str) -> str:
@@ -96,7 +96,7 @@ def to_camel_case(s: str) -> str:
 
 
 def to_snake_case(s: str) -> str:
-    return CAMEL_CASE_REGEX.sub(lambda m: m.group(1) + "_" + m.group(2).lower(), s)
+    return CAMEL_CASE_REGEX.sub(lambda m: "_" + m.group(), s).lower()
 
 
 def to_pascal_case(s: str) -> str:
