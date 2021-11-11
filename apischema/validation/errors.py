@@ -38,7 +38,7 @@ try:
 
     class LocalizedError(TypedDict):
         loc: Sequence[ErrorKey]
-        msg: ErrorMsg
+        err: ErrorMsg
 
 
 except ImportError:
@@ -80,13 +80,13 @@ class ValidationError(Exception):
 
     @property
     def errors(self) -> List[LocalizedError]:
-        return [{"loc": path, "msg": error} for path, error in self._errors()]
+        return [{"loc": path, "err": error} for path, error in self._errors()]
 
     @staticmethod
     def from_errors(errors: Sequence[LocalizedError]) -> "ValidationError":
         return reduce(
             merge_errors,
-            [_rec_build_error(err["loc"], err["msg"]) for err in errors],
+            [_rec_build_error(err["loc"], err["err"]) for err in errors],
             ValidationError(),
         )
 

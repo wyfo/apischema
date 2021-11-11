@@ -25,8 +25,8 @@ with raises(ValidationError) as err:  # pytest check exception is raised
         Resource, {"id": 42, "tags": ["tag", "duplicate", "duplicate", "bad&", "_"]}
     )
 assert err.value.errors == [
-    {"loc": ["tags"], "msg": "item count greater than 3 (maxItems)"},
-    {"loc": ["tags"], "msg": "duplicate items (uniqueItems)"},
-    {"loc": ["tags", 3], "msg": "not matching pattern ^\\w*$ (pattern)"},
-    {"loc": ["tags", 4], "msg": "string length lower than 3 (minLength)"},
+    {"loc": ["tags"], "err": "item count greater than 3 (maxItems)"},
+    {"loc": ["tags"], "err": "duplicate items (uniqueItems)"},
+    {"loc": ["tags", 3], "err": "not matching pattern ^\\w*$ (pattern)"},
+    {"loc": ["tags", 4], "err": "string length lower than 3 (minLength)"},
 ]

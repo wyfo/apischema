@@ -39,6 +39,6 @@ with raises(ValidationError) as err:
 assert err.value.errors == [
     {
         "loc": ["billing_address"],
-        "msg": "missing property (required by ['credit_card'])",
+        "err": "missing property (required by ['credit_card'])",
     }
 ]

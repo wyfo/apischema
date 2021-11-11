@@ -22,4 +22,4 @@ validate(Foo(-1, 0))
 
 with raises(ValidationError) as err:
     validate(Foo(2, 2))
-assert err.value.errors == [{"loc": [], "msg": "bar cannot be equal to baz"}]
+assert err.value.errors == [{"loc": [], "err": "bar cannot be equal to baz"}]

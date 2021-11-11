@@ -16,5 +16,5 @@ class Foo:
 with raises(ValidationError) as err:
     deserialize(Foo, {"bar": None})
 assert err.value.errors == [
-    {"loc": ["bar"], "msg": "expected type integer, found null"}
+    {"loc": ["bar"], "err": "expected type integer, found null"}
 ]

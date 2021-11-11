@@ -34,10 +34,10 @@ assert serialize(Foo, tagged_bar) == {"bar": {"field": "value"}}
 
 with raises(ValidationError) as err:
     deserialize(Foo, {"unknown": 42})
-assert err.value.errors == [{"loc": ["unknown"], "msg": "unexpected property"}]
+assert err.value.errors == [{"loc": ["unknown"], "err": "unexpected property"}]
 
 with raises(ValidationError) as err:
     deserialize(Foo, {"bar": {"field": "value"}, "baz": 0})
 assert err.value.errors == [
-    {"loc": [], "msg": "property count greater than 1 (maxProperties)"}
+    {"loc": [], "err": "property count greater than 1 (maxProperties)"}
 ]

@@ -18,4 +18,4 @@ class Foo:
 
 with raises(ValidationError) as err:
     deserialize(Foo, {"bar": -1})
-assert err.value.errors == [{"loc": ["bar"], "msg": "negative"}]
+assert err.value.errors == [{"loc": ["bar"], "err": "negative"}]

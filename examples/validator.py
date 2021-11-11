@@ -20,5 +20,5 @@ class PasswordForm:
 with raises(ValidationError) as err:
     deserialize(PasswordForm, {"password": "p455w0rd", "confirmation": "..."})
 assert err.value.errors == [
-    {"loc": [], "msg": "password doesn't match its confirmation"}
+    {"loc": [], "err": "password doesn't match its confirmation"}
 ]

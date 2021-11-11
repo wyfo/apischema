@@ -80,5 +80,5 @@ assert deserialization_schema(Foo) == {
 with raises(ValidationError) as err:
     deserialize(Foo, {"bar": "not an int"})
 assert err.value.errors == [
-    {"loc": ["bar"], "msg": "value is not a valid integer"}  # pydantic error message
+    {"loc": ["bar"], "err": "value is not a valid integer"}  # pydantic error message
 ]

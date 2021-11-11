@@ -26,6 +26,6 @@ with raises(ValidationError) as err:
         {"subnet": "126.42.18.0/24", "ips": ["126.42.18.1", "126.42.19.0", "0.0.0.0"]},
     )
 assert err.value.errors == [
-    {"loc": ["ips", 1], "msg": "ip not in subnet"},
-    {"loc": ["ips", 2], "msg": "ip not in subnet"},
+    {"loc": ["ips", 1], "err": "ip not in subnet"},
+    {"loc": ["ips", 2], "err": "ip not in subnet"},
 ]

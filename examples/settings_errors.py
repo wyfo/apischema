@@ -9,4 +9,4 @@ settings.errors.max_items = (
 
 with raises(ValidationError) as err:
     deserialize(list[int], [0, 1, 2, 3], schema=schema(max_items=3))
-assert err.value.errors == [{"loc": [], "msg": "too-many-items: 4 > 3"}]
+assert err.value.errors == [{"loc": [], "err": "too-many-items: 4 > 3"}]
