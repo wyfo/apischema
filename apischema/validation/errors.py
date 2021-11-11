@@ -1,4 +1,3 @@
-from dataclasses import replace
 from functools import reduce
 from typing import (
     Any,
@@ -139,7 +138,7 @@ def apply_aliaser(error: ValidationError, aliaser: Aliaser) -> ValidationError:
         child2 = apply_aliaser(child, aliaser)
         aliased |= child2 is not child
         aliased_children[key] = child2
-    return replace(error, children=aliased_children) if aliased else error
+    return ValidationError(error.messages, aliased_children) if aliased else error
 
 
 def _rec_build_error(path: Sequence[ErrorKey], msg: ErrorMsg) -> ValidationError:
