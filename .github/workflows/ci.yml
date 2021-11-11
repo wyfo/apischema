@@ -31,7 +31,7 @@ jobs:
     - name: cythonize
       if: matrix.compile
       run: |
-        python -m pip install cython ${{ matrix.compile && (matrix.python-version == '3.6' || matrix.python-version == 'pypy3') && 'dataclasses' || '' }}
+        python -m pip install cython ${{ (matrix.python-version == '3.6' || matrix.python-version == 'pypy3') && 'dataclasses' || '' }}
         python scripts/cythonize.py
         python setup.py build_ext --inplace
     - name: Install tox

@@ -13,4 +13,4 @@ class Foo:
 
 with raises(ValidationError) as err:
     deserialize(Foo, {})
-assert err.value.errors == [{"loc": ["bar"], "msg": "missing property"}]
+assert err.value.errors == [{"loc": ["bar"], "err": "missing property"}]

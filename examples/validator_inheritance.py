@@ -27,5 +27,5 @@ with raises(ValidationError) as err:
         {"username": "wyfo", "password": "p455w0rd", "confirmation": "..."},
     )
 assert err.value.errors == [
-    {"loc": [], "msg": "password doesn't match its confirmation"}
+    {"loc": [], "err": "password doesn't match its confirmation"}
 ]

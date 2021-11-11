@@ -18,4 +18,4 @@ class Foo:
 
 with raises(ValidationError) as err:
     deserialize(Foo, {"bar": "11"})
-assert err.value.errors == [{"loc": ["bar"], "msg": "number has duplicate digits"}]
+assert err.value.errors == [{"loc": ["bar"], "err": "number has duplicate digits"}]

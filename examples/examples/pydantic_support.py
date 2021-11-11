@@ -28,7 +28,9 @@ def default_deserialization(tp: Any) -> AnyConversion | None:
             try:
                 return tp.parse_obj(data)
             except pydantic.ValidationError as error:
-                raise ValidationError.from_errors(error.errors())
+                raise ValidationError.from_errors(
+                    [{"loc": err["loc"], "err": err["msg"]} for err in error.errors()]
+                )
 
         return Conversion(
             deserialize_pydantic,
@@ -80,5 +82,5 @@ assert deserialization_schema(Foo) == {
 with raises(ValidationError) as err:
     deserialize(Foo, {"bar": "not an int"})
 assert err.value.errors == [
-    {"loc": ["bar"], "msg": "value is not a valid integer"}  # pydantic error message
+    {"loc": ["bar"], "err": "value is not a valid integer"}  # pydantic error message
 ]

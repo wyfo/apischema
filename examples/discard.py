@@ -38,7 +38,7 @@ def bounds_are_sorted_equivalent(bounded: BoundedValues):
 with raises(ValidationError) as err:
     deserialize(BoundedValues, {"bounds": [10, 0], "values": [-1, 2, 4]})
 assert err.value.errors == [
-    {"loc": ["bounds"], "msg": "bounds are not sorted"}
+    {"loc": ["bounds"], "err": "bounds are not sorted"}
     # Without discard, there would have been an other error
-    # {"loc": ["values", 1], "msg": "value exceeds bounds"}
+    # {"loc": ["values", 1], "err": "value exceeds bounds"}
 ]

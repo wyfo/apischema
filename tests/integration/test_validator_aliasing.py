@@ -18,4 +18,4 @@ class A:
 def test_validator_aliasing():
     with raises(ValidationError) as err:
         deserialize(A, {"A": 42}, aliaser=str.upper)
-    assert err.value.errors == [{"loc": ["A", "A", "b", 0, "C"], "msg": "error 42"}]
+    assert err.value.errors == [{"loc": ["A", "A", "b", 0, "C"], "err": "error 42"}]

@@ -38,4 +38,4 @@ def check_parity_other_equivalent(number2: NumberWithParity):
 
 with raises(ValidationError) as err:
     deserialize(NumberWithParity, {"parity": "even", "number": 1})
-assert err.value.errors == [{"loc": ["number"], "msg": "number doesn't respect parity"}]
+assert err.value.errors == [{"loc": ["number"], "err": "number doesn't respect parity"}]
