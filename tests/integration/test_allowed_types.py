@@ -8,7 +8,7 @@ from apischema import ValidationError, deserialization_method, deserialize, vali
 
 def validate_checksum(b: bytes):
     if b and sum(b[:-1]) % 255 != int(b[-1]):
-        raise ValueError("Invalid checksum")
+        raise ValidationError("Invalid checksum")
 
 
 valid_bytes = b"toto" + (sum(b"toto") % 255).to_bytes(1, byteorder=sys.byteorder)
@@ -20,9 +20,6 @@ checked_bytes_method = deserialization_method(
 
 
 def test_allowed_types_upper_validators():
-    validate_checksum(valid_bytes)
-    with raises(ValueError):
-        validate_checksum(invalid_bytes)
     assert checked_bytes_method(valid_bytes) is valid_bytes
     with raises(ValidationError):
         checked_bytes_method(invalid_bytes)
@@ -35,7 +32,7 @@ class MyClass:
     @validator
     def field_is_not_zero(self):
         if self.field == 0:
-            raise ValueError("ZERO!")
+            raise ValidationError("ZERO!")
 
 
 def test_allowed_types_type_validators():
