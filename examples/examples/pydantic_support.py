@@ -28,7 +28,9 @@ def default_deserialization(tp: Any) -> AnyConversion | None:
             try:
                 return tp.parse_obj(data)
             except pydantic.ValidationError as error:
-                raise ValidationError.from_errors(error.errors())
+                raise ValidationError.from_errors(
+                    [{"loc": err["loc"], "err": err["msg"]} for err in error.errors()]
+                )
 
         return Conversion(
             deserialize_pydantic,

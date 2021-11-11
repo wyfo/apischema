@@ -59,10 +59,10 @@ def test_validate():
     validate(Data(42, 0))
     with raises(ValidationError) as err:
         validate(Data(0, 0))
-    assert err.value.errors == [{"loc": [], "msg": "error"}]
+    assert err.value.errors == [{"loc": [], "err": "error"}]
     with raises(ValidationError) as err:
         validate(Data(200, 0))
-    assert err.value.errors == [{"loc": [], "msg": "error2"}]
+    assert err.value.errors == [{"loc": [], "err": "error2"}]
 
 
 def test_non_trivial():
