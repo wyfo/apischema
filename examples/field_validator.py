@@ -8,7 +8,7 @@ from apischema.metadata import validators
 
 def check_no_duplicate_digits(n: int):
     if len(str(n)) != len(set(str(n))):
-        raise ValueError("number has duplicate digits")
+        raise ValidationError("number has duplicate digits")
 
 
 @dataclass

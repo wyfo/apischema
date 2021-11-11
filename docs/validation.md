@@ -34,6 +34,9 @@ Messages can be customized by setting the corresponding attribute of `apischema.
 
 Dataclass validation can be completed by custom validators. These are simple decorated methods which will be executed during validation, after all fields having been deserialized.
 
+!!! note
+    Previously to v0.17, validators could raise arbitrary exceptions (except AssertionError of course); see [FAQ](#why-validators-cannot-raise-arbitrary-exception) for the reason of this change.
+
 ```python
 {!validator.py!}
 ```
@@ -159,3 +162,27 @@ Last but not least, validators can be embedded directly into `Annotated` argumen
 
 #### Why use validators for dataclasses instead of doing validation in `__post_init__`?
 Actually, validation can completely be done in `__post_init__`, there is no problem with that. However, validators offers one thing that cannot be achieved with `__post_init__`: they are run before `__init__`, so they can validate incomplete data. Moreover, they are only run during deserialization, so they don't add overhead to normal class instantiation.
+
+#### Why validators cannot raise arbitrary exception?
+
+Allowing arbitrary exception is in fact a security issue, because unwanted exception could be raised, and their message displayed in validation error. It could either contain sensitive data, or give information about the implementation which could be used to hack it.
+
+By the way, it's possible to define a decorator to convert precise exceptions to `ValidationError`:
+```python
+from collections.abc import Callable
+from functools import wraps
+from typing import TypeVar
+from apischema import ValidationError
+
+Func = TypeVar("Func", bound=Callable)
+def catch(*exceptions) -> Callable[[Func], Func]:
+    def decorator(func: Func) -> Func:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as err:
+                raise ValidationError(str(err)) if isinstance(err, exceptions) else err
+        return wrapper
+    return decorator
+```

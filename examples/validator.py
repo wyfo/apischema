@@ -14,7 +14,7 @@ class PasswordForm:
     def password_match(self):
         # DO NOT use assert
         if self.password != self.confirmation:
-            raise ValueError("password doesn't match its confirmation")
+            raise ValidationError("password doesn't match its confirmation")
 
 
 with raises(ValidationError) as err:

@@ -29,6 +29,7 @@ from apischema.type_names import type_name
 from apischema.types import AnyType
 from apischema.typing import is_type_var
 from apischema.utils import get_args2, get_origin_or_type, stop_signature_abuse
+from apischema.validation.errors import ValidationError
 
 if TYPE_CHECKING:
     pass
@@ -181,7 +182,13 @@ Cls = TypeVar("Cls", bound=type)
 
 
 def as_str(cls: Cls) -> Cls:
-    deserializer(Conversion(cls, source=str))
+    def wrapper(data):
+        try:
+            return cls(data)
+        except ValueError as err:
+            raise ValidationError([str(err)])
+
+    deserializer(Conversion(wrapper, source=str, target=cls))
     serializer(Conversion(str, source=cls))
     return cls
 

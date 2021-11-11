@@ -46,10 +46,32 @@ except ImportError:
     LocalizedError = Mapping[str, Any]  # type: ignore
 
 
-@dataclass
+@dataclass(frozen=True)
 class ValidationError(Exception):
     messages: Sequence[ErrorMsg] = field(default_factory=list)
     children: Mapping[ErrorKey, "ValidationError"] = field(default_factory=dict)
+
+    @overload
+    def __init__(self, __message: str):
+        ...
+
+    @overload
+    def __init__(
+        self,
+        messages: Sequence[ErrorMsg] = None,
+        children: Mapping[ErrorKey, "ValidationError"] = None,
+    ):
+        ...
+
+    def __init__(
+        self,
+        messages: Union[ErrorMsg, Sequence[ErrorMsg]] = None,
+        children: Mapping[ErrorKey, "ValidationError"] = None,
+    ):
+        if isinstance(messages, str):
+            messages = [messages]
+        super().__setattr__("messages", messages or [])
+        super().__setattr__("children", children or {})
 
     def __str__(self):
         return repr(self)
