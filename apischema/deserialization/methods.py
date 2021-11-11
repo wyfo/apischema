@@ -21,7 +21,6 @@ from apischema.utils import Lazy
 from apischema.validation.errors import ValidationError, merge_errors
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validators import Validator, validate
-from apischema.visitor import Unsupported
 
 if TYPE_CHECKING:
     pass
@@ -480,17 +479,7 @@ class ObjectMethod(DeserializationMethod):
                 raise error
         elif field_errors or errors:
             raise ValidationError(errors, field_errors)
-        try:
-            res = self.cls(**values)
-        except (AssertionError, ValidationError):
-            raise
-        except TypeError as err:
-            if str(err).startswith("__init__() got"):
-                raise Unsupported(self.cls)
-            else:
-                raise ValidationError([str(err)])
-        except Exception as err:
-            raise ValidationError([str(err)])
+        res = self.cls(**values)
         if self.validators:
             validate(res, validators2, init, aliaser=self.aliaser)
         return res
@@ -651,12 +640,7 @@ class ConversionMethod(DeserializationMethod):
     method: DeserializationMethod
 
     def deserialize(self, data: Any) -> Any:
-        try:
-            return self.converter(self.method.deserialize(data))
-        except (ValidationError, AssertionError):
-            raise
-        except Exception as err:
-            raise ValidationError([str(err)])
+        return self.converter(self.method.deserialize(data))
 
 
 @dataclass
@@ -678,11 +662,6 @@ class ConversionUnionMethod(DeserializationMethod):
             except ValidationError as err:
                 error = merge_errors(error, err)
             else:
-                try:
-                    return alternative.converter(value)
-                except (ValidationError, AssertionError):
-                    raise
-                except Exception as err:
-                    raise ValidationError([str(err)])
+                return alternative.converter(value)
         assert error is not None
         raise error

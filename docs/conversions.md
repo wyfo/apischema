@@ -160,46 +160,6 @@ Serialized methods can also have dedicated conversions for their return
 {!serialized_conversions.py!}
 ```
 
-## String conversions
-
-A common pattern of conversion concerns classes that have a string constructor and a `__str__` method; standard types `uuid.UUID`, `pathlib.Path`, `ipaddress.IPv4Address` are concerned. Using `apischema.conversions.as_str` will register a string-deserializer from the constructor and a string-serializer from the `__str__` method.
-
-```python
-{!as_str.py!}
-```
-
-!!! note
-    Previously mentioned standard types are handled by *apischema* using `as_str`.
-
-## Use `Enum` names
-
-`Enum` subclasses are (de)serialized using values. However, you may want to use enumeration names instead, that's why *apischema* provides `apischema.conversion.as_names` to decorate `Enum` subclasses.
-
-```python
-{!as_names.py!}
-```
-
-## Object deserialization — transform function into a dataclass deserializer
-
-`apischema.objects.object_deserialization` can convert a function into a new function taking a unique parameter, a dataclass whose fields are mapped from the original function parameters.
-
-It can be used for example to build a deserialization conversion from an alternative constructor.
-
-
-```python
-{!object_deserialization.py!}
-```
-
-!!! note
-    Parameters metadata can be specified using `typing.Annotated`, or be passed with `parameters_metadata` parameter, which is a mapping of parameter names as key and mapped metadata as value.
-
-## Object serialization — select only a subset of fields
-
-`apischema.objects.object_serialization` can be used to serialize only a subset of an object fields and methods.
-
-```python
-{!object_serialization.py!}
-```
 
 ## Default conversions
 
@@ -243,6 +203,54 @@ Lazy conversions can also be registered, but the deserialization target/serializ
 {!lazy_registered_conversion.py!}
 ```
 
+## Conversion helpers
+
+
+
+### String conversions
+
+A common pattern of conversion concerns classes that have a string constructor and a `__str__` method; standard types `uuid.UUID`, `pathlib.Path`, `ipaddress.IPv4Address` are concerned. Using `apischema.conversions.as_str` will register a string-deserializer from the constructor and a string-serializer from the `__str__` method. `ValueError` raised by the constructor is caught and converted to `ValidationError`.
+
+```python
+{!as_str.py!}
+```
+
+!!! note
+    Previously mentioned standard types are handled by *apischema* using `as_str`.
+
+### Use `Enum` names
+
+`Enum` subclasses are (de)serialized using values. However, you may want to use enumeration names instead, that's why *apischema* provides `apischema.conversion.as_names` to decorate `Enum` subclasses.
+
+```python
+{!as_names.py!}
+```
+
+### Class as union of its subclasses
+
+
+
+
+### Object deserialization — transform function into a dataclass deserializer
+
+`apischema.objects.object_deserialization` can convert a function into a new function taking a unique parameter, a dataclass whose fields are mapped from the original function parameters.
+
+It can be used for example to build a deserialization conversion from an alternative constructor.
+
+```python
+{!object_deserialization.py!}
+```
+
+!!! note
+Parameters metadata can be specified using `typing.Annotated`, or be passed with `parameters_metadata` parameter, which is a mapping of parameter names as key and mapped metadata as value.
+
+### Object serialization — select only a subset of fields
+
+`apischema.objects.object_serialization` can be used to serialize only a subset of an object fields and methods.
+
+```python
+{!object_serialization.py!}
+```
 
 ## FAQ
 

@@ -22,7 +22,7 @@ class Data:
     @validator
     def a_lt_100(self):
         if self.a >= 100:
-            raise ValueError("error2")
+            raise ValidationError("error2")
 
     @validator
     def non_trivial(self):
@@ -49,9 +49,9 @@ def test_validator_descriptor():
     validator = get_validators_by_method(Data, Data.a_gt_10)
     assert validator.dependencies == {"a"}
     # Can be called from class and instance
-    with raises(ValueError):
+    with raises(ValidationError):
         assert Data(200, 0).a_lt_100()
-    with raises(ValueError):
+    with raises(ValidationError):
         assert Data.a_lt_100(Data(200, 0))
 
 
@@ -59,10 +59,10 @@ def test_validate():
     validate(Data(42, 0))
     with raises(ValidationError) as err:
         validate(Data(0, 0))
-    assert err.value == ValidationError(["error"])
+    assert err.value.errors == [{"loc": [], "msg": "error"}]
     with raises(ValidationError) as err:
         validate(Data(200, 0))
-    assert err.value == ValidationError(["error2"])
+    assert err.value.errors == [{"loc": [], "msg": "error2"}]
 
 
 def test_non_trivial():

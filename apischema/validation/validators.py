@@ -135,10 +135,6 @@ def validate(
         except NonTrivialDependency as exc:
             exc.validator = validator
             raise
-        except AssertionError:
-            raise
-        except Exception as e:
-            err = ValidationError([str(e)])
         else:
             continue
         if validator.field is not None:

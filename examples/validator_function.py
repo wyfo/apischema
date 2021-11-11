@@ -12,7 +12,7 @@ Palindrome = NewType("Palindrome", str)
 def check_palindrome(s: Palindrome):
     for i in range(len(s) // 2):
         if s[i] != s[-1 - i]:
-            raise ValueError("Not a palindrome")
+            raise ValidationError("Not a palindrome")
 
 
 assert deserialize(Palindrome, "tacocat") == "tacocat"

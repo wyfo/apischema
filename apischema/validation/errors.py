@@ -1,4 +1,3 @@
-from dataclasses import dataclass, field, replace
 from functools import reduce
 from typing import (
     Any,
@@ -46,13 +45,31 @@ except ImportError:
     LocalizedError = Mapping[str, Any]  # type: ignore
 
 
-@dataclass
 class ValidationError(Exception):
-    messages: Sequence[ErrorMsg] = field(default_factory=list)
-    children: Mapping[ErrorKey, "ValidationError"] = field(default_factory=dict)
+    @overload
+    def __init__(self, __message: str):
+        ...
+
+    @overload
+    def __init__(
+        self,
+        messages: Sequence[ErrorMsg] = None,
+        children: Mapping[ErrorKey, "ValidationError"] = None,
+    ):
+        ...
+
+    def __init__(
+        self,
+        messages: Union[ErrorMsg, Sequence[ErrorMsg]] = None,
+        children: Mapping[ErrorKey, "ValidationError"] = None,
+    ):
+        if isinstance(messages, str):
+            messages = [messages]
+        self.messages: Sequence[str] = messages or []
+        self.children: Mapping[ErrorKey, "ValidationError"] = children or {}
 
     def __str__(self):
-        return repr(self)
+        return f"{ValidationError.__name__}: {self.errors}"
 
     def _errors(self) -> Iterator[Tuple[List[ErrorKey], ErrorMsg]]:
         for msg in self.messages:
@@ -121,7 +138,7 @@ def apply_aliaser(error: ValidationError, aliaser: Aliaser) -> ValidationError:
         child2 = apply_aliaser(child, aliaser)
         aliased |= child2 is not child
         aliased_children[key] = child2
-    return replace(error, children=aliased_children) if aliased else error
+    return ValidationError(error.messages, aliased_children) if aliased else error
 
 
 def _rec_build_error(path: Sequence[ErrorKey], msg: ErrorMsg) -> ValidationError:

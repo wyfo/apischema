@@ -13,7 +13,7 @@ class PasswordForm:
     @validator
     def password_match(self):
         if self.password != self.confirmation:
-            raise ValueError("password doesn't match its confirmation")
+            raise ValidationError("password doesn't match its confirmation")
 
 
 @dataclass
