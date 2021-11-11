@@ -1,7 +1,78 @@
 import os
 import platform
+import sys
+import warnings
+
+# The following code is copied from
+# https://github.com/tornadoweb/tornado/blob/master/setup.py
+# to support installing without the extension on platforms where
+# no compiler is available.
+from distutils.command.build_ext import build_ext  # type: ignore
 
 from setuptools import Extension, find_packages, setup
+
+
+class custom_build_ext(build_ext):
+    """Allow C extension building to fail.
+    The C extension speeds up (de)serialization, but is not essential.
+    """
+
+    warning_message = """
+********************************************************************
+WARNING: %s could not
+be compiled. No C extensions are essential for apischema to run,
+although they do result in significant speed improvements for
+(de)serialization.
+%s
+Here are some hints for popular operating systems:
+If you are seeing this message on Linux you probably need to
+install GCC and/or the Python development package for your
+version of Python.
+Debian and Ubuntu users should issue the following command:
+    $ sudo apt-get install build-essential python-dev
+RedHat and CentOS users should issue the following command:
+    $ sudo yum install gcc python-devel
+Fedora users should issue the following command:
+    $ sudo dnf install gcc python-devel
+MacOS users should run:
+    $ xcode-select --install
+********************************************************************
+"""
+
+    def run(self):
+        try:
+            build_ext.run(self)
+        except Exception:
+            e = sys.exc_info()[1]
+            sys.stdout.write("%s\n" % str(e))
+            warnings.warn(
+                self.warning_message
+                % (
+                    "Extension modules",
+                    "There was an issue with "
+                    "your platform configuration"
+                    " - see above.",
+                )
+            )
+
+    def build_extension(self, ext):
+        name = ext.name
+        try:
+            build_ext.build_extension(self, ext)
+        except Exception:
+            e = sys.exc_info()[1]
+            sys.stdout.write("%s\n" % str(e))
+            warnings.warn(
+                self.warning_message
+                % (
+                    "The %s extension " "module" % (name,),
+                    "The output above "
+                    "this warning shows how "
+                    "the compilation "
+                    "failed.",
+                )
+            )
+
 
 README = None
 # README cannot be read by older python version run by tox
