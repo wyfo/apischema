@@ -136,6 +136,9 @@ They correpond to JSON *object* and are serialized to `dict`.
 {!generic.py!}
 ```
 
+!!! warning
+    Generic types don't have default *type name* (used in JSON/GraphQL schema) — should `Group[Foo]` be named `GroupFoo`/`FooGroup`/something else? — so they require by-class or default [`type_name` assignment](json_schema.md#set-reference-name).
+
 ## Recursive types, string annotations and PEP 563
 
 Recursive classes can be typed as they usually do, with or without [PEP 563](https://www.python.org/dev/peps/pep-0563/).
