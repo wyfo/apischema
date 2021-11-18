@@ -119,5 +119,5 @@ def test_recursive_conversion_without_ref():
     tmp = None
     conversion = Conversion(rec_converter, sub_conversion=LazyConversion(lambda: tmp))
     tmp = conversion
-    with raises(TypeError, match=r"Recursive type <.*> need a ref"):
+    with raises(TypeError, match=r"Recursive type <.*> needs a ref.*"):
         serialization_schema(RecConv, conversion=conversion)
