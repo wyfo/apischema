@@ -125,7 +125,10 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
         # 2 because the first type encountered of the recursive cycle can have no ref
         # (see test_recursive_by_conversion_schema)
         if self._rec_guard[(tp, self._conversion)] > 2:
-            raise TypeError(f"Recursive type {tp} need a ref")
+            raise TypeError(
+                f"Recursive type {tp} needs a ref. "
+                "You can supply one using the type_name() decorator."
+            )
         self._rec_guard[(tp, self._conversion)] += 1
         try:
             super().visit_conversion(tp, conversion, dynamic, next_conversion)
