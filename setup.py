@@ -128,5 +128,6 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
+    cmdclass={"build_ext": custom_build_ext},
     ext_modules=ext_modules,
 )
