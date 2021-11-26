@@ -84,6 +84,7 @@ class PassThroughOptions:
     any: bool = False
     collections: bool = False
     enums: bool = False
+    tuple: bool = False
     types: Union[Collection[AnyType], Callable[[AnyType], bool]] = ()
 
     def __post_init__(self):
@@ -198,9 +199,13 @@ class SerializationMethodVisitor(
                 # using map is faster than comprehension
                 return list(map(serialize_value, obj))
 
-        elif issubclass(cls, (list, tuple)) or (
-            self.pass_through_options.collections
-            and not issubclass(cls, collections.abc.Set)
+        elif (
+            issubclass(cls, list)
+            or (issubclass(cls, tuple) and self.pass_through_options.tuple)
+            or (
+                self.pass_through_options.collections
+                and not issubclass(cls, collections.abc.Set)
+            )
         ):
             method = identity
         else:
@@ -354,7 +359,7 @@ class SerializationMethodVisitor(
     def tuple(self, types: Sequence[AnyType]) -> SerializationMethod:
         elt_serializers = list(enumerate(map(self.visit, types)))
         if all(method is identity for _, method in elt_serializers):
-            return identity
+            return identity if self.pass_through_options.tuple else list  # type: ignore
 
         def method(obj: Any) -> Any:
             return [serialize_elt(obj[i]) for i, serialize_elt in elt_serializers]
