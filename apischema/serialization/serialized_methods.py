@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import wraps
-from inspect import Parameter, isclass, signature
+from inspect import Parameter, signature
 from typing import (
     Any,
     Callable,
@@ -24,7 +24,7 @@ from apischema.methods import method_registerer
 from apischema.ordering import Ordering
 from apischema.schemas import Schema
 from apischema.types import AnyType, Undefined, UndefinedType
-from apischema.typing import generic_mro, get_type_hints
+from apischema.typing import generic_mro, get_type_hints, is_type
 from apischema.utils import (
     deprecate_kwargs,
     get_args2,
@@ -61,7 +61,7 @@ class SerializedMethod:
     def types(self, owner: AnyType = None) -> Mapping[str, AnyType]:
         types = get_type_hints(self.func, include_extras=True)
         if "return" not in types:
-            if isclass(self.func):
+            if is_type(self.func):
                 types["return"] = self.func
             else:
                 raise TypeError("Function must be typed")
