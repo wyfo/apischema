@@ -177,12 +177,7 @@ class SerializationMethodVisitor(
         cls_to_check = Mapping if is_typed_dict(cls) else cls
 
         def wrapper(obj: Any) -> Any:
-            if isinstance(obj, cls_to_check):
-                try:
-                    return method(obj)
-                except Exception:
-                    pass
-            return fallback(obj)
+            return method(obj) if isinstance(obj, cls_to_check) else fallback(obj)
 
         return wrapper
 
