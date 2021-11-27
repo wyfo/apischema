@@ -68,6 +68,13 @@ But, most of the time, collections runtime types are `list`/`dict`, so others ca
 
 #### `enums` — pass through enums
 
+#### `tuple` — pass through `tuple`
+
+Even if `tuple` is often supported by JSON serializers, if this options is not enabled, tuples will be serialized as lists. It also allows easier test writing for example.
+
+!!! note
+    `collections=True` implies `tuple=True`;
+
 #### `types` — pass through arbitrary types
 
 Either a collection of types, or a predicate to determine if type has to be passed through.

@@ -89,6 +89,8 @@ class PassThroughOptions:
 
     def __post_init__(self):
         object.__setattr__(self, "types", as_predicate(self.types))
+        if self.collections and not self.tuple:
+            object.__setattr__(self, "tuple", True)
 
 
 class SerializationMethodVisitor(
