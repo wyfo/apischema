@@ -1,0 +1,906 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6">
+    
+    
+      
+        <title>Class as tagged union of its subclasses - apischema</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.a57b2b03.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#4cae4f">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+    
+      
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="preference" data-md-color-primary="green" data-md-color-accent="indigo">
+  
+    
+    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#class-as-tagged-union-of-its-subclasses" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="apischema" class="md-header__button md-logo" aria-label="apischema" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            apischema
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Class as tagged union of its subclasses
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/wyfo/apischema/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wyfo/apischema
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="apischema" class="md-nav__button md-logo" aria-label="apischema" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    apischema
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/wyfo/apischema/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wyfo/apischema
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_model/" class="md-nav__link">
+        Data model
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de_serialization/" class="md-nav__link">
+        (De)serialization
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../json_schema/" class="md-nav__link">
+        JSON schema
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../validation/" class="md-nav__link">
+        Validation
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conversions/" class="md-nav__link">
+        Conversions
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7">
+          GraphQL
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="GraphQL" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          GraphQL
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../graphql/overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../graphql/data_model_and_resolvers/" class="md-nav__link">
+        Data model and resolvers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../graphql/schema/" class="md-nav__link">
+        GraphQL schema
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../graphql/relay/" class="md-nav__link">
+        Relay
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8">
+          Examples
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Examples" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sqlalchemy_support/" class="md-nav__link">
+        SQLAlchemy support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pydantic_support/" class="md-nav__link">
+        Pydantic support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../attrs_support/" class="md-nav__link">
+        Attrs support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subclass_union/" class="md-nav__link">
+        Class as union of its subclasses
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Class as tagged union of its subclasses
+      </a>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recoverable_fields/" class="md-nav__link">
+        Recoverable fields
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../inherited_deserializer/" class="md-nav__link">
+        Inherited deserializer
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../performance_and_benchmark/" class="md-nav__link">
+        Performance and benchmark
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../difference_with_pydantic/" class="md-nav__link">
+        Difference with pydantic
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/wyfo/apischema/releases" class="md-nav__link">
+        Releases
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/wyfo/apischema/edit/master/docs/examples/subclass_tagged_union.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="class-as-tagged-union-of-its-subclasses">Class as tagged union of its subclasses<a class="headerlink" href="#class-as-tagged-union-of-its-subclasses" title="Permanent link">&para;</a></h1>
+<p><em>From <a href="https://github.com/wyfo/apischema/discussions/56">https://github.com/wyfo/apischema/discussions/56</a></em></p>
+<p>Tagged unions are useful when it comes to <em>GraphQL</em> input (or even output).</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">AsyncIterable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">new_class</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">get_type_hints</span>
+
+<span class="kn">import</span> <span class="nn">graphql</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">serializer</span><span class="p">,</span> <span class="n">type_name</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">Conversion</span>
+<span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">conversion</span>
+<span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">object_deserialization</span>
+<span class="kn">from</span> <span class="nn">apischema.tagged_unions</span> <span class="kn">import</span> <span class="n">Tagged</span><span class="p">,</span> <span class="n">TaggedUnion</span><span class="p">,</span> <span class="n">get_tagged</span>
+<span class="kn">from</span> <span class="nn">apischema.utils</span> <span class="kn">import</span> <span class="n">to_pascal_case</span>
+
+<span class="n">_alternative_constructors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+<span class="n">Func</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Func&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">Callable</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">alternative_constructor</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Func</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Func</span><span class="p">:</span>
+    <span class="n">_alternative_constructors</span><span class="p">[</span><span class="n">get_type_hints</span><span class="p">(</span><span class="n">func</span><span class="p">)[</span><span class="s2">&quot;return&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">func</span>
+
+
+<span class="k">def</span> <span class="nf">rec_subclasses</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">type</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Recursive implementation of type.__subclasses__&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">sub_cls</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">():</span>
+        <span class="k">yield</span> <span class="n">sub_cls</span>
+        <span class="k">yield from</span> <span class="n">rec_subclasses</span><span class="p">(</span><span class="n">sub_cls</span><span class="p">)</span>
+
+
+<span class="n">Cls</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Cls&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="nb">type</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">as_tagged_union</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Cls</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">serialization</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Conversion</span><span class="p">:</span>
+        <span class="n">annotations</span> <span class="o">=</span> <span class="p">{</span><span class="n">sub</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">sub</span><span class="p">]</span> <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">rec_subclasses</span><span class="p">(</span><span class="bp">cls</span><span class="p">)}</span>
+        <span class="n">namespace</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;__annotations__&quot;</span><span class="p">:</span> <span class="n">annotations</span><span class="p">}</span>
+        <span class="n">tagged_union</span> <span class="o">=</span> <span class="n">new_class</span><span class="p">(</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">(</span><span class="n">TaggedUnion</span><span class="p">,),</span> <span class="n">exec_body</span><span class="o">=</span><span class="k">lambda</span> <span class="n">ns</span><span class="p">:</span> <span class="n">ns</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">namespace</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">Conversion</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">tagged_union</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="n">obj</span><span class="p">}),</span>
+            <span class="n">source</span><span class="o">=</span><span class="bp">cls</span><span class="p">,</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">tagged_union</span><span class="p">,</span>
+            <span class="c1"># Conversion must not be inherited because it would lead to</span>
+            <span class="c1"># infinite recursion otherwise</span>
+            <span class="n">inherited</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">deserialization</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Conversion</span><span class="p">:</span>
+        <span class="n">annotations</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">namespace</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;__annotations__&quot;</span><span class="p">:</span> <span class="n">annotations</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">rec_subclasses</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+            <span class="n">annotations</span><span class="p">[</span><span class="n">sub</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">sub</span><span class="p">]</span>
+            <span class="c1"># Add tagged fields for all its alternative constructors</span>
+            <span class="k">for</span> <span class="n">constructor</span> <span class="ow">in</span> <span class="n">_alternative_constructors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="p">()):</span>
+                <span class="c1"># Build the alias of the field</span>
+                <span class="n">alias</span> <span class="o">=</span> <span class="n">to_pascal_case</span><span class="p">(</span><span class="n">constructor</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+                <span class="c1"># object_deserialization uses get_type_hints, but the constructor</span>
+                <span class="c1"># return type is stringified and the class not defined yet,</span>
+                <span class="c1"># so it must be assigned manually</span>
+                <span class="n">constructor</span><span class="o">.</span><span class="vm">__annotations__</span><span class="p">[</span><span class="s2">&quot;return&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sub</span>
+                <span class="c1"># Use object_deserialization to wrap constructor as deserializer</span>
+                <span class="n">deserialization</span> <span class="o">=</span> <span class="n">object_deserialization</span><span class="p">(</span><span class="n">constructor</span><span class="p">,</span> <span class="n">type_name</span><span class="p">(</span><span class="n">alias</span><span class="p">))</span>
+                <span class="c1"># Add constructor tagged field with its conversion</span>
+                <span class="n">annotations</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">sub</span><span class="p">]</span>
+                <span class="n">namespace</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">(</span><span class="n">conversion</span><span class="p">(</span><span class="n">deserialization</span><span class="o">=</span><span class="n">deserialization</span><span class="p">))</span>
+        <span class="c1"># Create the deserialization tagged union class</span>
+        <span class="n">tagged_union</span> <span class="o">=</span> <span class="n">new_class</span><span class="p">(</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">(</span><span class="n">TaggedUnion</span><span class="p">,),</span> <span class="n">exec_body</span><span class="o">=</span><span class="k">lambda</span> <span class="n">ns</span><span class="p">:</span> <span class="n">ns</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">namespace</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">Conversion</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">get_tagged</span><span class="p">(</span><span class="n">obj</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">source</span><span class="o">=</span><span class="n">tagged_union</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="bp">cls</span>
+        <span class="p">)</span>
+
+    <span class="n">deserializer</span><span class="p">(</span><span class="n">lazy</span><span class="o">=</span><span class="n">deserialization</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="bp">cls</span><span class="p">)</span>
+    <span class="n">serializer</span><span class="p">(</span><span class="n">lazy</span><span class="o">=</span><span class="n">serialization</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">cls</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">cls</span>
+
+
+<span class="nd">@as_tagged_union</span>
+<span class="k">class</span> <span class="nc">Drawing</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Line</span><span class="p">(</span><span class="n">Drawing</span><span class="p">):</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">step</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">exc_min</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="n">point</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
+        <span class="k">while</span> <span class="n">point</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">point</span>
+            <span class="n">point</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span>
+
+
+<span class="nd">@alternative_constructor</span>
+<span class="k">def</span> <span class="nf">sized_line</span><span class="p">(</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Line&quot;</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">Line</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="p">(</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Concat</span><span class="p">(</span><span class="n">Drawing</span><span class="p">):</span>
+    <span class="n">left</span><span class="p">:</span> <span class="n">Drawing</span>
+    <span class="n">right</span><span class="p">:</span> <span class="n">Drawing</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="k">async</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">points</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="n">point</span>
+        <span class="k">async</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">points</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="n">point</span>
+
+
+<span class="k">def</span> <span class="nf">echo</span><span class="p">(</span><span class="n">drawing</span><span class="p">:</span> <span class="n">Drawing</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Drawing</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">drawing</span>
+
+
+<span class="n">drawing_schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">echo</span><span class="p">])</span>
+<span class="k">assert</span> <span class="p">(</span>
+    <span class="n">graphql</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">print_schema</span><span class="p">(</span><span class="n">drawing_schema</span><span class="p">)</span>
+    <span class="o">==</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">type Query {</span>
+<span class="s2">  echo(drawing: DrawingInput): Drawing</span>
+<span class="s2">}</span>
+
+<span class="s2">type Drawing {</span>
+<span class="s2">  Line: Line</span>
+<span class="s2">  Concat: Concat</span>
+<span class="s2">}</span>
+
+<span class="s2">type Line {</span>
+<span class="s2">  start: Float!</span>
+<span class="s2">  stop: Float!</span>
+<span class="s2">  step: Float!</span>
+<span class="s2">}</span>
+
+<span class="s2">type Concat {</span>
+<span class="s2">  left: Drawing!</span>
+<span class="s2">  right: Drawing!</span>
+<span class="s2">}</span>
+
+<span class="s2">input DrawingInput {</span>
+<span class="s2">  Line: LineInput</span>
+<span class="s2">  SizedLine: SizedLineInput</span>
+<span class="s2">  Concat: ConcatInput</span>
+<span class="s2">}</span>
+
+<span class="s2">input LineInput {</span>
+<span class="s2">  start: Float!</span>
+<span class="s2">  stop: Float!</span>
+<span class="s2">  step: Float! = 1</span>
+<span class="s2">}</span>
+
+<span class="s2">input SizedLineInput {</span>
+<span class="s2">  start: Float!</span>
+<span class="s2">  stop: Float!</span>
+<span class="s2">  size: Float!</span>
+<span class="s2">}</span>
+
+<span class="s2">input ConcatInput {</span>
+<span class="s2">  left: DrawingInput!</span>
+<span class="s2">  right: DrawingInput!</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="p">)</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">{</span>
+<span class="s2">echo(drawing: {</span>
+<span class="s2">    Concat: {</span>
+<span class="s2">        left: {</span>
+<span class="s2">            SizedLine: {</span>
+<span class="s2">                start: 0, stop: 12, size: 3</span>
+<span class="s2">            },</span>
+<span class="s2">        },</span>
+<span class="s2">        right: {</span>
+<span class="s2">            Line: {</span>
+<span class="s2">                start: 12, stop: 13</span>
+<span class="s2">            },</span>
+<span class="s2">        }</span>
+<span class="s2">    }</span>
+<span class="s2">}) {</span>
+<span class="s2">    Concat {</span>
+<span class="s2">        left {</span>
+<span class="s2">            Line {</span>
+<span class="s2">                start stop step</span>
+<span class="s2">            }</span>
+<span class="s2">        }</span>
+<span class="s2">        right {</span>
+<span class="s2">            Line {</span>
+<span class="s2">                start stop step</span>
+<span class="s2">            }</span>
+<span class="s2">        }</span>
+<span class="s2">    }</span>
+<span class="s2">}</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="k">assert</span> <span class="n">graphql</span><span class="o">.</span><span class="n">graphql_sync</span><span class="p">(</span><span class="n">drawing_schema</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span>
+    <span class="s2">&quot;echo&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;Concat&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;left&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Line&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;stop&quot;</span><span class="p">:</span> <span class="mf">12.0</span><span class="p">,</span> <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="mf">6.0</span><span class="p">}},</span>
+            <span class="s2">&quot;right&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Line&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="mf">12.0</span><span class="p">,</span> <span class="s2">&quot;stop&quot;</span><span class="p">:</span> <span class="mf">13.0</span><span class="p">,</span> <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}},</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../subclass_union/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Class as union of its subclasses" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Class as union of its subclasses
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../recoverable_fields/" class="md-footer__link md-footer__link--next" aria-label="Next: Recoverable fields" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Recoverable fields
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        
+          Made with
+          <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+            Material for MkDocs
+          </a>
+        
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.b1047164.min.js"></script>
+      
+    
+  </body>
+</html>
