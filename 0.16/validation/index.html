@@ -1,0 +1,1418 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6">
+    
+    
+      
+        <title>Validation - apischema</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.a57b2b03.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#4cae4f">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+    
+      
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="preference" data-md-color-primary="green" data-md-color-accent="indigo">
+  
+    
+    <script>function __prefix(e){return new URL("..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#validation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="apischema" class="md-header__button md-logo" aria-label="apischema" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            apischema
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Validation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/wyfo/apischema/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wyfo/apischema
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="apischema" class="md-nav__button md-logo" aria-label="apischema" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    apischema
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/wyfo/apischema/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wyfo/apischema
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_model/" class="md-nav__link">
+        Data model
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../de_serialization/" class="md-nav__link">
+        (De)serialization
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../json_schema/" class="md-nav__link">
+        JSON schema
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Validation
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Validation
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#deserialization-and-validation-error" class="md-nav__link">
+    Deserialization and validation error
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataclass-validators" class="md-nav__link">
+    Dataclass validators
+  </a>
+  
+    <nav class="md-nav" aria-label="Dataclass validators">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatic-dependency-management" class="md-nav__link">
+    Automatic dependency management
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#raise-more-than-one-error-with-yield" class="md-nav__link">
+    Raise more than one error with yield
+  </a>
+  
+    <nav class="md-nav" aria-label="Raise more than one error with yield">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error-path" class="md-nav__link">
+    Error path
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#discard" class="md-nav__link">
+    Discard
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-validators" class="md-nav__link">
+    Field validators
+  </a>
+  
+    <nav class="md-nav" aria-label="Field validators">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#at-field-level" class="md-nav__link">
+    At field level
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-other-fields" class="md-nav__link">
+    Using other fields
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validators-inheritance" class="md-nav__link">
+    Validators inheritance
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validator-with-initvar" class="md-nav__link">
+    Validator with InitVar
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validators-are-not-run-on-default-values" class="md-nav__link">
+    Validators are not run on default values
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validators-for-every-type" class="md-nav__link">
+    Validators for every type
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faq" class="md-nav__link">
+    FAQ
+  </a>
+  
+    <nav class="md-nav" aria-label="FAQ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-are-validator-dependencies-computed" class="md-nav__link">
+    How are validator dependencies computed?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-only-validate-at-deserialization-and-not-at-instantiation" class="md-nav__link">
+    Why only validate at deserialization and not at instantiation?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-use-validators-for-dataclasses-instead-of-doing-validation-in-__post_init__" class="md-nav__link">
+    Why use validators for dataclasses instead of doing validation in __post_init__?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conversions/" class="md-nav__link">
+        Conversions
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7">
+          GraphQL
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="GraphQL" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          GraphQL
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql/overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql/data_model_and_resolvers/" class="md-nav__link">
+        Data model and resolvers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql/schema/" class="md-nav__link">
+        GraphQL schema
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql/relay/" class="md-nav__link">
+        Relay
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8">
+          Examples
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Examples" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/sqlalchemy_support/" class="md-nav__link">
+        SQLAlchemy support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/pydantic_support/" class="md-nav__link">
+        Pydantic support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/attrs_support/" class="md-nav__link">
+        Attrs support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/subclass_union/" class="md-nav__link">
+        Class as union of its subclasses
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/subclass_tagged_union/" class="md-nav__link">
+        Class as tagged union of its subclasses
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/recoverable_fields/" class="md-nav__link">
+        Recoverable fields
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/inherited_deserializer/" class="md-nav__link">
+        Inherited deserializer
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../performance_and_benchmark/" class="md-nav__link">
+        Performance and benchmark
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../difference_with_pydantic/" class="md-nav__link">
+        Difference with pydantic
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/wyfo/apischema/releases" class="md-nav__link">
+        Releases
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#deserialization-and-validation-error" class="md-nav__link">
+    Deserialization and validation error
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataclass-validators" class="md-nav__link">
+    Dataclass validators
+  </a>
+  
+    <nav class="md-nav" aria-label="Dataclass validators">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatic-dependency-management" class="md-nav__link">
+    Automatic dependency management
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#raise-more-than-one-error-with-yield" class="md-nav__link">
+    Raise more than one error with yield
+  </a>
+  
+    <nav class="md-nav" aria-label="Raise more than one error with yield">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error-path" class="md-nav__link">
+    Error path
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#discard" class="md-nav__link">
+    Discard
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-validators" class="md-nav__link">
+    Field validators
+  </a>
+  
+    <nav class="md-nav" aria-label="Field validators">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#at-field-level" class="md-nav__link">
+    At field level
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-other-fields" class="md-nav__link">
+    Using other fields
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validators-inheritance" class="md-nav__link">
+    Validators inheritance
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validator-with-initvar" class="md-nav__link">
+    Validator with InitVar
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validators-are-not-run-on-default-values" class="md-nav__link">
+    Validators are not run on default values
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validators-for-every-type" class="md-nav__link">
+    Validators for every type
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#faq" class="md-nav__link">
+    FAQ
+  </a>
+  
+    <nav class="md-nav" aria-label="FAQ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-are-validator-dependencies-computed" class="md-nav__link">
+    How are validator dependencies computed?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-only-validate-at-deserialization-and-not-at-instantiation" class="md-nav__link">
+    Why only validate at deserialization and not at instantiation?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-use-validators-for-dataclasses-instead-of-doing-validation-in-__post_init__" class="md-nav__link">
+    Why use validators for dataclasses instead of doing validation in __post_init__?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/wyfo/apischema/edit/master/docs/validation.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h1>
+<p>Validation is an important part of deserialization. By default, <em>apischema</em> validates types of data according to typing annotations, and <a href="../json_schema/#constraints-validation"><code>schema</code></a> constraints. But custom validators can also be add for a more precise validation.</p>
+<h2 id="deserialization-and-validation-error">Deserialization and validation error<a class="headerlink" href="#deserialization-and-validation-error" title="Permanent link">&para;</a></h2>
+<p><code>ValidationError</code> is raised when validation fails. This exception contains all the information about the ill-formed part of the data. It can be formatted/serialized using its <code>errors</code> property. </p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">schema</span>
+
+<span class="n">Tag</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Tag&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+<span class="n">schema</span><span class="p">(</span><span class="n">min_len</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^\w*$&quot;</span><span class="p">,</span> <span class="n">examples</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;available&quot;</span><span class="p">,</span> <span class="s2">&quot;EMEA&quot;</span><span class="p">])(</span><span class="n">Tag</span><span class="p">)</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Resource</span><span class="p">:</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;regroup multiple resources&quot;</span><span class="p">,</span> <span class="n">max_items</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># pytest check exception is raised</span>
+    <span class="n">deserialize</span><span class="p">(</span>
+        <span class="n">Resource</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;bad&amp;&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">]}</span>
+    <span class="p">)</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;item count greater than 3 (maxItems)&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;not matching &#39;^</span><span class="se">\\</span><span class="s2">w*$&#39; (pattern)&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;string length lower than 3 (minLength)&quot;</span><span class="p">},</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<p>As shown in the example, <em>apischema</em> will not stop at the first error met but tries to validate all parts of the data.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>ValidationError</code> can also be serialized using <code>apischema.serialize</code> (this will use <code>errors</code> internally).</p>
+</div>
+<h2 id="dataclass-validators">Dataclass validators<a class="headerlink" href="#dataclass-validators" title="Permanent link">&para;</a></h2>
+<p>Dataclass validation can be completed by custom validators. These are simple decorated methods which will be executed during validation, after all fields having been deserialized.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">PasswordForm</span><span class="p">:</span>
+    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">confirmation</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="nd">@validator</span>
+    <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># DO NOT use assert</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">)</span>
+
+
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">PasswordForm</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;p455w0rd&quot;</span><span class="p">,</span> <span class="s2">&quot;confirmation&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">})</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>DO NOT use <code>assert</code></strong> statement to validate external data, ever. In fact, this statement is made to be disabled when executed in optimized mode (see <a href="https://docs.python.org/3/reference/simple_stmts.html#the-assert-statement">documentation</a>), so validation would be disabled too. This warning doesn't concern only <em>apischema</em>; <code>assert</code> is only for internal assertion in debug/development environment. That's why <em>apischema</em> will not catch <code>AssertionError</code> as a validation error but reraises it, making <code>deserialize</code> fail. </p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Validators are always executed in order of declaration.</p>
+</div>
+<h3 id="automatic-dependency-management">Automatic dependency management<a class="headerlink" href="#automatic-dependency-management" title="Permanent link">&para;</a></h3>
+<p>It makes no sense to execute a validator using a field that is ill-formed. Hopefully, <em>apischema</em> is able to compute validator dependencies — the fields used in validator; validator is executed only if the all its dependencies are ok.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">PasswordForm</span><span class="p">:</span>
+    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">confirmation</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="nd">@validator</span>
+    <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">)</span>
+
+
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">PasswordForm</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;p455w0rd&quot;</span><span class="p">})</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+    <span class="c1"># validator is not executed because confirmation is missing</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;confirmation&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;missing property&quot;</span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Despite the fact that validator uses the <code>self</code> argument, it can be called during validation even if all the fields of the class are not ok and the class not really instantiated. In fact, instance is kind of mocked for validation with only the needed field.</p>
+</div>
+<h3 id="raise-more-than-one-error-with-yield">Raise more than one error with <code>yield</code><a class="headerlink" href="#raise-more-than-one-error-with-yield" title="Permanent link">&para;</a></h3>
+<p>Validation of a list field can require raising several exceptions, one for each bad element. With <code>raise</code>, this is not possible, because you can raise only once.</p>
+<p>However, <em>apischema</em> provides a way of raising as many errors as needed by using <code>yield</code>. Moreover, with this syntax, it is possible to add a "path" (see <a href="#error-path">below</a>) to the error to precise its location in the validated data. This path will be added to the <code>loc</code> key of the error.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">ipaddress</span> <span class="kn">import</span> <span class="n">IPv4Address</span><span class="p">,</span> <span class="n">IPv4Network</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">get_alias</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">SubnetIps</span><span class="p">:</span>
+    <span class="n">subnet</span><span class="p">:</span> <span class="n">IPv4Network</span>
+    <span class="n">ips</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">IPv4Address</span><span class="p">]</span>
+
+    <span class="nd">@validator</span>
+    <span class="k">def</span> <span class="nf">check_ips_in_subnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">ip</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ips</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">ip</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subnet</span><span class="p">:</span>
+                <span class="c1"># yield &lt;error path&gt;, &lt;error message&gt;</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">ips</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="s2">&quot;ip not in subnet&quot;</span>
+
+
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">deserialize</span><span class="p">(</span>
+        <span class="n">SubnetIps</span><span class="p">,</span>
+        <span class="p">{</span><span class="s2">&quot;subnet&quot;</span><span class="p">:</span> <span class="s2">&quot;126.42.18.0/24&quot;</span><span class="p">,</span> <span class="s2">&quot;ips&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;126.42.18.1&quot;</span><span class="p">,</span> <span class="s2">&quot;126.42.19.0&quot;</span><span class="p">,</span> <span class="s2">&quot;0.0.0.0&quot;</span><span class="p">]},</span>
+    <span class="p">)</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ips&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;ip not in subnet&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ips&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;ip not in subnet&quot;</span><span class="p">},</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<h4 id="error-path">Error path<a class="headerlink" href="#error-path" title="Permanent link">&para;</a></h4>
+<p>In the example, the validator yields a tuple of an "error path" and the error message. Error path can be:</p>
+<ul>
+<li>a field alias (obtained with <code>apischema.objects.get_alias</code>);</li>
+<li>an integer, for list indices;</li>
+<li>a raw string, for dict key (or field);</li>
+<li>an <code>apischema.objects.AliasedStr</code>, a string subclass which will be aliased by deserialization aliaser;</li>
+<li>an iterable, e.g. a tuple, of this 4 components.</li>
+</ul>
+<p><code>yield</code> can also be used with only an error message.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For dataclass field error path, it's advised to use <code>apischema.objects.get_alias</code> instead of raw string, because it will take into account potential aliasing and it will be better handled by IDE (refactoring, cross-referencing, etc.)</p>
+</div>
+<h3 id="discard">Discard<a class="headerlink" href="#discard" title="Permanent link">&para;</a></h3>
+<p>If one of your validators fails because a field is corrupted, maybe you don't want subsequent validators to be executed. <code>validator</code> decorator provides a <code>discard</code> parameter to discard fields of the remaining validation. All the remaining validators having discarded fields in <a href="#automatic-dependencies-management">dependencies</a> will not be executed.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">get_alias</span><span class="p">,</span> <span class="n">get_field</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">BoundedValues</span><span class="p">:</span>
+    <span class="c1"># field must be assign to be used, even with empty `field()`</span>
+    <span class="n">bounds</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">()</span>
+    <span class="n">values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+
+    <span class="c1"># validator(&quot;bounds&quot;) would also work, but it&#39;s not handled by IDE refactoring, etc.</span>
+    <span class="nd">@validator</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">bounds_are_sorted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">min_bound</span><span class="p">,</span> <span class="n">max_bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
+        <span class="k">if</span> <span class="n">min_bound</span> <span class="o">&gt;</span> <span class="n">max_bound</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="s2">&quot;bounds are not sorted&quot;</span>
+
+    <span class="nd">@validator</span>
+    <span class="k">def</span> <span class="nf">values_dont_exceed_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">min_bound</span><span class="p">,</span> <span class="n">max_bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">min_bound</span> <span class="o">&lt;=</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="n">max_bound</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="s2">&quot;value exceeds bounds&quot;</span>
+
+
+<span class="c1"># Outside class, fields can still be accessed in a &quot;static&quot; way, to avoid use raw string</span>
+<span class="nd">@validator</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="n">get_field</span><span class="p">(</span><span class="n">BoundedValues</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">bounds_are_sorted_equivalent</span><span class="p">(</span><span class="n">bounded</span><span class="p">:</span> <span class="n">BoundedValues</span><span class="p">):</span>
+    <span class="n">min_bound</span><span class="p">,</span> <span class="n">max_bound</span> <span class="o">=</span> <span class="n">bounded</span><span class="o">.</span><span class="n">bounds</span>
+    <span class="k">if</span> <span class="n">min_bound</span> <span class="o">&gt;</span> <span class="n">max_bound</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">get_alias</span><span class="p">(</span><span class="n">bounded</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="s2">&quot;bounds are not sorted&quot;</span>
+
+
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">BoundedValues</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bounds&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]})</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bounds&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;bounds are not sorted&quot;</span><span class="p">}</span>
+    <span class="c1"># Without discard, there would have been an other error</span>
+    <span class="c1"># {&quot;loc&quot;: [&quot;values&quot;, 1], &quot;msg&quot;: &quot;value exceeds bounds&quot;}</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<p>You can notice in this example that <em>apischema</em> tries to avoid using raw strings to identify fields. In every function of the library using fields identifier (<code>apischema.validator</code>, <code>apischema.dependent_required</code>, <code>apischema.fields.set_fields</code>, etc.), you have always three ways to pass them:
+- using field object, preferred in dataclass definition;
+- using <code>apischema.objects.get_field</code>, to be used outside of class definition; it works with <code>NamedTuple</code> too — the object returned is the <em>apischema</em> internal field representation, common to <code>dataclass</code>, <code>NamedTuple</code> and <code>TypedDict</code>;
+- using raw strings, thus not handled by static tools like refactoring, but it works;</p>
+<h3 id="field-validators">Field validators<a class="headerlink" href="#field-validators" title="Permanent link">&para;</a></h3>
+<h4 id="at-field-level">At field level<a class="headerlink" href="#at-field-level" title="Permanent link">&para;</a></h4>
+<p>Fields are validated according to their types and schema. But it's also possible to add validators to fields.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">validators</span>
+
+
+<span class="k">def</span> <span class="nf">check_no_duplicate_digits</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;number has duplicate digits&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">validators</span><span class="p">(</span><span class="n">check_no_duplicate_digits</span><span class="p">))</span>
+
+
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="s2">&quot;11&quot;</span><span class="p">})</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;number has duplicate digits&quot;</span><span class="p">}]</span>
+</code></pre></div>
+
+<p>When validation fails for a field, it is discarded and cannot be used in class validators, as is the case when field schema validation fails.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>field_validator</code> allows reusing the the same validator for several fields. However in this case, using a custom type (for example a <code>NewType</code>) with validators (see <a href="#validators-for-every-new-types">next section</a>) could often be a better solution.</p>
+</div>
+<h4 id="using-other-fields">Using other fields<a class="headerlink" href="#using-other-fields" title="Permanent link">&para;</a></h4>
+<p>A common pattern can be to validate a field using other fields values. This is achieved with dataclass validators seen above. However, there is a shortcut for this use case:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">get_alias</span><span class="p">,</span> <span class="n">get_field</span>
+
+
+<span class="k">class</span> <span class="nc">Parity</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">EVEN</span> <span class="o">=</span> <span class="s2">&quot;even&quot;</span>
+    <span class="n">ODD</span> <span class="o">=</span> <span class="s2">&quot;odd&quot;</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">NumberWithParity</span><span class="p">:</span>
+    <span class="n">parity</span><span class="p">:</span> <span class="n">Parity</span>
+    <span class="n">number</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">()</span>
+
+    <span class="nd">@validator</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">check_parity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parity</span> <span class="o">==</span> <span class="n">Parity</span><span class="o">.</span><span class="n">EVEN</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span>
+
+    <span class="c1"># A field validator is equivalent to a discard argument and all error paths prefixed</span>
+    <span class="c1"># with the field alias</span>
+    <span class="nd">@validator</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="n">number</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">check_parity_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parity</span> <span class="o">==</span> <span class="n">Parity</span><span class="o">.</span><span class="n">EVEN</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">number</span><span class="p">,</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span>
+
+
+<span class="nd">@validator</span><span class="p">(</span><span class="n">get_field</span><span class="p">(</span><span class="n">NumberWithParity</span><span class="p">)</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">check_parity_other_equivalent</span><span class="p">(</span><span class="n">number2</span><span class="p">:</span> <span class="n">NumberWithParity</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">number2</span><span class="o">.</span><span class="n">parity</span> <span class="o">==</span> <span class="n">Parity</span><span class="o">.</span><span class="n">EVEN</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">number2</span><span class="o">.</span><span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span>
+
+
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">NumberWithParity</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;parity&quot;</span><span class="p">:</span> <span class="s2">&quot;even&quot;</span><span class="p">,</span> <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span><span class="p">}]</span>
+</code></pre></div>
+
+<h3 id="validators-inheritance">Validators inheritance<a class="headerlink" href="#validators-inheritance" title="Permanent link">&para;</a></h3>
+<p>Validators are inherited just like other class fields.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">PasswordForm</span><span class="p">:</span>
+    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">confirmation</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="nd">@validator</span>
+    <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">CompleteForm</span><span class="p">(</span><span class="n">PasswordForm</span><span class="p">):</span>
+    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span>
+
+
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">deserialize</span><span class="p">(</span>
+        <span class="n">CompleteForm</span><span class="p">,</span>
+        <span class="p">{</span><span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;wyfo&quot;</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;p455w0rd&quot;</span><span class="p">,</span> <span class="s2">&quot;confirmation&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">},</span>
+    <span class="p">)</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<h3 id="validator-with-initvar">Validator with <code>InitVar</code><a class="headerlink" href="#validator-with-initvar" title="Permanent link">&para;</a></h3>
+<p>Dataclasses <code>InitVar</code> are accessible in validators by using parameters the same way <code>__post_init__</code> does. Only the needed fields have to be put in parameters, they are then added to validator dependencies.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">InitVar</span><span class="p">,</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">init_var</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="n">InitVar</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">init_var</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+
+    <span class="nd">@validator</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">bar</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="s2">&quot;negative&quot;</span>
+
+
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">})</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;negative&quot;</span><span class="p">}]</span>
+</code></pre></div>
+
+<h3 id="validators-are-not-run-on-default-values">Validators are not run on default values<a class="headerlink" href="#validators-are-not-run-on-default-values" title="Permanent link">&para;</a></h3>
+<p>If all validator dependencies are initialized with their default values, they are not run.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+
+<span class="n">validator_run</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@validator</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">global</span> <span class="n">validator_run</span>
+        <span class="n">validator_run</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bar</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;negative&quot;</span><span class="p">)</span>
+
+
+<span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{})</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">validator_run</span>
+</code></pre></div>
+
+<h2 id="validators-for-every-type">Validators for every type<a class="headerlink" href="#validators-for-every-type" title="Permanent link">&para;</a></h2>
+<p>Validators can also be declared as regular functions, in which case annotation of the first param is used to associate it to the validated type (you can also use the <code>owner</code> parameter); this allows adding a validator to every type.</p>
+<p>Last but not least, validators can be embedded directly into <code>Annotated</code> arguments using <code>validators</code> metadata.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">NewType</span>
+
+<span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">validators</span>
+
+<span class="n">Palindrome</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Palindrome&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+
+<span class="nd">@validator</span>  <span class="c1"># could also use @validator(owner=Palindrome)</span>
+<span class="k">def</span> <span class="nf">check_palindrome</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">Palindrome</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Not a palindrome&quot;</span><span class="p">)</span>
+
+
+<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;tacocat&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;tacocat&quot;</span>
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;palindrome&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;Not a palindrome&quot;</span><span class="p">}]</span>
+
+<span class="c1"># Using Annotated</span>
+<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="n">deserialize</span><span class="p">(</span><span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">validators</span><span class="p">(</span><span class="n">check_palindrome</span><span class="p">)],</span> <span class="s2">&quot;palindrom&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;Not a palindrome&quot;</span><span class="p">}]</span>
+</code></pre></div>
+
+<h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
+<h4 id="how-are-validator-dependencies-computed">How are validator dependencies computed?<a class="headerlink" href="#how-are-validator-dependencies-computed" title="Permanent link">&para;</a></h4>
+<p><code>ast.NodeVisitor</code> and the Python black magic begins...</p>
+<h4 id="why-only-validate-at-deserialization-and-not-at-instantiation">Why only validate at deserialization and not at instantiation?<a class="headerlink" href="#why-only-validate-at-deserialization-and-not-at-instantiation" title="Permanent link">&para;</a></h4>
+<p><em>apischema</em> uses type annotations, so every objects used can already be statically type-checked (with <em>Mypy</em>/<em>Pycharm</em>/etc.) at instantiation but also at modification.</p>
+<h4 id="why-use-validators-for-dataclasses-instead-of-doing-validation-in-__post_init__">Why use validators for dataclasses instead of doing validation in <code>__post_init__</code>?<a class="headerlink" href="#why-use-validators-for-dataclasses-instead-of-doing-validation-in-__post_init__" title="Permanent link">&para;</a></h4>
+<p>Actually, validation can completely be done in <code>__post_init__</code>, there is no problem with that. However, validators offers one thing that cannot be achieved with <code>__post_init__</code>: they are run before <code>__init__</code>, so they can validate incomplete data. Moreover, they are only run during deserialization, so they don't add overhead to normal class instantiation.</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../json_schema/" class="md-footer__link md-footer__link--prev" aria-label="Previous: JSON schema" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              JSON schema
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../conversions/" class="md-footer__link md-footer__link--next" aria-label="Next: Conversions" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Conversions
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        
+          Made with
+          <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+            Material for MkDocs
+          </a>
+        
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.b1047164.min.js"></script>
+      
+    
+  </body>
+</html>
