@@ -572,8 +572,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#apischema-is-a-lot-faster" class="md-nav__link">
-    apischema is (a lot) faster
+  <a href="#apischema-is-faster" class="md-nav__link">
+    apischema is faster
   </a>
   
 </li>
@@ -741,8 +741,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#apischema-is-a-lot-faster" class="md-nav__link">
-    apischema is (a lot) faster
+  <a href="#apischema-is-faster" class="md-nav__link">
+    apischema is faster
   </a>
   
 </li>
@@ -878,8 +878,8 @@
                 
                 <h1 id="difference-with-pydantic">Difference with pydantic<a class="headerlink" href="#difference-with-pydantic" title="Permanent link">&para;</a></h1>
 <p>As the question is often asked, it is answered in a dedicated section. Here are some the key differences between <em>apischema</em> and <em>pydantic</em>:</p>
-<h3 id="apischema-is-a-lot-faster"><em>apischema</em> is (a lot) faster<a class="headerlink" href="#apischema-is-a-lot-faster" title="Permanent link">&para;</a></h3>
-<p>According to <a href="../performance_and_benchmark/"><em>pydantic</em> benchmark</a>, <em>apischema</em> is a lot faster than <em>pydantic</em>, especially for serialization. Both use Cython to optimize the code, but even without compilation (running only Python modules), <em>apischema</em> is still faster than Cythonized <em>pydantic</em>.</p>
+<h3 id="apischema-is-faster"><em>apischema</em> is faster<a class="headerlink" href="#apischema-is-faster" title="Permanent link">&para;</a></h3>
+<p><em>pydantic</em> uses Cython to improve its performance; <em>apischema</em> doesn't need it and is still 1.5x faster according to <a href="../performance_and_benchmark/"><em>pydantic</em> benchmark</a> — more than 2x when <em>pydantic</em> is not compiled with Cython.</p>
 <p>Better performance, but not at the cost of fewer functionalities; that's rather the opposite: <a href="../json_schema/#dynamic-aliasing-and-default-aliaser">dynamic aliasing</a>, <a href="../conversions/">conversions</a>, <a href="../data_model/#composition-over-inheritance---composed-dataclasses-flattening">flattened fields</a>, etc.</p>
 <h3 id="apischema-can-generate-graphql-schema-from-your-resolvers"><em>apischema</em> can generate <a href="../graphql/overview/"><em>GraphQL</em> schema</a> from your resolvers<a class="headerlink" href="#apischema-can-generate-graphql-schema-from-your-resolvers" title="Permanent link">&para;</a></h3>
 <p>Not just a simple printable schema but a complete <code>graphql.GraphQLSchema</code> (using <a href="https://github.com/graphql-python/graphql-core/"><em>graphql-core</em></a> library) which can be used to execute your queries/mutations/subscriptions through your resolvers, powered by <em>apischema</em> (de)serialization and conversions features.</p>
@@ -1096,7 +1096,7 @@
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.b1047164.min.js"></script>

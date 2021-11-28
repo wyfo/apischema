@@ -601,6 +601,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#tuple-pass-through-tuple" class="md-nav__link">
+    tuple — pass through tuple
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#types-pass-through-arbitrary-types" class="md-nav__link">
     types — pass through arbitrary types
   </a>
@@ -621,13 +628,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#binary-compilation-using-cython" class="md-nav__link">
-    Binary compilation using Cython
-  </a>
   
 </li>
       
@@ -768,6 +768,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#tuple-pass-through-tuple" class="md-nav__link">
+    tuple — pass through tuple
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#types-pass-through-arbitrary-types" class="md-nav__link">
     types — pass through arbitrary types
   </a>
@@ -788,13 +795,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#binary-compilation-using-cython" class="md-nav__link">
-    Binary compilation using Cython
-  </a>
   
 </li>
       
@@ -843,7 +843,7 @@
                 
                 
                 <h1 id="performance-and-benchmark">Performance and benchmark<a class="headerlink" href="#performance-and-benchmark" title="Permanent link">&para;</a></h1>
-<p><em>apischema</em> is (a lot) <a href="#benchmark">faster</a> than its known alternatives, thanks to advanced optimizations.    </p>
+<p><em>apischema</em> is <a href="#benchmark">faster</a> than its known alternatives, thanks to advanced optimizations.    </p>
 <h2 id="precomputed-deserialization-methods">Precomputed (de)serialization methods<a class="headerlink" href="#precomputed-deserialization-methods" title="Permanent link">&para;</a></h2>
 <p><em>apischema</em> precomputes (de)serialization methods depending on the (de)serialized type (and other parameters); type annotations processing is done in the precomputation. Methods are then cached using <code>functools.lru_cache</code>, so <code>deserialize</code> and <code>serialize</code> don't recompute them every time.</p>
 <div class="admonition note">
@@ -878,12 +878,11 @@
 <p>This feature has been released on a provisional basis. It has also been partially rolled back (it was initially covering dataclasses) to simplify the code for the next version; in fact the feature will then maybe not be as much useful, as <em>apischema</em> performance will normally be improved significantly enough to offer its own JSON dump implementation.</p>
 </div>
 <p>JSON serialization libraries expect primitive data types (<code>dict</code>/<code>list</code>/<code>str</code>/etc.). A non-negligible part of objects to be serialized are primitive.</p>
-<p>When <a href="#type-checking">type checking</a> is disabled (this is default), objects annotated with primitive types doesn't need to be transformed or checked; <em>apischema</em> can simply "pass through" them, and it will result into an identity serialization method, just returning its argument.</p>
+<p>When <a href="#type-checking">type checking</a> is disabled (this is default), objects annotated with primitive types doesn't need to be transformed or checked; <em>apischema</em> can simply "pass through" them, and it will result into an identity serialization method.</p>
 <p>Container types like <code>list</code> or <code>dict</code> are passed through only when the contained types are passed through too.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">serialize</span>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">identity</span><span class="p">,</span> <span class="n">serialization_method</span>
 
-<span class="n">ints</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">ints</span><span class="p">)</span> <span class="ow">is</span> <span class="n">ints</span>
+<span class="k">assert</span> <span class="n">serialization_method</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">==</span> <span class="n">identity</span>
 </code></pre></div>
 
 <div class="admonition note">
@@ -895,15 +894,15 @@
 <p>To take advantage of that, <em>apischema</em> provides <code>apischema.PassThroughOptions</code> class to specify which type should be passed through, whether they are supported natively by JSON libraries (or handled in a <code>default</code> fallback). </p>
 <p><code>apischema.serialization_default</code> can be used as <code>default</code> fallback in combination to <code>PassThroughOptions</code>. It has to be instantiated with the same kwargs parameters (<code>aliaser</code>, etc.) than <code>serialization_method</code>.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Collection</span>
-<span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">uuid4</span>
+<span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
 
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">PassThroughOptions</span><span class="p">,</span> <span class="n">serialization_method</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="n">identity</span>
 
 <span class="n">uuids_method</span> <span class="o">=</span> <span class="n">serialization_method</span><span class="p">(</span>
     <span class="n">Collection</span><span class="p">[</span><span class="n">UUID</span><span class="p">],</span> <span class="n">pass_through</span><span class="o">=</span><span class="n">PassThroughOptions</span><span class="p">(</span><span class="n">collections</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="p">{</span><span class="n">UUID</span><span class="p">})</span>
 <span class="p">)</span>
-<span class="n">uuids</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)]</span>
-<span class="k">assert</span> <span class="n">uuids_method</span><span class="p">(</span><span class="n">uuids</span><span class="p">)</span> <span class="ow">is</span> <span class="n">uuids</span>
+<span class="k">assert</span> <span class="n">uuids_method</span> <span class="o">==</span> <span class="n">identity</span>
 </code></pre></div>
 
 <div class="admonition important">
@@ -922,6 +921,12 @@ not guaranteed to have their runtime type supported (having a <code>set</code> a
 <p>Set-like type will not be passed through.</p>
 </div>
 <h4 id="enums-pass-through-enums"><code>enums</code> — pass through enums<a class="headerlink" href="#enums-pass-through-enums" title="Permanent link">&para;</a></h4>
+<h4 id="tuple-pass-through-tuple"><code>tuple</code> — pass through <code>tuple</code><a class="headerlink" href="#tuple-pass-through-tuple" title="Permanent link">&para;</a></h4>
+<p>Even if <code>tuple</code> is often supported by JSON serializers, if this options is not enabled, tuples will be serialized as lists. It also allows easier test writing for example.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>collections=True</code> implies <code>tuple=True</code>;</p>
+</div>
 <h4 id="types-pass-through-arbitrary-types"><code>types</code> — pass through arbitrary types<a class="headerlink" href="#types-pass-through-arbitrary-types" title="Permanent link">&para;</a></h4>
 <p>Either a collection of types, or a predicate to determine if type has to be passed through.</p>
 <h3 id="passing-through-is-not-always-faster">Passing through is not always faster<a class="headerlink" href="#passing-through-is-not-always-faster" title="Permanent link">&para;</a></h3>
@@ -952,14 +957,6 @@ not guaranteed to have their runtime type supported (having a <code>set</code> a
 </code></pre></div>
 
 <p>That's why passthrough optimization should be used wisely.</p>
-<h2 id="binary-compilation-using-cython">Binary compilation using Cython<a class="headerlink" href="#binary-compilation-using-cython" title="Permanent link">&para;</a></h2>
-<p><em>apischema</em> use Cython in order to compile critical parts of the code, i.e. the (de)serialization methods.</p>
-<p>However, <em>apischema</em> remains a pure Python library — it can work without binary modules. Cython source files (<code>.pyx</code>) are in fact generated from Python modules. It allows notably keeping the code simple, by adding <em>switch-case</em> optimization to replace dynamic dispatch, avoiding big chains of <code>elif</code> in Python code.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Compilation is disabled when using PyPy, because it's even faster with the bare Python code.
-That's another interest of generating <code>.pyx</code> files: keeping Python source for PyPy.</p>
-</div>
 <h2 id="benchmark">Benchmark<a class="headerlink" href="#benchmark" title="Permanent link">&para;</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1146,7 +1143,7 @@ That's another interest of generating <code>.pyx</code> files: keeping Python so
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.b1047164.min.js"></script>

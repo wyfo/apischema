@@ -1172,10 +1172,6 @@
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Box</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="p">{</span><span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">})</span>
 </code></pre></div>
 
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Generic types don't have default <em>type name</em> (used in JSON/GraphQL schema) — should <code>Group[Foo]</code> be named <code>GroupFoo</code>/<code>FooGroup</code>/something else? — so they require by-class or default <a href="../json_schema/#set-reference-name"><code>type_name</code> assignment</a>.</p>
-</div>
 <h2 id="recursive-types-string-annotations-and-pep-563">Recursive types, string annotations and PEP 563<a class="headerlink" href="#recursive-types-string-annotations-and-pep-563" title="Permanent link">&para;</a></h2>
 <p>Recursive classes can be typed as they usually do, with or without <a href="https://www.python.org/dev/peps/pep-0563/">PEP 563</a>.
 Here with string annotations:</p>
@@ -1571,7 +1567,7 @@ Here with string annotations:</p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.b1047164.min.js"></script>

@@ -1251,17 +1251,13 @@
         <span class="n">Resource</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;bad&amp;&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">]}</span>
     <span class="p">)</span>
 <span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;item count greater than 3 (maxItems)&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;not matching pattern ^</span><span class="se">\\</span><span class="s2">w*$ (pattern)&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;string length lower than 3 (minLength)&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;item count greater than 3 (maxItems)&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;not matching &#39;^</span><span class="se">\\</span><span class="s2">w*$&#39; (pattern)&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;string length lower than 3 (minLength)&quot;</span><span class="p">},</span>
 <span class="p">]</span>
 </code></pre></div>
 
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Error message are fully <a href="../validation/#constraint-errors-customization">customizable</a></p>
-</div>
 <h3 id="extra-schema">Extra schema<a class="headerlink" href="#extra-schema" title="Permanent link">&para;</a></h3>
 <p><code>schema</code> has two other arguments: <code>extra</code> and <code>override</code>, which give a finer control of the JSON schema generated: <code>extra</code> and <code>override</code>. It can be used for example to build "strict" unions (using <code>oneOf</code> instead of <code>anyOf</code>)</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
@@ -1395,7 +1391,7 @@
 
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{})</span>
-<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;missing property&quot;</span><span class="p">}]</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;missing property&quot;</span><span class="p">}]</span>
 </code></pre></div>
 
 <h2 id="additional-properties-pattern-properties">Additional properties / pattern properties<a class="headerlink" href="#additional-properties-pattern-properties" title="Permanent link">&para;</a></h2>
@@ -1492,7 +1488,7 @@
 <span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
     <span class="p">{</span>
         <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;billing_address&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;missing property (required by [&#39;credit_card&#39;])&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;missing property (required by [&#39;credit_card&#39;])&quot;</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">]</span>
 </code></pre></div>
@@ -1940,7 +1936,7 @@
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.b1047164.min.js"></script>

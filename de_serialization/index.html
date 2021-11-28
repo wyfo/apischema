@@ -283,13 +283,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#allowed-types" class="md-nav__link">
-    Allowed types
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#strictness" class="md-nav__link">
     Strictness
   </a>
@@ -841,13 +834,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#allowed-types" class="md-nav__link">
-    Allowed types
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#strictness" class="md-nav__link">
     Strictness
   </a>
@@ -1095,7 +1081,7 @@
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># pytest checks exception is raised</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Resource</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;42&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;wyfo&quot;</span><span class="p">})</span>
 <span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;badly formed hexadecimal UUID string&quot;</span><span class="p">}</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;badly formed hexadecimal UUID string&quot;</span><span class="p">}</span>
 <span class="p">]</span>
 <span class="c1"># Generate JSON Schema</span>
 <span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Resource</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
@@ -1161,26 +1147,6 @@
 </code></pre></div>
 
 <p>Deserialization performs a validation of data, based on typing annotations and other information (see <a href="../json_schema/">schema</a> and <a href="../validation/">validation</a>).</p>
-<h3 id="allowed-types">Allowed types<a class="headerlink" href="#allowed-types" title="Permanent link">&para;</a></h3>
-<p>In some case, e.g. a MessagePack load with raw bytes inside, some data will have other type than
-JSON primitive ones. These types can be allowed using <code>allowed_types</code> parameter; it must be collection of classes, or a predicate.</p>
-<p>Only non JSON primitive classes can be allowed, because <em>apischema</em> relies on a type check with <code>isinstance</code> to skip deserialization. That exclude <code>NewType</code> but also <code>TypeDict</code>. </p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
-
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span>
-
-<span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span>
-    <span class="nb">tuple</span><span class="p">[</span><span class="n">datetime</span><span class="p">,</span> <span class="n">datetime</span><span class="p">],</span> <span class="p">[</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">],</span> <span class="n">allowed_types</span><span class="o">=</span><span class="p">{</span><span class="n">datetime</span><span class="p">}</span>
-<span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
-<span class="c1"># allowed types can also be deserialized normally from JSON types</span>
-<span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span>
-    <span class="nb">tuple</span><span class="p">[</span><span class="n">datetime</span><span class="p">,</span> <span class="n">datetime</span><span class="p">],</span>
-    <span class="p">[</span><span class="n">start</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span> <span class="n">end</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()],</span>
-    <span class="n">allowed_types</span><span class="o">=</span><span class="p">{</span><span class="n">datetime</span><span class="p">},</span>
-<span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
-</code></pre></div>
-
 <h3 id="strictness">Strictness<a class="headerlink" href="#strictness" title="Permanent link">&para;</a></h3>
 <h4 id="coercion">Coercion<a class="headerlink" href="#coercion" title="Permanent link">&para;</a></h4>
 <p><em>apischema</em> is strict by default. You ask for an integer, you have to receive an integer. </p>
@@ -1405,7 +1371,7 @@ It has, among other, three global variables <code>settings.additional_properties
 
 
 <span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(</span><span class="s2">&quot;baz&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="s2">&quot;baz&quot;</span><span class="p">}</span>
-<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 <span class="k">assert</span> <span class="p">(</span>
     <span class="n">serialize</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)})</span>
     <span class="o">==</span> <span class="n">serialize</span><span class="p">({</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)})</span>
@@ -1831,7 +1797,7 @@ Using the previous feature of <a href="#fields-set">fields set tracking</a>, <co
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.b1047164.min.js"></script>

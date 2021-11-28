@@ -312,13 +312,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#constraint-errors-customization" class="md-nav__link">
-    Constraint errors customization
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#dataclass-validators" class="md-nav__link">
     Dataclass validators
   </a>
@@ -445,13 +438,6 @@
           <li class="md-nav__item">
   <a href="#why-use-validators-for-dataclasses-instead-of-doing-validation-in-__post_init__" class="md-nav__link">
     Why use validators for dataclasses instead of doing validation in __post_init__?
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#why-validators-cannot-raise-arbitrary-exception" class="md-nav__link">
-    Why validators cannot raise arbitrary exception?
   </a>
   
 </li>
@@ -786,13 +772,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#constraint-errors-customization" class="md-nav__link">
-    Constraint errors customization
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#dataclass-validators" class="md-nav__link">
     Dataclass validators
   </a>
@@ -923,13 +902,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#why-validators-cannot-raise-arbitrary-exception" class="md-nav__link">
-    Why validators cannot raise arbitrary exception?
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -983,10 +955,10 @@
         <span class="n">Resource</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;bad&amp;&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">]}</span>
     <span class="p">)</span>
 <span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;item count greater than 3 (maxItems)&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;not matching pattern ^</span><span class="se">\\</span><span class="s2">w*$ (pattern)&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;string length lower than 3 (minLength)&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;item count greater than 3 (maxItems)&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;not matching &#39;^</span><span class="se">\\</span><span class="s2">w*$&#39; (pattern)&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;string length lower than 3 (minLength)&quot;</span><span class="p">},</span>
 <span class="p">]</span>
 </code></pre></div>
 
@@ -995,37 +967,8 @@
 <p class="admonition-title">Note</p>
 <p><code>ValidationError</code> can also be serialized using <code>apischema.serialize</code> (this will use <code>errors</code> internally).</p>
 </div>
-<h2 id="constraint-errors-customization">Constraint errors customization<a class="headerlink" href="#constraint-errors-customization" title="Permanent link">&para;</a></h2>
-<p>Constraints are validated at deserialization, with <em>apischema</em> providing default error messages.
-Messages can be customized by setting the corresponding attribute of <code>apischema.settings.errors</code>. They can be either a string which will be formatted with the constraint value (using <code>str.format</code>), e.g. <code>less than {} (minimum)</code>, or a function with 2 parameters: the constraint value and the invalid data. </p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
-
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span>
-
-<span class="n">settings</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">max_items</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="k">lambda</span> <span class="n">constraint</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;too-many-items: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2"> &gt; </span><span class="si">{</span><span class="n">constraint</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="p">)</span>
-
-
-<span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-    <span class="n">deserialize</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">schema</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">max_items</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
-<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;too-many-items: 4 &gt; 3&quot;</span><span class="p">}]</span>
-</code></pre></div>
-
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Default error messages doesn't include the invalid data for security reason (data could for example be a password too short).</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Other error message can be customized, for example <code>missing property</code> for missing required properties, etc.</p>
-</div>
 <h2 id="dataclass-validators">Dataclass validators<a class="headerlink" href="#dataclass-validators" title="Permanent link">&para;</a></h2>
 <p>Dataclass validation can be completed by custom validators. These are simple decorated methods which will be executed during validation, after all fields having been deserialized.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Previously to v0.17, validators could raise arbitrary exceptions (except AssertionError of course); see <a href="#why-validators-cannot-raise-arbitrary-exception">FAQ</a> for the reason of this change.</p>
-</div>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
@@ -1042,13 +985,13 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
     <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># DO NOT use assert</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">)</span>
 
 
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">PasswordForm</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;p455w0rd&quot;</span><span class="p">,</span> <span class="s2">&quot;confirmation&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">})</span>
 <span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">}</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">}</span>
 <span class="p">]</span>
 </code></pre></div>
 
@@ -1084,7 +1027,7 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
     <span class="n">deserialize</span><span class="p">(</span><span class="n">PasswordForm</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;p455w0rd&quot;</span><span class="p">})</span>
 <span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
     <span class="c1"># validator is not executed because confirmation is missing</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;confirmation&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;missing property&quot;</span><span class="p">}</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;confirmation&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;missing property&quot;</span><span class="p">}</span>
 <span class="p">]</span>
 </code></pre></div>
 
@@ -1123,8 +1066,8 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
         <span class="p">{</span><span class="s2">&quot;subnet&quot;</span><span class="p">:</span> <span class="s2">&quot;126.42.18.0/24&quot;</span><span class="p">,</span> <span class="s2">&quot;ips&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;126.42.18.1&quot;</span><span class="p">,</span> <span class="s2">&quot;126.42.19.0&quot;</span><span class="p">,</span> <span class="s2">&quot;0.0.0.0&quot;</span><span class="p">]},</span>
     <span class="p">)</span>
 <span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ips&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;ip not in subnet&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ips&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;ip not in subnet&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ips&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;ip not in subnet&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ips&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;ip not in subnet&quot;</span><span class="p">},</span>
 <span class="p">]</span>
 </code></pre></div>
 
@@ -1184,9 +1127,9 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">BoundedValues</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bounds&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]})</span>
 <span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bounds&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;bounds are not sorted&quot;</span><span class="p">}</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bounds&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;bounds are not sorted&quot;</span><span class="p">}</span>
     <span class="c1"># Without discard, there would have been an other error</span>
-    <span class="c1"># {&quot;loc&quot;: [&quot;values&quot;, 1], &quot;err&quot;: &quot;value exceeds bounds&quot;}</span>
+    <span class="c1"># {&quot;loc&quot;: [&quot;values&quot;, 1], &quot;msg&quot;: &quot;value exceeds bounds&quot;}</span>
 <span class="p">]</span>
 </code></pre></div>
 
@@ -1207,7 +1150,7 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 
 <span class="k">def</span> <span class="nf">check_no_duplicate_digits</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))):</span>
-        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;number has duplicate digits&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;number has duplicate digits&quot;</span><span class="p">)</span>
 
 
 <span class="nd">@dataclass</span>
@@ -1217,7 +1160,7 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="s2">&quot;11&quot;</span><span class="p">})</span>
-<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;number has duplicate digits&quot;</span><span class="p">}]</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;number has duplicate digits&quot;</span><span class="p">}]</span>
 </code></pre></div>
 
 <p>When validation fails for a field, it is discarded and cannot be used in class validators, as is the case when field schema validation fails.</p>
@@ -1267,7 +1210,7 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">NumberWithParity</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;parity&quot;</span><span class="p">:</span> <span class="s2">&quot;even&quot;</span><span class="p">,</span> <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
-<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span><span class="p">}]</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span><span class="p">}]</span>
 </code></pre></div>
 
 <h3 id="validators-inheritance">Validators inheritance<a class="headerlink" href="#validators-inheritance" title="Permanent link">&para;</a></h3>
@@ -1287,7 +1230,7 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
     <span class="nd">@validator</span>
     <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">)</span>
 
 
 <span class="nd">@dataclass</span>
@@ -1301,7 +1244,7 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
         <span class="p">{</span><span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;wyfo&quot;</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;p455w0rd&quot;</span><span class="p">,</span> <span class="s2">&quot;confirmation&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">},</span>
     <span class="p">)</span>
 <span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">}</span>
+    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">}</span>
 <span class="p">]</span>
 </code></pre></div>
 
@@ -1327,7 +1270,7 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">})</span>
-<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;negative&quot;</span><span class="p">}]</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;negative&quot;</span><span class="p">}]</span>
 </code></pre></div>
 
 <h3 id="validators-are-not-run-on-default-values">Validators are not run on default values<a class="headerlink" href="#validators-are-not-run-on-default-values" title="Permanent link">&para;</a></h3>
@@ -1372,18 +1315,18 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 <span class="k">def</span> <span class="nf">check_palindrome</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">Palindrome</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;Not a palindrome&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Not a palindrome&quot;</span><span class="p">)</span>
 
 
 <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;tacocat&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;tacocat&quot;</span>
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;palindrome&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;Not a palindrome&quot;</span><span class="p">}]</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;Not a palindrome&quot;</span><span class="p">}]</span>
 
 <span class="c1"># Using Annotated</span>
 <span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
     <span class="n">deserialize</span><span class="p">(</span><span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">validators</span><span class="p">(</span><span class="n">check_palindrome</span><span class="p">)],</span> <span class="s2">&quot;palindrom&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;Not a palindrome&quot;</span><span class="p">}]</span>
+<span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;msg&quot;</span><span class="p">:</span> <span class="s2">&quot;Not a palindrome&quot;</span><span class="p">}]</span>
 </code></pre></div>
 
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
@@ -1393,26 +1336,6 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 <p><em>apischema</em> uses type annotations, so every objects used can already be statically type-checked (with <em>Mypy</em>/<em>Pycharm</em>/etc.) at instantiation but also at modification.</p>
 <h4 id="why-use-validators-for-dataclasses-instead-of-doing-validation-in-__post_init__">Why use validators for dataclasses instead of doing validation in <code>__post_init__</code>?<a class="headerlink" href="#why-use-validators-for-dataclasses-instead-of-doing-validation-in-__post_init__" title="Permanent link">&para;</a></h4>
 <p>Actually, validation can completely be done in <code>__post_init__</code>, there is no problem with that. However, validators offers one thing that cannot be achieved with <code>__post_init__</code>: they are run before <code>__init__</code>, so they can validate incomplete data. Moreover, they are only run during deserialization, so they don't add overhead to normal class instantiation.</p>
-<h4 id="why-validators-cannot-raise-arbitrary-exception">Why validators cannot raise arbitrary exception?<a class="headerlink" href="#why-validators-cannot-raise-arbitrary-exception" title="Permanent link">&para;</a></h4>
-<p>Allowing arbitrary exception is in fact a security issue, because unwanted exception could be raised, and their message displayed in validation error. It could either contain sensitive data, or give information about the implementation which could be used to hack it.</p>
-<p>By the way, it's possible to define a decorator to convert precise exceptions to <code>ValidationError</code>:</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Callable</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypeVar</span>
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span>
-
-<span class="n">Func</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Func&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">Callable</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">catch</span><span class="p">(</span><span class="o">*</span><span class="n">exceptions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Func</span><span class="p">],</span> <span class="n">Func</span><span class="p">]:</span>
-    <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Func</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Func</span><span class="p">:</span>
-        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">))</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="n">exceptions</span><span class="p">)</span> <span class="k">else</span> <span class="n">err</span>
-        <span class="k">return</span> <span class="n">wrapper</span>
-    <span class="k">return</span> <span class="n">decorator</span>
-</code></pre></div>
                 
               
               
@@ -1485,7 +1408,7 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.b1047164.min.js"></script>
