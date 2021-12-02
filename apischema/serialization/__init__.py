@@ -125,11 +125,14 @@ class PassThroughOptions:
     any: bool = False
     collections: bool = False
     enums: bool = False
+    tuple: bool = False
     types: CollectionOrPredicate[AnyType] = ()
 
     def __post_init__(self):
         if isinstance(self.types, Collection) and not isinstance(self.types, tuple):
             object.__setattr__(self, "types", tuple(self.types))
+        if self.collections and not self.tuple:
+            object.__setattr__(self, "tuple", True)
 
 
 @dataclass
@@ -213,10 +216,14 @@ class SerializationMethodVisitor(
 
         method: SerializationMethod
         if value_method is not IDENTITY_METHOD:
-            return CollectionMethod(value_method)
-        elif issubclass(cls, (list, tuple)) or (
-            self.pass_through_options.collections
-            and not issubclass(cls, collections.abc.Set)
+            method = CollectionMethod(value_method)
+        elif (
+            issubclass(cls, list)
+            or (self.pass_through_options.tuple and issubclass(cls, tuple))
+            or (
+                self.pass_through_options.collections
+                and not issubclass(cls, collections.abc.Set)
+            )
         ):
             method = IDENTITY_METHOD
         else:
@@ -341,7 +348,9 @@ class SerializationMethodVisitor(
     def tuple(self, types: Sequence[AnyType]) -> SerializationMethod:
         elt_methods = tuple(map(self.visit, types))
         method: SerializationMethod
-        if all(method is IDENTITY_METHOD for method in elt_methods):
+        if self.pass_through_options.tuple and all(
+            method is IDENTITY_METHOD for method in elt_methods
+        ):
             method = IDENTITY_METHOD
         else:
             method = TupleMethod(elt_methods)
