@@ -54,3 +54,6 @@ plugins:
     glob:
     - requirements.txt
 
+extra:
+  version:
+    provider: mike
