@@ -1,0 +1,1120 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6">
+    
+    
+      
+        <title>GraphQL schema - apischema</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.a57b2b03.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#4cae4f">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+    
+      
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="preference" data-md-color-primary="green" data-md-color-accent="indigo">
+  
+    
+    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#graphql-schema" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="apischema" class="md-header__button md-logo" aria-label="apischema" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            apischema
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              GraphQL schema
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/wyfo/apischema/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wyfo/apischema
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="apischema" class="md-nav__button md-logo" aria-label="apischema" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    apischema
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/wyfo/apischema/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wyfo/apischema
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data_model/" class="md-nav__link">
+        Data model
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../de_serialization/" class="md-nav__link">
+        (De)serialization
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../json_schema/" class="md-nav__link">
+        JSON schema
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../validation/" class="md-nav__link">
+        Validation
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conversions/" class="md-nav__link">
+        Conversions
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7">
+          GraphQL
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="GraphQL" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          GraphQL
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_model_and_resolvers/" class="md-nav__link">
+        Data model and resolvers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          GraphQL schema
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        GraphQL schema
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#operations-metadata" class="md-nav__link">
+    Operations metadata
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#camelcase" class="md-nav__link">
+    camelCase
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-names" class="md-nav__link">
+    Type names
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-types" class="md-nav__link">
+    Additional types
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#subscriptions" class="md-nav__link">
+    Subscriptions
+  </a>
+  
+    <nav class="md-nav" aria-label="Subscriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#event-generator-only" class="md-nav__link">
+    Event generator only
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-generator-resolver" class="md-nav__link">
+    Event generator + resolver
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../relay/" class="md-nav__link">
+        Relay
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8">
+          Examples
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Examples" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/open_rpc/" class="md-nav__link">
+        OpenRPC
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/sqlalchemy_support/" class="md-nav__link">
+        SQLAlchemy support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/pydantic_support/" class="md-nav__link">
+        Pydantic support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/attrs_support/" class="md-nav__link">
+        Attrs support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/subclass_union/" class="md-nav__link">
+        Class as union of its subclasses
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/subclass_tagged_union/" class="md-nav__link">
+        Class as tagged union of its subclasses
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/recoverable_fields/" class="md-nav__link">
+        Recoverable fields
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/inherited_deserializer/" class="md-nav__link">
+        Inherited deserializer
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmark/" class="md-nav__link">
+        Benchmark
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../difference_with_pydantic/" class="md-nav__link">
+        Difference with pydantic
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/wyfo/apischema/releases" class="md-nav__link">
+        Releases
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#operations-metadata" class="md-nav__link">
+    Operations metadata
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#camelcase" class="md-nav__link">
+    camelCase
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-names" class="md-nav__link">
+    Type names
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-types" class="md-nav__link">
+    Additional types
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#subscriptions" class="md-nav__link">
+    Subscriptions
+  </a>
+  
+    <nav class="md-nav" aria-label="Subscriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#event-generator-only" class="md-nav__link">
+    Event generator only
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-generator-resolver" class="md-nav__link">
+    Event generator + resolver
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/wyfo/apischema/edit/master/docs/graphql/schema.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="graphql-schema">GraphQL schema<a class="headerlink" href="#graphql-schema" title="Permanent link">&para;</a></h1>
+<p><em>GraphQL</em> schema is generated by passing all the operations (query/mutation/subscription) functions to <code>apischema.graphql.graphql_schema</code>. </p>
+<p>Functions parameters and return types are then processed by <em>apischema</em> to generate the <code>Query</code>/<code>Mutation</code>/<code>Subscription</code> types with their resolvers/subscribers, which are then passed to <code>graphql.GraphQLSchema</code>.</p>
+<p>In fact, <code>graphql_schema</code> is just a wrapper around <code>graphql.GraphQLSchema</code> (same parameters plus a few extras); it just uses <em>apischema</em> abstraction to build <code>GraphQL</code> object types directly from your code. </p>
+<h2 id="operations-metadata">Operations metadata<a class="headerlink" href="#operations-metadata" title="Permanent link">&para;</a></h2>
+<p><em>GraphQL</em> operations can be passed to <code>graphql_schema</code> either using simple functions or wrapping it into <code>apischema.graphql.Query</code>/<code>apischema.graphql.Mutation</code>/<code>apischema.graphql.Subscription</code>. These wrappers have the same parameters as <code>apischema.graphql.resolver</code>: <code>alias</code>, <code>conversions</code>, <code>error_handler</code> and <code>schema</code> (<code>Subscription</code> has an <a href="#subscriptions">additional parameter</a>).</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+
+<span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">Query</span><span class="p">,</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">resolver</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="nd">@resolver</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="o">...</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
+    <span class="o">...</span>
+
+
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">Query</span><span class="p">(</span><span class="n">get_foo</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="n">error_handler</span><span class="o">=</span><span class="kc">None</span><span class="p">)])</span>
+<span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">type Query {</span>
+<span class="s2">  foo: Foo</span>
+<span class="s2">}</span>
+
+<span class="s2">type Foo {</span>
+<span class="s2">  bar(arg: Int! = 0): String!</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+</code></pre></div>
+
+<h2 id="camelcase"><em>camelCase</em><a class="headerlink" href="#camelcase" title="Permanent link">&para;</a></h2>
+<p><em>GraphQL</em> use <em>camelCase</em> as a convention for resolvers; <em>apischema</em> follows this convention by automatically convert all resolver names (and their parameters) to <em>camelCase</em>. <code>graphql_schema</code> has an <code>aliaser</code> parameter if you want to use another case.</p>
+<h2 id="type-names">Type names<a class="headerlink" href="#type-names" title="Permanent link">&para;</a></h2>
+<p>Schema types are named the same way they are in generated JSON schema: type name is used by default, and it can be overridden using <a href="../../json_schema/#customize-ref"><code>apischema.type_name</code></a></p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">type_name</span>
+<span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+
+
+<span class="nd">@type_name</span><span class="p">(</span><span class="s2">&quot;Foo&quot;</span><span class="p">)</span>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">FooFoo</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
+
+
+<span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FooFoo</span><span class="p">]:</span>
+    <span class="o">...</span>
+
+
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
+<span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">type Query {</span>
+<span class="s2">  foo: Foo</span>
+<span class="s2">}</span>
+
+<span class="s2">type Foo {</span>
+<span class="s2">  bar: Int!</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+</code></pre></div>
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Type names can be distinguished between JSON schema and <em>GraphQL</em> schema using <code>type_name</code> named parameter. Indeed, <code>type_name("foo")</code> is equivalent to <code>type_name(json_schema="foo", graphql="foo")</code>.</p>
+</div>
+<p>However, in <em>GraphQL</em> schema, unions must be named, so <code>typing.Union</code> used should be annotated with <code>apischema.type_name</code>. <code>graphql_schema</code> also provides a <code>union_ref</code> parameter which can be passed as a function to generate a type name from the union argument. Default <code>union_ref</code> is <code>"Or".join</code> meaning <code>typing.Union[Foo, Bar]</code> will result in <code>union FooOrBar = Foo | Bar</code></p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+
+<span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+    <span class="n">foo</span><span class="p">:</span> <span class="nb">int</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
+
+
+<span class="k">def</span> <span class="nf">foo_or_bar</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Foo</span><span class="p">,</span> <span class="n">Bar</span><span class="p">]:</span>
+    <span class="o">...</span>
+
+
+<span class="c1"># union_ref default value is made explicit here</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo_or_bar</span><span class="p">],</span> <span class="n">union_name</span><span class="o">=</span><span class="s2">&quot;Or&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">)</span>
+<span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">type Query {</span>
+<span class="s2">  fooOrBar: FooOrBar!</span>
+<span class="s2">}</span>
+
+<span class="s2">union FooOrBar = Foo | Bar</span>
+
+<span class="s2">type Foo {</span>
+<span class="s2">  foo: Int!</span>
+<span class="s2">}</span>
+
+<span class="s2">type Bar {</span>
+<span class="s2">  bar: Int!</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+</code></pre></div>
+
+<h2 id="additional-types">Additional types<a class="headerlink" href="#additional-types" title="Permanent link">&para;</a></h2>
+<p><em>apischema</em> will only include in the schema the types annotating resolvers. However, it is possible to add other types by using the <code>types</code> parameter of <code>graphql_schema</code>. This is especially useful to add interface implementations where only interface is used in resolver types. </p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+
+<span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">interface</span>
+
+
+<span class="nd">@interface</span>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">Bar</span><span class="p">):</span>
+    <span class="n">baz</span><span class="p">:</span> <span class="nb">str</span>
+
+
+<span class="k">def</span> <span class="nf">bar</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Bar</span><span class="p">:</span>
+    <span class="o">...</span>
+
+
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">bar</span><span class="p">],</span> <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="n">Foo</span><span class="p">])</span>
+<span class="c1"># type Foo would have not been present if Foo was not put in types</span>
+<span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">type Foo implements Bar {</span>
+<span class="s2">  bar: Int!</span>
+<span class="s2">  baz: String!</span>
+<span class="s2">}</span>
+
+<span class="s2">interface Bar {</span>
+<span class="s2">  bar: Int!</span>
+<span class="s2">}</span>
+
+<span class="s2">type Query {</span>
+<span class="s2">  bar: Bar!</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+</code></pre></div>
+
+<h2 id="subscriptions">Subscriptions<a class="headerlink" href="#subscriptions" title="Permanent link">&para;</a></h2>
+<p>Subscriptions are particular operations which must return an <code>AsyncIterable</code>; this event generator can come with a dedicated resolver to post process the event.</p>
+<h3 id="event-generator-only">Event generator only<a class="headerlink" href="#event-generator-only" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">AsyncIterable</span>
+
+<span class="kn">import</span> <span class="nn">graphql</span>
+<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+
+<span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+
+
+<span class="k">def</span> <span class="nf">hello</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="s2">&quot;world&quot;</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">events</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">AsyncIterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">yield</span> <span class="s2">&quot;bonjour&quot;</span>
+    <span class="k">yield</span> <span class="s2">&quot;au revoir&quot;</span>
+
+
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">hello</span><span class="p">],</span> <span class="n">subscription</span><span class="o">=</span><span class="p">[</span><span class="n">events</span><span class="p">])</span>
+<span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">type Query {</span>
+<span class="s2">  hello: String!</span>
+<span class="s2">}</span>
+
+<span class="s2">type Subscription {</span>
+<span class="s2">  events: String!</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+    <span class="n">subscription</span> <span class="o">=</span> <span class="k">await</span> <span class="n">graphql</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span>
+        <span class="n">schema</span><span class="p">,</span> <span class="n">graphql</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;subscription </span><span class="si">{events}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">data</span> <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">subscription</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;events&quot;</span><span class="p">:</span> <span class="s2">&quot;bonjour&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;events&quot;</span><span class="p">:</span> <span class="s2">&quot;au revoir&quot;</span><span class="p">},</span>
+    <span class="p">]</span>
+
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">test</span><span class="p">())</span>
+</code></pre></div>
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because there is no post-processing of generated event in a dedicated resolver, <code>error_handler</code> cannot be called, but it will still modify the type of the event. </p>
+</div>
+<h3 id="event-generator-resolver">Event generator + resolver<a class="headerlink" href="#event-generator-resolver" title="Permanent link">&para;</a></h3>
+<p>A resolver can be added by using the <code>resolver</code> parameter of <code>Subscription</code>.  In this case, <em>apischema</em> will map subscription name, parameters and return type on the resolver instead of the event generator. It allows using the same event generator with several resolvers to create different subscriptions.</p>
+<p>The first resolver argument will be the event yielded by the event generator.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">AsyncIterable</span>
+
+<span class="kn">import</span> <span class="nn">graphql</span>
+<span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+
+<span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">Subscription</span><span class="p">,</span> <span class="n">graphql_schema</span>
+
+
+<span class="k">def</span> <span class="nf">hello</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="s2">&quot;world&quot;</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">events</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">AsyncIterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">yield</span> <span class="s2">&quot;bonjour&quot;</span>
+    <span class="k">yield</span> <span class="s2">&quot;au revoir&quot;</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Message</span><span class="p">:</span>
+    <span class="n">body</span><span class="p">:</span> <span class="nb">str</span>
+
+
+<span class="c1"># Message can also be used directly as a function</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span>
+    <span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">hello</span><span class="p">],</span>
+    <span class="n">subscription</span><span class="o">=</span><span class="p">[</span><span class="n">Subscription</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;messageReceived&quot;</span><span class="p">,</span> <span class="n">resolver</span><span class="o">=</span><span class="n">Message</span><span class="p">)],</span>
+<span class="p">)</span>
+<span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">type Query {</span>
+<span class="s2">  hello: String!</span>
+<span class="s2">}</span>
+
+<span class="s2">type Subscription {</span>
+<span class="s2">  messageReceived: Message!</span>
+<span class="s2">}</span>
+
+<span class="s2">type Message {</span>
+<span class="s2">  body: String!</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+    <span class="n">subscription</span> <span class="o">=</span> <span class="k">await</span> <span class="n">graphql</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span>
+        <span class="n">schema</span><span class="p">,</span> <span class="n">graphql</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;subscription {messageReceived </span><span class="si">{body}</span><span class="s2">}&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">data</span> <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">subscription</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;messageReceived&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;bonjour&quot;</span><span class="p">}},</span>
+        <span class="p">{</span><span class="s2">&quot;messageReceived&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;au revoir&quot;</span><span class="p">}},</span>
+    <span class="p">]</span>
+
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">test</span><span class="p">())</span>
+</code></pre></div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../data_model_and_resolvers/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Data model and resolvers" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Data model and resolvers
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../relay/" class="md-footer__link md-footer__link--next" aria-label="Next: Relay" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Relay
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        
+          Made with
+          <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+            Material for MkDocs
+          </a>
+        
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.b1047164.min.js"></script>
+      
+    
+  </body>
+</html>

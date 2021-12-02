@@ -1,0 +1,1120 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6">
+    
+    
+      
+        <title>Difference with pydantic - apischema</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.a57b2b03.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#4cae4f">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+    
+      
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="preference" data-md-color-primary="green" data-md-color-accent="indigo">
+  
+    
+    <script>function __prefix(e){return new URL("..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#difference-with-pydantic" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="apischema" class="md-header__button md-logo" aria-label="apischema" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            apischema
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Difference with pydantic
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/wyfo/apischema/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wyfo/apischema
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="apischema" class="md-nav__button md-logo" aria-label="apischema" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    apischema
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/wyfo/apischema/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wyfo/apischema
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_model/" class="md-nav__link">
+        Data model
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../de_serialization/" class="md-nav__link">
+        (De)serialization
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../json_schema/" class="md-nav__link">
+        JSON schema
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        Validation
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conversions/" class="md-nav__link">
+        Conversions
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7">
+          GraphQL
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="GraphQL" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          GraphQL
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql/overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql/data_model_and_resolvers/" class="md-nav__link">
+        Data model and resolvers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql/schema/" class="md-nav__link">
+        GraphQL schema
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql/relay/" class="md-nav__link">
+        Relay
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8">
+          Examples
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Examples" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/open_rpc/" class="md-nav__link">
+        OpenRPC
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/sqlalchemy_support/" class="md-nav__link">
+        SQLAlchemy support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/pydantic_support/" class="md-nav__link">
+        Pydantic support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/attrs_support/" class="md-nav__link">
+        Attrs support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/subclass_union/" class="md-nav__link">
+        Class as union of its subclasses
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/subclass_tagged_union/" class="md-nav__link">
+        Class as tagged union of its subclasses
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/recoverable_fields/" class="md-nav__link">
+        Recoverable fields
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/inherited_deserializer/" class="md-nav__link">
+        Inherited deserializer
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmark/" class="md-nav__link">
+        Benchmark
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Difference with pydantic
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Difference with pydantic
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-is-faster" class="md-nav__link">
+    apischema is faster
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-can-generate-graphql-schema-from-your-resolvers" class="md-nav__link">
+    apischema can generate GraphQL schema from your resolvers
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-uses-standard-dataclasses-and-types" class="md-nav__link">
+    apischema uses standard dataclasses and types
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-doesnt-require-external-plugins-for-editors-linters-etc" class="md-nav__link">
+    apischema doesn't require external plugins for editors, linters, etc.
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-doesnt-mix-up-deserialization-with-your-code" class="md-nav__link">
+    apischema doesn't mix up (de)serialization with your code
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-truly-works-out-of-the-box-with-forward-type-references-especially-for-recursive-model" class="md-nav__link">
+    apischema truly works out-of-the-box with forward type references (especially for recursive model)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff" class="md-nav__link">
+    apischema supports Generic in Python 3.6 and without requiring additional stuff
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-conversions-feature-allows-to-support-any-type-defined-in-your-code-but-also-in-external-libraries" class="md-nav__link">
+    apischema conversions feature allows to support any type defined in your code, but also in external libraries
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-can-also-customize-serialization-with-computed-fields" class="md-nav__link">
+    apischema can also customize serialization with computed fields
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-allows-you-to-use-composition-over-inheritance" class="md-nav__link">
+    apischema allows you to use composition over inheritance
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-has-a-functional-approach-pydantic-has-an-object-one" class="md-nav__link">
+    apischema has a functional approach, pydantic has an object one
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-can-use-both-camelcase-and-snake_case-with-the-same-types" class="md-nav__link">
+    apischema can use both camelCase and snake_case with the same types
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-doesnt-coerce-by-default" class="md-nav__link">
+    apischema doesn't coerce by default
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-has-a-better-integration-of-json-schemaopenapi" class="md-nav__link">
+    apischema has a better integration of JSON schema/OpenAPI
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-can-add-validators-and-json-schema-to-newtype" class="md-nav__link">
+    apischema can add validators and JSON schema to NewType
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-validators-are-regular-methods-with-automatic-dependencies-management" class="md-nav__link">
+    apischema validators are regular methods with automatic dependencies management
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-supports-pydantic" class="md-nav__link">
+    apischema supports pydantic
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/wyfo/apischema/releases" class="md-nav__link">
+        Releases
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-is-faster" class="md-nav__link">
+    apischema is faster
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-can-generate-graphql-schema-from-your-resolvers" class="md-nav__link">
+    apischema can generate GraphQL schema from your resolvers
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-uses-standard-dataclasses-and-types" class="md-nav__link">
+    apischema uses standard dataclasses and types
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-doesnt-require-external-plugins-for-editors-linters-etc" class="md-nav__link">
+    apischema doesn't require external plugins for editors, linters, etc.
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-doesnt-mix-up-deserialization-with-your-code" class="md-nav__link">
+    apischema doesn't mix up (de)serialization with your code
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-truly-works-out-of-the-box-with-forward-type-references-especially-for-recursive-model" class="md-nav__link">
+    apischema truly works out-of-the-box with forward type references (especially for recursive model)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff" class="md-nav__link">
+    apischema supports Generic in Python 3.6 and without requiring additional stuff
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-conversions-feature-allows-to-support-any-type-defined-in-your-code-but-also-in-external-libraries" class="md-nav__link">
+    apischema conversions feature allows to support any type defined in your code, but also in external libraries
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-can-also-customize-serialization-with-computed-fields" class="md-nav__link">
+    apischema can also customize serialization with computed fields
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-allows-you-to-use-composition-over-inheritance" class="md-nav__link">
+    apischema allows you to use composition over inheritance
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-has-a-functional-approach-pydantic-has-an-object-one" class="md-nav__link">
+    apischema has a functional approach, pydantic has an object one
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-can-use-both-camelcase-and-snake_case-with-the-same-types" class="md-nav__link">
+    apischema can use both camelCase and snake_case with the same types
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-doesnt-coerce-by-default" class="md-nav__link">
+    apischema doesn't coerce by default
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-has-a-better-integration-of-json-schemaopenapi" class="md-nav__link">
+    apischema has a better integration of JSON schema/OpenAPI
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-can-add-validators-and-json-schema-to-newtype" class="md-nav__link">
+    apischema can add validators and JSON schema to NewType
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-validators-are-regular-methods-with-automatic-dependencies-management" class="md-nav__link">
+    apischema validators are regular methods with automatic dependencies management
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apischema-supports-pydantic" class="md-nav__link">
+    apischema supports pydantic
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/wyfo/apischema/edit/master/docs/difference_with_pydantic.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="difference-with-pydantic">Difference with pydantic<a class="headerlink" href="#difference-with-pydantic" title="Permanent link">&para;</a></h1>
+<p>As the question is often asked, it is answered in a dedicated section. Here are some the key differences between <em>apischema</em> and <em>pydantic</em>:</p>
+<h3 id="apischema-is-faster"><em>apischema</em> is faster<a class="headerlink" href="#apischema-is-faster" title="Permanent link">&para;</a></h3>
+<p><em>pydantic</em> uses Cython to improve its performance; <em>apischema</em> doesn't need it and is still 1.5x faster according to <a href="../benchmark/"><em>pydantic</em> benchmark</a> — more than 2x when <em>pydantic</em> is not compiled with Cython.</p>
+<p>Better performance, but not at the cost of fewer functionalities; that's rather the opposite: <a href="../json_schema/#dynamic-aliasing-and-default-aliaser">dynamic aliasing</a>, <a href="../conversions/">conversions</a>, <a href="../data_model/#composition-over-inheritance---composed-dataclasses-flattening">flattened fields</a>, etc.</p>
+<h3 id="apischema-can-generate-graphql-schema-from-your-resolvers"><em>apischema</em> can generate <a href="../graphql/overview/"><em>GraphQL</em> schema</a> from your resolvers<a class="headerlink" href="#apischema-can-generate-graphql-schema-from-your-resolvers" title="Permanent link">&para;</a></h3>
+<p>Not just a simple printable schema but a complete <code>graphql.GraphQLSchema</code> (using <a href="https://github.com/graphql-python/graphql-core/"><em>graphql-core</em></a> library) which can be used to execute your queries/mutations/subscriptions through your resolvers, powered by <em>apischema</em> (de)serialization and conversions features.</p>
+<p>Types and resolvers can be used both in traditional JSON-oriented API and GraphQL API</p>
+<h3 id="apischema-uses-standard-dataclasses-and-types"><em>apischema</em> uses standard dataclasses and types<a class="headerlink" href="#apischema-uses-standard-dataclasses-and-types" title="Permanent link">&para;</a></h3>
+<p><em>pydantic</em> uses its own <code>BaseModel</code> class, or its own pseudo-<code>dataclass</code>, so you are forced to tie all your code to the library, and you cannot easily reuse code written in a more standard way or in external libraries.</p>
+<p>By the way, Pydantic use expressions in typing annotations (<code>conint</code>, etc.), while it's not recommended and treated as an error by tools like <em>Mypy</em></p>
+<h3 id="apischema-doesnt-require-external-plugins-for-editors-linters-etc"><em>apischema</em> doesn't require external plugins for editors, linters, etc.<a class="headerlink" href="#apischema-doesnt-require-external-plugins-for-editors-linters-etc" title="Permanent link">&para;</a></h3>
+<p><em>pydantic</em> requires a plugin to allow <em>Mypy</em> to type checked <code>BaseModel</code> and others <em>pydantic</em> singularities (and to not raise errors on it); plugin are also needed for editors.</p>
+<h3 id="apischema-doesnt-mix-up-deserialization-with-your-code"><em>apischema</em> doesn't mix up (de)serialization with your code<a class="headerlink" href="#apischema-doesnt-mix-up-deserialization-with-your-code" title="Permanent link">&para;</a></h3>
+<p>While <em>pydantic</em> mix up model constructor with deserializer, <em>apischema</em> use dedicated functions for its features, meaning your dataclasses are instantiated normally with type checking. In your code, you manipulate objects; (de)serialization is for input/output.</p>
+<p><em>apischema</em> also doesn't mix up validation of external data with your statically checked code; there is no runtime validation in constructors.</p>
+<h3 id="apischema-truly-works-out-of-the-box-with-forward-type-references-especially-for-recursive-model"><em>apischema</em> truly works out-of-the-box with forward type references (especially for recursive model)<a class="headerlink" href="#apischema-truly-works-out-of-the-box-with-forward-type-references-especially-for-recursive-model" title="Permanent link">&para;</a></h3>
+<p><em>pydantic</em> requires calling <code>update_forward_refs</code> method on recursive types, while <em>apischema</em> "just works".</p>
+<h3 id="apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff"><em>apischema</em> supports <code>Generic</code> in Python 3.6 and without requiring additional stuff<a class="headerlink" href="#apischema-supports-generic-in-python-36-and-without-requiring-additional-stuff" title="Permanent link">&para;</a></h3>
+<p><em>pydantic</em> <code>BaseModel</code> cannot be used with generic model, you have to use <code>GenericModel</code>, and it's not supported in Python 3.6.</p>
+<p>With <em>apischema</em>, you just write your generic classes normally. </p>
+<h3 id="apischema-conversions-feature-allows-to-support-any-type-defined-in-your-code-but-also-in-external-libraries"><em>apischema</em> <a href="../conversions/">conversions</a> feature allows to support any type defined in your code, but also in external libraries<a class="headerlink" href="#apischema-conversions-feature-allows-to-support-any-type-defined-in-your-code-but-also-in-external-libraries" title="Permanent link">&para;</a></h3>
+<p><em>pydantic</em> doesn't make it easy to support external types, like <code>bson.ObjectId</code>; see this <a href="https://github.com/tiangolo/fastapi/issues/68">issue</a> on the subject. You could dynamically add a <code>__get_validators__</code> method to foreign classes, but that doesn't work with builtin types like <code>collection.deque</code> and other types written in C. </p>
+<p>Serialization customization is harder, with definition of encoding function by model; it cannot be done at the same place as deserialization. There is also no correlation done between (de)serialization customization and model JSON schema; you could have to overwrite the generated schema if you don't want to get an inconsistency.</p>
+<p><em>apischema</em> only requires a few lines of code to support any type you want, from <code>bson.ObjectId</code> to <em>SQLAlchemy</em> models by way of builtin and generic like <code>collection.deque</code>, and even <a href="#apischema-supports-pydantic"><em>pydantic</em></a>. Conversions are also integrated in JSON schema this one is generated according to the source/target of the conversion</p>
+<p>Here is a comparison of a custom type support:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NamedTuple</span><span class="p">,</span> <span class="n">NewType</span>
+
+<span class="kn">import</span> <span class="nn">pydantic.validators</span>
+
+<span class="kn">import</span> <span class="nn">apischema</span>
+
+
+<span class="c1"># Serialization can only be customized into the enclosing models</span>
+<span class="k">class</span> <span class="nc">RGB</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+    <span class="n">red</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">green</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">blue</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="c1"># If you don&#39;t put this method, RGB schema will be:</span>
+    <span class="c1"># {&#39;title&#39;: &#39;Rgb&#39;, &#39;type&#39;: &#39;array&#39;, &#39;items&#39;: {}}</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">__modify_schema__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">field_schema</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">field_schema</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;pattern&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;#[0-9A-Fa-f]</span><span class="si">{6}</span><span class="s2">&quot;</span><span class="p">})</span>
+        <span class="n">field_schema</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;items&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">__get_validators__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">pydantic</span><span class="o">.</span><span class="n">validators</span><span class="o">.</span><span class="n">str_validator</span>
+        <span class="k">yield</span> <span class="bp">cls</span><span class="o">.</span><span class="n">validate</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;RGB&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;#[0-9A-Fa-f]</span><span class="si">{6}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid RGB&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">RGB</span><span class="p">(</span>
+            <span class="n">red</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="n">green</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="n">blue</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="p">)</span>
+
+
+<span class="c1"># Simpler with apischema</span>
+
+
+<span class="k">class</span> <span class="nc">RGB</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+    <span class="n">red</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">green</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">blue</span><span class="p">:</span> <span class="nb">int</span>
+
+
+<span class="c1"># NewType can be used to add schema to conversion source/target</span>
+<span class="c1"># but Annotated[str, apischema.schema(pattern=r&quot;#[0-9A-Fa-f]{6}&quot;)] would have worked too</span>
+<span class="n">HexaRGB</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;HexaRGB&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+<span class="c1"># pattern is used in JSON schema and in deserialization validation</span>
+<span class="n">apischema</span><span class="o">.</span><span class="n">schema</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;#[0-9A-Fa-f]</span><span class="si">{6}</span><span class="s2">&quot;</span><span class="p">)(</span><span class="n">HexaRGB</span><span class="p">)</span>
+
+
+<span class="nd">@apischema</span><span class="o">.</span><span class="n">deserializer</span>  <span class="c1"># could be declared as a staticmethod of RGB class</span>
+<span class="k">def</span> <span class="nf">from_hexa</span><span class="p">(</span><span class="n">hexa</span><span class="p">:</span> <span class="n">HexaRGB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RGB</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">RGB</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="mi">16</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">hexa</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="mi">16</span><span class="p">))</span>
+
+
+<span class="nd">@apischema</span><span class="o">.</span><span class="n">serializer</span>  <span class="c1"># could be declared as a method/property of RGB class</span>
+<span class="k">def</span> <span class="nf">to_hexa</span><span class="p">(</span><span class="n">rgb</span><span class="p">:</span> <span class="n">RGB</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HexaRGB</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">HexaRGB</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;#</span><span class="si">{</span><span class="n">rgb</span><span class="o">.</span><span class="n">red</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="n">rgb</span><span class="o">.</span><span class="n">green</span><span class="si">:</span><span class="s2">02x</span><span class="si">}{</span><span class="n">rgb</span><span class="o">.</span><span class="n">blue</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">assert</span> <span class="p">(</span>  <span class="c1"># schema is inherited from deserialized type</span>
+    <span class="n">apischema</span><span class="o">.</span><span class="n">json_schema</span><span class="o">.</span><span class="n">deserialization_schema</span><span class="p">(</span><span class="n">RGB</span><span class="p">)</span>
+    <span class="o">==</span> <span class="n">apischema</span><span class="o">.</span><span class="n">json_schema</span><span class="o">.</span><span class="n">deserialization_schema</span><span class="p">(</span><span class="n">HexaRGB</span><span class="p">)</span>
+    <span class="o">==</span> <span class="p">{</span>
+        <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2019-09/schema#&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;pattern&quot;</span><span class="p">:</span> <span class="s2">&quot;#[0-9A-Fa-f]</span><span class="si">{6}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h3 id="apischema-can-also-customize-serialization-with-computed-fields"><em>apischema</em> can also customize serialization with computed fields<a class="headerlink" href="#apischema-can-also-customize-serialization-with-computed-fields" title="Permanent link">&para;</a></h3>
+<p><a href="../de_serialization/#serialized-methodsproperties">Serialized methods/properties</a> are regular methods/properties which are included in serialization effortlessly.</p>
+<h3 id="apischema-allows-you-to-use-composition-over-inheritance"><em>apischema</em> allows you to use composition over inheritance<a class="headerlink" href="#apischema-allows-you-to-use-composition-over-inheritance" title="Permanent link">&para;</a></h3>
+<p><a href="../data_model/#composition-over-inheritance---composed-dataclasses-flattening">Flattened fields</a> is a distinctive <em>apischema</em> feature that is very handy to build complex model from smaller fragments; you don't have to merge yourself the fields of your fragments in a complex class with a lot of fields, <em>apischema</em> deal with it for you, and your code is kept simple.</p>
+<h3 id="apischema-has-a-functional-approach-pydantic-has-an-object-one"><em>apischema</em> has a functional approach, <em>pydantic</em> has an object one<a class="headerlink" href="#apischema-has-a-functional-approach-pydantic-has-an-object-one" title="Permanent link">&para;</a></h3>
+<p><em>pydantic</em> features are based on <code>BaseModel</code> methods. You have to have a <code>BaseModel</code> instance to do anything, even if you manipulate only an integer. Complex <em>pydantic</em> stuff like <code>__root__</code> model or deserialization customization come from this approach.</p>
+<p><em>apischema</em> is functional, it doesn't use method but simple functions, which works with all types. You can also register conversions for any types similarly you would implement a type class in a functional language. And your class namespace don't mix up with a mandatory base class' one.</p>
+<h3 id="apischema-can-use-both-camelcase-and-snake_case-with-the-same-types"><em>apischema</em> can use both <em>camelCase</em> and <em>snake_case</em> with the same types<a class="headerlink" href="#apischema-can-use-both-camelcase-and-snake_case-with-the-same-types" title="Permanent link">&para;</a></h3>
+<p>While <em>pydantic</em> field aliases are fixed at model creation, <em>apischema</em> <a href="../json_schema/#dynamic-aliasing-and-default-aliaser">let you choose</a> which aliasing you want at (de)serialization time. </p>
+<p>It can be convenient if you need to juggle with cases for the same models between frontends and other backend services for example.</p>
+<h3 id="apischema-doesnt-coerce-by-default"><em>apischema</em> doesn't coerce by default<a class="headerlink" href="#apischema-doesnt-coerce-by-default" title="Permanent link">&para;</a></h3>
+<p>Your API respects its schema. </p>
+<p>It can also coerce, for example to parse configuration file, and coercion can be adjusted (for example coercing list from comma-separated string). </p>
+<h3 id="apischema-has-a-better-integration-of-json-schemaopenapi"><em>apischema</em> has a better integration of JSON schema/<em>OpenAPI</em><a class="headerlink" href="#apischema-has-a-better-integration-of-json-schemaopenapi" title="Permanent link">&para;</a></h3>
+<p>With <em>pydantic</em>, if you want to have a <code>nullable</code> field in the generated schema, you have to put <code>nullable</code> into schema extra keywords.</p>
+<p><em>apischema</em> is bound to the last JSON schema version but offers conversion to other version like <em>OpenAPI</em> 3.0 and <code>nullable</code> is added for <code>Optional</code> types.</p>
+<p><em>apischema</em> also support more advanced features like <code>dependentRequired</code> or <code>unevaluatedProperties</code>. Reference handling is also more <a href="../json_schema/#complexrecursive-types---json-schema-definitionsopenapi-components">flexible</a></p>
+<h3 id="apischema-can-add-validators-and-json-schema-to-newtype"><em>apischema</em> can add validators and JSON schema to <code>NewType</code><a class="headerlink" href="#apischema-can-add-validators-and-json-schema-to-newtype" title="Permanent link">&para;</a></h3>
+<p>So it will be used in deserialization validation. You can use <code>NewType</code> everywhere, to gain a better type checking, self-documented code.</p>
+<h3 id="apischema-validators-are-regular-methods-with-automatic-dependencies-management"><em>apischema</em> validators are regular methods with <a href="../validation/#automatic-dependency-management">automatic dependencies management</a><a class="headerlink" href="#apischema-validators-are-regular-methods-with-automatic-dependencies-management" title="Permanent link">&para;</a></h3>
+<p>Using regular methods allows benefiting of type checking of fields, where <em>pydantic</em> validators use dynamic stuffs (name of the fields as strings) and are not type-checked or have to get redundant type annotations.</p>
+<p><em>apischema</em> validators also have automatic dependency management. And <em>apischema</em> directly supports JSON schema <a href="../json_schema/#property-dependencies">property dependencies</a>.</p>
+<p>Comparison is simple with an example (validator is taken from <a href="https://pydantic-docs.helpmanual.io/usage/validators/#root-validators"><em>pydantic</em> documentation</a>:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">import</span> <span class="nn">apischema</span>
+<span class="kn">import</span> <span class="nn">pydantic</span>
+
+
+<span class="k">class</span> <span class="nc">UserModel</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">password1</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">password2</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="nd">@pydantic</span><span class="o">.</span><span class="n">root_validator</span>
+    <span class="k">def</span> <span class="nf">check_passwords_match</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="c1"># This is a classmethod (it needs a plugin to not raise a warning in your IDE)</span>
+        <span class="c1"># What is the type of of values? of values[&#39;password1&#39;]?</span>
+        <span class="c1"># If you rename password1 field, validator will hardly be updated</span>
+        <span class="c1"># You also have to test yourself that values are provided</span>
+        <span class="n">pw1</span><span class="p">,</span> <span class="n">pw2</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;password1&quot;</span><span class="p">),</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;password2&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pw1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pw2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pw1</span> <span class="o">!=</span> <span class="n">pw2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;passwords do not match&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">values</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">LoginForm</span><span class="p">:</span>
+    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">password1</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">password2</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="nd">@apischema</span><span class="o">.</span><span class="n">validator</span>
+    <span class="k">def</span> <span class="nf">check_password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Typed checked, simpler, and not executed if password1 or password2</span>
+        <span class="c1"># are missing/invalid</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password1</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">password2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;passwords do not match&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="apischema-supports-pydantic"><em>apischema</em> supports <em>pydantic</em><a class="headerlink" href="#apischema-supports-pydantic" title="Permanent link">&para;</a></h3>
+<p>It's not a feature, is just the result of <a href="../examples/pydantic_support/">30 lines of code</a>.</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../benchmark/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Benchmark" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Benchmark
+            </div>
+          </div>
+        </a>
+      
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        
+          Made with
+          <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+            Material for MkDocs
+          </a>
+        
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.b1047164.min.js"></script>
+      
+    
+  </body>
+</html>
