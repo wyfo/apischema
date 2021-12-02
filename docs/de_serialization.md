@@ -19,7 +19,7 @@ Deserialization performs a validation of data, based on typing annotations and o
 
 ### Allowed types
 
-In some case, e.g. a MessagePack load with raw bytes inside, some data will have other type than
+In some case, e.g. MessagePack loading with raw bytes inside, some data will have other type than
 JSON primitive ones. These types can be allowed using `allowed_types` parameter; it must be collection of classes, or a predicate.
 
 Only non JSON primitive classes can be allowed, because *apischema* relies on a type check with `isinstance` to skip deserialization. That exclude `NewType` but also `TypeDict`. 
