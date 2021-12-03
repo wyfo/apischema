@@ -25,6 +25,7 @@ from typing import (
 from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
+from apischema.conversions.converters import ValueErrorCatcher
 from apischema.conversions.visitor import (
     Deserialization,
     DeserializationVisitor,
@@ -46,6 +47,7 @@ from apischema.deserialization.methods import (
     ConversionAlternative,
     ConversionMethod,
     ConversionUnionMethod,
+    ConversionWithValueErrorMethod,
     DeserializationMethod,
     Field,
     FlattenedField,
@@ -496,17 +498,25 @@ class DeserializationMethodVisitor(
         def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
             conv_alternatives = tuple(
                 ConversionAlternative(
-                    conv.converter,
+                    conv.converter.func
+                    if isinstance(conv.converter, ValueErrorCatcher)
+                    else conv.converter,
                     (fact if dynamic else fact.merge(constraints)).method,
+                    isinstance(conv.converter, ValueErrorCatcher),
                 )
                 for conv, fact in zip(conversion, conv_factories)
             )
-            if len(conv_alternatives) == 1:
-                return ConversionMethod(
+
+            if len(conv_alternatives) > 1:
+                return ConversionUnionMethod(conv_alternatives)
+            elif conv_alternatives[0].value_error:
+                return ConversionWithValueErrorMethod(
                     conv_alternatives[0].converter, conv_alternatives[0].method
                 )
             else:
-                return ConversionUnionMethod(conv_alternatives)
+                return ConversionMethod(
+                    conv_alternatives[0].converter, conv_alternatives[0].method
+                )
 
         return self._factory(factory, validation=not dynamic)
 
