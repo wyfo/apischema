@@ -18,7 +18,7 @@ def wrapper_value(wrapper: Wrapper[T]) -> T:
     return wrapper.value
 
 
-@mark.parametrize("schema_factory", [deserialization_schema, serialization_schema])
+@mark.parametrize("schema_factory", [deserialization_schema, serialization_schema])  # type: ignore
 @mark.parametrize("wrapper_type", [Wrapper, Wrapper[Any]])
 def test_json_schema_union_any(schema_factory, wrapper_type):
     assert schema_factory(Union[int, wrapper_type], with_schema=False) == {}
