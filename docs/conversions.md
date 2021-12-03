@@ -205,11 +205,9 @@ Lazy conversions can also be registered, but the deserialization target/serializ
 
 ## Conversion helpers
 
-
-
 ### String conversions
 
-A common pattern of conversion concerns classes that have a string constructor and a `__str__` method; standard types `uuid.UUID`, `pathlib.Path`, `ipaddress.IPv4Address` are concerned. Using `apischema.conversions.as_str` will register a string-deserializer from the constructor and a string-serializer from the `__str__` method. `ValueError` raised by the constructor is caught and converted to `ValidationError`.
+A common pattern of conversion concerns classes that have a string constructor and a `__str__` method, for example standard types `uuid.UUID`, `pathlib.Path`, or `ipaddress.IPv4Address`. Using `apischema.conversions.as_str` will register a string-deserializer from the constructor and a string-serializer from the `__str__` method. `ValueError` raised by the constructor is caught and converted to `ValidationError`.
 
 ```python
 {!as_str.py!}
@@ -217,6 +215,13 @@ A common pattern of conversion concerns classes that have a string constructor a
 
 !!! note
     Previously mentioned standard types are handled by *apischema* using `as_str`.
+
+### ValueErrorCatching
+
+Converters can be wrapped with `apischema.conversions.catch_value_error` in order to catch `ValueError` and reraise it as a `ValidationError`. It's notably used but `as_str` and other standard types.
+
+!!! note
+    This wrapper is in fact inlined in deserialization, so it has better performance than writing the *try-catch* in the code.
 
 ### Use `Enum` names
 

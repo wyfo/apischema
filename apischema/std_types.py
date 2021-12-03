@@ -25,7 +25,7 @@ from typing import Deque, List, TypeVar
 from uuid import UUID
 
 from apischema import deserializer, schema, serializer, type_name
-from apischema.conversions import Conversion, as_str
+from apischema.conversions import Conversion, as_str, catch_value_error
 
 T = TypeVar("T")
 
@@ -49,7 +49,7 @@ schema(encoding="base64")(bytes)
 deserializer(Conversion(deque, source=List[T], target=Deque[T]))
 serializer(Conversion(list, source=Deque[T], target=List[T]))
 if sys.version_info < (3, 7):
-    deserializer(Conversion(deque, source=List, target=deque))
+    deserializer(Conversion(catch_value_error(deque), source=List, target=deque))
     serializer(Conversion(list, source=deque, target=List))
 
 
@@ -57,14 +57,15 @@ if sys.version_info < (3, 7):
 
 if sys.version_info >= (3, 7):  # pragma: no cover
     for cls, format in [(date, "date"), (datetime, "date-time"), (time, "time")]:
-        deserializer(Conversion(cls.fromisoformat, source=str, target=cls))  # type: ignore
+        fromisoformat = catch_value_error(cls.fromisoformat)  # type: ignore
+        deserializer(Conversion(fromisoformat, source=str, target=cls))
         serializer(Conversion(cls.isoformat, source=cls, target=str))  # type: ignore
         type_name(graphql=cls.__name__.capitalize())(cls)
         schema(format=format)(cls)
 
 # ================== decimal ====================
 
-deserializer(Conversion(Decimal, source=float, target=Decimal))
+deserializer(Conversion(catch_value_error(Decimal), source=float, target=Decimal))
 serializer(Conversion(float, source=Decimal, target=float))
 type_name(None)(Decimal)
 
@@ -88,7 +89,7 @@ for cls in (PurePath, PurePosixPath, PureWindowsPath, Path, PosixPath, WindowsPa
 # =================== pattern ===================
 
 Pattern = type(re.compile(r""))
-deserializer(Conversion(re.compile, source=str, target=Pattern))
+deserializer(Conversion(catch_value_error(re.compile), source=str, target=Pattern))
 serializer(Conversion(operator.attrgetter("pattern"), source=Pattern, target=str))
 type_name(None)(Pattern)
 

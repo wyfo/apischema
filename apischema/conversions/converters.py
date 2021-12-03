@@ -1,9 +1,10 @@
 import sys
 from collections import defaultdict
 from enum import Enum
-from functools import partial
+from functools import partial, wraps
 from types import new_class
 from typing import (
+    Any,
     Callable,
     List,
     MutableMapping,
@@ -12,6 +13,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    cast,
     overload,
 )
 
@@ -178,17 +180,30 @@ def reset_serializer(cls: Type):
     _serializers.pop(cls, ...)
 
 
+Func = TypeVar("Func", bound=Callable)
+
+
+class ValueErrorCatcher:
+    def __init__(self, func: Callable[[Any], Any]):
+        wraps(func)(self)
+        self.func = func
+
+    def __call__(self, arg):
+        try:
+            return self.func(arg)
+        except ValueError as err:
+            raise ValidationError(str(err))
+
+
+def catch_value_error(func: Func) -> Func:
+    return cast(Func, ValueErrorCatcher(func))
+
+
 Cls = TypeVar("Cls", bound=type)
 
 
 def as_str(cls: Cls) -> Cls:
-    def wrapper(data):
-        try:
-            return cls(data)
-        except ValueError as err:
-            raise ValidationError([str(err)])
-
-    deserializer(Conversion(wrapper, source=str, target=cls))
+    deserializer(Conversion(catch_value_error(cls), source=str, target=cls))
     serializer(Conversion(str, source=cls))
     return cls
 

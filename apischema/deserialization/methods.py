@@ -655,9 +655,19 @@ class ConversionMethod(DeserializationMethod):
 
 
 @dataclass
+class ConversionWithValueErrorMethod(ConversionMethod):
+    def deserialize(self, data: Any) -> Any:
+        try:
+            return self.converter(self.method.deserialize(data))
+        except ValueError as err:
+            raise ValidationError(str(err))
+
+
+@dataclass
 class ConversionAlternative:
     converter: Converter
     method: DeserializationMethod
+    value_error: bool
 
 
 @dataclass
@@ -672,6 +682,10 @@ class ConversionUnionMethod(DeserializationMethod):
                 value = alternative.method.deserialize(data)
             except ValidationError as err:
                 error = merge_errors(error, err)
+            except ValueError as err:
+                if not alternative.value_error:
+                    raise
+                error = merge_errors(error, ValidationError(str(err)))
             else:
                 return alternative.converter(value)
         assert error is not None
