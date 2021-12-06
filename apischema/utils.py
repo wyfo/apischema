@@ -396,7 +396,6 @@ if sys.version_info < (3, 7):
         def __setitem__(self, key: K, value: V):
             self.wrapped[KeyWrapper(key)] = value
 
-
 else:
     M = TypeVar("M", bound=MutableMapping)
 
