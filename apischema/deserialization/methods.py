@@ -284,6 +284,8 @@ class LiteralMethod(DeserializationMethod):
                     except IndexError:
                         pass
             raise ValidationError([format_error(self.error, data)])
+        except TypeError:
+            raise bad_type(data, *self.types)
 
 
 @dataclass
