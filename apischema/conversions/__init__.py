@@ -39,6 +39,5 @@ if sys.version_info >= (3, 7):
             return identity
         raise AttributeError(f"module {__name__} has no attribute {name}")
 
-
 else:
     from apischema.utils import identity  # noqa: F401

@@ -48,6 +48,5 @@ if sys.version_info >= (3, 7):
                 return flatten
             raise AttributeError(f"module {__name__} has no attribute {name}")
 
-
 else:
     from .implem import flattened, merged  # noqa: F401

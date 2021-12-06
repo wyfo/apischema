@@ -50,7 +50,6 @@ if sys.version_info < (3, 8):
     def default_deserialization(tp):
         return _deserializers.get(tp)
 
-
 else:
     default_deserialization = _deserializers.get  # type: ignore
 
