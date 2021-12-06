@@ -277,6 +277,9 @@ class DeserializationMethodVisitor(
                             except IndexError:
                                 pass
                     raise ValidationError([error])
+                # Unions with Literal can have not hashable data
+                except TypeError:
+                    raise bad_type(data, *types)
 
             return method
 
