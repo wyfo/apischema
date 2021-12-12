@@ -39,7 +39,8 @@ from apischema.deserialization.methods import (
     AnyMethod,
     BoolMethod,
     CoercerMethod,
-    CollectionMethod,
+    ListMethod,
+    ListCheckOnlyMethod,
     ConstrainedFloatMethod,
     ConstrainedIntMethod,
     ConstrainedStrMethod,
@@ -55,12 +56,14 @@ from apischema.deserialization.methods import (
     IntMethod,
     LiteralMethod,
     MappingMethod,
+    MappingCheckOnly,
     NoneMethod,
     ObjectMethod,
     OptionalMethod,
     PatternField,
     RecMethod,
     SetMethod,
+    SimpleObjectMethod,
     StrMethod,
     SubprimitiveMethod,
     TupleMethod,
@@ -107,6 +110,34 @@ T = TypeVar("T")
 Factory = Callable[[Optional[Constraints], Sequence[Validator]], DeserializationMethod]
 
 JSON_TYPES = {dict, list, *PRIMITIVE_TYPES}
+# FloatMethod can require "copy", because it can cast integer to float
+CHECK_ONLY_METHODS = (
+    NoneMethod,
+    BoolMethod,
+    IntMethod,
+    StrMethod,
+    ListCheckOnlyMethod,
+    MappingCheckOnly,
+)
+
+
+def check_only(method: DeserializationMethod) -> bool:
+    return (
+        isinstance(method, CHECK_ONLY_METHODS)
+        or (
+            isinstance(method, OptionalMethod)
+            and method.coercer is None
+            and check_only(method.value_method)
+        )
+        or (
+            isinstance(method, UnionMethod) and all(map(check_only, method.alt_methods))
+        )
+        or (
+            isinstance(method, UnionByTypeMethod)
+            and all(map(check_only, method.method_by_cls.values()))
+        )
+        or (isinstance(method, TypeCheckMethod) and check_only(method.fallback))
+    )
 
 
 @dataclass(frozen=True)
@@ -190,14 +221,16 @@ class DeserializationMethodVisitor(
         coercer: Optional[Coercer],
         default_conversion: DefaultConversion,
         fall_back_on_default: bool,
+        no_copy: bool,
     ):
         super().__init__(default_conversion)
         self.additional_properties = additional_properties
         self.aliaser = aliaser
-        self.coercer = coercer
-        self.fall_back_on_default = fall_back_on_default
         self.allowed_types = allowed_types
         self.allow_type = as_predicate(allowed_types)
+        self.coercer = coercer
+        self.fall_back_on_default = fall_back_on_default
+        self.no_copy = no_copy
 
     def _recursive_result(
         self, lazy: Lazy[DeserializationMethodFactory]
@@ -219,6 +252,7 @@ class DeserializationMethodVisitor(
             self._conversion,
             self.default_conversion,
             self.fall_back_on_default,
+            self.no_copy,
         )
 
     def annotated(
@@ -266,16 +300,16 @@ class DeserializationMethodVisitor(
         value_factory = self.visit(value_type)
 
         def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
-            method_cls: Type[CollectionMethod]
+            value_method = value_factory.method
+            list_constraints = constraints_validators(constraints)[list]
+            method: DeserializationMethod
             if issubclass(cls, collections.abc.Set):
-                method_cls = SetMethod
-            elif isinstance(cls, tuple):
-                method_cls = VariadicTupleMethod
+                return SetMethod(list_constraints, value_method)
+            elif self.no_copy and check_only(value_method):
+                method = ListCheckOnlyMethod(list_constraints, value_method)
             else:
-                method_cls = CollectionMethod
-            return method_cls(
-                constraints_validators(constraints)[list], value_factory.method
-            )
+                method = ListMethod(list_constraints, value_method)
+            return VariadicTupleMethod(method) if isinstance(cls, tuple) else method
 
         return self._factory(factory, list)
 
@@ -302,11 +336,12 @@ class DeserializationMethodVisitor(
         key_factory, value_factory = self.visit(key_type), self.visit(value_type)
 
         def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
-            return MappingMethod(
-                constraints_validators(constraints)[dict],
-                key_factory.method,
-                value_factory.method,
-            )
+            key_method, value_method = key_factory.method, value_factory.method
+            dict_constraints = constraints_validators(constraints)[dict]
+            if self.no_copy and check_only(key_method) and check_only(value_method):
+                return MappingCheckOnly(dict_constraints, key_method, value_method)
+            else:
+                return MappingMethod(dict_constraints, key_method, value_method)
 
         return self._factory(factory, dict)
 
@@ -380,14 +415,39 @@ class DeserializationMethodVisitor(
                             fall_back_on_default,
                         )
                     )
+            object_constraints = constraints_validators(constraints)[dict]
+            all_alliases = set(alias_by_name.values())
+            if (
+                not object_constraints
+                and not flattened_fields
+                and not pattern_fields
+                and not additional_field
+                and not self.additional_properties
+                and not validators
+                and not (is_typed_dict(cls) and self.no_copy)
+                and all(
+                    check_only(f.method)
+                    and f.alias == f.name
+                    and not f.fall_back_on_default
+                    and not f.required_by
+                    for f in normal_fields
+                )
+            ):
+                return SimpleObjectMethod(
+                    cls,
+                    tuple(normal_fields),
+                    all_alliases,
+                    settings.errors.missing_property,
+                    settings.errors.unexpected_property,
+                )
             return ObjectMethod(
                 cls,
-                constraints_validators(constraints)[dict],
+                object_constraints,
                 tuple(normal_fields),
                 tuple(flattened_fields),
                 tuple(pattern_fields),
                 additional_field,
-                set(alias_by_name.values()),
+                all_alliases,
                 self.additional_properties,
                 tuple(validators),
                 tuple(
@@ -562,6 +622,7 @@ def deserialization_method_factory(
     conversion: Optional[AnyConversion],
     default_conversion: DefaultConversion,
     fall_back_on_default: bool,
+    no_copy: bool,
 ) -> DeserializationMethodFactory:
     return DeserializationMethodVisitor(
         additional_properties,
@@ -570,6 +631,7 @@ def deserialization_method_factory(
         coercer,
         default_conversion,
         fall_back_on_default,
+        no_copy,
     ).visit_with_conv(tp, conversion)
 
 
@@ -584,6 +646,7 @@ def deserialization_method(
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
+    no_copy: bool = None,
     schema: Schema = None,
     validators: Collection[Callable] = ()
 ) -> Callable[[Any], T]:
@@ -601,6 +664,7 @@ def deserialization_method(
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
+    no_copy: bool = None,
     schema: Schema = None,
     validators: Collection[Callable] = ()
 ) -> Callable[[Any], Any]:
@@ -617,6 +681,7 @@ def deserialization_method(
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
+    no_copy: bool = None,
     schema: Schema = None,
     validators: Collection[Callable] = ()
 ) -> Callable[[Any], Any]:
@@ -640,6 +705,7 @@ def deserialization_method(
             conversion,
             opt_or(default_conversion, settings.deserialization.default_conversion),
             opt_or(fall_back_on_default, settings.deserialization.fall_back_on_default),
+            opt_or(no_copy, settings.deserialization.no_copy),
         )
         .merge(get_constraints(schema), tuple(map(Validator, validators)))
         .method.deserialize
@@ -658,6 +724,7 @@ def deserialize(
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
+    no_copy: bool = None,
     schema: Schema = None,
     validators: Collection[Callable] = ()
 ) -> T:
@@ -676,6 +743,7 @@ def deserialize(
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
+    no_copy: bool = None,
     schema: Schema = None,
     validators: Collection[Callable] = ()
 ) -> Any:
@@ -700,6 +768,7 @@ def deserialize(
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
+    no_copy: bool = None,
     schema: Schema = None,
     validators: Collection[Callable] = ()
 ) -> Any:
@@ -712,6 +781,7 @@ def deserialize(
         conversion=conversion,
         default_conversion=default_conversion,
         fall_back_on_default=fall_back_on_default,
+        no_copy=no_copy,
         schema=schema,
         validators=validators,
     )(data)

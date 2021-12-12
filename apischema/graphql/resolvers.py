@@ -64,6 +64,25 @@ from apischema.validation.errors import ValidationError
 class PartialSerializationMethodVisitor(SerializationMethodVisitor):
     use_cache = False
 
+    def __init__(
+        self,
+        aliaser: Aliaser,
+        default_conversion: DefaultConversion,
+        pass_through_options: PassThroughOptions,
+    ):
+        super().__init__(
+            False,
+            aliaser,
+            False,
+            default_conversion,
+            False,
+            False,
+            False,
+            False,
+            True,
+            pass_through_options,
+        )
+
     @property
     def _factory(self) -> Callable[[type], SerializationMethod]:
         raise NotImplementedError
@@ -87,15 +106,7 @@ def partial_serialization_method_factory(
     @lru_cache()
     def factory(tp: AnyType) -> SerializationMethod:
         return PartialSerializationMethodVisitor(
-            additional_properties=False,
-            aliaser=aliaser,
-            check_type=False,
-            default_conversion=default_conversion,
-            exclude_defaults=False,
-            exclude_none=False,
-            exclude_unset=False,
-            fall_back_on_any=False,
-            pass_through_options=PassThroughOptions(),
+            aliaser, default_conversion, PassThroughOptions()
         ).visit_with_conv(tp, conversion)
 
     return factory

@@ -111,6 +111,7 @@ class settings(metaclass=MetaSettings):
         coercer: Coercer = coerce_
         default_conversion: DefaultConversion = default_deserialization
         fall_back_on_default: bool = False
+        no_copy: bool = True
 
     class serialization(metaclass=ResetCache):
         check_type: bool = False
@@ -119,4 +120,5 @@ class settings(metaclass=MetaSettings):
         exclude_defaults: bool = False
         exclude_none: bool = False
         exclude_unset: bool = True
+        no_copy: bool = True
         pass_through: PassThroughOptions = PassThroughOptions()

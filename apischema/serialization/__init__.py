@@ -41,6 +41,7 @@ from apischema.serialization.methods import (
     ClassMethod,
     ClassWithFieldsSetMethod,
     CollectionMethod,
+    CollectionCheckOnlyMethod,
     ComplexField,
     ConversionMethod,
     DictMethod,
@@ -52,6 +53,7 @@ from apischema.serialization.methods import (
     IntMethod,
     ListMethod,
     MappingMethod,
+    MappingCheckOnlyMethod,
     NoFallback,
     NoneMethod,
     OptionalMethod,
@@ -61,6 +63,7 @@ from apischema.serialization.methods import (
     SimpleField,
     StrMethod,
     TupleMethod,
+    TupleCheckOnlyMethod,
     TypeCheckIdentityMethod,
     TypeCheckMethod,
     TypedDictMethod,
@@ -142,6 +145,27 @@ class FieldToOrder:
     field: BaseField
 
 
+CHECK_ONLY_METHODS = (
+    IdentityMethod,
+    TypeCheckIdentityMethod,
+    CollectionCheckOnlyMethod,
+    MappingCheckOnlyMethod,
+)
+
+
+def check_only(method: SerializationMethod) -> bool:
+    """If the method transforms the data"""
+    return (
+        isinstance(method, CHECK_ONLY_METHODS)
+        or (isinstance(method, TypeCheckMethod) and check_only(method.method))
+        or (isinstance(method, OptionalMethod) and check_only(method.value_method))
+        or (
+            isinstance(method, UnionMethod)
+            and all(check_only(alt.method) for alt in method.alternatives)
+        )
+    )
+
+
 class SerializationMethodVisitor(
     RecursiveConversionsVisitor[Serialization, SerializationMethod],
     SerializationVisitor[SerializationMethod],
@@ -159,6 +183,7 @@ class SerializationMethodVisitor(
         exclude_none: bool,
         exclude_unset: bool,
         fall_back_on_any: bool,
+        no_copy: bool,
         pass_through_options: PassThroughOptions,
     ):
         super().__init__(default_conversion)
@@ -169,6 +194,7 @@ class SerializationMethodVisitor(
         self.exclude_none = exclude_none
         self.exclude_unset = exclude_unset
         self.fall_back_on_any = fall_back_on_any
+        self.no_copy = no_copy
         self.pass_through_options = pass_through_options
         self.pass_through_type = as_predicate(self.pass_through_options.types)
 
@@ -184,6 +210,7 @@ class SerializationMethodVisitor(
             self.exclude_none,
             self.exclude_unset,
             self.fall_back_on_any,
+            self.no_copy,
             self.pass_through_options,
         )
 
@@ -207,7 +234,7 @@ class SerializationMethodVisitor(
         elif method is IDENTITY_METHOD:
             return TypeCheckIdentityMethod(expected_class(tp), self._any_fallback(tp))
         else:
-            return TypeCheckMethod(expected_class(tp), self._any_fallback(tp), method)
+            return TypeCheckMethod(method, expected_class(tp), self._any_fallback(tp))
 
     def collection(
         self, cls: Type[Collection], value_type: AnyType
@@ -215,20 +242,20 @@ class SerializationMethodVisitor(
         value_method = self.visit(value_type)
 
         method: SerializationMethod
-        if value_method is not IDENTITY_METHOD:
-            method = CollectionMethod(value_method)
-        elif (
-            issubclass(cls, list)
+        passthrough = (
+            (self.no_copy and issubclass(cls, list))
             or (self.pass_through_options.tuple and issubclass(cls, tuple))
             or (
                 self.pass_through_options.collections
                 and not issubclass(cls, collections.abc.Set)
             )
-        ):
-            method = IDENTITY_METHOD
+        )
+        if value_method is IDENTITY_METHOD:
+            method = IDENTITY_METHOD if passthrough else METHODS[list]
+        elif passthrough and check_only(value_method):
+            method = CollectionCheckOnlyMethod(value_method)
         else:
-            method = METHODS[list]
-
+            method = CollectionMethod(value_method)
         return self._wrap(cls, method)
 
     def enum(self, cls: Type[Enum]) -> SerializationMethod:
@@ -260,13 +287,15 @@ class SerializationMethodVisitor(
     ) -> SerializationMethod:
         key_method, value_method = self.visit(key_type), self.visit(value_type)
         method: SerializationMethod
-        if key_method is not IDENTITY_METHOD or value_method is not IDENTITY_METHOD:
-            method = MappingMethod(key_method, value_method)
-        elif self.pass_through_options.collections or issubclass(cls, dict):
-            method = IDENTITY_METHOD
+        passthrough = (
+            issubclass(cls, dict) and self.no_copy
+        ) or self.pass_through_options.collections
+        if key_method is IDENTITY_METHOD and value_method is IDENTITY_METHOD:
+            method = IDENTITY_METHOD if passthrough else METHODS[dict]
+        elif passthrough and check_only(key_method) and check_only(value_method):
+            method = MappingCheckOnlyMethod(key_method, value_method)
         else:
-            method = METHODS[dict]
-
+            method = MappingMethod(key_method, value_method)
         return self._wrap(cls, method)
 
     def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> SerializationMethod:
@@ -347,13 +376,12 @@ class SerializationMethodVisitor(
 
     def tuple(self, types: Sequence[AnyType]) -> SerializationMethod:
         elt_methods = tuple(map(self.visit, types))
-        method: SerializationMethod
-        if self.pass_through_options.tuple and all(
-            method is IDENTITY_METHOD for method in elt_methods
-        ):
-            method = IDENTITY_METHOD
-        else:
-            method = TupleMethod(elt_methods)
+        method: SerializationMethod = TupleMethod(elt_methods)
+        if self.pass_through_options.tuple:
+            if all(m is IDENTITY_METHOD for m in elt_methods):
+                method = IDENTITY_METHOD
+            elif all(map(check_only, elt_methods)):
+                method = TupleCheckOnlyMethod(elt_methods)
         if self.check_type:
             method = CheckedTupleMethod(len(types), method)
         return self._wrap(tuple, method)
@@ -433,6 +461,7 @@ def serialization_method_factory(
     exclude_none: bool,
     exclude_unset: bool,
     fall_back_on_any: bool,
+    no_copy: bool,
     pass_through: PassThroughOptions,
 ) -> SerializationMethodFactory:
     @lru_cache()
@@ -446,6 +475,7 @@ def serialization_method_factory(
             exclude_none,
             exclude_unset,
             fall_back_on_any,
+            no_copy,
             pass_through,
         ).visit_with_conv(tp, conversion)
 
@@ -464,6 +494,7 @@ def serialization_method(
     exclude_none: bool = None,
     exclude_unset: bool = None,
     fall_back_on_any: bool = None,
+    no_copy: bool = None,
     pass_through: PassThroughOptions = None,
 ) -> Callable[[Any], Any]:
     from apischema import settings
@@ -478,6 +509,7 @@ def serialization_method(
         opt_or(exclude_none, settings.serialization.exclude_none),
         opt_or(exclude_unset, settings.serialization.exclude_unset),
         opt_or(fall_back_on_any, settings.serialization.fall_back_on_any),
+        opt_or(no_copy, settings.serialization.no_copy),
         opt_or(pass_through, settings.serialization.pass_through),
     )(type).serialize
 
@@ -499,6 +531,7 @@ def serialize(
     exclude_none: bool = None,
     exclude_unset: bool = None,
     fall_back_on_any: bool = None,
+    no_copy: bool = None,
     pass_through: PassThroughOptions = None,
 ) -> Any:
     ...
@@ -517,6 +550,7 @@ def serialize(
     exclude_none: bool = None,
     exclude_unset: bool = None,
     fall_back_on_any: bool = True,
+    no_copy: bool = None,
     pass_through: PassThroughOptions = None,
 ) -> Any:
     ...
@@ -536,6 +570,7 @@ def serialize(
     exclude_none: bool = None,
     exclude_unset: bool = None,
     fall_back_on_any: bool = None,
+    no_copy: bool = None,
     pass_through: PassThroughOptions = None,
 ) -> Any:
     # Handle overloaded signature without type
@@ -554,6 +589,7 @@ def serialize(
         exclude_none=exclude_none,
         exclude_unset=exclude_unset,
         fall_back_on_any=fall_back_on_any,
+        no_copy=no_copy,
         pass_through=pass_through,
     )(obj)
 
@@ -579,6 +615,7 @@ def serialization_default(
         opt_or(exclude_none, settings.serialization.exclude_none),
         opt_or(exclude_unset, settings.serialization.exclude_unset),
         False,
+        True,
         PassThroughOptions(any=True),
     )
 
