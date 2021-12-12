@@ -100,8 +100,10 @@ class TypeCheckIdentityMethod(SerializationMethod):
 
 
 @dataclass
-class TypeCheckMethod(TypeCheckIdentityMethod):
+class TypeCheckMethod(SerializationMethod):
     method: SerializationMethod
+    expected: AnyType  # `type` would require exact match (i.e. no EnumMeta)
+    fallback: Fallback
 
     def serialize(self, obj: Any) -> Any:
         return (
@@ -109,6 +111,16 @@ class TypeCheckMethod(TypeCheckIdentityMethod):
             if isinstance(obj, self.expected)
             else self.fallback.fall_back(obj)
         )
+
+
+@dataclass
+class CollectionCheckOnlyMethod(SerializationMethod):
+    value_method: SerializationMethod
+
+    def serialize(self, obj: Any) -> Any:
+        for elt in obj:
+            self.value_method.serialize(elt)
+        return obj
 
 
 @dataclass
@@ -130,6 +142,18 @@ class EnumMethod(SerializationMethod):
 
     def serialize(self, obj: Any) -> Any:
         return self.any_method.serialize(obj.value)
+
+
+@dataclass
+class MappingCheckOnlyMethod(SerializationMethod):
+    key_method: SerializationMethod
+    value_method: SerializationMethod
+
+    def serialize(self, obj: Any) -> Any:
+        for key, value in obj.items():
+            self.key_method.serialize(key)
+            self.value_method.serialize(value)
+        return obj
 
 
 @dataclass
@@ -288,14 +312,25 @@ class TypedDictWithAdditionalMethod(TypedDictMethod):
 
 
 @dataclass
+class TupleCheckOnlyMethod(SerializationMethod):
+    elt_methods: Tuple[SerializationMethod, ...]
+
+    def serialize(self, obj: tuple) -> Any:
+        for i in range(len(self.elt_methods)):
+            method: SerializationMethod = self.elt_methods[i]
+            method.serialize(obj[i])
+        return obj
+
+
+@dataclass
 class TupleMethod(SerializationMethod):
     elt_methods: Tuple[SerializationMethod, ...]
 
     def serialize(self, obj: tuple) -> Any:
-        elts: list = []
+        elts: list = [None] * len(self.elt_methods)
         for i in range(len(self.elt_methods)):
             method: SerializationMethod = self.elt_methods[i]
-            elts.append(method.serialize(obj[i]))
+            elts[i] = method.serialize(obj[i])
         return elts
 
 

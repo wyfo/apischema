@@ -14,15 +14,14 @@ def validate_checksum(b: bytes):
 valid_bytes = b"toto" + (sum(b"toto") % 255).to_bytes(1, byteorder=sys.byteorder)
 invalid_bytes = b"toto" + (sum(b"toto") % 255 + 42).to_bytes(1, byteorder=sys.byteorder)
 
-checked_bytes_method = deserialization_method(
-    bytes, allowed_types={bytes}, validators=[validate_checksum]
-)
 
-
-def test_allowed_types_upper_validators():
-    assert checked_bytes_method(valid_bytes) is valid_bytes
+def test_allowed_types_run_upper_validators():
+    method = deserialization_method(
+        bytes, allowed_types={bytes}, validators=[validate_checksum]
+    )
+    assert method(valid_bytes) is valid_bytes
     with raises(ValidationError):
-        checked_bytes_method(invalid_bytes)
+        method(invalid_bytes)
 
 
 @dataclass
@@ -35,8 +34,10 @@ class MyClass:
             raise ValidationError("ZERO!")
 
 
-def test_allowed_types_type_validators():
+def test_allowed_types_doesnt_run_type_validators():
     obj = MyClass(0)
-    assert deserialize(MyClass, obj, allowed_types={MyClass}) is obj
+    method = deserialization_method(MyClass, allowed_types={MyClass})
+    assert method(obj) is obj
     with raises(ValidationError):
+        method({"fields": 0})
         deserialize(MyClass, {"field": 0}, allowed_types={MyClass})

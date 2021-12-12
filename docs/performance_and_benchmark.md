@@ -18,16 +18,26 @@ However, if `lru_cache` is fast, using the methods directly is faster, so *apisc
 !!! warning
     Methods computed before settings modification will not be updated and use the old settings. Be careful to set your settings first.
 
-## Serialization passthrough
+## Avoid unnecessary copies
 
-!!! warning
-    This feature has been released on a provisional basis. It has also been partially rolled back (it was initially covering dataclasses) to simplify the code for the next version; in fact the feature will then maybe not be as much useful, as *apischema* performance will normally be improved significantly enough to offer its own JSON dump implementation.
+As an example, when a list of integers is deserialized, `json.load` already return a list of integers. The loaded data can thus be "reused", and the deserialization just become a validation step. The same principle applies to serialization.
+
+It's controlled by the settings `apischema.settings.deserialization.no_copy`/`apischema.settings.serialization.no_copy`, or `no_copy` parameter of `deserialize`/`serialize` methods. Default behavior is to avoid these unnecessary copies, i.e. `no_copy=False`.
+
+```python
+{!no_copy.py!}
+```
+
+!!! note
+    Object deserialization is also optimized following 
+
+## Serialization passthrough
 
 JSON serialization libraries expect primitive data types (`dict`/`list`/`str`/etc.). A non-negligible part of objects to be serialized are primitive.
 
 When [type checking](#type-checking) is disabled (this is default), objects annotated with primitive types doesn't need to be transformed or checked; *apischema* can simply "pass through" them, and it will result into an identity serialization method, just returning its argument.
 
-Container types like `list` or `dict` are passed through only when the contained types are passed through too.
+Container types like `list` or `dict` are passed through only when the contained types are passed through too (and when `no_copy=True`)
 
 ```python
 {!pass_through_primitives.py!}
@@ -78,15 +88,6 @@ Even if `tuple` is often supported by JSON serializers, if this options is not e
 #### `types` — pass through arbitrary types
 
 Either a collection of types, or a predicate to determine if type has to be passed through.
-
-### Passing through is not always faster
-
-*apischema* is quite optimized and can perform better than using `default` fallback, as shown in the following example:
-
-```python
-{!vs_default.py!}
-```
-That's why passthrough optimization should be used wisely.
 
 ## Binary compilation using Cython
 

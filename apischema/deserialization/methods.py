@@ -4,6 +4,8 @@ from typing import (
     Any,
     Callable,
     Dict,
+    List,
+    Mapping,
     Optional,
     Pattern,
     Sequence,
@@ -18,7 +20,12 @@ from apischema.deserialization.coercion import Coercer
 from apischema.json_schema.types import bad_type
 from apischema.types import AnyType, NoneType
 from apischema.utils import Lazy
-from apischema.validation.errors import ValidationError, merge_errors
+from apischema.validation.errors import (
+    ErrorKey,
+    ErrorMsg,
+    ValidationError,
+    merge_errors,
+)
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validators import Validator, validate
 
@@ -172,6 +179,18 @@ def validate_constraints(
     return data
 
 
+def set_child_error(
+    errors: Optional[Dict[ErrorKey, ValidationError]],
+    key: ErrorKey,
+    error: ValidationError,
+):
+    if errors is None:
+        return {key: error}
+    else:
+        errors[key] = error
+        return errors
+
+
 class DeserializationMethod:
     def deserialize(self, data: Any) -> Any:
         raise NotImplementedError
@@ -235,7 +254,46 @@ class AnyMethod(DeserializationMethod):
 
 
 @dataclass
-class CollectionMethod(DeserializationMethod):
+class ListCheckOnlyMethod(DeserializationMethod):
+    constraints: Tuple[Constraint, ...]
+    value_method: DeserializationMethod
+
+    def deserialize(self, data: Any) -> Any:
+        if not isinstance(data, list):
+            raise bad_type(data, list)
+        data2: list = data
+        elt_errors = None
+        for i, elt in enumerate(data2):
+            try:
+                self.value_method.deserialize(elt)
+            except ValidationError as err:
+                elt_errors = set_child_error(elt_errors, i, err)
+        validate_constraints(data2, self.constraints, elt_errors)
+        return data2
+
+
+@dataclass
+class ListMethod(DeserializationMethod):
+    constraints: Tuple[Constraint, ...]
+    value_method: DeserializationMethod
+
+    def deserialize(self, data: Any) -> Any:
+        if not isinstance(data, list):
+            raise bad_type(data, list)
+        data2: list = data
+        elt_errors = None
+        values: list = [None] * len(data2)
+        for i, elt in enumerate(data2):
+            try:
+                values[i] = self.value_method.deserialize(elt)
+            except ValidationError as err:
+                elt_errors = set_child_error(elt_errors, i, err)
+        validate_constraints(data2, self.constraints, elt_errors)
+        return values
+
+
+@dataclass
+class SetMethod(DeserializationMethod):
     constraints: Tuple[Constraint, ...]
     value_method: DeserializationMethod
 
@@ -244,26 +302,22 @@ class CollectionMethod(DeserializationMethod):
             raise bad_type(data, list)
         data2: list = data
         elt_errors: dict = {}
-        values: list = [None] * len(data2)
+        values: set = set()
         for i, elt in enumerate(data2):
             try:
-                values[i] = self.value_method.deserialize(elt)
+                values.add(self.value_method.deserialize(elt))
             except ValidationError as err:
-                elt_errors[i] = err
+                elt_errors = set_child_error(elt_errors, i, err)
         validate_constraints(data2, self.constraints, elt_errors)
         return values
 
 
 @dataclass
-class SetMethod(CollectionMethod):
-    def deserialize(self, data: Any) -> Any:
-        return set(super().deserialize(data))
+class VariadicTupleMethod(DeserializationMethod):
+    method: DeserializationMethod
 
-
-@dataclass
-class VariadicTupleMethod(CollectionMethod):
     def deserialize(self, data: Any) -> Any:
-        return tuple(super().deserialize(data))
+        return tuple(self.method.deserialize(data))
 
 
 @dataclass
@@ -289,6 +343,28 @@ class LiteralMethod(DeserializationMethod):
 
 
 @dataclass
+class MappingCheckOnly(DeserializationMethod):
+    constraints: Tuple[Constraint, ...]
+    key_method: DeserializationMethod
+    value_method: DeserializationMethod
+
+    def deserialize(self, data: Any) -> Any:
+        if not isinstance(data, dict):
+            raise bad_type(data, dict)
+        data2: dict = data
+        item_errors = None
+        for key, value in data2.items():
+            assert isinstance(key, str)
+            try:
+                self.key_method.deserialize(key)
+                self.value_method.deserialize(value)
+            except ValidationError as err:
+                item_errors = set_child_error(item_errors, key, err)
+        validate_constraints(data2, self.constraints, item_errors)
+        return data2
+
+
+@dataclass
 class MappingMethod(DeserializationMethod):
     constraints: Tuple[Constraint, ...]
     key_method: DeserializationMethod
@@ -298,7 +374,7 @@ class MappingMethod(DeserializationMethod):
         if not isinstance(data, dict):
             raise bad_type(data, dict)
         data2: dict = data
-        item_errors: dict = {}
+        item_errors = None
         items: dict = {}
         for key, value in data2.items():
             assert isinstance(key, str)
@@ -307,7 +383,7 @@ class MappingMethod(DeserializationMethod):
                     value
                 )
             except ValidationError as err:
-                item_errors[key] = err
+                item_errors = set_child_error(item_errors, key, err)
         validate_constraints(data2, self.constraints, item_errors)
         return items
 
@@ -346,6 +422,64 @@ class AdditionalField:
 
 
 @dataclass
+class SimpleObjectMethod(DeserializationMethod):
+    cls: Any  # cython doesn't handle type subclasses properly
+    fields: Tuple[Field, ...]
+    all_aliases: AbstractSet[str]
+    missing: str
+    unexpected: str
+
+    def deserialize(self, data: Any) -> Any:
+        if not isinstance(data, dict):
+            raise bad_type(data, dict)
+        data2: dict = data
+        fields_count = 0
+        field_errors = None
+        for i in range(len(self.fields)):
+            field: Field = self.fields[i]
+            if field.alias in data2:
+                fields_count += 1
+                try:
+                    field.method.deserialize(data2[field.alias])
+                except ValidationError as err:
+                    if field.required or not field.fall_back_on_default:
+                        field_errors = set_child_error(field_errors, field.alias, err)
+            elif field.required:
+                field_errors = set_child_error(
+                    field_errors, field.alias, ValidationError([self.missing])
+                )
+        if len(data2) != fields_count:
+            for key in data2.keys() - self.all_aliases:
+                field_errors = set_child_error(
+                    field_errors, key, ValidationError([self.unexpected])
+                )
+        if field_errors:
+            raise ValidationError([], field_errors)
+        return self.cls(**data2)
+
+
+def extend_errors(
+    errors: Optional[List[ErrorMsg]], messages: Sequence[ErrorMsg]
+) -> List[ErrorMsg]:
+    if errors is None:
+        return list(messages)
+    else:
+        errors.extend(messages)
+        return errors
+
+
+def update_children_errors(
+    errors: Optional[Dict[ErrorKey, ValidationError]],
+    children: Mapping[ErrorKey, ValidationError],
+) -> Dict[ErrorKey, ValidationError]:
+    if errors is None:
+        return dict(children)
+    else:
+        errors.update(children)
+        return errors
+
+
+@dataclass
 class ObjectMethod(DeserializationMethod):
     cls: Any  # cython doesn't handle type subclasses properly
     constraints: Tuple[Constraint, ...]
@@ -376,43 +510,47 @@ class ObjectMethod(DeserializationMethod):
         data2: dict = data
         values: dict = {}
         fields_count = 0
-        errors: list = []
+        errors = None
         try:
             validate_constraints(data, self.constraints, None)
         except ValidationError as err:
-            errors.extend(err.messages)
-        field_errors: dict = {}
+            errors = list(err.messages)
+        field_errors = None
         for i in range(len(self.fields)):
             field: Field = self.fields[i]
             if field.required:
                 try:
-                    value = data2[field.alias]
+                    value: object = data2[field.alias]
                 except KeyError:
-                    field_errors[field.alias] = ValidationError([self.missing])
+                    field_errors = set_child_error(
+                        field_errors, field.alias, ValidationError([self.missing])
+                    )
                 else:
                     fields_count += 1
                     try:
                         values[field.name] = field.method.deserialize(value)
                     except ValidationError as err:
-                        field_errors[field.alias] = err
+                        field_errors = set_child_error(field_errors, field.alias, err)
             elif field.alias in data2:
                 fields_count += 1
                 try:
                     values[field.name] = field.method.deserialize(data2[field.alias])
                 except ValidationError as err:
                     if not field.fall_back_on_default:
-                        field_errors[field.alias] = err
+                        field_errors = set_child_error(field_errors, field.alias, err)
             elif field.required_by is not None and not field.required_by.isdisjoint(
                 data2
             ):
-                requiring = sorted(field.required_by & data2.keys())
-                msg = self.missing + f" (required by {requiring})"
-                field_errors[field.alias] = ValidationError([msg])
+                requiring: list = sorted(field.required_by & data2.keys())
+                msg: str = self.missing + f" (required by {requiring})"
+                field_errors = set_child_error(
+                    field_errors, field.alias, ValidationError([msg])
+                )
         if self.aggregate_fields:
             remain = data2.keys() - self.all_aliases
             for i in range(len(self.flattened_fields)):
                 flattened_field: FlattenedField = self.flattened_fields[i]
-                flattened = {
+                flattened: dict = {
                     alias: data2[alias]
                     for alias in flattened_field.aliases
                     if alias in data2
@@ -424,11 +562,13 @@ class ObjectMethod(DeserializationMethod):
                     )
                 except ValidationError as err:
                     if not flattened_field.fall_back_on_default:
-                        errors.extend(err.messages)
-                        field_errors.update(err.children)
+                        errors = extend_errors(errors, err.messages)
+                        field_errors = update_children_errors(
+                            field_errors, err.children
+                        )
             for i in range(len(self.pattern_fields)):
                 pattern_field: PatternField = self.pattern_fields[i]
-                matched = {
+                matched: dict = {
                     key: data2[key]
                     for key in remain
                     if pattern_field.pattern.match(key)
@@ -440,62 +580,71 @@ class ObjectMethod(DeserializationMethod):
                     )
                 except ValidationError as err:
                     if not pattern_field.fall_back_on_default:
-                        errors.extend(err.messages)
-                        field_errors.update(err.children)
+                        errors = extend_errors(errors, err.messages)
+                        field_errors = update_children_errors(
+                            field_errors, err.children
+                        )
             if self.additional_field is not None:
-                additional = {key: data2[key] for key in remain}
+                additional: dict = {key: data2[key] for key in remain}
                 try:
                     values[
                         self.additional_field.name
                     ] = self.additional_field.method.deserialize(additional)
                 except ValidationError as err:
                     if not self.additional_field.fall_back_on_default:
-                        errors.extend(err.messages)
-                        field_errors.update(err.children)
+                        errors = extend_errors(errors, err.messages)
+                        field_errors = update_children_errors(
+                            field_errors, err.children
+                        )
             elif remain and not self.additional_properties:
                 for key in remain:
-                    field_errors[key] = ValidationError([self.unexpected])
+                    field_errors = set_child_error(
+                        field_errors, key, ValidationError([self.unexpected])
+                    )
         elif not self.additional_properties and len(data2) != fields_count:
             for key in data2.keys() - self.all_aliases:
-                field_errors[key] = ValidationError([self.unexpected])
-        validators2: list = []
-        init: dict = {}
+                field_errors = set_child_error(
+                    field_errors, key, ValidationError([self.unexpected])
+                )
         if self.validators:
-            for name, default_factory in self.init_defaults:
-                if name in values:
-                    init[name] = values[name]
-                elif name not in field_errors:
-                    assert default_factory is not None
-                    init[name] = default_factory()
+            init = None
+            if self.init_defaults:
+                init = {}
+                for name, default_factory in self.init_defaults:
+                    if name in values:
+                        init[name] = values[name]
+                    elif not field_errors or name not in field_errors:
+                        assert default_factory is not None
+                        init[name] = default_factory()
+            aliases = values.keys()
             # Don't keep validators when all dependencies are default
-            validators2 = [
-                v
-                for v in self.validators
-                if not v.dependencies.isdisjoint(values.keys())
+            validators = [
+                v for v in self.validators if not v.dependencies.isdisjoint(aliases)
             ]
             if field_errors or errors:
-                error = ValidationError(errors, field_errors)
-                invalid_fields = field_errors.keys() | self.post_init_modified
+                error = ValidationError(errors or [], field_errors or {})
+                invalid_fields = self.post_init_modified
+                if field_errors:
+                    invalid_fields |= field_errors.keys()
                 try:
+                    valid_validators = [
+                        v
+                        for v in validators
+                        if v.dependencies.isdisjoint(invalid_fields)
+                    ]
                     validate(
                         ValidatorMock(self.cls, values),
-                        [
-                            v
-                            for v in validators2
-                            if v.dependencies.isdisjoint(invalid_fields)
-                        ],
+                        valid_validators,
                         init,
                         aliaser=self.aliaser,
                     )
                 except ValidationError as err:
                     error = merge_errors(error, err)
                 raise error
+            return validate(self.cls(**values), validators, init, aliaser=self.aliaser)
         elif field_errors or errors:
-            raise ValidationError(errors, field_errors)
-        res = self.cls(**values)
-        if self.validators:
-            validate(res, validators2, init, aliaser=self.aliaser)
-        return res
+            raise ValidationError(errors or [], field_errors or {})
+        return self.cls(**values)
 
 
 class NoneMethod(DeserializationMethod):
