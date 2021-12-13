@@ -4,7 +4,11 @@ on:
   push:
     branches:
       - master
-  pull_request: {}
+    paths:
+      - "**.py"
+  pull_request:
+    paths:
+      - "**.py"
 
 jobs:
   check:

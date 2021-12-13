@@ -6,6 +6,9 @@ on:
       - master
     tags:
       - v[0-9]*.*.*
+    paths:
+      - examples/**
+      - docs/**
 
 jobs:
   publish_doc:
