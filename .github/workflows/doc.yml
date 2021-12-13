@@ -1,0 +1,46 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - v[0-9]*.*.*
+    paths:
+      - examples/**
+      - docs/**
+
+jobs:
+  publish_doc:
+    name: Publish documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: pip
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v2
+      - name: Install requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r docs/requirements.txt
+      - name: Setup git
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git fetch origin gh-pages --depth=1
+      - name: Publish documentation
+        run: |
+          export version=$(python setup.py --version | cut -d. -f-2)
+          export revision=$(python setup.py --version | cut -d. -f3)
+          if [[ $GITHUB_REF != refs/tags/* ]]; then
+            mike deploy $version dev -t "$version (dev)" -u
+          elif [[ $revision == 0 ]]; then
+            mike retitle latest "$(mike list latest -j | jq .version -r)"
+            mike deploy $version latest -t "$version (latest)" -u
+          else
+            mike deploy $version
+          fi
