@@ -18,9 +18,9 @@ setup(
     python_requires=">=3.6",
     install_requires=["dataclasses==0.7;python_version<'3.7'"],
     extras_require={
-        "graphql": ["graphql-core>=3.1.2"],
+        "graphql": ["graphql-core>=3.0.0"],
         "examples": [
-            "graphql-core>=3.1.2",
+            "graphql-core>=3.0.0",
             "attrs",
             "docstring_parser",
             "bson",
