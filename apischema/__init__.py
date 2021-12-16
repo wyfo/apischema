@@ -61,8 +61,9 @@ from .visitor import Unsupported
 
 try:
     from . import graphql  # noqa: F401
-
-    __all__.append("graphql")
+    
+    if not graphql.__version__.startswith("2"):
+        __all__.append("graphql")
 except ImportError:
     pass
 
