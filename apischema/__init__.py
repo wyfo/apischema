@@ -60,9 +60,18 @@ from .validation import ValidationError, validator
 from .visitor import Unsupported
 
 try:
-    from . import graphql  # noqa: F401
+    import graphql as _gql
 
-    __all__.append("graphql")
+    if _gql.__version__.startswith("2."):
+        warnings.warn(
+            f"graphql-core version {_gql.__version__} is incompatible with apischema;\n"
+            "GraphQL schema generation is thus not available."
+        )
+    else:
+        from . import graphql  # noqa: F401
+
+        __all__.append("graphql")
+    del _gql
 except ImportError:
     pass
 
