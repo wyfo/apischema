@@ -64,7 +64,7 @@ try:
     
     if not graphql.__version__.startswith("2"):
         __all__.append("graphql")
-except ImportError:
+except (ImportError, AttributeError):
     pass
 
 
