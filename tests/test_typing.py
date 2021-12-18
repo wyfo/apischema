@@ -3,7 +3,12 @@ from unittest.mock import Mock
 
 from pytest import mark
 
-from apischema.typing import _TypedDictMeta, generic_mro, get_type_hints2, required_keys
+from apischema.typing import (
+    _TypedDictMeta,
+    generic_mro,
+    required_keys,
+    resolve_type_hints,
+)
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -44,8 +49,8 @@ def test_generic_mro(tp, result, _):
 
 
 @mark.parametrize("tp, _, result", test_cases)
-def test_get_type_hints2(tp, _, result):
-    assert get_type_hints2(tp) == result
+def test_resolve_type_hints(tp, _, result):
+    assert resolve_type_hints(tp) == result
 
 
 def test_required_keys():

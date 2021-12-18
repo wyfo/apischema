@@ -31,21 +31,17 @@ from apischema.typing import (
     get_args,
     get_origin,
     get_type_hints,
-    get_type_hints2,
     is_annotated,
     is_literal,
     is_named_tuple,
     is_type_var,
     is_typed_dict,
     required_keys,
+    resolve_type_hints,
 )
 from apischema.utils import PREFIX, get_origin_or_type, has_type_vars, is_dataclass
 
 TUPLE_TYPE = get_origin(Tuple[Any])
-
-
-def type_hints_cache(obj) -> Mapping[str, AnyType]:
-    return get_type_hints2(obj)
 
 
 def dataclass_types_and_fields(
@@ -55,7 +51,7 @@ def dataclass_types_and_fields(
 
     cls = get_origin_or_type(tp)
     assert is_dataclass(cls)
-    types = get_type_hints2(tp)
+    types = resolve_type_hints(tp)
     fields, init_fields = [], []
     for field in getattr(cls, _FIELDS).values():
         assert isinstance(field, Field)
@@ -188,7 +184,7 @@ class Visitor(Generic[Result]):
             # NamedTuple
             if is_named_tuple(origin):
                 if hasattr(origin, "__annotations__"):
-                    types = type_hints_cache(origin)
+                    types = resolve_type_hints(origin)
                 elif hasattr(origin, "__field_types"):  # pragma: no cover
                     types = origin.__field_types  # type: ignore
                 else:  # pragma: no cover
@@ -200,7 +196,7 @@ class Visitor(Generic[Result]):
             return self.literal(origin.__values__)  # type: ignore
         if is_typed_dict(origin):
             return self.typed_dict(
-                origin, type_hints_cache(origin), required_keys(origin)
+                origin, resolve_type_hints(origin), required_keys(origin)
             )
         if is_type_var(origin):
             if origin.__constraints__:
