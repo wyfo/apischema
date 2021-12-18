@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - v[0-9]*.*
     paths:
       - "**.py"
   pull_request:
