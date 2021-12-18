@@ -8,13 +8,13 @@ from typing import (  # type: ignore
     Any,
     Callable,
     Collection,
+    Dict,
     Generic,
     Set,
     Tuple,
     Type,
     TypeVar,
     Union,
-    _eval_type,
 )
 
 
@@ -154,44 +154,32 @@ def generic_mro(tp):
     return tuple(result.get(sub_cls, sub_cls) for sub_cls in cls.__mro__)
 
 
-def _class_annotations(cls, globalns, localns):
-    hints = {}
-    if globalns is None:
-        base_globals = sys.modules[cls.__module__].__dict__
-    else:
-        base_globals = globalns
-    for name, value in cls.__dict__.get("__annotations__", {}).items():
-        if value is None:
-            value = type(None)
-        if isinstance(value, str):
-            value = ForwardRef(value, is_argument=False)
-        hints[name] = _eval_type(value, base_globals, localns)
-    return hints
+def resolve_type_hints(obj: Any) -> Dict[str, Any]:
+    """Wrap get_type_hints to resolve type vars in case of generic inheritance.
 
-
-def get_type_hints2(obj, globalns=None, localns=None):  # type: ignore
-    if isinstance(obj, type) or isinstance(get_origin(obj), type):
-        hints = {}
+    `obj` can also be a parametrized generic class."""
+    origin_or_obj = get_origin(obj) or obj
+    hints = get_type_hints(origin_or_obj, include_extras=True)
+    if isinstance(origin_or_obj, type):
         for base in reversed(generic_mro(obj)):
-            origin = get_origin(base)
-            if hasattr(origin, "__orig_bases__"):
-                parameters = _collect_type_vars(origin.__orig_bases__)
-                substitution = dict(zip(parameters, get_args(base)))
-                annotations = _class_annotations(get_origin(base), globalns, localns)
-                for name, tp in annotations.items():
-                    if isinstance(tp, TypeVar):
-                        hints[name] = substitution.get(tp, tp)
-                    elif getattr(tp, "__parameters__", ()):
-                        hints[name] = tp[
-                            tuple(substitution.get(p, p) for p in tp.__parameters__)
+            base_origin = get_origin(base)
+            if base_origin is not None and getattr(base_origin, "__parameters__", ()):
+                substitution = dict(zip(base_origin.__parameters__, get_args(base)))
+                base_annotations = getattr(base_origin, "__dict__", {}).get(
+                    "__annotations__", {}
+                )
+                for name, hint in get_type_hints(base_origin).items():
+                    if name not in base_annotations:
+                        continue
+                    if isinstance(hint, TypeVar):
+                        hints[name] = substitution.get(hint, hint)
+                    elif getattr(hint, "__parameters__", ()):
+                        hints[name] = hint[
+                            tuple(substitution.get(p, p) for p in hint.__parameters__)
                         ]
                     else:
-                        hints[name] = tp
-            else:
-                hints.update(_class_annotations(base, globalns, localns))
-        return hints
-    else:
-        return get_type_hints(obj, globalns, localns, include_extras=True)
+                        hints[name] = hint
+    return hints
 
 
 _T = TypeVar("_T")
