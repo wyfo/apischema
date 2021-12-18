@@ -293,7 +293,6 @@ if (3, 7) <= sys.version_info < (3, 9):
     def typing_origin(origin: Any) -> Any:
         return TYPING_ALIASES.get(origin, origin)
 
-
 else:
     typing_origin = lambda tp: tp
 
