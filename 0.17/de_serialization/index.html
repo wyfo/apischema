@@ -1535,6 +1535,48 @@ If it doesn't, <code>fall_back_on_any</code> allows bypassing the serialized typ
 </code></pre></div>
 <h4 id="generic-serialized-methods">Generic serialized methods<a class="headerlink" href="#generic-serialized-methods" title="Permanent link">&para;</a></h4>
 <p>Serialized methods of generic classes get the right type when their owning class is specialized.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">TypeVar</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">serialized</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5"></a><span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">serialization_schema</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7"></a><span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8"></a><span class="n">U</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;U&quot;</span><span class="p">)</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9"></a>
+<a id="__codelineno-13-10" name="__codelineno-13-10"></a>
+<a id="__codelineno-13-11" name="__codelineno-13-11"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13"></a>    <span class="c1"># serialized decorator for methods of generic class is not supported in Python 3.6</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14"></a>    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+<a id="__codelineno-13-15" name="__codelineno-13-15"></a>        <span class="o">...</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16"></a>
+<a id="__codelineno-13-17" name="__codelineno-13-17"></a>
+<a id="__codelineno-13-18" name="__codelineno-13-18"></a><span class="n">serialized</span><span class="p">(</span><span class="n">Foo</span><span class="o">.</span><span class="n">bar</span><span class="p">)</span>
+<a id="__codelineno-13-19" name="__codelineno-13-19"></a>
+<a id="__codelineno-13-20" name="__codelineno-13-20"></a>
+<a id="__codelineno-13-21" name="__codelineno-13-21"></a><span class="nd">@serialized</span>
+<a id="__codelineno-13-22" name="__codelineno-13-22"></a><span class="k">def</span> <span class="nf">baz</span><span class="p">(</span><span class="n">foo</span><span class="p">:</span> <span class="n">Foo</span><span class="p">[</span><span class="n">U</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">U</span><span class="p">:</span>
+<a id="__codelineno-13-23" name="__codelineno-13-23"></a>    <span class="o">...</span>
+<a id="__codelineno-13-24" name="__codelineno-13-24"></a>
+<a id="__codelineno-13-25" name="__codelineno-13-25"></a>
+<a id="__codelineno-13-26" name="__codelineno-13-26"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-13-27" name="__codelineno-13-27"></a><span class="k">class</span> <span class="nc">FooInt</span><span class="p">(</span><span class="n">Foo</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+<a id="__codelineno-13-28" name="__codelineno-13-28"></a>    <span class="o">...</span>
+<a id="__codelineno-13-29" name="__codelineno-13-29"></a>
+<a id="__codelineno-13-30" name="__codelineno-13-30"></a>
+<a id="__codelineno-13-31" name="__codelineno-13-31"></a><span class="k">assert</span> <span class="p">(</span>
+<a id="__codelineno-13-32" name="__codelineno-13-32"></a>    <span class="n">serialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span>
+<a id="__codelineno-13-33" name="__codelineno-13-33"></a>    <span class="o">==</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">FooInt</span><span class="p">)</span>
+<a id="__codelineno-13-34" name="__codelineno-13-34"></a>    <span class="o">==</span> <span class="p">{</span>
+<a id="__codelineno-13-35" name="__codelineno-13-35"></a>        <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2020-12/schema#&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-36" name="__codelineno-13-36"></a>        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-37" name="__codelineno-13-37"></a>        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
+<a id="__codelineno-13-38" name="__codelineno-13-38"></a>        <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">],</span>
+<a id="__codelineno-13-39" name="__codelineno-13-39"></a>        <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-13-40" name="__codelineno-13-40"></a>    <span class="p">}</span>
+<a id="__codelineno-13-41" name="__codelineno-13-41"></a><span class="p">)</span>
+</code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p><code>serialized</code> cannot decorate methods of <code>Generic</code> classes in Python 3.6, it has to be used outside of class.</p>

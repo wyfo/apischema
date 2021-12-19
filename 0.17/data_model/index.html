@@ -1154,6 +1154,38 @@
 <p>Generic types don't have default <em>type name</em> (used in JSON/GraphQL schema) — should <code>Group[Foo]</code> be named <code>GroupFoo</code>/<code>FooGroup</code>/something else? — so they require by-class or default <a href="../json_schema/#set-reference-name"><code>type_name</code> assignment</a>.</p>
 </div>
 <h2 id="recursive-types-string-annotations-and-pep-563">Recursive types, string annotations and PEP 563<a class="headerlink" href="#recursive-types-string-annotations-and-pep-563" title="Permanent link">&para;</a></h2>
+<p>Recursive classes can be typed as they usually do, with or without <a href="https://www.python.org/dev/peps/pep-0563/">PEP 563</a>.
+Here with string annotations:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8"></a><span class="k">class</span> <span class="nc">Node</span><span class="p">:</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9"></a>    <span class="n">value</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10"></a>    <span class="n">child</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Node&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11"></a>
+<a id="__codelineno-2-12" name="__codelineno-2-12"></a>
+<a id="__codelineno-2-13" name="__codelineno-2-13"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}})</span> <span class="o">==</span> <span class="n">Node</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Node</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+</code></pre></div>
+Here with PEP 563 (requires 3.7+)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9"></a><span class="k">class</span> <span class="nc">Node</span><span class="p">:</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10"></a>    <span class="n">value</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11"></a>    <span class="n">child</span><span class="p">:</span> <span class="n">Node</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12"></a>
+<a id="__codelineno-3-13" name="__codelineno-3-13"></a>
+<a id="__codelineno-3-14" name="__codelineno-3-14"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}})</span> <span class="o">==</span> <span class="n">Node</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Node</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+</code></pre></div></p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>To resolve annotations, <em>apischema</em> uses <code>typing.get_type_hints</code>; this doesn't work really well when used on objects defined outside of global scope.</p>
