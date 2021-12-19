@@ -36,17 +36,17 @@ nav:
 
 
 markdown_extensions:
-- markdown.extensions.codehilite:
-    guess_lang: false
+- pymdownx.highlight:
+    anchor_linenums: true
+- pymdownx.inlinehilite
+- pymdownx.snippets
+- pymdownx.superfences
 - markdown_include.include:
     base_path: examples
 - toc:
     permalink: True
 #    toc_depth: 3
 - admonition
-- codehilite
-- extra
-- attr_list
 
 plugins:
 - search
