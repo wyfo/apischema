@@ -157,27 +157,30 @@ def resolve_type_hints(obj: Any) -> Dict[str, Any]:
 
     `obj` can also be a parametrized generic class."""
     origin_or_obj = get_origin(obj) or obj
-    hints = get_type_hints(origin_or_obj, include_extras=True)
     if isinstance(origin_or_obj, type):
+        hints = {}
         for base in reversed(generic_mro(obj)):
-            base_origin = get_origin(base)
-            if base_origin is not None and getattr(base_origin, "__parameters__", ()):  # type: ignore
-                substitution = dict(zip(base_origin.__parameters__, get_args(base)))
-                base_annotations = getattr(base_origin, "__dict__", {}).get(
-                    "__annotations__", {}
-                )
-                for name, hint in get_type_hints(base_origin).items():
-                    if name not in base_annotations:
-                        continue
-                    if isinstance(hint, TypeVar):
-                        hints[name] = substitution.get(hint, hint)
-                    elif getattr(hint, "__parameters__", ()):
-                        hints[name] = hint[
-                            tuple(substitution.get(p, p) for p in hint.__parameters__)
-                        ]
-                    else:
-                        hints[name] = hint
-    return hints
+            base_origin = get_origin(base) or base
+            base_annotations = getattr(base_origin, "__dict__", {}).get(
+                "__annotations__", {}
+            )
+            substitution = dict(
+                zip(getattr(base_origin, "__parameters__", ()), get_args(base))
+            )
+            for name, hint in get_type_hints(base_origin, include_extras=True).items():
+                if name not in base_annotations:
+                    continue
+                if isinstance(hint, TypeVar):
+                    hints[name] = substitution.get(hint, hint)
+                elif getattr(hint, "__parameters__", ()):
+                    hints[name] = hint[
+                        tuple(substitution.get(p, p) for p in hint.__parameters__)
+                    ]
+                else:
+                    hints[name] = hint
+        return hints
+    else:
+        return get_type_hints(obj, include_extras=True)
 
 
 _T = TypeVar("_T")
