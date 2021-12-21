@@ -9,6 +9,7 @@ from apischema.typing import (
     required_keys,
     resolve_type_hints,
 )
+from apischema.typing import Annotated
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -28,7 +29,7 @@ class C(B[str]):
 
 
 class D(C):
-    pass
+    d: Annotated[int, ""]
 
 
 test_cases = [
@@ -39,7 +40,11 @@ test_cases = [
     (B[U], [B[U], A[int, U]], {"t": int, "u": U, "v": U}),
     (B[str], [B[str], A[int, str]], {"t": int, "u": str, "v": str}),
     (C, [C, B[str], A[int, str]], {"t": int, "u": str, "v": str}),
-    (D, [D, C, B[str], A[int, str]], {"t": int, "u": str, "v": str}),
+    (
+        D,
+        [D, C, B[str], A[int, str]],
+        {"t": int, "u": str, "v": str, "d": Annotated[int, ""]},
+    ),
 ]
 
 
