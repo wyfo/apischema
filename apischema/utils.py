@@ -171,7 +171,9 @@ def substitute_type_vars(tp: AnyType, substitution: Mapping[TV, AnyType]) -> Any
         except KeyError:
             return Union[tp.__constraints__] if tp.__constraints__ else Any
     elif getattr(tp, "__parameters__", ()):
-        return tp[tuple(substitution.get(p, p) for p in tp.__parameters__)]
+        return (Union if is_union(tp) else tp)[
+            tuple(substitution.get(p, p) for p in tp.__parameters__)
+        ]
     else:
         return tp
 

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Annotated, Union
+from typing import Annotated, Union  # type: ignore
 
 from pytest import raises
 
