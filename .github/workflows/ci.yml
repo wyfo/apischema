@@ -22,7 +22,6 @@ jobs:
         pytest-args: ['']
         exclude:
           - python-version: pypy3
-            compile: true
         include:
           - python-version: 3.6
             pytest-args: --ignore=tests/__generated__/test_recursive_postponned.py
@@ -58,10 +57,13 @@ jobs:
             htmlcov
       - name: Cythonize
         run: scripts/cythonize.sh
+        if: matrix.python-version != 'pypy3'
       - name: Compile
         run: python setup.py build_ext --inplace
+        if: matrix.python-version != 'pypy3'
       - name: Run tests (compiled)
         run: pytest tests ${{ matrix.pytest-args }}
+        if: matrix.python-version != 'pypy3'
 
 concurrency:
   group: ci-${{ github.head_ref }}
