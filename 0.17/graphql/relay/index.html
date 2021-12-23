@@ -797,10 +797,10 @@
 <p><em>apischema</em> defines a generic <code>relay.Node[Id]</code> interface which can be used which can be used as base class of all identified resources. This class contains a unique generic field of type <code>Id</code>, which will be automatically converted into an <code>ID!</code> in the schema. The <code>Id</code> type chosen has to be serializable into a string-convertible value (it can register <a href="../../conversions/">conversions</a> if needed).</p>
 <p>Each node has to implement the <code>classmethod</code> <code>get_by_id(cls: type[T], id: Id, info: graphql.GraphQLResolveInfo=None) -&gt; T</code>.</p>
 <p>All nodes defined can be retrieved using <code>relay.nodes</code>, while the <code>node</code> query is defined as <code>relay.node</code>. <code>relay.nodes()</code> can be passed to <code>graphql_schema</code> <a href="../schema/#additional-types"><code>types</code> parameter</a> in order to add them in the schema even if they don't appear in any resolvers.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="kn">import</span> <span class="nn">graphql</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="kn">import</span> <span class="nn">graphql</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6"></a>
 <a id="__codelineno-0-7" name="__codelineno-0-7"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">relay</span>

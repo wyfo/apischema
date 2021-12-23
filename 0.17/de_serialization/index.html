@@ -1066,8 +1066,8 @@
 <a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">uuid4</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7"></a>
 <a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">serialize</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
@@ -1091,7 +1091,7 @@
 <a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="c1"># Serialize objects</span>
 <a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Resource</span><span class="p">,</span> <span class="n">resource</span><span class="p">)</span> <span class="o">==</span> <span class="n">data</span>
 <a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="c1"># Validate during deserialization</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># pytest checks exception is raised</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># pytest checks exception is raised</span>
 <a id="__codelineno-0-31" name="__codelineno-0-31"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Resource</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;42&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;wyfo&quot;</span><span class="p">})</span>
 <a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
 <a id="__codelineno-0-33" name="__codelineno-0-33"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;badly formed hexadecimal UUID string&quot;</span><span class="p">}</span>
@@ -1181,11 +1181,11 @@ JSON primitive ones. These types can be allowed using <code>allowed_types</code>
 <h4 id="coercion">Coercion<a class="headerlink" href="#coercion" title="Permanent link">&para;</a></h4>
 <p><em>apischema</em> is strict by default. You ask for an integer, you have to receive an integer. </p>
 <p>However, in some cases, data has to be be coerced, for example when parsing a configuration file. That can be done using <code>coerce</code> parameter; when set to <code>True</code>, all primitive types will be coerced to the expected type of the data model like the following:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="kn">import</span> <span class="nn">pytest</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2"></a>
 <a id="__codelineno-3-3" name="__codelineno-3-3"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5"></a><span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
 <a id="__codelineno-3-6" name="__codelineno-3-6"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span> <span class="n">coerce</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
@@ -1231,7 +1231,7 @@ JSON primitive ones. These types can be allowed using <code>allowed_types</code>
 <p>The <code>coerce</code> parameter can also receive a coercion function which will then be used instead of default one.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">cast</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2"></a>
-<a id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4"></a>
 <a id="__codelineno-4-5" name="__codelineno-4-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span>
 <a id="__codelineno-4-6" name="__codelineno-4-6"></a>
@@ -1246,9 +1246,9 @@ JSON primitive ones. These types can be allowed using <code>allowed_types</code>
 <a id="__codelineno-4-15" name="__codelineno-4-15"></a>        <span class="k">return</span> <span class="n">data</span>
 <a id="__codelineno-4-16" name="__codelineno-4-16"></a>
 <a id="__codelineno-4-17" name="__codelineno-4-17"></a>
-<a id="__codelineno-4-18" name="__codelineno-4-18"></a><span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
 <a id="__codelineno-4-19" name="__codelineno-4-19"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-4-20" name="__codelineno-4-20"></a><span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
 <a id="__codelineno-4-21" name="__codelineno-4-21"></a>    <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span> <span class="n">coerce</span><span class="o">=</span><span class="n">coerce</span><span class="p">)</span>
 <a id="__codelineno-4-22" name="__codelineno-4-22"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">coerce</span><span class="o">=</span><span class="n">coerce</span><span class="p">)</span>
 </code></pre></div>
@@ -1265,7 +1265,7 @@ JSON primitive ones. These types can be allowed using <code>allowed_types</code>
 <p>This behavior can be controlled by <code>additional_properties</code> parameter. When set to <code>True</code>, it prevents the rejection of unexpected properties. </p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2"></a>
-<a id="__codelineno-5-3" name="__codelineno-5-3"></a><span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4"></a>
 <a id="__codelineno-5-5" name="__codelineno-5-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span>
 <a id="__codelineno-5-6" name="__codelineno-5-6"></a>
@@ -1276,7 +1276,7 @@ JSON primitive ones. These types can be allowed using <code>allowed_types</code>
 <a id="__codelineno-5-11" name="__codelineno-5-11"></a>
 <a id="__codelineno-5-12" name="__codelineno-5-12"></a>
 <a id="__codelineno-5-13" name="__codelineno-5-13"></a><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="s2">&quot;other&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">}</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14"></a><span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
 <a id="__codelineno-5-15" name="__codelineno-5-15"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 <a id="__codelineno-5-16" name="__codelineno-5-16"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">additional_properties</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">)</span>
 </code></pre></div>
@@ -1284,7 +1284,7 @@ JSON primitive ones. These types can be allowed using <code>allowed_types</code>
 <p>Validation errors can happen when deserializing an ill-formed field. However, if this field has a default value/factory, deserialization can fall back on this default; this is enabled by <code>fall_back_on_default</code> parameter. This behavior can also be configured for each field using metadata. </p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2"></a>
-<a id="__codelineno-6-3" name="__codelineno-6-3"></a><span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
 <a id="__codelineno-6-4" name="__codelineno-6-4"></a>
 <a id="__codelineno-6-5" name="__codelineno-6-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span>
 <a id="__codelineno-6-6" name="__codelineno-6-6"></a><span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">fall_back_on_default</span>
@@ -1296,7 +1296,7 @@ JSON primitive ones. These types can be allowed using <code>allowed_types</code>
 <a id="__codelineno-6-12" name="__codelineno-6-12"></a>    <span class="n">baz</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;baz&quot;</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">fall_back_on_default</span><span class="p">)</span>
 <a id="__codelineno-6-13" name="__codelineno-6-13"></a>
 <a id="__codelineno-6-14" name="__codelineno-6-14"></a>
-<a id="__codelineno-6-15" name="__codelineno-6-15"></a><span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
 <a id="__codelineno-6-16" name="__codelineno-6-16"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
 <a id="__codelineno-6-17" name="__codelineno-6-17"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="n">fall_back_on_default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">()</span>
 <a id="__codelineno-6-18" name="__codelineno-6-18"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">()</span>

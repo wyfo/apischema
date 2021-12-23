@@ -1221,7 +1221,7 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3"></a>
-<a id="__codelineno-5-4" name="__codelineno-5-4"></a><span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4"></a><span class="kn">import</span> <span class="nn">pytest</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5"></a>
 <a id="__codelineno-5-6" name="__codelineno-5-6"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">schema</span>
 <a id="__codelineno-5-7" name="__codelineno-5-7"></a>
@@ -1240,7 +1240,7 @@
 <a id="__codelineno-5-20" name="__codelineno-5-20"></a>    <span class="p">)</span>
 <a id="__codelineno-5-21" name="__codelineno-5-21"></a>
 <a id="__codelineno-5-22" name="__codelineno-5-22"></a>
-<a id="__codelineno-5-23" name="__codelineno-5-23"></a><span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># pytest check exception is raised</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># pytest check exception is raised</span>
 <a id="__codelineno-5-24" name="__codelineno-5-24"></a>    <span class="n">deserialize</span><span class="p">(</span>
 <a id="__codelineno-5-25" name="__codelineno-5-25"></a>        <span class="n">Resource</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;bad&amp;&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">]}</span>
 <a id="__codelineno-5-26" name="__codelineno-5-26"></a>    <span class="p">)</span>
@@ -1373,7 +1373,7 @@
 <p>However, you may want to have a default value for a field in order to be more convenient in your code, but still make the field required. One could think about some schema model where version is fixed but is required, for example JSON-RPC with <code>"jsonrpc": "2.0"</code>. That's done with field metadata <code>required</code>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2"></a>
-<a id="__codelineno-8-3" name="__codelineno-8-3"></a><span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
 <a id="__codelineno-8-4" name="__codelineno-8-4"></a>
 <a id="__codelineno-8-5" name="__codelineno-8-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span>
 <a id="__codelineno-8-6" name="__codelineno-8-6"></a><span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">required</span>
@@ -1384,7 +1384,7 @@
 <a id="__codelineno-8-11" name="__codelineno-8-11"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">required</span><span class="p">)</span>
 <a id="__codelineno-8-12" name="__codelineno-8-12"></a>
 <a id="__codelineno-8-13" name="__codelineno-8-13"></a>
-<a id="__codelineno-8-14" name="__codelineno-8-14"></a><span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
 <a id="__codelineno-8-15" name="__codelineno-8-15"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{})</span>
 <a id="__codelineno-8-16" name="__codelineno-8-16"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;missing property&quot;</span><span class="p">}]</span>
 </code></pre></div>
@@ -1442,7 +1442,7 @@
 <p><em>apischema</em> supports <a href="https://json-schema.org/understanding-json-schema/reference/conditionals.html#dependentrequired">property dependencies</a> for dataclass through a class member. Dependencies are also used in validation.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <a id="__codelineno-10-2" name="__codelineno-10-2"></a>
-<a id="__codelineno-10-3" name="__codelineno-10-3"></a><span class="kn">from</span> <span class="nn">pytest</span> <span class="kn">import</span> <span class="n">raises</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
 <a id="__codelineno-10-4" name="__codelineno-10-4"></a>
 <a id="__codelineno-10-5" name="__codelineno-10-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">dependent_required</span><span class="p">,</span> <span class="n">deserialize</span>
 <a id="__codelineno-10-6" name="__codelineno-10-6"></a><span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
@@ -1476,7 +1476,7 @@
 <a id="__codelineno-10-34" name="__codelineno-10-34"></a>    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
 <a id="__codelineno-10-35" name="__codelineno-10-35"></a><span class="p">}</span>
 <a id="__codelineno-10-36" name="__codelineno-10-36"></a>
-<a id="__codelineno-10-37" name="__codelineno-10-37"></a><span class="k">with</span> <span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-10-37" name="__codelineno-10-37"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
 <a id="__codelineno-10-38" name="__codelineno-10-38"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Billing</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Anonymous&quot;</span><span class="p">,</span> <span class="s2">&quot;credit_card&quot;</span><span class="p">:</span> <span class="mi">1234_5678_9012_3456</span><span class="p">})</span>
 <a id="__codelineno-10-39" name="__codelineno-10-39"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
 <a id="__codelineno-10-40" name="__codelineno-10-40"></a>    <span class="p">{</span>
