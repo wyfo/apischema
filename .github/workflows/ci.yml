@@ -39,7 +39,7 @@ jobs:
       - name: Install requirements
         run: pip install -r tests/requirements.txt
       - name: Generate tests from documentation example
-        run: python scripts/generate_tests_from_examples.py
+        run: scripts/generate_tests_from_examples.py
       - name: Run tests
         run: pytest tests ${{ matrix.pytest-args }}
       - uses: codecov/codecov-action@v2
