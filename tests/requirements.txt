@@ -9,4 +9,4 @@ pytest-cov==3.0.0
 pytest-asyncio==0.16.0
 SQLAlchemy==1.4.29
 typing-extensions==4.0.1
-Cython==0.29.24
+Cython==0.29.26
