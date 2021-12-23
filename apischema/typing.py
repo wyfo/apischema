@@ -97,15 +97,9 @@ else:  # pragma: no cover
         pass
 
 if sys.version_info >= (3, 7):
-    from typing import ForwardRef, _collect_type_vars  # type: ignore
+    from typing import _collect_type_vars  # type: ignore
 else:
-    from typing import _ForwardRef, _type_vars
-
-    _collect_type_vars = _type_vars
-
-    def ForwardRef(arg, is_argument):
-        return _ForwardRef(arg)
-
+    from typing import _type_vars as _collect_type_vars
 
 try:
     from typing import _strip_annotations  # type: ignore

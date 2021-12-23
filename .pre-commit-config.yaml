@@ -6,11 +6,14 @@ repos:
     entry: python3 scripts/sort_all.py
     language: python
     types: [ python ]
+- repo: https://github.com/hadialqattan/pycln
+  rev: v1.1.0
+  hooks:
+    - id: pycln
 - repo: https://github.com/pycqa/isort
   rev: 5.10.1
   hooks:
     - id: isort
-      name: isort
 - repo: https://github.com/ambv/black
   rev: 21.12b0
   hooks:
