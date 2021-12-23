@@ -3,7 +3,6 @@ import inspect
 import textwrap
 from typing import AbstractSet, Callable, Collection, Dict, Set
 
-
 Dependencies = AbstractSet[str]
 
 

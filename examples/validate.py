@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, schema, validator
 from apischema.validation import validate
@@ -20,6 +20,6 @@ class Foo:
 # validate don't validate constraints, but only validators
 validate(Foo(-1, 0))
 
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     validate(Foo(2, 2))
 assert err.value.errors == [{"loc": [], "err": "bar cannot be equal to baz"}]

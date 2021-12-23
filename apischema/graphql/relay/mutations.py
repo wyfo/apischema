@@ -1,4 +1,4 @@
-from dataclasses import Field, MISSING, field, make_dataclass
+from dataclasses import MISSING, Field, field, make_dataclass
 from functools import wraps
 from inspect import Parameter, signature
 from typing import (

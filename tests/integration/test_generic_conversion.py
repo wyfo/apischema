@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize
 from apischema.typing import Annotated
@@ -25,7 +25,7 @@ def a_to_b(a: A[T]) -> B[T]:
 
 def test_generic_conversion():
     assert deserialize(B[int], {"a": 0}, conversion=a_to_b) == B(0)
-    with raises(ValidationError):
+    with pytest.raises(ValidationError):
         deserialize(B[int], {"a": ""}, conversion=a_to_b)
 
 
@@ -44,5 +44,5 @@ def a_to_b_annotated(a: Annotated[A[T], "a"]) -> B[T]:
 
 def test_annotated_generic_conversion():
     assert deserialize(B[int], {"a": 0}, conversion=a_to_b_annotated) == B(0)
-    with raises(ValidationError):
+    with pytest.raises(ValidationError):
         deserialize(B[int], {"a": ""}, conversion=a_to_b_annotated)

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable, Type
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, validator
 from apischema.validation.mock import NonTrivialDependency, ValidatorMock
@@ -49,24 +49,24 @@ def test_validator_descriptor():
     validator = get_validators_by_method(Data, Data.a_gt_10)
     assert validator.dependencies == {"a"}
     # Can be called from class and instance
-    with raises(ValidationError):
+    with pytest.raises(ValidationError):
         assert Data(200, 0).a_lt_100()
-    with raises(ValidationError):
+    with pytest.raises(ValidationError):
         assert Data.a_lt_100(Data(200, 0))
 
 
 def test_validate():
     validate(Data(42, 0))
-    with raises(ValidationError) as err:
+    with pytest.raises(ValidationError) as err:
         validate(Data(0, 0))
     assert err.value.errors == [{"loc": [], "err": "error"}]
-    with raises(ValidationError) as err:
+    with pytest.raises(ValidationError) as err:
         validate(Data(200, 0))
     assert err.value.errors == [{"loc": [], "err": "error2"}]
 
 
 def test_non_trivial():
-    with raises(NonTrivialDependency) as err:
+    with pytest.raises(NonTrivialDependency) as err:
         validate(ValidatorMock(Data, {"a": 42}), get_validators(Data))
     # err.value.attr != "c" because `c` has a default value
     assert err.value.attr == "b"

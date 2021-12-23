@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize
 
@@ -14,5 +14,5 @@ class Box(Generic[T]):
 
 
 assert deserialize(Box[str], {"content": "void"}) == Box("void")
-with raises(ValidationError):
+with pytest.raises(ValidationError):
     deserialize(Box[str], {"content": 42})

@@ -21,6 +21,7 @@ import warnings
 from apischema.aliases import alias
 from apischema.ordering import order
 from apischema.schemas import schema
+
 from .implem import (
     conversion,
     default_as_set,
@@ -47,7 +48,6 @@ if sys.version_info >= (3, 7):
                 )
                 return flatten
             raise AttributeError(f"module {__name__} has no attribute {name}")
-
 
 else:
     from .implem import flattened, merged  # noqa: F401

@@ -3,7 +3,7 @@ from collections.abc import Mapping
 from typing import Any
 
 import pydantic
-from pytest import raises
+import pytest
 
 from apischema import (
     ValidationError,
@@ -79,7 +79,7 @@ assert deserialization_schema(Foo) == {
     "properties": {"bar": {"title": "Bar", "type": "integer"}},
     "required": ["bar"],
 }
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     deserialize(Foo, {"bar": "not an int"})
 assert err.value.errors == [
     {"loc": ["bar"], "err": "value is not a valid integer"}  # pydantic error message

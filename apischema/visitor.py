@@ -1,9 +1,9 @@
 import warnings
 from dataclasses import (  # type: ignore
+    _FIELD_CLASSVAR,
+    _FIELDS,
     Field,
     InitVar,
-    _FIELDS,
-    _FIELD_CLASSVAR,
     make_dataclass,
 )
 from enum import Enum
@@ -21,11 +21,11 @@ from typing import (
 )
 
 from apischema.types import (
-    AnyType,
     COLLECTION_TYPES,
     MAPPING_TYPES,
-    OrderedDict,
     PRIMITIVE_TYPES,
+    AnyType,
+    OrderedDict,
 )
 from apischema.typing import (
     get_args,

@@ -9,13 +9,15 @@ from apischema.conversions.converters import (
     default_deserialization,
     default_serialization,
 )
-from apischema.deserialization.coercion import Coercer, coerce as coerce_
+from apischema.deserialization.coercion import Coercer
+from apischema.deserialization.coercion import coerce as coerce_
 from apischema.json_schema import JsonSchemaVersion
 from apischema.objects import ObjectField
 from apischema.objects.fields import default_object_fields as default_object_fields_
 from apischema.schemas import Schema
 from apischema.serialization import PassThroughOptions
-from apischema.type_names import TypeName, default_type_name as default_type_name_
+from apischema.type_names import TypeName
+from apischema.type_names import default_type_name as default_type_name_
 from apischema.types import AnyType
 from apischema.utils import CollectionOrPredicate, to_camel_case
 

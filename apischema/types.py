@@ -4,6 +4,7 @@ from enum import Enum, auto
 from itertools import chain
 from types import MappingProxyType
 from typing import (
+    TYPE_CHECKING,
     AbstractSet,
     Any,
     Collection,
@@ -16,7 +17,6 @@ from typing import (
     MutableSet,
     Sequence,
     Set,
-    TYPE_CHECKING,
     Tuple,
     Type,
     Union,

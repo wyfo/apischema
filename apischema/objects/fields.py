@@ -1,7 +1,8 @@
-from dataclasses import Field, InitVar, MISSING, dataclass, field
+from dataclasses import MISSING, Field, InitVar, dataclass, field
 from enum import Enum, auto
 from types import FunctionType
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Iterable,
@@ -11,7 +12,6 @@ from typing import (
     Optional,
     Pattern,
     Sequence,
-    TYPE_CHECKING,
     Union,
     cast,
 )
@@ -93,9 +93,9 @@ class ObjectField:
         if not is_annotated(self.type):
             return self.metadata
         return ChainMap(
-            self.metadata,
+            cast(MutableMapping, self.metadata),
             *(
-                arg
+                cast(MutableMapping, arg)
                 for arg in reversed(get_args(self.type)[1:])
                 if isinstance(arg, Mapping)
             ),

@@ -1,6 +1,6 @@
 from typing import Annotated, NewType
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize, validator
 from apischema.metadata import validators
@@ -16,11 +16,11 @@ def check_palindrome(s: Palindrome):
 
 
 assert deserialize(Palindrome, "tacocat") == "tacocat"
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     deserialize(Palindrome, "palindrome")
 assert err.value.errors == [{"loc": [], "err": "Not a palindrome"}]
 
 # Using Annotated
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     deserialize(Annotated[str, validators(check_palindrome)], "palindrom")
 assert err.value.errors == [{"loc": [], "err": "Not a palindrome"}]

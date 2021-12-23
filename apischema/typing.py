@@ -23,7 +23,7 @@ class _FakeType:
 
 
 if sys.version_info >= (3, 9):  # pragma: no cover
-    from typing import Annotated, TypedDict, get_type_hints, get_origin, get_args
+    from typing import Annotated, TypedDict, get_args, get_origin, get_type_hints
 else:  # pragma: no cover
     try:
         from typing_extensions import Annotated, TypedDict
@@ -52,7 +52,7 @@ else:  # pragma: no cover
         return gth(obj, globalns, localns, include_extras)
 
     try:
-        from typing_extensions import get_origin, get_args
+        from typing_extensions import get_args, get_origin
     except ImportError:
 
         def _assemble_tree(tree: Tuple[Any]) -> Any:
@@ -97,9 +97,9 @@ else:  # pragma: no cover
         pass
 
 if sys.version_info >= (3, 7):
-    from typing import _collect_type_vars, ForwardRef  # type: ignore
+    from typing import ForwardRef, _collect_type_vars  # type: ignore
 else:
-    from typing import _type_vars, _ForwardRef
+    from typing import _ForwardRef, _type_vars
 
     _collect_type_vars = _type_vars
 
@@ -285,7 +285,6 @@ if (3, 7) <= sys.version_info < (3, 9):
 
     def typing_origin(origin: Any) -> Any:
         return TYPING_ALIASES.get(origin, origin)
-
 
 else:
     typing_origin = lambda tp: tp

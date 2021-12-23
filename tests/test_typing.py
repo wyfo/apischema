@@ -1,15 +1,15 @@
 from typing import Generic, TypeVar
 from unittest.mock import Mock
 
-from pytest import mark
+import pytest
 
 from apischema.typing import (
+    Annotated,
     _TypedDictMeta,
     generic_mro,
     required_keys,
     resolve_type_hints,
 )
-from apischema.typing import Annotated
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -48,12 +48,12 @@ test_cases = [
 ]
 
 
-@mark.parametrize("tp, result, _", test_cases)
+@pytest.mark.parametrize("tp, result, _", test_cases)
 def test_generic_mro(tp, result, _):
     assert generic_mro(tp) == (*result, Generic, object)
 
 
-@mark.parametrize("tp, _, result", test_cases)
+@pytest.mark.parametrize("tp, _, result", test_cases)
 def test_resolve_type_hints(tp, _, result):
     assert resolve_type_hints(tp) == result
 

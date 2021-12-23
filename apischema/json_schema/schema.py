@@ -34,12 +34,9 @@ from apischema.conversions.visitor import (
 from apischema.dependencies import get_dependent_required
 from apischema.json_schema.conversions_resolver import WithConversionsResolver
 from apischema.json_schema.patterns import infer_pattern
-from apischema.json_schema.refs import (
-    DeserializationRefsExtractor,
-    Refs,
-    RefsExtractor as RefsExtractor_,
-    SerializationRefsExtractor,
-)
+from apischema.json_schema.refs import DeserializationRefsExtractor, Refs
+from apischema.json_schema.refs import RefsExtractor as RefsExtractor_
+from apischema.json_schema.refs import SerializationRefsExtractor
 from apischema.json_schema.types import JsonSchema, JsonType, json_schema
 from apischema.json_schema.versions import JsonSchemaVersion, RefFactory
 from apischema.metadata.keys import SCHEMA_METADATA
@@ -50,7 +47,9 @@ from apischema.objects.visitor import (
     SerializationObjectVisitor,
 )
 from apischema.ordering import Ordering, sort_by_order
-from apischema.schemas import Schema, get_schema as _get_schema, merge_schema
+from apischema.schemas import Schema
+from apischema.schemas import get_schema as _get_schema
+from apischema.schemas import merge_schema
 from apischema.serialization import serialize
 from apischema.serialization.serialized_methods import (
     SerializedMethod,

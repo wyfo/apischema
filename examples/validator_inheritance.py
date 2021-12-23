@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize, validator
 
@@ -21,7 +21,7 @@ class CompleteForm(PasswordForm):
     username: str
 
 
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     deserialize(
         CompleteForm,
         {"username": "wyfo", "password": "p455w0rd", "confirmation": "..."},

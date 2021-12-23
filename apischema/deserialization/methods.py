@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import (
+    TYPE_CHECKING,
     AbstractSet,
     Any,
     Callable,
@@ -9,7 +10,6 @@ from typing import (
     Optional,
     Pattern,
     Sequence,
-    TYPE_CHECKING,
     Tuple,
     Union,
 )

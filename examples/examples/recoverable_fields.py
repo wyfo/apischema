@@ -1,6 +1,6 @@
 from typing import Any, Dict, Generic, TypeVar
 
-from pytest import raises
+import pytest
 
 from apischema import deserialize, deserializer, schema, serialize, serializer
 from apischema.json_schema import deserialization_schema, serialization_schema
@@ -46,12 +46,12 @@ deserializer(Recoverable)
 serializer(Recoverable.value)
 
 assert deserialize(Recoverable[int], 0).value == 0
-with raises(RecoverableRaw) as err:
+with pytest.raises(RecoverableRaw) as err:
     _ = deserialize(Recoverable[int], "bad").value
 assert err.value.raw == "bad"
 
 assert serialize(Recoverable[int], Recoverable(0)) == 0
-with raises(RecoverableRaw) as err:
+with pytest.raises(RecoverableRaw) as err:
     serialize(Recoverable[int], Recoverable(RecoverableRaw("bad")))
 assert err.value.raw == "bad"
 

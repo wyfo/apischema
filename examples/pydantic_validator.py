@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
-import apischema
 import pydantic
+
+import apischema
 
 
 class UserModel(pydantic.BaseModel):

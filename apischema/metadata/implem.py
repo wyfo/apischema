@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Pattern, TYPE_CHECKING, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Pattern, Tuple, Union
 
 from apischema.metadata.keys import (
     CONVERSION_METADATA,

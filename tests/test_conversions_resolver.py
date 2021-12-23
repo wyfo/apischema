@@ -1,6 +1,6 @@
 from typing import Collection, Dict, List, Mapping, Sequence, Tuple
 
-from pytest import mark
+import pytest
 
 from apischema import serializer, settings
 from apischema.conversions.conversions import Conversion, LazyConversion
@@ -14,7 +14,7 @@ from apischema.types import AnyType
 from apischema.utils import identity
 
 
-@mark.parametrize(
+@pytest.mark.parametrize(
     "results, origin, expected",
     [
         ([[int]], Collection, [[int]]),
@@ -51,7 +51,7 @@ class B:
 set_object_fields(B, [])
 
 
-@mark.parametrize(
+@pytest.mark.parametrize(
     "tp, conversions, expected",
     [
         (int, None, [int]),

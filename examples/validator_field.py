@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize, validator
 from apischema.objects import get_alias, get_field
@@ -36,6 +36,6 @@ def check_parity_other_equivalent(number2: NumberWithParity):
         yield "number doesn't respect parity"
 
 
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     deserialize(NumberWithParity, {"parity": "even", "number": 1})
 assert err.value.errors == [{"loc": ["number"], "err": "number doesn't respect parity"}]

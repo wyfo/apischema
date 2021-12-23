@@ -2,7 +2,7 @@ import sys
 from dataclasses import dataclass, replace
 from typing import Optional
 
-from pytest import mark, raises
+import pytest
 
 from apischema import ValidationError, deserialize, serialize
 from apischema.metadata import none_as_undefined
@@ -14,7 +14,9 @@ class Foo:
     bar: Optional[str] = None
 
 
-@mark.skipif(sys.version_info < (3, 8), reason="dataclasses.replace bug with InitVar")
+@pytest.mark.skipif(
+    sys.version_info < (3, 8), reason="dataclasses.replace bug with InitVar"
+)
 def test_object_fields_overriding():
     set_object_fields(Foo, [])
     assert serialize(Foo, Foo()) == {}
@@ -26,5 +28,5 @@ def test_object_fields_overriding():
         ],
     )
     assert serialize(Foo, Foo()) == {}
-    with raises(ValidationError):
+    with pytest.raises(ValidationError):
         deserialize(Foo, {"bar": None})

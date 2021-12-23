@@ -1,4 +1,6 @@
-from dataclasses import dataclass, field as field_, replace
+from dataclasses import dataclass
+from dataclasses import field as field_
+from dataclasses import replace
 from enum import Enum
 from functools import wraps
 from inspect import Parameter, iscoroutinefunction

@@ -18,7 +18,7 @@ from typing import (
 )
 from unittest.mock import Mock
 
-from pytest import fixture, mark, raises
+import pytest
 
 from apischema.types import NoneType
 from apischema.typing import Annotated, Literal, TypedDict
@@ -27,7 +27,7 @@ from apischema.visitor import Unsupported, Visitor
 ARG = object()
 
 
-@fixture
+@pytest.fixture
 def visitor() -> Mock:
     return Mock()
 
@@ -102,7 +102,7 @@ if sys.version_info >= (3, 10):
     py310 = [(int | str, Visitor.union, [(int, str)])]
 
 
-@mark.parametrize(
+@pytest.mark.parametrize(
     "cls, method, args",
     [
         *(py37 if sys.version_info >= (3, 7) else py36),
@@ -163,12 +163,12 @@ def test_default_implementations(visitor):
     visitor.visit.assert_called_once_with(int)
     visitor.reset_mock()
 
-    with raises(Unsupported) as err:
+    with pytest.raises(Unsupported) as err:
         Visitor.unsupported(..., Generic)
     assert err.value.type == Generic
-    with raises(Unsupported) as err:
+    with pytest.raises(Unsupported) as err:
         Visitor.unsupported(..., Generic[T])
     assert err.value.type == Generic[T]
 
-    with raises(NotImplementedError):
+    with pytest.raises(NotImplementedError):
         Visitor.named_tuple(..., ..., ..., ...)

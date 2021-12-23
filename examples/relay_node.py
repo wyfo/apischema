@@ -1,7 +1,7 @@
+from dataclasses import dataclass
 from uuid import UUID
 
 import graphql
-from dataclasses import dataclass
 from graphql.utilities import print_schema
 
 from apischema.graphql import graphql_schema, relay

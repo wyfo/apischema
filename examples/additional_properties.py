@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize
 
@@ -11,6 +11,6 @@ class Foo:
 
 
 data = {"bar": "bar", "other": 42}
-with raises(ValidationError):
+with pytest.raises(ValidationError):
     deserialize(Foo, data)
 assert deserialize(Foo, data, additional_properties=True) == Foo("bar")

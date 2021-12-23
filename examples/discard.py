@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize, validator
 from apischema.objects import get_alias, get_field
@@ -35,7 +35,7 @@ def bounds_are_sorted_equivalent(bounded: BoundedValues):
         yield get_alias(bounded).bounds, "bounds are not sorted"
 
 
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     deserialize(BoundedValues, {"bounds": [10, 0], "values": [-1, 2, 4]})
 assert err.value.errors == [
     {"loc": ["bounds"], "err": "bounds are not sorted"}

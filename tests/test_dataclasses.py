@@ -1,14 +1,10 @@
-from dataclasses import (  # type: ignore
-    InitVar,
-    dataclass,
-    field,
-    replace as std_replace,
-)
+from dataclasses import InitVar, dataclass, field
+from dataclasses import replace as std_replace  # type: ignore
 
-from apischema.visitor import dataclass_types_and_fields
 from apischema.dataclasses import replace
 from apischema.fields import fields_set, with_fields_set
 from apischema.metadata.implem import init_var
+from apischema.visitor import dataclass_types_and_fields
 
 
 @dataclass

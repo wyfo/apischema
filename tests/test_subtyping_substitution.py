@@ -1,6 +1,6 @@
 from typing import Callable, Collection, Generic, List, Mapping, Sequence, TypeVar, cast
 
-from pytest import mark
+import pytest
 
 from apischema.conversions import Conversion
 from apischema.conversions.conversions import ResolvedConversion
@@ -32,7 +32,7 @@ def conv(source: AnyType, target: AnyType) -> ResolvedConversion:
     return ResolvedConversion(Conversion(cast(Callable, ...), source, target))
 
 
-@mark.parametrize(
+@pytest.mark.parametrize(
     "supertype, subtype, super_to_sub, sub_to_super",
     [
         (A[U, T], A[int, str], {U: int, T: str}, {}),

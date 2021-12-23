@@ -1,6 +1,6 @@
 from dataclasses import InitVar, dataclass, field
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize, serialize, validator
 from apischema.json_schema import definitions_schema
@@ -25,7 +25,7 @@ class Foo:
 
 assert deserialize(Foo, {"bar": 0, "init_only": 1}) == Foo(0, 1)
 assert serialize(Foo, Foo(0, 1)) == {"bar": 0, "no_init": 1}
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     deserialize(Foo, {"bar": 0})
 assert definitions_schema(
     deserialization=[Foo], serialization=[Foo], all_refs=True

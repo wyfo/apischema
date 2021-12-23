@@ -1,4 +1,4 @@
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize, serialize
 from apischema.json_schema import deserialization_schema, serialization_schema
@@ -37,6 +37,6 @@ def test_typed_dict():
         "key2": 0,
         "key3": True,
     }
-    with raises(ValidationError):
+    with pytest.raises(ValidationError):
         assert deserialize(TD3, {})
     assert serialize(TD1, {"key1": ""}) == {"key1": ""}

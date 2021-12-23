@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from functools import partial
 from types import FunctionType, MethodType
-from typing import Any, Mapping, Optional, TYPE_CHECKING, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Type, TypeVar
 
 from apischema.fields import FIELDS_SET_ATTR
 from apischema.objects import object_fields

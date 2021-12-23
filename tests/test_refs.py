@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Collection, Generic, List, Optional, Sequence, TypeVar
 
+import pytest
 from _pytest.python_api import raises
-from pytest import mark
 
 from apischema import settings, type_name
 from apischema.conversions import Conversion, LazyConversion
@@ -66,7 +66,7 @@ class DataGeneric(Generic[T]):
 type_name("StrData")(DataGeneric[str])
 
 
-@mark.parametrize("cls", [DataGeneric, DataGeneric[U]])
+@pytest.mark.parametrize("cls", [DataGeneric, DataGeneric[U]])
 def test_generic_ref_error(cls):
     with raises(TypeError):
         type_name("Data")(cls)

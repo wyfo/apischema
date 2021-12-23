@@ -2,8 +2,8 @@ from collections.abc import Collection
 from dataclasses import dataclass, field
 from uuid import UUID, uuid4
 
+import pytest
 from graphql import print_schema
-from pytest import raises
 
 from apischema import ValidationError, deserialize, serialize
 from apischema.graphql import graphql_schema
@@ -27,7 +27,7 @@ assert resource == Resource(uuid, "wyfo", {"some_tag"})
 # Serialize objects
 assert serialize(Resource, resource) == data
 # Validate during deserialization
-with raises(ValidationError) as err:  # pytest checks exception is raised
+with pytest.raises(ValidationError) as err:  # pytest checks exception is raised
     deserialize(Resource, {"id": "42", "name": "wyfo"})
 assert err.value.errors == [
     {"loc": ["id"], "err": "badly formed hexadecimal UUID string"}

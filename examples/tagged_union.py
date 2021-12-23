@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from pytest import raises
+import pytest
 
 from apischema import Undefined, ValidationError, alias, deserialize, schema, serialize
 from apischema.tagged_unions import Tagged, TaggedUnion, get_tagged
@@ -32,11 +32,11 @@ assert get_tagged(tagged_bar) == ("bar", Bar("value"))
 assert deserialize(Foo, {"bar": {"field": "value"}}) == tagged_bar
 assert serialize(Foo, tagged_bar) == {"bar": {"field": "value"}}
 
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     deserialize(Foo, {"unknown": 42})
 assert err.value.errors == [{"loc": ["unknown"], "err": "unexpected property"}]
 
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     deserialize(Foo, {"bar": {"field": "value"}, "baz": 0})
 assert err.value.errors == [
     {"loc": [], "err": "property count greater than 1 (maxProperties)"}
