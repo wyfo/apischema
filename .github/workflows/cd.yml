@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: scripts/cythonize.sh
-      - uses: pypa/cibuildwheel@v2.0.0
+      - uses: pypa/cibuildwheel@v2.3.1
         with:
           CIBW_TEST_COMMAND: pytest {project}/tests --ignore=tests/__generated__/test_recursive_postponned.py
           CIBW_BEFORE_TEST: pip install -r tests/requirements.txt
