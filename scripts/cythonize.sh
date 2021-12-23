@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-pip install cython
+python3 -m pip install cython
 $(dirname $0)/cythonize.py
