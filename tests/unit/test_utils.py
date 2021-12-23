@@ -19,7 +19,7 @@ from typing import (
 )
 from unittest.mock import Mock
 
-from pytest import mark
+import pytest
 
 from apischema.typing import Annotated, typing_origin
 from apischema.utils import (
@@ -65,14 +65,14 @@ async_cases = [
 ]
 
 
-@mark.parametrize(
+@pytest.mark.parametrize(
     "func, expected", [*zip(sync_cases, repeat(False)), *zip(async_cases, repeat(True))]
 )
 def test_is_async(func, expected):
     assert is_async(func) == expected
 
 
-@mark.parametrize(
+@pytest.mark.parametrize(
     "types, expected",
     [
         ({}, False),
@@ -106,7 +106,9 @@ else:
     ]
 
 
-@mark.parametrize("tp, expected", [*typing_origin_cases, (GenericClass, GenericClass)])
+@pytest.mark.parametrize(
+    "tp, expected", [*typing_origin_cases, (GenericClass, GenericClass)]
+)
 def test_typing_origin(tp, expected):
     assert typing_origin(tp) == expected
 
@@ -131,9 +133,9 @@ else:
     ]
 
 
-@mark.parametrize("annotated", [False, True])  # type: ignore
-@mark.parametrize("wrapped", [False, True])  # type: ignore
-@mark.parametrize("tp, expected", replace_builtins_cases)
+@pytest.mark.parametrize("annotated", [False, True])  # type: ignore
+@pytest.mark.parametrize("wrapped", [False, True])  # type: ignore
+@pytest.mark.parametrize("tp, expected", replace_builtins_cases)
 def test_replace_builtins(tp, expected, annotated, wrapped):
     if wrapped:
         tp = Collection[tp]
@@ -143,7 +145,7 @@ def test_replace_builtins(tp, expected, annotated, wrapped):
     assert replace_builtins(tp) == expected
 
 
-@mark.parametrize("wrapped", [{}, defaultdict(list)])
+@pytest.mark.parametrize("wrapped", [{}, defaultdict(list)])
 def test_type_dict_wrapper(wrapped):
     wrapper = type_dict_wrapper(wrapped)
 
@@ -181,8 +183,8 @@ def func(new: int):
     pass
 
 
-@mark.parametrize("func", [MyClass, func])
-@mark.parametrize("kwarg, warn", [("prev", True), ("new", False)])
+@pytest.mark.parametrize("func", [MyClass, func])
+@pytest.mark.parametrize("kwarg, warn", [("prev", True), ("new", False)])
 def test_deprecate_kwargs(monkeypatch, func, kwarg, warn):
     mock = Mock()
     monkeypatch.setattr(warnings, "warn", mock)

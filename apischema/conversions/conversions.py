@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Collection,
@@ -9,7 +10,6 @@ from typing import (
     List,
     NewType,
     Optional,
-    TYPE_CHECKING,
     Tuple,
     TypeVar,
     Union,

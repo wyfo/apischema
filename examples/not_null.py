@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize
 from apischema.skip import NotNull
@@ -13,7 +13,7 @@ class Foo:
     bar: NotNull[int] = None
 
 
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     deserialize(Foo, {"bar": None})
 assert err.value.errors == [
     {"loc": ["bar"], "err": "expected type integer, found null"}

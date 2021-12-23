@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from ipaddress import IPv4Address, IPv4Network
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize, validator
 from apischema.objects import get_alias
@@ -20,7 +20,7 @@ class SubnetIps:
                 yield (get_alias(self).ips, index), "ip not in subnet"
 
 
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     deserialize(
         SubnetIps,
         {"subnet": "126.42.18.0/24", "ips": ["126.42.18.1", "126.42.19.0", "0.0.0.0"]},

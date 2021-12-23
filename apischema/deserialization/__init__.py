@@ -5,6 +5,7 @@ from dataclasses import dataclass, replace
 from enum import Enum
 from functools import lru_cache, partial
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Collection,
@@ -14,7 +15,6 @@ from typing import (
     Pattern,
     Sequence,
     Set,
-    TYPE_CHECKING,
     Tuple,
     Type,
     TypeVar,
@@ -39,8 +39,6 @@ from apischema.deserialization.methods import (
     AnyMethod,
     BoolMethod,
     CoercerMethod,
-    ListMethod,
-    ListCheckOnlyMethod,
     ConstrainedFloatMethod,
     ConstrainedIntMethod,
     ConstrainedStrMethod,
@@ -54,9 +52,11 @@ from apischema.deserialization.methods import (
     FlattenedField,
     FloatMethod,
     IntMethod,
+    ListCheckOnlyMethod,
+    ListMethod,
     LiteralMethod,
-    MappingMethod,
     MappingCheckOnly,
+    MappingMethod,
     NoneMethod,
     ObjectMethod,
     OptionalMethod,
@@ -82,7 +82,7 @@ from apischema.objects.visitor import DeserializationObjectVisitor
 from apischema.recursion import RecursiveConversionsVisitor
 from apischema.schemas import Schema, get_schema
 from apischema.schemas.constraints import Constraints, merge_constraints
-from apischema.types import AnyType, NoneType, PRIMITIVE_TYPES
+from apischema.types import PRIMITIVE_TYPES, AnyType, NoneType
 from apischema.typing import get_args, get_origin, is_type, is_typed_dict
 from apischema.utils import (
     CollectionOrPredicate,

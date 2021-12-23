@@ -1,7 +1,7 @@
 import warnings
 from dataclasses import dataclass
 from types import new_class
-from typing import Callable, Optional, TYPE_CHECKING, Tuple, Type, Union
+from typing import TYPE_CHECKING, Callable, Optional, Tuple, Type, Union
 
 from apischema.conversions import Conversion
 from apischema.conversions.conversions import ResolvedConversion

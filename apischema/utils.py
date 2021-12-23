@@ -33,7 +33,7 @@ from typing import (
     cast,
 )
 
-from apischema.types import AnyType, COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES
+from apischema.types import COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES, AnyType
 from apischema.typing import (
     _collect_type_vars,
     generic_mro,
@@ -369,7 +369,6 @@ if sys.version_info < (3, 7):
 
         def __setitem__(self, key: K, value: V):
             self.wrapped[KeyWrapper(key)] = value
-
 
 else:
     M = TypeVar("M", bound=MutableMapping)

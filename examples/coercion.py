@@ -1,7 +1,7 @@
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize
 
-with raises(ValidationError):
+with pytest.raises(ValidationError):
     deserialize(bool, "ok")
 assert deserialize(bool, "ok", coerce=True)

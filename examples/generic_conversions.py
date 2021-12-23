@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize, serialize
 from apischema.conversions import deserializer, serializer
@@ -23,7 +23,7 @@ deserializer(Wrapper)
 
 
 assert deserialize(Wrapper[list[int]], [0, 1]).wrapped == [0, 1]
-with raises(ValidationError):
+with pytest.raises(ValidationError):
     deserialize(Wrapper[int], "wrapped")
 assert serialize(Wrapper[str], Wrapper("wrapped")) == "wrapped"
 assert (

@@ -1,11 +1,11 @@
-from dataclasses import Field, MISSING
+from dataclasses import MISSING, Field
 from typing import Any, Collection, Mapping, Optional, Sequence
 
 from apischema.aliases import Aliaser, get_class_aliaser
 from apischema.conversions.conversions import AnyConversion
 from apischema.dataclasses import replace
 from apischema.metadata.keys import ALIAS_METADATA
-from apischema.objects.fields import FieldKind, MISSING_DEFAULT, ObjectField
+from apischema.objects.fields import MISSING_DEFAULT, FieldKind, ObjectField
 from apischema.types import AnyType, Undefined
 from apischema.typing import get_args
 from apischema.utils import get_origin_or_type, get_parameters, substitute_type_vars

@@ -1,7 +1,7 @@
 from dataclasses import InitVar, dataclass, field
 from typing import Generic, TypeVar
 
-from pytest import raises
+import pytest
 
 from apischema import settings
 from apischema.deserialization import get_deserialization_flattened_aliases
@@ -55,7 +55,7 @@ class BadData:
 
 
 def test_invalid_flattened():
-    with raises(TypeError):
+    with pytest.raises(TypeError):
         list(
             get_deserialization_flattened_aliases(
                 BadData, object_fields(BadData)["field"]

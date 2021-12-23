@@ -1,6 +1,6 @@
 from typing import TypeVar, cast
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize
 
@@ -15,8 +15,8 @@ def coerce(cls: type[T], data) -> T:
         return data
 
 
-with raises(ValidationError):
+with pytest.raises(ValidationError):
     deserialize(bool, 0)
-with raises(ValidationError):
+with pytest.raises(ValidationError):
     assert deserialize(bool, "ok", coerce=coerce)
 assert deserialize(bool, 1, coerce=coerce)

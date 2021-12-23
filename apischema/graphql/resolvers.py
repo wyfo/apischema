@@ -43,8 +43,8 @@ from apischema.serialization.serialized_methods import (
     ErrorHandler,
     SerializedMethod,
     _get_methods,
-    serialized as register_serialized,
 )
+from apischema.serialization.serialized_methods import serialized as register_serialized
 from apischema.types import AnyType, NoneType, Undefined
 from apischema.typing import is_type
 from apischema.utils import (

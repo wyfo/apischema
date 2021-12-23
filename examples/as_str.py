@@ -1,12 +1,12 @@
 import bson
-from pytest import raises
+import pytest
 
 from apischema import Unsupported, deserialize, serialize
 from apischema.conversions import as_str
 
-with raises(Unsupported):
+with pytest.raises(Unsupported):
     deserialize(bson.ObjectId, "0123456789ab0123456789ab")
-with raises(Unsupported):
+with pytest.raises(Unsupported):
     serialize(bson.ObjectId, bson.ObjectId("0123456789ab0123456789ab"))
 
 as_str(bson.ObjectId)

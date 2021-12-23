@@ -11,13 +11,9 @@ __all__ = [
 
 
 try:
-    from .schema import ID, Query, Mutation, Subscription, graphql_schema
+    from . import relay
     from .interfaces import interface
     from .resolvers import resolver
-    from . import relay
+    from .schema import ID, Mutation, Query, Subscription, graphql_schema
 except ImportError:
     raise
-    raise ImportError(
-        "GraphQL feature requires graphql-core library\n"
-        "Run `pip install apischema[graphql]` to install it"
-    )

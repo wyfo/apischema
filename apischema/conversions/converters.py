@@ -4,12 +4,12 @@ from enum import Enum
 from functools import partial, wraps
 from types import new_class
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     List,
     MutableMapping,
     Optional,
-    TYPE_CHECKING,
     Type,
     TypeVar,
     Union,
@@ -21,8 +21,8 @@ from apischema.cache import CacheAwareDict
 from apischema.conversions import LazyConversion
 from apischema.conversions.conversions import (
     AnyConversion,
-    ConvOrFunc,
     Conversion,
+    ConvOrFunc,
     resolve_conversion,
 )
 from apischema.conversions.utils import Converter, is_convertible
@@ -52,7 +52,6 @@ if sys.version_info < (3, 8):
 
     def default_deserialization(tp):
         return _deserializers.get(tp)
-
 
 else:
     default_deserialization = _deserializers.get  # type: ignore

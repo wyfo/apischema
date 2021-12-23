@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import NewType
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize, schema
 
@@ -20,7 +20,7 @@ class Resource:
     )
 
 
-with raises(ValidationError) as err:  # pytest check exception is raised
+with pytest.raises(ValidationError) as err:  # pytest check exception is raised
     deserialize(
         Resource, {"id": 42, "tags": ["tag", "duplicate", "duplicate", "bad&", "_"]}
     )

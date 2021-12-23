@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize, serialize
 from apischema.json_schema import deserialization_schema, serialization_schema
@@ -22,6 +22,6 @@ assert (
         "additionalProperties": False,
     }
 )
-with raises(ValidationError):
+with pytest.raises(ValidationError):
     deserialize(Foo, {"bar": None})
 assert serialize(Foo, Foo(None)) == {}

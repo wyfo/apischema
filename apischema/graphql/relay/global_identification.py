@@ -16,7 +16,9 @@ from typing import (
 import graphql
 
 from apischema import deserialize, deserializer, serialize, serializer, type_name
-from apischema.graphql import ID, interface, resolver
+from apischema.graphql.interfaces import interface
+from apischema.graphql.resolvers import resolver
+from apischema.graphql.schema import ID
 from apischema.metadata import skip
 from apischema.ordering import order
 from apischema.type_names import get_type_name

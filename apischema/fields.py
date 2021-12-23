@@ -1,9 +1,9 @@
 __all__ = ["fields_set", "is_set", "set_fields", "unset_fields", "with_fields_set"]
 from dataclasses import (  # type: ignore
-    Field,
     _FIELD,
-    _FIELDS,
     _FIELD_INITVAR,
+    _FIELDS,
+    Field,
     is_dataclass,
 )
 from functools import wraps

@@ -3,8 +3,10 @@ from dataclasses import *
 
 
 def _replace(__obj, **changes):
+    from dataclasses import _FIELD_INITVAR, _FIELDS
+    from dataclasses import replace as replace_  # type: ignore
+
     from apischema.fields import FIELDS_SET_ATTR, fields_set, set_fields
-    from dataclasses import replace as replace_, _FIELDS, _FIELD_INITVAR  # type: ignore
 
     # Fix https://bugs.python.org/issue36470
     assert is_dataclass(__obj)

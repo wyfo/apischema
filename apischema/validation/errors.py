@@ -40,7 +40,6 @@ try:
         loc: Sequence[ErrorKey]
         err: ErrorMsg
 
-
 except ImportError:
     LocalizedError = Mapping[str, Any]  # type: ignore
 

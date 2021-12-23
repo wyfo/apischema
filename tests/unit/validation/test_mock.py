@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import ClassVar, cast
 
-from pytest import raises
+import pytest
 
 from apischema.fields import FIELDS_SET_ATTR
 from apischema.validation.mock import NonTrivialDependency, ValidatorMock
@@ -44,5 +44,5 @@ def test_mock():
     assert mock.__class__ == Data
     assert isinstance(mock, Data)
     assert type(mock) == ValidatorMock
-    with raises(NonTrivialDependency):
+    with pytest.raises(NonTrivialDependency):
         _ = mock.e

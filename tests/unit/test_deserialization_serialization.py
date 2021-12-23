@@ -4,7 +4,7 @@ from enum import Enum
 from typing import AbstractSet, Any, List, Mapping, Optional, Sequence, Set, Union
 from uuid import UUID, uuid4
 
-from pytest import mark, raises
+import pytest
 
 from apischema import schema
 from apischema.deserialization import deserialize
@@ -24,7 +24,7 @@ def bijection(cls, data, expected):
 
 
 def error(data, cls):
-    with raises(ValidationError):
+    with pytest.raises(ValidationError):
         deserialize(cls, data)
 
 
@@ -44,12 +44,14 @@ class Dataclass:
     opt: Optional[int] = field(default=None, metadata=schema(min=100))
 
 
-@mark.parametrize("data", ["", 0])
+@pytest.mark.parametrize("data", ["", 0])
 def test_any(data):
     bijection(Any, data, data)
 
 
-@mark.parametrize("data, expected", [(None, None), ({"a": 0}, SimpleDataclass(0))])
+@pytest.mark.parametrize(
+    "data, expected", [(None, None), ({"a": 0}, SimpleDataclass(0))]
+)
 def test_optional(data, expected):
     bijection(Optional[SimpleDataclass], data, expected)
 
@@ -58,28 +60,28 @@ def test_optional_error():
     error(0, Optional[str])
 
 
-@mark.parametrize("data, expected", [("", ""), ({"a": 0}, SimpleDataclass(0))])
+@pytest.mark.parametrize("data, expected", [("", ""), ({"a": 0}, SimpleDataclass(0))])
 def test_union(data, expected):
     bijection(Union[str, SimpleDataclass], data, expected)
 
 
-@mark.parametrize("data", [0, None])
+@pytest.mark.parametrize("data", [0, None])
 def test_union_error(data):
     error(data, Union[str, SimpleDataclass])
 
 
-@mark.parametrize("cls, data", [(int, 0), (str, ""), (bool, True), (float, 0.0)])
+@pytest.mark.parametrize("cls, data", [(int, 0), (str, ""), (bool, True), (float, 0.0)])
 def test_primitive(cls, data):
     bijection(cls, data, data)
 
 
-@mark.parametrize("data", ["", None])
+@pytest.mark.parametrize("data", ["", None])
 def test_primitive_error(data):
     error(data, int)
 
 
 # noinspection PyTypeChecker
-@mark.parametrize(
+@pytest.mark.parametrize(
     "cls, expected",
     [
         (List, [0, SimpleDataclass(0)]),
@@ -93,12 +95,12 @@ def test_collection(cls, expected):
     bijection(cls[Union[int, SimpleDataclass]], data, expected)
 
 
-@mark.parametrize("data", [{}, ["", 0]])
+@pytest.mark.parametrize("data", [{}, ["", 0]])
 def test_iterable_error(data):
     error(data, List[str])
 
 
-@mark.parametrize(
+@pytest.mark.parametrize(
     "key_cls, data, expected",
     [
         (str, {"int": 0, "SC": {"a": 0}}, {"int": 0, "SC": SimpleDataclass(0)}),
@@ -110,17 +112,17 @@ def test_mapping(key_cls, data, expected):
     bijection(Mapping[key_cls, Union[int, SimpleDataclass]], data, expected)
 
 
-@mark.parametrize("data", [[], {"key": ""}])
+@pytest.mark.parametrize("data", [[], {"key": ""}])
 def test_mapping_error(data):
     error(data, Mapping[str, int])
 
 
-@mark.parametrize("expected", [UUID(uuid), UUID(uuid)])
+@pytest.mark.parametrize("expected", [UUID(uuid), UUID(uuid)])
 def test_model(expected):
     bijection(UUID, uuid, expected)
 
 
-@mark.parametrize("data", [0, "fake"])
+@pytest.mark.parametrize("data", [0, "fake"])
 def test_model_error(data):
     error(data, UUID)
 
@@ -133,7 +135,7 @@ def test_enum_errors():
     error("b", SimpleEnum)
 
 
-@mark.parametrize("data", [0, "ok"])
+@pytest.mark.parametrize("data", [0, "ok"])
 def test_literal(data):
     bijection(Literal[0, "ok"], data, data)
 
@@ -142,7 +144,7 @@ def test_literal_error():
     error(1, Literal[0, "ok"])
 
 
-@mark.parametrize(
+@pytest.mark.parametrize(
     "data, expected",
     [
         ({"nested": {"a": 0}}, Dataclass(SimpleDataclass(0), None)),
@@ -154,7 +156,7 @@ def test_dataclass(data, expected):
     bijection(Dataclass, data, expected)
 
 
-@mark.parametrize("data", [{}, {"nested": {}, "opt": 1}])
+@pytest.mark.parametrize("data", [{}, {"nested": {}, "opt": 1}])
 def test_dataclass_error(data):
     error(data, Dataclass)
 

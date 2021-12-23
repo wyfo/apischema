@@ -1,6 +1,6 @@
 from typing import Collection, TypeVar
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize
 from apischema.objects import object_deserialization
@@ -19,5 +19,5 @@ def test_generic_object_deserialization():
     assert deserialize(
         Collection[int], {"item": 0, "number": 3}, conversion=repeat_conv
     ) == [0, 0, 0]
-    with raises(ValidationError):
+    with pytest.raises(ValidationError):
         deserialize(Collection[str], {"item": 0, "number": 3}, conversion=repeat_conv)

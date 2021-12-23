@@ -1,10 +1,11 @@
 from typing import Tuple
 
+import pytest
+
 from apischema import PassThroughOptions, serialize
-from pytest import mark
 
 
-@mark.parametrize(
+@pytest.mark.parametrize(
     "pass_through, expected_cls",
     [
         (None, list),

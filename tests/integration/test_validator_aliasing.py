@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize, validator
 from apischema.objects import AliasedStr, get_alias
@@ -16,6 +16,6 @@ class A:
 
 
 def test_validator_aliasing():
-    with raises(ValidationError) as err:
+    with pytest.raises(ValidationError) as err:
         deserialize(A, {"A": 42}, aliaser=str.upper)
     assert err.value.errors == [{"loc": ["A", "A", "b", 0, "C"], "err": "error 42"}]

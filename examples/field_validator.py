@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialize
 from apischema.metadata import validators
@@ -16,6 +16,6 @@ class Foo:
     bar: str = field(metadata=validators(check_no_duplicate_digits))
 
 
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     deserialize(Foo, {"bar": "11"})
 assert err.value.errors == [{"loc": ["bar"], "err": "number has duplicate digits"}]

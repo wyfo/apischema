@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from pytest import raises
+import pytest
 
 from apischema.fields import fields_set, set_fields, unset_fields, with_fields_set
 
@@ -25,7 +25,7 @@ class DecoratedInherited(Data):
 
 
 def test_fields_set():
-    with raises(TypeError):
+    with pytest.raises(TypeError):
         fields_set(object())
 
     assert fields_set(Data(0)) == {"without_default"}

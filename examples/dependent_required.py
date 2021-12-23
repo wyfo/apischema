@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, dependent_required, deserialize
 from apischema.json_schema import deserialization_schema
@@ -34,7 +34,7 @@ assert deserialization_schema(Billing) == {
     "type": "object",
 }
 
-with raises(ValidationError) as err:
+with pytest.raises(ValidationError) as err:
     deserialize(Billing, {"name": "Anonymous", "credit_card": 1234_5678_9012_3456})
 assert err.value.errors == [
     {

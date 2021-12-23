@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, MutableMapping, NamedTuple, Optional, TypeVar, Union
 
 from apischema.cache import CacheAwareDict
-from apischema.types import AnyType, PRIMITIVE_TYPES
+from apischema.types import PRIMITIVE_TYPES, AnyType
 from apischema.typing import get_args, get_origin, is_named_tuple, is_type_var
 from apischema.utils import has_type_vars, merge_opts, replace_builtins
 

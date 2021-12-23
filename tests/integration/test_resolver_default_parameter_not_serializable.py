@@ -1,9 +1,9 @@
 from functools import wraps
 from typing import Union
 
+import pytest
 from graphql import graphql_sync
 from graphql.utilities import print_schema
-from pytest import mark
 
 from apischema import Undefined, UndefinedType
 from apischema.graphql import graphql_schema
@@ -15,7 +15,7 @@ class Foo:
     pass
 
 
-@mark.parametrize(
+@pytest.mark.parametrize(
     "tp, default",
     [(Union[UndefinedType, int], Undefined), (Union[int, Annotated[Foo, Skip]], Foo())],
 )

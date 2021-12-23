@@ -1,7 +1,7 @@
 import sys
 from dataclasses import dataclass
 
-from pytest import raises
+import pytest
 
 from apischema import ValidationError, deserialization_method, deserialize, validator
 
@@ -20,7 +20,7 @@ def test_allowed_types_run_upper_validators():
         bytes, allowed_types={bytes}, validators=[validate_checksum]
     )
     assert method(valid_bytes) is valid_bytes
-    with raises(ValidationError):
+    with pytest.raises(ValidationError):
         method(invalid_bytes)
 
 
@@ -38,6 +38,6 @@ def test_allowed_types_doesnt_run_type_validators():
     obj = MyClass(0)
     method = deserialization_method(MyClass, allowed_types={MyClass})
     assert method(obj) is obj
-    with raises(ValidationError):
+    with pytest.raises(ValidationError):
         method({"fields": 0})
         deserialize(MyClass, {"field": 0}, allowed_types={MyClass})

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
+import pytest
 from graphql import graphql_sync, print_schema
-from pytest import raises
 
 from apischema import deserialize, serialize
 from apischema.graphql import graphql_schema
@@ -145,13 +145,13 @@ def get_data3() -> Data3:
 
 
 def test_flattened_converted_error():
-    with raises(TypeError):
+    with pytest.raises(TypeError):
         deserialize(Data3, {"attr": 0})
-    with raises(TypeError):
+    with pytest.raises(TypeError):
         serialize(Data3, Data3(Field2(0)))
-    with raises(TypeError):
+    with pytest.raises(TypeError):
         deserialization_schema(Data3)
-    with raises(TypeError):
+    with pytest.raises(TypeError):
         serialization_schema(Data3)
-    with raises(TypeError):
+    with pytest.raises(TypeError):
         graphql_schema(query=[get_data3])

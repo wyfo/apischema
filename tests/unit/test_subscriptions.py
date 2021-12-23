@@ -2,8 +2,8 @@ from dataclasses import dataclass, replace
 from typing import AsyncIterable, Mapping, Optional
 
 import graphql
+import pytest
 from graphql.utilities import print_schema
-from pytest import mark
 
 from apischema import Undefined
 from apischema.graphql import Subscription, graphql_schema
@@ -42,11 +42,11 @@ def hello() -> str:
     return "world"
 
 
-@mark.parametrize("alias", [None, "alias"])
-@mark.parametrize("conversion", [None, event_name])
-@mark.parametrize("error_handler", [Undefined, None])
-@mark.parametrize("resolver", [None, events2])
-@mark.asyncio
+@pytest.mark.parametrize("alias", [None, "alias"])
+@pytest.mark.parametrize("conversion", [None, event_name])
+@pytest.mark.parametrize("error_handler", [Undefined, None])
+@pytest.mark.parametrize("resolver", [None, events2])
+@pytest.mark.asyncio
 async def test_subscription(alias, conversion, error_handler, resolver):
     if alias is not None:
         sub_name = alias
