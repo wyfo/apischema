@@ -22,9 +22,9 @@ jobs:
         exclude:
           - python-version: pypy3
         include:
-          - python-version: 3.6
+          - python-version: "3.6"
             pytest-args: --ignore=tests/__generated__/test_recursive_postponned.py
-          - python-version: 3.10
+          - python-version: "3.10"
             pytest-args: --cov=apischema --cov-branch --cov-report=xml --cov-report=html
     steps:
       - uses: actions/cache@v2
