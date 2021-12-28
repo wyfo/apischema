@@ -27,7 +27,7 @@ if sys.version_info < (3, 7):
 
     @deserializer
     def to_date(s: str) -> date:
-        return date.strptime(s, "%Y-%m-%d")
+        return datetime.strptime(s, "%Y-%m-%d").date()
 
     @serializer
     def from_date(obj: date) -> str:
