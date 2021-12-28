@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 
 from apischema import ValidationError, deserialize, serialize
@@ -40,3 +42,21 @@ def test_typed_dict():
     with pytest.raises(ValidationError):
         assert deserialize(TD3, {})
     assert serialize(TD1, {"key1": ""}) == {"key1": ""}
+
+
+class SimpleAdditional(TypedDict):
+    key: str
+
+
+class ComplexAdditional(TypedDict):
+    key: date
+
+
+@pytest.mark.parametrize("cls", [SimpleAdditional, ComplexAdditional])
+def test_additional_properties(cls):
+    assert (
+        deserialize(
+            cls, {"key": "1970-01-01", "additional": 42}, additional_properties=True
+        )["additional"]
+        == 42
+    )

@@ -81,7 +81,7 @@ class ObjectField:
         if self.default_factory is MISSING:
             object.__setattr__(self, "default_factory", None)
         if not self.required and self.default_factory is None:
-            if default is MISSING_DEFAULT:
+            if default is MISSING_DEFAULT or default is MISSING:
                 raise ValueError("Missing default for non-required ObjectField")
             object.__setattr__(self, "default_factory", LazyValue(default))
         if self.none_as_undefined and is_union_of(self.type, NoneType):
