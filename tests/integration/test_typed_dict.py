@@ -1,9 +1,11 @@
 from datetime import date
+from typing import Annotated
 
 import pytest
 
 from apischema import ValidationError, deserialize, serialize
 from apischema.json_schema import deserialization_schema, serialization_schema
+from apischema.metadata import flatten
 from apischema.typing import TypedDict
 
 
@@ -52,8 +54,16 @@ class ComplexAdditional(TypedDict):
     key: date
 
 
-@pytest.mark.parametrize("cls", [SimpleAdditional, ComplexAdditional])
+class AggregateAdditional(TypedDict):
+    simple: Annotated[SimpleAdditional, flatten]
+
+
+@pytest.mark.parametrize(
+    "cls", [SimpleAdditional, ComplexAdditional, AggregateAdditional]
+)
 def test_additional_properties(cls):
+    with pytest.raises(ValidationError):
+        deserialize(cls, {"key": "1970-01-01", "additional": 42})
     assert (
         deserialize(
             cls, {"key": "1970-01-01", "additional": 42}, additional_properties=True
