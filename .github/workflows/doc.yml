@@ -41,7 +41,7 @@ jobs:
       - name: Install requirements
         run: pip install -r benchmark/requirements.txt
       - name: Run benchmark
-        run: PYTHONPATH=. python benchmark/main.py
+        run: python benchmark/main.py
       - uses: actions/upload-artifact@v2
         with:
           name: benchmark_table

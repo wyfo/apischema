@@ -5,7 +5,7 @@
 ![benchmark chart](benchmark_chart.svg)
 
 !!! note
-    Only library less than 40x slower than *apischema* are included in the chart. Full results are detailed in the [benchmark section](#benchmark)
+    Chart is truncated to a relative performance of 20x slower. Benchmark results are detailed in the [benchmark section](#benchmark).
 
 ## Precomputed (de)serialization methods
 

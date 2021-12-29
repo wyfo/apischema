@@ -16,6 +16,7 @@ ROOT_DIR = pathlib.Path(__file__).parent.parent
 DATA_PATH = ROOT_DIR / "benchmark" / "data.json"
 TABLE_PATH = ROOT_DIR / "examples" / "benchmark_table.md"
 CHART_PATH = ROOT_DIR / "docs" / "benchmark_chart.svg"
+CHART_TRUNCATE = 20
 
 packages = [
     path.stem
@@ -141,15 +142,21 @@ def main():
     ]
     df = pandas.DataFrame(
         [
-            [res.library, *res.result]
+            [res.library] + [min(r, CHART_TRUNCATE) for r in res.result]
             for res in relative_results
-            if all(r <= 40 for r in res.result)
         ],
         columns=["library"] + columns,
     )
-    df.plot(x="library", kind="bar", title="Benchmark", rot=45)
+    ax = df.plot.bar(x="library", title="Benchmark", rot=45)
     plt.xlabel("")
     plt.tight_layout()
+    for container in ax.containers:
+        ax.bar_label(
+            container,
+            labels=["" if v < CHART_TRUNCATE else "··" for v in container.datavalues],
+            padding=2,
+            rotation=90,
+        )
     plt.savefig(str(CHART_PATH))
 
 
