@@ -147,7 +147,7 @@ def main():
         ],
         columns=["library"] + columns,
     )
-    ax = df.plot.bar(x="library", title="Benchmark", rot=45)
+    ax = df.plot.bar(x="library", title="Benchmark (lower is better)", rot=45)
     plt.xlabel("")
     plt.tight_layout()
     for container in ax.containers:
