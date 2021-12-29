@@ -295,7 +295,7 @@ def generate(package: str) -> str:
     pyx_file_name = ROOT_DIR / "apischema" / package / "methods.pyx"
     with open(pyx_file_name, "w") as pyx_file:
         pyx = IndentedWriter(pyx_file)
-        pyx.write("cimport cython\n")
+        pyx.writeln("cimport cython")
         pyx.writelines(import_lines(ROOT_DIR / "apischema" / package / "methods.py"))
         for cls in module_elements(module, type):
             write_class(pyx, cls)  # type: ignore
