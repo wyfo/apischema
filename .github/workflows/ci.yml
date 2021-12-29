@@ -6,11 +6,16 @@ on:
       - master
       - v[0-9]*.*
     paths:
-      - "**.py"
+      - apischema/**
+      - examples/**
+      - scripts/**
       - tests/**
   pull_request:
     paths:
-      - "**.py"
+      - apischema/**
+      - examples/**
+      - scripts/**
+      - tests/**
 
 jobs:
   test:
@@ -21,9 +26,9 @@ jobs:
       matrix:
         python-version: ['3.6', '3.7', '3.8', '3.9', '3.10', 'pypy-3.7']
         include:
-          - python-version: "3.6"
+          - python-version: '3.6'
             pytest-args: --ignore=tests/__generated__/test_recursive_postponned.py
-          - python-version: "3.10"
+          - python-version: '3.10'
             pytest-args: --cov=apischema --cov-branch --cov-report=xml --cov-report=html
     steps:
       - uses: actions/cache@v2

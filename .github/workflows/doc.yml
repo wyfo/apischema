@@ -7,27 +7,100 @@ on:
     tags:
       - v[0-9]*.*.*
     paths:
-      - examples/**
+      - apischema/**
+      - benchmark/**
       - docs/**
+      - examples/**
+      - mkdocs.yml
+  pull_request:
+    paths:
+      - apischema/**
+      - benchmark/**
+      - docs/**
+      - examples/**
       - mkdocs.yml
 
 jobs:
-  publish_doc:
-    name: Publish documentation
+  run_benchmark:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('tests/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Cythonize
+        run: scripts/cythonize.sh
+      - name: Compile
+        run: python setup.py build_ext --inplace
       - name: Install requirements
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r docs/requirements.txt
+        run: pip install -r benchmark/requirements.txt
+      - name: Run benchmark
+        run: PYTHONPATH=. python benchmark/main.py
+      - uses: actions/upload-artifact@v2
+        with:
+          name: benchmark_table
+          path: examples/benchmark_table.md
+      - uses: actions/upload-artifact@v2
+        with:
+          name: benchmark_chart
+          path: docs/benchmark_chart.svg
+  upload_doc:
+    needs: [run_benchmark]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('tests/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: benchmark_table
+          path: examples
+      - uses: actions/download-artifact@v2
+        with:
+          name: benchmark_chart
+          path: docs
+      - name: Install requirements
+        run: pip install -r docs/requirements.txt
+      - name: Build documentation
+        run: mkdocs build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: documentation
+          path: site/**
+  publish_doc:
+    needs: [run_benchmark]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('tests/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: benchmark_table
+          path: examples
+      - uses: actions/download-artifact@v2
+        with:
+          name: benchmark_chart
+          path: docs
+      - name: Install requirements
+        run: pip install -r docs/requirements.txt
       - name: Setup git
         run: |
           git config user.name github-actions

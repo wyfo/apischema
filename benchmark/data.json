@@ -1,0 +1,57 @@
+{
+  "simple": [
+    {
+      "title": "Benchmark running",
+      "body": "A benchmark is running against competitor libraries",
+      "addresses": [
+        "https://github.com/wyfo/"
+      ],
+      "persistence": 20
+    },
+    {
+      "title": "Benchmark result",
+      "body": "apischema is faster."
+    }
+  ],
+  "complex": [
+    {
+      "store": "BigMarket",
+      "address": "In a galaxy far far away",
+      "date": "2021-12-29T15:10:00",
+      "items": [
+        {
+          "name": "Lorem ipsum",
+          "price": 1.25
+        },
+        {
+          "name": "Dolor sit amet",
+          "price": 7.99,
+          "quantity": 2
+        },
+        {
+          "name": "Consectetur",
+          "price": 26.70
+        }
+      ],
+      "payment": "CASH",
+      "specialOffers": 1.07
+    },
+    {
+      "store": "BigMarket",
+      "address": "In a galaxy far far away",
+      "date": "2021-12-29T15:10:00",
+      "items": [
+        {
+          "name": "Lorem ipsum",
+          "price": 1.25
+        }
+      ],
+      "payment": "CREDIT_CARD",
+      "client": {
+        "id": 42,
+        "firstName": "Joseph",
+        "lastName": "Perez"
+      }
+    }
+  ]
+}
