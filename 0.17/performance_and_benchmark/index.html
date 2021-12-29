@@ -650,6 +650,19 @@
     Benchmark
   </a>
   
+    <nav class="md-nav" aria-label="Benchmark">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#relative-execution-time-lower-is-better" class="md-nav__link">
+    Relative execution time (lower is better)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -810,6 +823,19 @@
     Benchmark
   </a>
   
+    <nav class="md-nav" aria-label="Benchmark">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#relative-execution-time-lower-is-better" class="md-nav__link">
+    Relative execution time (lower is better)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -834,7 +860,7 @@
 <p><img alt="benchmark chart" src="../benchmark_chart.svg" /></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Chart is truncated to a relative performance of 20x slower. Benchmark results are detailed in the <a href="#benchmark">benchmark section</a>.</p>
+<p>Chart is truncated to a relative performance of 20x slower. Benchmark results are detailed in the <a href="#relative-execution-time-lower-is-better">results table</a>.</p>
 </div>
 <h2 id="precomputed-deserialization-methods">Precomputed (de)serialization methods<a class="headerlink" href="#precomputed-deserialization-methods" title="Permanent link">&para;</a></h2>
 <p><em>apischema</em> precomputes (de)serialization methods depending on the (de)serialized type (and other parameters); type annotations processing is done in the precomputation. Methods are then cached using <code>functools.lru_cache</code>, so <code>deserialize</code> and <code>serialize</code> don't recompute them every time.</p>
@@ -958,6 +984,7 @@ They are indeed pure Python functions and cannot be compiled.</p>
 Performances are measured on two datasets: a simple, a more complex one.</p>
 <p>Benchmark is run by Github Actions workflow on <code>ubuntu-latest</code> with Python 3.10.</p>
 <p>Results are given relatively to the fastest library, i.e. <em>apischema</em>; simple and complex results are detailed in the table, displayed result is the mean of both.</p>
+<h4 id="relative-execution-time-lower-is-better">Relative execution time (lower is better)<a class="headerlink" href="#relative-execution-time-lower-is-better" title="Permanent link">&para;</a></h4>
 <table>
 <thead>
 <tr>
@@ -977,32 +1004,32 @@ Performances are measured on two datasets: a simple, a more complex one.</p>
 <tr>
 <td>mashumaro</td>
 <td>2.9.1</td>
-<td align="right">x2.5 (3.3/1.8)</td>
 <td align="right">x2.8 (3.5/2.1)</td>
+<td align="right">x2.9 (3.5/2.2)</td>
 </tr>
 <tr>
 <td>typical</td>
 <td>2.8.0</td>
-<td align="right">x6.7 (7.6/5.9)</td>
-<td align="right">x9.0 (13.1/4.9)</td>
+<td align="right">x7.8 (8.3/7.3)</td>
+<td align="right">x9.4 (13.7/5.1)</td>
 </tr>
 <tr>
 <td>pydantic</td>
 <td>1.8.2</td>
-<td align="right">x12.3 (15.5/9.1)</td>
-<td align="right">x30.0 (42.8/17.2)</td>
+<td align="right">x13.7 (16.6/10.9)</td>
+<td align="right">x32.8 (47.9/17.7)</td>
 </tr>
 <tr>
 <td>marshmallow</td>
 <td>3.14.1</td>
-<td align="right">x22.8 (26.7/18.9)</td>
-<td align="right">x23.7 (30.4/17.0)</td>
+<td align="right">x26.5 (28.9/24.0)</td>
+<td align="right">x24.4 (31.0/17.8)</td>
 </tr>
 <tr>
 <td>typedload</td>
 <td>2.14</td>
-<td align="right">x12.0 (16.0/7.9)</td>
-<td align="right">x69.3 (84.0/54.6)</td>
+<td align="right">x13.6 (17.7/9.5)</td>
+<td align="right">x72.9 (89.4/56.5)</td>
 </tr>
 </tbody>
 </table>
