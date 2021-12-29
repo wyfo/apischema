@@ -1,6 +1,6 @@
 from typing import Sequence
 
-import attr
+import attrs
 
 from apischema import deserialize, serialize, settings
 from apischema.json_schema import deserialization_schema
@@ -13,7 +13,7 @@ def attrs_fields(cls: type) -> Sequence[ObjectField] | None:
     if hasattr(cls, "__attrs_attrs__"):
         return [
             ObjectField(
-                a.name, a.type, required=a.default == attr.NOTHING, default=a.default
+                a.name, a.type, required=a.default == attrs.NOTHING, default=a.default
             )
             for a in getattr(cls, "__attrs_attrs__")
         ]
@@ -24,9 +24,9 @@ def attrs_fields(cls: type) -> Sequence[ObjectField] | None:
 settings.default_object_fields = attrs_fields
 
 
-@attr.s
+@attrs.define
 class Foo:
-    bar: int = attr.ib()
+    bar: int
 
 
 assert deserialize(Foo, {"bar": 0}) == Foo(0)
