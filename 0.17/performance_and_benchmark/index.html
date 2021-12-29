@@ -639,6 +639,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#override-dataclass-constructors" class="md-nav__link">
+    Override dataclass constructors
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#benchmark" class="md-nav__link">
     Benchmark
   </a>
@@ -812,6 +819,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#override-dataclass-constructors" class="md-nav__link">
+    Override dataclass constructors
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#benchmark" class="md-nav__link">
     Benchmark
   </a>
@@ -965,6 +979,15 @@ not guaranteed to have their runtime type supported (having a <code>set</code> a
 <p>Compilation is disabled when using PyPy, because it's even faster with the bare Python code.
 That's another interest of generating <code>.pyx</code> files: keeping Python source for PyPy.</p>
 </div>
+<h2 id="override-dataclass-constructors">Override dataclass constructors<a class="headerlink" href="#override-dataclass-constructors" title="Permanent link">&para;</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This feature is still experimental and disabled by default. Test carefully its impact on your code before enable it in production.</p>
+</div>
+<p>Dataclass constructors calls is the slowest part of the deserialization, about 50% of its runtime!
+They are indeed pure Python functions and cannot be compiled.</p>
+<p>In case of "normal" dataclass (no <code>__slots__</code>, <code>__post_init__</code>, or <code>__init__</code>/<code>__new__</code>/<code>__setattr__</code> overriding), <em>apischema</em> can override the constructor with a compilable code. </p>
+<p>This feature can be toggled on/off globally using <code>apischema.settings.deserialization.override_dataclass_constructors</code></p>
 <h2 id="benchmark">Benchmark<a class="headerlink" href="#benchmark" title="Permanent link">&para;</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
