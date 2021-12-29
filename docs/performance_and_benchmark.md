@@ -99,7 +99,19 @@ However, *apischema* remains a pure Python library — it can work without binar
     Compilation is disabled when using PyPy, because it's even faster with the bare Python code.
     That's another interest of generating `.pyx` files: keeping Python source for PyPy.
 
-## Benchmark 
+## Override dataclass constructors
+
+!!! warning
+    This feature is still experimental and disabled by default. Test carefully its impact on your code before enable it in production.
+
+Dataclass constructors calls is the slowest part of the deserialization, about 50% of its runtime!
+They are indeed pure Python functions and cannot be compiled.
+
+In case of "normal" dataclass (no `__slots__`, `__post_init__`, or `__init__`/`__new__`/`__setattr__` overriding), *apischema* can override the constructor with a compilable code. 
+
+This feature can be toggled on/off globally using `apischema.settings.deserialization.override_dataclass_constructors`
+
+## Benchmark
 
 !!! note
     Benchmark presented is just [*Pydantic* benchmark](https://github.com/samuelcolvin/pydantic/tree/master/benchmarks) where *apischema* has been ["inserted"](https://github.com/wyfo/pydantic/tree/benchmark_apischema).

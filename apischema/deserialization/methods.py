@@ -418,8 +418,60 @@ class AdditionalField:
 
 
 @dataclass
-class SimpleObjectMethod(DeserializationMethod):
+class Constructor:
     cls: Any  # cython doesn't handle type subclasses properly
+
+    def construct(self, fields: Dict[str, Any]) -> Any:
+        raise NotImplementedError
+
+
+class NoConstructor(Constructor):
+    def construct(self, fields: Dict[str, Any]) -> Any:
+        return fields
+
+
+class RawConstructor(Constructor):
+    def construct(self, fields: Dict[str, Any]) -> Any:
+        return self.cls(**fields)
+
+
+@dataclass
+class DefaultField:
+    name: str
+    default_value: Any  # https://github.com/cython/cython/issues/4383
+
+
+@dataclass
+class FactoryField:
+    name: str
+    factory: Callable
+
+
+@dataclass
+class FieldsConstructor(Constructor):
+    nb_fields: int
+    default_fields: Tuple[DefaultField, ...]
+    factory_fields: Tuple[FactoryField, ...]
+
+    def construct(self, fields: Dict[str, Any]) -> Any:
+        obj: object = object.__new__(self.cls)
+        obj_dict: dict = obj.__dict__
+        obj_dict.update(fields)
+        if len(fields) != self.nb_fields:
+            for i in range(len(self.default_fields)):
+                default_field: DefaultField = self.default_fields[i]
+                if default_field.name not in fields:
+                    obj_dict[default_field.name] = default_field.default_value
+            for i in range(len(self.factory_fields)):
+                factory_field: FactoryField = self.factory_fields[i]
+                if factory_field.name not in fields:
+                    obj_dict[factory_field.name] = factory_field.factory()
+        return obj
+
+
+@dataclass
+class SimpleObjectMethod(DeserializationMethod):
+    constructor: Constructor
     fields: Tuple[Field, ...]
     all_aliases: AbstractSet[str]
     typed_dict: bool
@@ -452,7 +504,7 @@ class SimpleObjectMethod(DeserializationMethod):
                 )
         if field_errors:
             raise ValidationError([], field_errors)
-        return self.cls(**data2)
+        return self.constructor.construct(data2)
 
 
 def extend_errors(
@@ -478,7 +530,7 @@ def update_children_errors(
 
 @dataclass
 class ObjectMethod(DeserializationMethod):
-    cls: Any  # cython doesn't handle type subclasses properly
+    constructor: Constructor
     constraints: Tuple[Constraint, ...]
     fields: Tuple[Field, ...]
     flattened_fields: Tuple[FlattenedField, ...]
@@ -639,7 +691,7 @@ class ObjectMethod(DeserializationMethod):
                         if v.dependencies.isdisjoint(invalid_fields)
                     ]
                     validate(
-                        ValidatorMock(self.cls, values),
+                        ValidatorMock(self.constructor.cls, values),
                         valid_validators,
                         init,
                         aliaser=self.aliaser,
@@ -647,10 +699,11 @@ class ObjectMethod(DeserializationMethod):
                 except ValidationError as err:
                     error = merge_errors(error, err)
                 raise error
-            return validate(self.cls(**values), validators, init, aliaser=self.aliaser)
+            obj = self.constructor.construct(values)
+            return validate(obj, validators, init, aliaser=self.aliaser)
         elif field_errors or errors:
             raise ValidationError(errors or [], field_errors or {})
-        return self.cls(**values)
+        return self.constructor.construct(values)
 
 
 class NoneMethod(DeserializationMethod):

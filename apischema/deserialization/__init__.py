@@ -1,7 +1,8 @@
 import collections.abc
+import dataclasses
+import inspect
 import re
 from collections import defaultdict
-from dataclasses import dataclass, replace
 from enum import Enum
 from functools import lru_cache, partial
 from typing import (
@@ -43,12 +44,16 @@ from apischema.deserialization.methods import (
     ConstrainedIntMethod,
     ConstrainedStrMethod,
     Constraint,
+    Constructor,
     ConversionAlternative,
     ConversionMethod,
     ConversionUnionMethod,
     ConversionWithValueErrorMethod,
+    DefaultField,
     DeserializationMethod,
+    FactoryField,
     Field,
+    FieldsConstructor,
     FlattenedField,
     FloatMethod,
     IntMethod,
@@ -57,10 +62,12 @@ from apischema.deserialization.methods import (
     LiteralMethod,
     MappingCheckOnly,
     MappingMethod,
+    NoConstructor,
     NoneMethod,
     ObjectMethod,
     OptionalMethod,
     PatternField,
+    RawConstructor,
     RecMethod,
     SetMethod,
     SimpleObjectMethod,
@@ -140,7 +147,7 @@ def check_only(method: DeserializationMethod) -> bool:
     )
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class DeserializationMethodFactory:
     factory: Factory
     cls: Optional[type] = None
@@ -152,7 +159,7 @@ class DeserializationMethodFactory:
     ) -> "DeserializationMethodFactory":
         if constraints is None and not validators:
             return self
-        return replace(
+        return dataclasses.replace(
             self,
             constraints=merge_constraints(self.constraints, constraints),
             validators=(*validators, *self.validators),
@@ -417,6 +424,48 @@ class DeserializationMethodVisitor(
                     )
             object_constraints = constraints_validators(constraints)[dict]
             all_alliases = set(alias_by_name.values())
+            constructor: Constructor
+            if is_typed_dict(cls):
+                constructor = NoConstructor(cls)
+            elif (
+                settings.deserialization.override_dataclass_constructors
+                and dataclasses.is_dataclass(cls)
+                and "__slots__" not in cls.__dict__
+                and not hasattr(cls, "__post_init__")
+                and all(f.init for f in dataclasses.fields(cls))
+                and cls.__new__ is object.__new__
+                and (
+                    cls.__setattr__ is object.__setattr__
+                    or getattr(cls, dataclasses._PARAMS).frozen  # type: ignore
+                )
+                and (
+                    list(
+                        inspect.signature(cls.__init__, follow_wrapped=False).parameters
+                    )
+                    == [
+                        "__dataclass_self__"
+                        if "self" in dataclasses.fields(cls)
+                        else "self"
+                    ]
+                    + [f.name for f in dataclasses.fields(cls)]
+                )
+            ):
+                constructor = FieldsConstructor(
+                    cls,
+                    len(fields),
+                    tuple(
+                        DefaultField(f.name, f.default)
+                        for f in dataclasses.fields(cls)
+                        if f.default is not dataclasses.MISSING
+                    ),
+                    tuple(
+                        FactoryField(f.name, f.default_factory)
+                        for f in dataclasses.fields(cls)
+                        if f.default_factory is not dataclasses.MISSING
+                    ),
+                )
+            else:
+                constructor = RawConstructor(cls)
             if (
                 not object_constraints
                 and not flattened_fields
@@ -434,7 +483,7 @@ class DeserializationMethodVisitor(
                 )
             ):
                 return SimpleObjectMethod(
-                    cls,
+                    constructor,
                     tuple(normal_fields),
                     all_alliases,
                     is_typed_dict(cls),
@@ -442,7 +491,7 @@ class DeserializationMethodVisitor(
                     settings.errors.unexpected_property,
                 )
             return ObjectMethod(
-                cls,
+                constructor,
                 object_constraints,
                 tuple(normal_fields),
                 tuple(flattened_fields),
@@ -498,7 +547,7 @@ class DeserializationMethodVisitor(
                 return TypeCheckMethod(cls, method)
             return method
 
-        return replace(primitive_factory, factory=factory)
+        return dataclasses.replace(primitive_factory, factory=factory)
 
     def tuple(self, types: Sequence[AnyType]) -> DeserializationMethodFactory:
         elt_factories = [self.visit(tp) for tp in types]

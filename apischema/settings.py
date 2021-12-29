@@ -114,6 +114,7 @@ class settings(metaclass=MetaSettings):
         default_conversion: DefaultConversion = default_deserialization
         fall_back_on_default: bool = False
         no_copy: bool = True
+        override_dataclass_constructors = False
 
     class serialization(metaclass=ResetCache):
         check_type: bool = False
