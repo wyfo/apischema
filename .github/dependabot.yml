@@ -12,3 +12,7 @@ updates:
     directory: "docs"
     schedule:
       interval: "daily"
+  - package-ecosystem: "pip"
+    directory: "benchmark"
+    schedule:
+      interval: "daily"

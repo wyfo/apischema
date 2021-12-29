@@ -2,6 +2,11 @@
 
 *apischema* is (a lot) [faster](#benchmark) than its known alternatives, thanks to advanced optimizations.    
 
+![benchmark chart](benchmark_chart.svg)
+
+!!! note
+    Chart is truncated to a relative performance of 20x slower. Benchmark results are detailed in the [benchmark section](#benchmark).
+
 ## Precomputed (de)serialization methods
 
 *apischema* precomputes (de)serialization methods depending on the (de)serialized type (and other parameters); type annotations processing is done in the precomputation. Methods are then cached using `functools.lru_cache`, so `deserialize` and `serialize` don't recompute them every time.
@@ -113,40 +118,14 @@ This feature can be toggled on/off globally using `apischema.settings.deserializ
 
 ## Benchmark
 
-!!! note
-    Benchmark presented is just [*Pydantic* benchmark](https://github.com/samuelcolvin/pydantic/tree/master/benchmarks) where *apischema* has been ["inserted"](https://github.com/wyfo/pydantic/tree/benchmark_apischema).
+Benchmark code is located [benchmark directory](https://github.com/wyfo/apischema/tree/master/benchmark) or *apischema* repository.
+Performances are measured on two datasets: a simple, a more complex one.
 
-Below are the results of crude benchmark comparing *apischema* to *pydantic* and other validation libraries.
+Benchmark is run by Github Actions workflow on `ubuntu-latest` with Python 3.10.
 
-Package | Version | Relative Performance | Mean deserialization time
---- | --- | --- | ---
-apischema | `0.16.0` |  | 40.2μs
-pydantic | `1.8.2` | 1.9x slower | 77.8μs
-attrs + cattrs | `21.2.0` | 2.0x slower | 79.7μs
-valideer | `0.4.2` | 2.6x slower | 105.0μs
-marshmallow | `3.14.0` | 5.2x slower | 210.5μs
-voluptuous | `0.12.2` | 5.9x slower | 238.4μs
-trafaret | `2.1.0` | 6.3x slower | 253.0μs
-schematics | `2.1.1` | 19.3x slower | 775.4μs
-django-rest-framework | `3.12.4` | 23.4x slower | 939.7μs
-cerberus | `1.3.4` | 42.8x slower | 1717.6μs
+Results are given relatively to the fastest library, i.e. *apischema*; simple and complex results are detailed in the table, displayed result is the mean of both.
 
-Package | Version | Relative Performance | Mean serialization time
---- | --- | --- | ---
-apischema | `0.15.3` |  | 18.0μs
-pydantic | `1.8.2` | 2.9x slower | 51.3μs
-
-Benchmarks were run with Python 3.9 (*CPython*) and the package versions listed above installed via *pypi* on *macOs* 11.2
+{!benchmark_table.md!}
 
 !!! note
-    A few precisions have to be written about these results:
-    
-    - *pydantic* benchmark is biased by the implementation of `datetime` parsing for *cattrs* (see [this post](https://stefan.sofa-rockers.org/2020/05/29/attrs-dataclasses-pydantic/) about it); in fact, if *cattrs* use a decently fast implementation, like the standard `datetime.fromisoformat`, *cattrs* becomes 3 times faster than *pydantic*, even faster than *apischema*. That being said, *apischema* is still claimed to be the fastest validation library of this benchmark because *cattrs* is not considered as a true validation library, essentially because of its *fail-fast* behavior. It's nevertheless a good (and fast) library, and its great performance has push *apischema* into optimizing its own performance a lot. 
-    - *pydantic* benchmark mixes valid with invalid data (around 50/50), which doesn't correspond to real case. It means that error handling is very (too much?) important in this benchmark, and libraries like *cattrs* which raise and end simply at the first error encountered have a big advantage. Using only valid data, *apischema* becomes even faster than *cattrs*.
-    
-    
-## FAQ
-
-#### Why not ask directly for integration to *pydantic* benchmark?
-[Done, but rejected](https://github.com/samuelcolvin/pydantic/pull/1525#issuecomment-630422702) because "apischema doesn't have enough usage". Let's change that!
-
+    Benchmark use [binary optimization](#binary-compilation-using-cython), but even running as a pure Python library, *apischema* still performs better than almost all of the competitors.
