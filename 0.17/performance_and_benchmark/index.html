@@ -652,26 +652,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#faq" class="md-nav__link">
-    FAQ
-  </a>
-  
-    <nav class="md-nav" aria-label="FAQ">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#why-not-ask-directly-for-integration-to-pydantic-benchmark" class="md-nav__link">
-    Why not ask directly for integration to pydantic benchmark?
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -832,26 +812,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#faq" class="md-nav__link">
-    FAQ
-  </a>
-  
-    <nav class="md-nav" aria-label="FAQ">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#why-not-ask-directly-for-integration-to-pydantic-benchmark" class="md-nav__link">
-    Why not ask directly for integration to pydantic benchmark?
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -871,6 +831,11 @@
 
 <h1 id="performance-and-benchmark">Performance and benchmark<a class="headerlink" href="#performance-and-benchmark" title="Permanent link">&para;</a></h1>
 <p><em>apischema</em> is (a lot) <a href="#benchmark">faster</a> than its known alternatives, thanks to advanced optimizations.    </p>
+<p><img alt="benchmark chart" src="../benchmark_chart.svg" /></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Chart is truncated to a relative performance of 20x slower. Benchmark results are detailed in the <a href="#benchmark">benchmark section</a>.</p>
+</div>
 <h2 id="precomputed-deserialization-methods">Precomputed (de)serialization methods<a class="headerlink" href="#precomputed-deserialization-methods" title="Permanent link">&para;</a></h2>
 <p><em>apischema</em> precomputes (de)serialization methods depending on the (de)serialized type (and other parameters); type annotations processing is done in the precomputation. Methods are then cached using <code>functools.lru_cache</code>, so <code>deserialize</code> and <code>serialize</code> don't recompute them every time.</p>
 <div class="admonition note">
@@ -989,119 +954,62 @@ They are indeed pure Python functions and cannot be compiled.</p>
 <p>In case of "normal" dataclass (no <code>__slots__</code>, <code>__post_init__</code>, or <code>__init__</code>/<code>__new__</code>/<code>__setattr__</code> overriding), <em>apischema</em> can override the constructor with a compilable code. </p>
 <p>This feature can be toggled on/off globally using <code>apischema.settings.deserialization.override_dataclass_constructors</code></p>
 <h2 id="benchmark">Benchmark<a class="headerlink" href="#benchmark" title="Permanent link">&para;</a></h2>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Benchmark presented is just <a href="https://github.com/samuelcolvin/pydantic/tree/master/benchmarks"><em>Pydantic</em> benchmark</a> where <em>apischema</em> has been <a href="https://github.com/wyfo/pydantic/tree/benchmark_apischema">"inserted"</a>.</p>
-</div>
-<p>Below are the results of crude benchmark comparing <em>apischema</em> to <em>pydantic</em> and other validation libraries.</p>
+<p>Benchmark code is located <a href="https://github.com/wyfo/apischema/tree/master/benchmark">benchmark directory</a> or <em>apischema</em> repository.
+Performances are measured on two datasets: a simple, a more complex one.</p>
+<p>Benchmark is run by Github Actions workflow on <code>ubuntu-latest</code> with Python 3.10.</p>
+<p>Results are given relatively to the fastest library, i.e. <em>apischema</em>; simple and complex results are detailed in the table, displayed result is the mean of both.</p>
 <table>
 <thead>
 <tr>
-<th>Package</th>
-<th>Version</th>
-<th>Relative Performance</th>
-<th>Mean deserialization time</th>
+<th>library</th>
+<th>version</th>
+<th align="right">deserialization</th>
+<th align="right">serialization</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>apischema</td>
-<td><code>0.16.0</code></td>
-<td></td>
-<td>40.2μs</td>
+<td>0.17.0</td>
+<td align="right">/</td>
+<td align="right">/</td>
+</tr>
+<tr>
+<td>mashumaro</td>
+<td>2.9.1</td>
+<td align="right">x2.5 (3.3/1.8)</td>
+<td align="right">x2.8 (3.5/2.1)</td>
+</tr>
+<tr>
+<td>typical</td>
+<td>2.8.0</td>
+<td align="right">x6.7 (7.6/5.9)</td>
+<td align="right">x9.0 (13.1/4.9)</td>
 </tr>
 <tr>
 <td>pydantic</td>
-<td><code>1.8.2</code></td>
-<td>1.9x slower</td>
-<td>77.8μs</td>
-</tr>
-<tr>
-<td>attrs + cattrs</td>
-<td><code>21.2.0</code></td>
-<td>2.0x slower</td>
-<td>79.7μs</td>
-</tr>
-<tr>
-<td>valideer</td>
-<td><code>0.4.2</code></td>
-<td>2.6x slower</td>
-<td>105.0μs</td>
+<td>1.8.2</td>
+<td align="right">x12.3 (15.5/9.1)</td>
+<td align="right">x30.0 (42.8/17.2)</td>
 </tr>
 <tr>
 <td>marshmallow</td>
-<td><code>3.14.0</code></td>
-<td>5.2x slower</td>
-<td>210.5μs</td>
+<td>3.14.1</td>
+<td align="right">x22.8 (26.7/18.9)</td>
+<td align="right">x23.7 (30.4/17.0)</td>
 </tr>
 <tr>
-<td>voluptuous</td>
-<td><code>0.12.2</code></td>
-<td>5.9x slower</td>
-<td>238.4μs</td>
-</tr>
-<tr>
-<td>trafaret</td>
-<td><code>2.1.0</code></td>
-<td>6.3x slower</td>
-<td>253.0μs</td>
-</tr>
-<tr>
-<td>schematics</td>
-<td><code>2.1.1</code></td>
-<td>19.3x slower</td>
-<td>775.4μs</td>
-</tr>
-<tr>
-<td>django-rest-framework</td>
-<td><code>3.12.4</code></td>
-<td>23.4x slower</td>
-<td>939.7μs</td>
-</tr>
-<tr>
-<td>cerberus</td>
-<td><code>1.3.4</code></td>
-<td>42.8x slower</td>
-<td>1717.6μs</td>
+<td>typedload</td>
+<td>2.14</td>
+<td align="right">x12.0 (16.0/7.9)</td>
+<td align="right">x69.3 (84.0/54.6)</td>
 </tr>
 </tbody>
 </table>
-<table>
-<thead>
-<tr>
-<th>Package</th>
-<th>Version</th>
-<th>Relative Performance</th>
-<th>Mean serialization time</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>apischema</td>
-<td><code>0.15.3</code></td>
-<td></td>
-<td>18.0μs</td>
-</tr>
-<tr>
-<td>pydantic</td>
-<td><code>1.8.2</code></td>
-<td>2.9x slower</td>
-<td>51.3μs</td>
-</tr>
-</tbody>
-</table>
-<p>Benchmarks were run with Python 3.9 (<em>CPython</em>) and the package versions listed above installed via <em>pypi</em> on <em>macOs</em> 11.2</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>A few precisions have to be written about these results:</p>
-<ul>
-<li><em>pydantic</em> benchmark is biased by the implementation of <code>datetime</code> parsing for <em>cattrs</em> (see <a href="https://stefan.sofa-rockers.org/2020/05/29/attrs-dataclasses-pydantic/">this post</a> about it); in fact, if <em>cattrs</em> use a decently fast implementation, like the standard <code>datetime.fromisoformat</code>, <em>cattrs</em> becomes 3 times faster than <em>pydantic</em>, even faster than <em>apischema</em>. That being said, <em>apischema</em> is still claimed to be the fastest validation library of this benchmark because <em>cattrs</em> is not considered as a true validation library, essentially because of its <em>fail-fast</em> behavior. It's nevertheless a good (and fast) library, and its great performance has push <em>apischema</em> into optimizing its own performance a lot. </li>
-<li><em>pydantic</em> benchmark mixes valid with invalid data (around 50/50), which doesn't correspond to real case. It means that error handling is very (too much?) important in this benchmark, and libraries like <em>cattrs</em> which raise and end simply at the first error encountered have a big advantage. Using only valid data, <em>apischema</em> becomes even faster than <em>cattrs</em>.</li>
-</ul>
+<p>Benchmark use <a href="#binary-compilation-using-cython">binary optimization</a>, but even running as a pure Python library, <em>apischema</em> still performs better than almost all of the competitors.</p>
 </div>
-<h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
-<h4 id="why-not-ask-directly-for-integration-to-pydantic-benchmark">Why not ask directly for integration to <em>pydantic</em> benchmark?<a class="headerlink" href="#why-not-ask-directly-for-integration-to-pydantic-benchmark" title="Permanent link">&para;</a></h4>
-<p><a href="https://github.com/samuelcolvin/pydantic/pull/1525#issuecomment-630422702">Done, but rejected</a> because "apischema doesn't have enough usage". Let's change that!</p>
 
               
             </article>
