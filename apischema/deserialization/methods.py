@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from typing import (
-    TYPE_CHECKING,
     AbstractSet,
     Any,
     Callable,
@@ -28,9 +27,6 @@ from apischema.validation.errors import (
 )
 from apischema.validation.mock import ValidatorMock
 from apischema.validation.validators import Validator, validate
-
-if TYPE_CHECKING:
-    pass
 
 
 @dataclass
@@ -426,6 +422,7 @@ class SimpleObjectMethod(DeserializationMethod):
     cls: Any  # cython doesn't handle type subclasses properly
     fields: Tuple[Field, ...]
     all_aliases: AbstractSet[str]
+    typed_dict: bool
     missing: str
     unexpected: str
 
@@ -448,7 +445,7 @@ class SimpleObjectMethod(DeserializationMethod):
                 field_errors = set_child_error(
                     field_errors, field.alias, ValidationError([self.missing])
                 )
-        if len(data2) != fields_count:
+        if len(data2) != fields_count and not self.typed_dict:
             for key in data2.keys() - self.all_aliases:
                 field_errors = set_child_error(
                     field_errors, key, ValidationError([self.unexpected])
@@ -489,6 +486,7 @@ class ObjectMethod(DeserializationMethod):
     additional_field: Optional[AdditionalField]
     all_aliases: AbstractSet[str]
     additional_properties: bool
+    typed_dict: bool
     validators: Tuple[Validator, ...]
     init_defaults: Tuple[Tuple[str, Optional[Callable[[], Any]]], ...]
     post_init_modified: AbstractSet[str]
@@ -596,16 +594,24 @@ class ObjectMethod(DeserializationMethod):
                         field_errors = update_children_errors(
                             field_errors, err.children
                         )
-            elif remain and not self.additional_properties:
-                for key in remain:
+            elif remain:
+                if not self.additional_properties:
+                    for key in remain:
+                        field_errors = set_child_error(
+                            field_errors, key, ValidationError([self.unexpected])
+                        )
+                elif self.typed_dict:
+                    for key in remain:
+                        values[key] = data2[key]
+        elif len(data2) != fields_count:
+            if not self.additional_properties:
+                for key in data2.keys() - self.all_aliases:
                     field_errors = set_child_error(
                         field_errors, key, ValidationError([self.unexpected])
                     )
-        elif not self.additional_properties and len(data2) != fields_count:
-            for key in data2.keys() - self.all_aliases:
-                field_errors = set_child_error(
-                    field_errors, key, ValidationError([self.unexpected])
-                )
+            elif self.typed_dict:
+                for key in data2.keys() - self.all_aliases:
+                    values[key] = data2[key]
         if self.validators:
             init = None
             if self.init_defaults:

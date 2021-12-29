@@ -7,6 +7,7 @@ on:
       - v[0-9]*.*
     paths:
       - "**.py"
+      - tests/**
   pull_request:
     paths:
       - "**.py"

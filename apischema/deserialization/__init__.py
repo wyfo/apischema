@@ -422,9 +422,9 @@ class DeserializationMethodVisitor(
                 and not flattened_fields
                 and not pattern_fields
                 and not additional_field
-                and not self.additional_properties
+                and (is_typed_dict(cls) == self.additional_properties)
+                and (not is_typed_dict(cls) or self.no_copy)
                 and not validators
-                and not (is_typed_dict(cls) and self.no_copy)
                 and all(
                     check_only(f.method)
                     and f.alias == f.name
@@ -437,6 +437,7 @@ class DeserializationMethodVisitor(
                     cls,
                     tuple(normal_fields),
                     all_alliases,
+                    is_typed_dict(cls),
                     settings.errors.missing_property,
                     settings.errors.unexpected_property,
                 )
@@ -449,6 +450,7 @@ class DeserializationMethodVisitor(
                 additional_field,
                 all_alliases,
                 self.additional_properties,
+                is_typed_dict(cls),
                 tuple(validators),
                 tuple(
                     (f.name, f.default_factory)
