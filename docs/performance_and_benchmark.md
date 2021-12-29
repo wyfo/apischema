@@ -5,7 +5,7 @@
 ![benchmark chart](benchmark_chart.svg)
 
 !!! note
-    Chart is truncated to a relative performance of 20x slower. Benchmark results are detailed in the [benchmark section](#benchmark).
+    Chart is truncated to a relative performance of 20x slower. Benchmark results are detailed in the [results table](#relative-execution-time-lower-is-better).
 
 ## Precomputed (de)serialization methods
 
@@ -124,6 +124,8 @@ Performances are measured on two datasets: a simple, a more complex one.
 Benchmark is run by Github Actions workflow on `ubuntu-latest` with Python 3.10.
 
 Results are given relatively to the fastest library, i.e. *apischema*; simple and complex results are detailed in the table, displayed result is the mean of both.
+
+#### Relative execution time (lower is better)
 
 {!benchmark_table.md!}
 
