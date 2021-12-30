@@ -91,7 +91,6 @@ def cython_signature(
     def_type: CythonDef, func: FunctionType, self_type: Optional[type] = None
 ) -> str:
     parameters = list(inspect.signature(func).parameters.values())
-    assert all(p.default is inspect.Parameter.empty for p in parameters)
     types = get_type_hints(func)
     param_with_types = []
     if parameters[0].name == "self":
@@ -102,7 +101,10 @@ def cython_signature(
             parameters.pop(0)
     for param in parameters:
         param_type = cython_type(types[param.name], func.__module__)
-        param_with_types.append(f"{param_type} {param.name}")
+        assert param.default is inspect.Parameter.empty or param.default is None
+        param_with_types.append(
+            f"{param_type} {param.name}" + (" = None" if param.default is None else "")
+        )
     func_name = method_name(self_type, func.__name__) if self_type else func.__name__
     return f"{def_type} {func_name}(" + ", ".join(param_with_types) + "):"
 
@@ -230,7 +232,7 @@ def write_class(pyx: IndentedWriter, cls: type):
                 if (
                     not name.startswith("_")
                     and name not in annotations
-                    and isinstance(obj, (FunctionType, staticmethod))
+                    and isinstance(obj, FunctionType)
                 ):
                     pyx.writeln()
                     base_method = getattr(base_class, name)
@@ -265,16 +267,8 @@ def write_methods(pyx: IndentedWriter, method: Method):
     for cls, dispatch in get_dispatch(method.base_class).items():
         if method.name in cls.__dict__:
             sub_method = cls.__dict__[method.name]
-            if isinstance(sub_method, staticmethod):
-                with pyx.write_block(
-                    cython_signature("cdef inline", method.function, cls)  # type: ignore
-                ):
-                    _, param = inspect.signature(method.function).parameters
-                    func = sub_method.__get__(None, object)
-                    pyx.writeln(f"return {func.__name__}({param})")
-            else:
-                with pyx.write_block(cython_signature("cdef inline", sub_method, cls)):
-                    pyx.writelines(get_body(sub_method, cls))
+            with pyx.write_block(cython_signature("cdef inline", sub_method, cls)):
+                pyx.writelines(get_body(sub_method, cls))
             pyx.writeln()
 
 
