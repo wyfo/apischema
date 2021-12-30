@@ -126,7 +126,7 @@ class TypeCheckMethod(SerializationMethod):
             except TypeCheckError as err:
                 if path is None:
                     raise
-                raise TypeCheckError(err.msg, [path, *err.path])
+                raise TypeCheckError(err.msg, [path, *err.loc])
         else:
             return self.fallback.fall_back(obj, path)
 
