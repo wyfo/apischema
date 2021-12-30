@@ -955,38 +955,38 @@
 <p>Validation is an important part of deserialization. By default, <em>apischema</em> validates types of data according to typing annotations, and <a href="../json_schema/#constraints-validation"><code>schema</code></a> constraints. But custom validators can also be add for a more precise validation.</p>
 <h2 id="deserialization-and-validation-error">Deserialization and validation error<a class="headerlink" href="#deserialization-and-validation-error" title="Permanent link">&para;</a></h2>
 <p><code>ValidationError</code> is raised when validation fails. This exception contains all the information about the ill-formed part of the data. It can be formatted/serialized using its <code>errors</code> property. </p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="kn">import</span> <span class="nn">pytest</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">schema</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7"></a>
-<a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="n">Tag</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Tag&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="n">schema</span><span class="p">(</span><span class="n">min_len</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^\w*$&quot;</span><span class="p">,</span> <span class="n">examples</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;available&quot;</span><span class="p">,</span> <span class="s2">&quot;EMEA&quot;</span><span class="p">])(</span><span class="n">Tag</span><span class="p">)</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10"></a>
-<a id="__codelineno-0-11" name="__codelineno-0-11"></a>
-<a id="__codelineno-0-12" name="__codelineno-0-12"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="k">class</span> <span class="nc">Resource</span><span class="p">:</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14"></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15"></a>    <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16"></a>        <span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17"></a>        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18"></a>            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;regroup multiple resources&quot;</span><span class="p">,</span> <span class="n">max_items</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19"></a>        <span class="p">),</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20"></a>    <span class="p">)</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21"></a>
-<a id="__codelineno-0-22" name="__codelineno-0-22"></a>
-<a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># pytest check exception is raised</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24"></a>    <span class="n">deserialize</span><span class="p">(</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25"></a>        <span class="n">Resource</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;bad&amp;&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">]}</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26"></a>    <span class="p">)</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;item count greater than 3 (maxItems)&quot;</span><span class="p">},</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">},</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;not matching pattern ^</span><span class="se">\\</span><span class="s2">w*$ (pattern)&quot;</span><span class="p">},</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;string length lower than 3 (minLength)&quot;</span><span class="p">},</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="__codelineno-0-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NewType</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="__codelineno-0-4"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="__codelineno-0-6"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">schema</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="__codelineno-0-8"></a><span class="n">Tag</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Tag&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="__codelineno-0-9"></a><span class="n">schema</span><span class="p">(</span><span class="n">min_len</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^\w*$&quot;</span><span class="p">,</span> <span class="n">examples</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;available&quot;</span><span class="p">,</span> <span class="s2">&quot;EMEA&quot;</span><span class="p">])(</span><span class="n">Tag</span><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="__codelineno-0-11"></a>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="__codelineno-0-12"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="__codelineno-0-13"></a><span class="k">class</span> <span class="nc">Resource</span><span class="p">:</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="__codelineno-0-14"></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="__codelineno-0-15"></a>    <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="__codelineno-0-16"></a>        <span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="__codelineno-0-17"></a>        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="__codelineno-0-18"></a>            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;regroup multiple resources&quot;</span><span class="p">,</span> <span class="n">max_items</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="__codelineno-0-19"></a>        <span class="p">),</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="__codelineno-0-20"></a>    <span class="p">)</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="__codelineno-0-21"></a>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="__codelineno-0-22"></a>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="__codelineno-0-23"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># pytest check exception is raised</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="__codelineno-0-24"></a>    <span class="n">deserialize</span><span class="p">(</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="__codelineno-0-25"></a>        <span class="n">Resource</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;duplicate&quot;</span><span class="p">,</span> <span class="s2">&quot;bad&amp;&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">]}</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="__codelineno-0-26"></a>    <span class="p">)</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="__codelineno-0-27"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="__codelineno-0-28"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;item count greater than 3 (maxItems)&quot;</span><span class="p">},</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="__codelineno-0-29"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;duplicate items (uniqueItems)&quot;</span><span class="p">},</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="__codelineno-0-30"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;not matching pattern ^</span><span class="se">\\</span><span class="s2">w*$ (pattern)&quot;</span><span class="p">},</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="__codelineno-0-31"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;string length lower than 3 (minLength)&quot;</span><span class="p">},</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="__codelineno-0-32"></a><span class="p">]</span>
 </code></pre></div>
 <p>As shown in the example, <em>apischema</em> will not stop at the first error met but tries to validate all parts of the data.</p>
 <div class="admonition note">
@@ -996,18 +996,18 @@
 <h2 id="constraint-errors-customization">Constraint errors customization<a class="headerlink" href="#constraint-errors-customization" title="Permanent link">&para;</a></h2>
 <p>Constraints are validated at deserialization, with <em>apischema</em> providing default error messages.
 Messages can be customized by setting the corresponding attribute of <code>apischema.settings.errors</code>. They can be either a string which will be formatted with the constraint value (using <code>str.format</code>), e.g. <code>less than {} (minimum)</code>, or a function with 2 parameters: the constraint value and the invalid data. </p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="kn">import</span> <span class="nn">pytest</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5"></a><span class="n">settings</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">max_items</span> <span class="o">=</span> <span class="p">(</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6"></a>    <span class="k">lambda</span> <span class="n">constraint</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;too-many-items: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2"> &gt; </span><span class="si">{</span><span class="n">constraint</span><span class="si">}</span><span class="s2">&quot;</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7"></a><span class="p">)</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8"></a>
-<a id="__codelineno-1-9" name="__codelineno-1-9"></a>
-<a id="__codelineno-1-10" name="__codelineno-1-10"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">schema</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">max_items</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;too-many-items: 4 &gt; 3&quot;</span><span class="p">}]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="__codelineno-1-1"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="__codelineno-1-3"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="__codelineno-1-5"></a><span class="n">settings</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">max_items</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="__codelineno-1-6"></a>    <span class="k">lambda</span> <span class="n">constraint</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;too-many-items: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2"> &gt; </span><span class="si">{</span><span class="n">constraint</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="__codelineno-1-7"></a><span class="p">)</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="__codelineno-1-10"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="__codelineno-1-11"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">schema</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">max_items</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="__codelineno-1-12"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;too-many-items: 4 &gt; 3&quot;</span><span class="p">}]</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1023,30 +1023,30 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 <p class="admonition-title">Note</p>
 <p>Previously to v0.17, validators could raise arbitrary exceptions (except AssertionError of course); see <a href="#why-validators-cannot-raise-arbitrary-exception">FAQ</a> for the reason of this change.</p>
 </div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4"></a>
-<a id="__codelineno-2-5" name="__codelineno-2-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6"></a>
-<a id="__codelineno-2-7" name="__codelineno-2-7"></a>
-<a id="__codelineno-2-8" name="__codelineno-2-8"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9"></a><span class="k">class</span> <span class="nc">PasswordForm</span><span class="p">:</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10"></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11"></a>    <span class="n">confirmation</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12"></a>
-<a id="__codelineno-2-13" name="__codelineno-2-13"></a>    <span class="nd">@validator</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14"></a>    <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15"></a>        <span class="c1"># DO NOT use assert</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation</span><span class="p">:</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17"></a>            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">)</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18"></a>
-<a id="__codelineno-2-19" name="__codelineno-2-19"></a>
-<a id="__codelineno-2-20" name="__codelineno-2-20"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-2-21" name="__codelineno-2-21"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">PasswordForm</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;p455w0rd&quot;</span><span class="p">,</span> <span class="s2">&quot;confirmation&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">})</span>
-<a id="__codelineno-2-22" name="__codelineno-2-22"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-<a id="__codelineno-2-23" name="__codelineno-2-23"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">}</span>
-<a id="__codelineno-2-24" name="__codelineno-2-24"></a><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="__codelineno-2-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="__codelineno-2-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="__codelineno-2-7"></a>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="__codelineno-2-8"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="__codelineno-2-9"></a><span class="k">class</span> <span class="nc">PasswordForm</span><span class="p">:</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="__codelineno-2-10"></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="__codelineno-2-11"></a>    <span class="n">confirmation</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="__codelineno-2-12"></a>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="__codelineno-2-13"></a>    <span class="nd">@validator</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="__codelineno-2-14"></a>    <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="__codelineno-2-15"></a>        <span class="c1"># DO NOT use assert</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="__codelineno-2-16"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation</span><span class="p">:</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="__codelineno-2-17"></a>            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="__codelineno-2-18"></a>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="__codelineno-2-19"></a>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="__codelineno-2-20"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="__codelineno-2-21"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">PasswordForm</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;p455w0rd&quot;</span><span class="p">,</span> <span class="s2">&quot;confirmation&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">})</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="__codelineno-2-22"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="__codelineno-2-23"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">}</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="__codelineno-2-24"></a><span class="p">]</span>
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -1058,30 +1058,30 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 </div>
 <h3 id="automatic-dependency-management">Automatic dependency management<a class="headerlink" href="#automatic-dependency-management" title="Permanent link">&para;</a></h3>
 <p>It makes no sense to execute a validator using a field that is ill-formed. Hopefully, <em>apischema</em> is able to compute validator dependencies — the fields used in validator; validator is executed only if the all its dependencies are ok.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6"></a>
-<a id="__codelineno-3-7" name="__codelineno-3-7"></a>
-<a id="__codelineno-3-8" name="__codelineno-3-8"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9"></a><span class="k">class</span> <span class="nc">PasswordForm</span><span class="p">:</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10"></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11"></a>    <span class="n">confirmation</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12"></a>
-<a id="__codelineno-3-13" name="__codelineno-3-13"></a>    <span class="nd">@validator</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14"></a>    <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-3-15" name="__codelineno-3-15"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation</span><span class="p">:</span>
-<a id="__codelineno-3-16" name="__codelineno-3-16"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">)</span>
-<a id="__codelineno-3-17" name="__codelineno-3-17"></a>
-<a id="__codelineno-3-18" name="__codelineno-3-18"></a>
-<a id="__codelineno-3-19" name="__codelineno-3-19"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-3-20" name="__codelineno-3-20"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">PasswordForm</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;p455w0rd&quot;</span><span class="p">})</span>
-<a id="__codelineno-3-21" name="__codelineno-3-21"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-<a id="__codelineno-3-22" name="__codelineno-3-22"></a>    <span class="c1"># validator is not executed because confirmation is missing</span>
-<a id="__codelineno-3-23" name="__codelineno-3-23"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;confirmation&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;missing property&quot;</span><span class="p">}</span>
-<a id="__codelineno-3-24" name="__codelineno-3-24"></a><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="__codelineno-3-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="__codelineno-3-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="__codelineno-3-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="__codelineno-3-8"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="__codelineno-3-9"></a><span class="k">class</span> <span class="nc">PasswordForm</span><span class="p">:</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="__codelineno-3-10"></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="__codelineno-3-11"></a>    <span class="n">confirmation</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="__codelineno-3-12"></a>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="__codelineno-3-13"></a>    <span class="nd">@validator</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="__codelineno-3-14"></a>    <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="__codelineno-3-15"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation</span><span class="p">:</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="__codelineno-3-16"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="__codelineno-3-17"></a>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="__codelineno-3-18"></a>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="__codelineno-3-19"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="__codelineno-3-20"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">PasswordForm</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;p455w0rd&quot;</span><span class="p">})</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="__codelineno-3-21"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="__codelineno-3-22"></a>    <span class="c1"># validator is not executed because confirmation is missing</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="__codelineno-3-23"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;confirmation&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;missing property&quot;</span><span class="p">}</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="__codelineno-3-24"></a><span class="p">]</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1090,37 +1090,37 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 <h3 id="raise-more-than-one-error-with-yield">Raise more than one error with <code>yield</code><a class="headerlink" href="#raise-more-than-one-error-with-yield" title="Permanent link">&para;</a></h3>
 <p>Validation of a list field can require raising several exceptions, one for each bad element. With <code>raise</code>, this is not possible, because you can raise only once.</p>
 <p>However, <em>apischema</em> provides a way of raising as many errors as needed by using <code>yield</code>. Moreover, with this syntax, it is possible to add a "path" (see <a href="#error-path">below</a>) to the error to precise its location in the validated data. This path will be added to the <code>loc</code> key of the error.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2"></a><span class="kn">from</span> <span class="nn">ipaddress</span> <span class="kn">import</span> <span class="n">IPv4Address</span><span class="p">,</span> <span class="n">IPv4Network</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3"></a>
-<a id="__codelineno-4-4" name="__codelineno-4-4"></a><span class="kn">import</span> <span class="nn">pytest</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5"></a>
-<a id="__codelineno-4-6" name="__codelineno-4-6"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7"></a><span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">get_alias</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8"></a>
-<a id="__codelineno-4-9" name="__codelineno-4-9"></a>
-<a id="__codelineno-4-10" name="__codelineno-4-10"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11"></a><span class="k">class</span> <span class="nc">SubnetIps</span><span class="p">:</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12"></a>    <span class="n">subnet</span><span class="p">:</span> <span class="n">IPv4Network</span>
-<a id="__codelineno-4-13" name="__codelineno-4-13"></a>    <span class="n">ips</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">IPv4Address</span><span class="p">]</span>
-<a id="__codelineno-4-14" name="__codelineno-4-14"></a>
-<a id="__codelineno-4-15" name="__codelineno-4-15"></a>    <span class="nd">@validator</span>
-<a id="__codelineno-4-16" name="__codelineno-4-16"></a>    <span class="k">def</span> <span class="nf">check_ips_in_subnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-4-17" name="__codelineno-4-17"></a>        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">ip</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ips</span><span class="p">):</span>
-<a id="__codelineno-4-18" name="__codelineno-4-18"></a>            <span class="k">if</span> <span class="n">ip</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subnet</span><span class="p">:</span>
-<a id="__codelineno-4-19" name="__codelineno-4-19"></a>                <span class="c1"># yield &lt;error path&gt;, &lt;error message&gt;</span>
-<a id="__codelineno-4-20" name="__codelineno-4-20"></a>                <span class="k">yield</span> <span class="p">(</span><span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">ips</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="s2">&quot;ip not in subnet&quot;</span>
-<a id="__codelineno-4-21" name="__codelineno-4-21"></a>
-<a id="__codelineno-4-22" name="__codelineno-4-22"></a>
-<a id="__codelineno-4-23" name="__codelineno-4-23"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-4-24" name="__codelineno-4-24"></a>    <span class="n">deserialize</span><span class="p">(</span>
-<a id="__codelineno-4-25" name="__codelineno-4-25"></a>        <span class="n">SubnetIps</span><span class="p">,</span>
-<a id="__codelineno-4-26" name="__codelineno-4-26"></a>        <span class="p">{</span><span class="s2">&quot;subnet&quot;</span><span class="p">:</span> <span class="s2">&quot;126.42.18.0/24&quot;</span><span class="p">,</span> <span class="s2">&quot;ips&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;126.42.18.1&quot;</span><span class="p">,</span> <span class="s2">&quot;126.42.19.0&quot;</span><span class="p">,</span> <span class="s2">&quot;0.0.0.0&quot;</span><span class="p">]},</span>
-<a id="__codelineno-4-27" name="__codelineno-4-27"></a>    <span class="p">)</span>
-<a id="__codelineno-4-28" name="__codelineno-4-28"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-<a id="__codelineno-4-29" name="__codelineno-4-29"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ips&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;ip not in subnet&quot;</span><span class="p">},</span>
-<a id="__codelineno-4-30" name="__codelineno-4-30"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ips&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;ip not in subnet&quot;</span><span class="p">},</span>
-<a id="__codelineno-4-31" name="__codelineno-4-31"></a><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="__codelineno-4-2"></a><span class="kn">from</span> <span class="nn">ipaddress</span> <span class="kn">import</span> <span class="n">IPv4Address</span><span class="p">,</span> <span class="n">IPv4Network</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="__codelineno-4-4"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="__codelineno-4-6"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="__codelineno-4-7"></a><span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">get_alias</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="__codelineno-4-9"></a>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="__codelineno-4-10"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="__codelineno-4-11"></a><span class="k">class</span> <span class="nc">SubnetIps</span><span class="p">:</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="__codelineno-4-12"></a>    <span class="n">subnet</span><span class="p">:</span> <span class="n">IPv4Network</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="__codelineno-4-13"></a>    <span class="n">ips</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">IPv4Address</span><span class="p">]</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="__codelineno-4-14"></a>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="__codelineno-4-15"></a>    <span class="nd">@validator</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="__codelineno-4-16"></a>    <span class="k">def</span> <span class="nf">check_ips_in_subnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="__codelineno-4-17"></a>        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">ip</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ips</span><span class="p">):</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="__codelineno-4-18"></a>            <span class="k">if</span> <span class="n">ip</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subnet</span><span class="p">:</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="__codelineno-4-19"></a>                <span class="c1"># yield &lt;error path&gt;, &lt;error message&gt;</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="__codelineno-4-20"></a>                <span class="k">yield</span> <span class="p">(</span><span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">ips</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="s2">&quot;ip not in subnet&quot;</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="__codelineno-4-21"></a>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="__codelineno-4-22"></a>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="__codelineno-4-23"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="__codelineno-4-24"></a>    <span class="n">deserialize</span><span class="p">(</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="__codelineno-4-25"></a>        <span class="n">SubnetIps</span><span class="p">,</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="__codelineno-4-26"></a>        <span class="p">{</span><span class="s2">&quot;subnet&quot;</span><span class="p">:</span> <span class="s2">&quot;126.42.18.0/24&quot;</span><span class="p">,</span> <span class="s2">&quot;ips&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;126.42.18.1&quot;</span><span class="p">,</span> <span class="s2">&quot;126.42.19.0&quot;</span><span class="p">,</span> <span class="s2">&quot;0.0.0.0&quot;</span><span class="p">]},</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="__codelineno-4-27"></a>    <span class="p">)</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="__codelineno-4-28"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="__codelineno-4-29"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ips&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;ip not in subnet&quot;</span><span class="p">},</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30" href="__codelineno-4-30"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ips&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;ip not in subnet&quot;</span><span class="p">},</span>
+<a id="__codelineno-4-31" name="__codelineno-4-31" href="__codelineno-4-31"></a><span class="p">]</span>
 </code></pre></div>
 <h4 id="error-path">Error path<a class="headerlink" href="#error-path" title="Permanent link">&para;</a></h4>
 <p>In the example, the validator yields a tuple of an "error path" and the error message. Error path can be:</p>
@@ -1138,50 +1138,50 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 </div>
 <h3 id="discard">Discard<a class="headerlink" href="#discard" title="Permanent link">&para;</a></h3>
 <p>If one of your validators fails because a field is corrupted, maybe you don't want subsequent validators to be executed. <code>validator</code> decorator provides a <code>discard</code> parameter to discard fields of the remaining validation. All the remaining validators having discarded fields in <a href="#automatic-dependencies-management">dependencies</a> will not be executed.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2"></a>
-<a id="__codelineno-5-3" name="__codelineno-5-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4"></a>
-<a id="__codelineno-5-5" name="__codelineno-5-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6"></a><span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">get_alias</span><span class="p">,</span> <span class="n">get_field</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7"></a>
-<a id="__codelineno-5-8" name="__codelineno-5-8"></a>
-<a id="__codelineno-5-9" name="__codelineno-5-9"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10"></a><span class="k">class</span> <span class="nc">BoundedValues</span><span class="p">:</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11"></a>    <span class="c1"># field must be assign to be used, even with empty `field()`</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12"></a>    <span class="n">bounds</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">()</span>
-<a id="__codelineno-5-13" name="__codelineno-5-13"></a>    <span class="n">values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14"></a>
-<a id="__codelineno-5-15" name="__codelineno-5-15"></a>    <span class="c1"># validator(&quot;bounds&quot;) would also work, but it&#39;s not handled by IDE refactoring, etc.</span>
-<a id="__codelineno-5-16" name="__codelineno-5-16"></a>    <span class="nd">@validator</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span>
-<a id="__codelineno-5-17" name="__codelineno-5-17"></a>    <span class="k">def</span> <span class="nf">bounds_are_sorted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-5-18" name="__codelineno-5-18"></a>        <span class="n">min_bound</span><span class="p">,</span> <span class="n">max_bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
-<a id="__codelineno-5-19" name="__codelineno-5-19"></a>        <span class="k">if</span> <span class="n">min_bound</span> <span class="o">&gt;</span> <span class="n">max_bound</span><span class="p">:</span>
-<a id="__codelineno-5-20" name="__codelineno-5-20"></a>            <span class="k">yield</span> <span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="s2">&quot;bounds are not sorted&quot;</span>
-<a id="__codelineno-5-21" name="__codelineno-5-21"></a>
-<a id="__codelineno-5-22" name="__codelineno-5-22"></a>    <span class="nd">@validator</span>
-<a id="__codelineno-5-23" name="__codelineno-5-23"></a>    <span class="k">def</span> <span class="nf">values_dont_exceed_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-5-24" name="__codelineno-5-24"></a>        <span class="n">min_bound</span><span class="p">,</span> <span class="n">max_bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
-<a id="__codelineno-5-25" name="__codelineno-5-25"></a>        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
-<a id="__codelineno-5-26" name="__codelineno-5-26"></a>            <span class="k">if</span> <span class="ow">not</span> <span class="n">min_bound</span> <span class="o">&lt;=</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="n">max_bound</span><span class="p">:</span>
-<a id="__codelineno-5-27" name="__codelineno-5-27"></a>                <span class="k">yield</span> <span class="p">(</span><span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="s2">&quot;value exceeds bounds&quot;</span>
-<a id="__codelineno-5-28" name="__codelineno-5-28"></a>
-<a id="__codelineno-5-29" name="__codelineno-5-29"></a>
-<a id="__codelineno-5-30" name="__codelineno-5-30"></a><span class="c1"># Outside class, fields can still be accessed in a &quot;static&quot; way, to avoid use raw string</span>
-<a id="__codelineno-5-31" name="__codelineno-5-31"></a><span class="nd">@validator</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="n">get_field</span><span class="p">(</span><span class="n">BoundedValues</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span>
-<a id="__codelineno-5-32" name="__codelineno-5-32"></a><span class="k">def</span> <span class="nf">bounds_are_sorted_equivalent</span><span class="p">(</span><span class="n">bounded</span><span class="p">:</span> <span class="n">BoundedValues</span><span class="p">):</span>
-<a id="__codelineno-5-33" name="__codelineno-5-33"></a>    <span class="n">min_bound</span><span class="p">,</span> <span class="n">max_bound</span> <span class="o">=</span> <span class="n">bounded</span><span class="o">.</span><span class="n">bounds</span>
-<a id="__codelineno-5-34" name="__codelineno-5-34"></a>    <span class="k">if</span> <span class="n">min_bound</span> <span class="o">&gt;</span> <span class="n">max_bound</span><span class="p">:</span>
-<a id="__codelineno-5-35" name="__codelineno-5-35"></a>        <span class="k">yield</span> <span class="n">get_alias</span><span class="p">(</span><span class="n">bounded</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="s2">&quot;bounds are not sorted&quot;</span>
-<a id="__codelineno-5-36" name="__codelineno-5-36"></a>
-<a id="__codelineno-5-37" name="__codelineno-5-37"></a>
-<a id="__codelineno-5-38" name="__codelineno-5-38"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-5-39" name="__codelineno-5-39"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">BoundedValues</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bounds&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]})</span>
-<a id="__codelineno-5-40" name="__codelineno-5-40"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-<a id="__codelineno-5-41" name="__codelineno-5-41"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bounds&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;bounds are not sorted&quot;</span><span class="p">}</span>
-<a id="__codelineno-5-42" name="__codelineno-5-42"></a>    <span class="c1"># Without discard, there would have been an other error</span>
-<a id="__codelineno-5-43" name="__codelineno-5-43"></a>    <span class="c1"># {&quot;loc&quot;: [&quot;values&quot;, 1], &quot;err&quot;: &quot;value exceeds bounds&quot;}</span>
-<a id="__codelineno-5-44" name="__codelineno-5-44"></a><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="__codelineno-5-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="__codelineno-5-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="__codelineno-5-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="__codelineno-5-6"></a><span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">get_alias</span><span class="p">,</span> <span class="n">get_field</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="__codelineno-5-7"></a>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="__codelineno-5-8"></a>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="__codelineno-5-9"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="__codelineno-5-10"></a><span class="k">class</span> <span class="nc">BoundedValues</span><span class="p">:</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="__codelineno-5-11"></a>    <span class="c1"># field must be assign to be used, even with empty `field()`</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="__codelineno-5-12"></a>    <span class="n">bounds</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">()</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="__codelineno-5-13"></a>    <span class="n">values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="__codelineno-5-14"></a>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="__codelineno-5-15"></a>    <span class="c1"># validator(&quot;bounds&quot;) would also work, but it&#39;s not handled by IDE refactoring, etc.</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="__codelineno-5-16"></a>    <span class="nd">@validator</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="__codelineno-5-17"></a>    <span class="k">def</span> <span class="nf">bounds_are_sorted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="__codelineno-5-18"></a>        <span class="n">min_bound</span><span class="p">,</span> <span class="n">max_bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="__codelineno-5-19"></a>        <span class="k">if</span> <span class="n">min_bound</span> <span class="o">&gt;</span> <span class="n">max_bound</span><span class="p">:</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="__codelineno-5-20"></a>            <span class="k">yield</span> <span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="s2">&quot;bounds are not sorted&quot;</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="__codelineno-5-21"></a>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="__codelineno-5-22"></a>    <span class="nd">@validator</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="__codelineno-5-23"></a>    <span class="k">def</span> <span class="nf">values_dont_exceed_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="__codelineno-5-24"></a>        <span class="n">min_bound</span><span class="p">,</span> <span class="n">max_bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="__codelineno-5-25"></a>        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="__codelineno-5-26"></a>            <span class="k">if</span> <span class="ow">not</span> <span class="n">min_bound</span> <span class="o">&lt;=</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="n">max_bound</span><span class="p">:</span>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="__codelineno-5-27"></a>                <span class="k">yield</span> <span class="p">(</span><span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="s2">&quot;value exceeds bounds&quot;</span>
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="__codelineno-5-28"></a>
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="__codelineno-5-29"></a>
+<a id="__codelineno-5-30" name="__codelineno-5-30" href="__codelineno-5-30"></a><span class="c1"># Outside class, fields can still be accessed in a &quot;static&quot; way, to avoid use raw string</span>
+<a id="__codelineno-5-31" name="__codelineno-5-31" href="__codelineno-5-31"></a><span class="nd">@validator</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="n">get_field</span><span class="p">(</span><span class="n">BoundedValues</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span>
+<a id="__codelineno-5-32" name="__codelineno-5-32" href="__codelineno-5-32"></a><span class="k">def</span> <span class="nf">bounds_are_sorted_equivalent</span><span class="p">(</span><span class="n">bounded</span><span class="p">:</span> <span class="n">BoundedValues</span><span class="p">):</span>
+<a id="__codelineno-5-33" name="__codelineno-5-33" href="__codelineno-5-33"></a>    <span class="n">min_bound</span><span class="p">,</span> <span class="n">max_bound</span> <span class="o">=</span> <span class="n">bounded</span><span class="o">.</span><span class="n">bounds</span>
+<a id="__codelineno-5-34" name="__codelineno-5-34" href="__codelineno-5-34"></a>    <span class="k">if</span> <span class="n">min_bound</span> <span class="o">&gt;</span> <span class="n">max_bound</span><span class="p">:</span>
+<a id="__codelineno-5-35" name="__codelineno-5-35" href="__codelineno-5-35"></a>        <span class="k">yield</span> <span class="n">get_alias</span><span class="p">(</span><span class="n">bounded</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="s2">&quot;bounds are not sorted&quot;</span>
+<a id="__codelineno-5-36" name="__codelineno-5-36" href="__codelineno-5-36"></a>
+<a id="__codelineno-5-37" name="__codelineno-5-37" href="__codelineno-5-37"></a>
+<a id="__codelineno-5-38" name="__codelineno-5-38" href="__codelineno-5-38"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-5-39" name="__codelineno-5-39" href="__codelineno-5-39"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">BoundedValues</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bounds&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]})</span>
+<a id="__codelineno-5-40" name="__codelineno-5-40" href="__codelineno-5-40"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+<a id="__codelineno-5-41" name="__codelineno-5-41" href="__codelineno-5-41"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bounds&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;bounds are not sorted&quot;</span><span class="p">}</span>
+<a id="__codelineno-5-42" name="__codelineno-5-42" href="__codelineno-5-42"></a>    <span class="c1"># Without discard, there would have been an other error</span>
+<a id="__codelineno-5-43" name="__codelineno-5-43" href="__codelineno-5-43"></a>    <span class="c1"># {&quot;loc&quot;: [&quot;values&quot;, 1], &quot;err&quot;: &quot;value exceeds bounds&quot;}</span>
+<a id="__codelineno-5-44" name="__codelineno-5-44" href="__codelineno-5-44"></a><span class="p">]</span>
 </code></pre></div>
 <p>You can notice in this example that <em>apischema</em> tries to avoid using raw strings to identify fields. In every function of the library using fields identifier (<code>apischema.validator</code>, <code>apischema.dependent_required</code>, <code>apischema.fields.set_fields</code>, etc.), you have always three ways to pass them:
 - using field object, preferred in dataclass definition;
@@ -1190,27 +1190,27 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 <h3 id="field-validators">Field validators<a class="headerlink" href="#field-validators" title="Permanent link">&para;</a></h3>
 <h4 id="at-field-level">At field level<a class="headerlink" href="#at-field-level" title="Permanent link">&para;</a></h4>
 <p>Fields are validated according to their types and schema. But it's also possible to add validators to fields.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2"></a>
-<a id="__codelineno-6-3" name="__codelineno-6-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4"></a>
-<a id="__codelineno-6-5" name="__codelineno-6-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6"></a><span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">validators</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7"></a>
-<a id="__codelineno-6-8" name="__codelineno-6-8"></a>
-<a id="__codelineno-6-9" name="__codelineno-6-9"></a><span class="k">def</span> <span class="nf">check_no_duplicate_digits</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))):</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11"></a>        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;number has duplicate digits&quot;</span><span class="p">)</span>
-<a id="__codelineno-6-12" name="__codelineno-6-12"></a>
-<a id="__codelineno-6-13" name="__codelineno-6-13"></a>
-<a id="__codelineno-6-14" name="__codelineno-6-14"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-6-15" name="__codelineno-6-15"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-<a id="__codelineno-6-16" name="__codelineno-6-16"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">validators</span><span class="p">(</span><span class="n">check_no_duplicate_digits</span><span class="p">))</span>
-<a id="__codelineno-6-17" name="__codelineno-6-17"></a>
-<a id="__codelineno-6-18" name="__codelineno-6-18"></a>
-<a id="__codelineno-6-19" name="__codelineno-6-19"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-6-20" name="__codelineno-6-20"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="s2">&quot;11&quot;</span><span class="p">})</span>
-<a id="__codelineno-6-21" name="__codelineno-6-21"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;number has duplicate digits&quot;</span><span class="p">}]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="__codelineno-6-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="__codelineno-6-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="__codelineno-6-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="__codelineno-6-6"></a><span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">validators</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="__codelineno-6-8"></a>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="__codelineno-6-9"></a><span class="k">def</span> <span class="nf">check_no_duplicate_digits</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="__codelineno-6-10"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))):</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="__codelineno-6-11"></a>        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;number has duplicate digits&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="__codelineno-6-12"></a>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="__codelineno-6-13"></a>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="__codelineno-6-14"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="__codelineno-6-15"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="__codelineno-6-16"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">validators</span><span class="p">(</span><span class="n">check_no_duplicate_digits</span><span class="p">))</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="__codelineno-6-17"></a>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="__codelineno-6-18"></a>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="__codelineno-6-19"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="__codelineno-6-20"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="s2">&quot;11&quot;</span><span class="p">})</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="__codelineno-6-21"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;number has duplicate digits&quot;</span><span class="p">}]</span>
 </code></pre></div>
 <p>When validation fails for a field, it is discarded and cannot be used in class validators, as is the case when field schema validation fails.</p>
 <div class="admonition note">
@@ -1219,159 +1219,159 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 </div>
 <h4 id="using-other-fields">Using other fields<a class="headerlink" href="#using-other-fields" title="Permanent link">&para;</a></h4>
 <p>A common pattern can be to validate a field using other fields values. This is achieved with dataclass validators seen above. However, there is a shortcut for this use case:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2"></a><span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3"></a>
-<a id="__codelineno-7-4" name="__codelineno-7-4"></a><span class="kn">import</span> <span class="nn">pytest</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5"></a>
-<a id="__codelineno-7-6" name="__codelineno-7-6"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7"></a><span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">get_alias</span><span class="p">,</span> <span class="n">get_field</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8"></a>
-<a id="__codelineno-7-9" name="__codelineno-7-9"></a>
-<a id="__codelineno-7-10" name="__codelineno-7-10"></a><span class="k">class</span> <span class="nc">Parity</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11"></a>    <span class="n">EVEN</span> <span class="o">=</span> <span class="s2">&quot;even&quot;</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12"></a>    <span class="n">ODD</span> <span class="o">=</span> <span class="s2">&quot;odd&quot;</span>
-<a id="__codelineno-7-13" name="__codelineno-7-13"></a>
-<a id="__codelineno-7-14" name="__codelineno-7-14"></a>
-<a id="__codelineno-7-15" name="__codelineno-7-15"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-7-16" name="__codelineno-7-16"></a><span class="k">class</span> <span class="nc">NumberWithParity</span><span class="p">:</span>
-<a id="__codelineno-7-17" name="__codelineno-7-17"></a>    <span class="n">parity</span><span class="p">:</span> <span class="n">Parity</span>
-<a id="__codelineno-7-18" name="__codelineno-7-18"></a>    <span class="n">number</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">()</span>
-<a id="__codelineno-7-19" name="__codelineno-7-19"></a>
-<a id="__codelineno-7-20" name="__codelineno-7-20"></a>    <span class="nd">@validator</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
-<a id="__codelineno-7-21" name="__codelineno-7-21"></a>    <span class="k">def</span> <span class="nf">check_parity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-7-22" name="__codelineno-7-22"></a>        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parity</span> <span class="o">==</span> <span class="n">Parity</span><span class="o">.</span><span class="n">EVEN</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-<a id="__codelineno-7-23" name="__codelineno-7-23"></a>            <span class="k">yield</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span>
-<a id="__codelineno-7-24" name="__codelineno-7-24"></a>
-<a id="__codelineno-7-25" name="__codelineno-7-25"></a>    <span class="c1"># A field validator is equivalent to a discard argument and all error paths prefixed</span>
-<a id="__codelineno-7-26" name="__codelineno-7-26"></a>    <span class="c1"># with the field alias</span>
-<a id="__codelineno-7-27" name="__codelineno-7-27"></a>    <span class="nd">@validator</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="n">number</span><span class="p">)</span>
-<a id="__codelineno-7-28" name="__codelineno-7-28"></a>    <span class="k">def</span> <span class="nf">check_parity_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-7-29" name="__codelineno-7-29"></a>        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parity</span> <span class="o">==</span> <span class="n">Parity</span><span class="o">.</span><span class="n">EVEN</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-<a id="__codelineno-7-30" name="__codelineno-7-30"></a>            <span class="k">yield</span> <span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">number</span><span class="p">,</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span>
-<a id="__codelineno-7-31" name="__codelineno-7-31"></a>
-<a id="__codelineno-7-32" name="__codelineno-7-32"></a>
-<a id="__codelineno-7-33" name="__codelineno-7-33"></a><span class="nd">@validator</span><span class="p">(</span><span class="n">get_field</span><span class="p">(</span><span class="n">NumberWithParity</span><span class="p">)</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
-<a id="__codelineno-7-34" name="__codelineno-7-34"></a><span class="k">def</span> <span class="nf">check_parity_other_equivalent</span><span class="p">(</span><span class="n">number2</span><span class="p">:</span> <span class="n">NumberWithParity</span><span class="p">):</span>
-<a id="__codelineno-7-35" name="__codelineno-7-35"></a>    <span class="k">if</span> <span class="p">(</span><span class="n">number2</span><span class="o">.</span><span class="n">parity</span> <span class="o">==</span> <span class="n">Parity</span><span class="o">.</span><span class="n">EVEN</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">number2</span><span class="o">.</span><span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-<a id="__codelineno-7-36" name="__codelineno-7-36"></a>        <span class="k">yield</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span>
-<a id="__codelineno-7-37" name="__codelineno-7-37"></a>
-<a id="__codelineno-7-38" name="__codelineno-7-38"></a>
-<a id="__codelineno-7-39" name="__codelineno-7-39"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-7-40" name="__codelineno-7-40"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">NumberWithParity</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;parity&quot;</span><span class="p">:</span> <span class="s2">&quot;even&quot;</span><span class="p">,</span> <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
-<a id="__codelineno-7-41" name="__codelineno-7-41"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span><span class="p">}]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="__codelineno-7-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="__codelineno-7-2"></a><span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="__codelineno-7-4"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="__codelineno-7-6"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="__codelineno-7-7"></a><span class="kn">from</span> <span class="nn">apischema.objects</span> <span class="kn">import</span> <span class="n">get_alias</span><span class="p">,</span> <span class="n">get_field</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="__codelineno-7-8"></a>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="__codelineno-7-10"></a><span class="k">class</span> <span class="nc">Parity</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="__codelineno-7-11"></a>    <span class="n">EVEN</span> <span class="o">=</span> <span class="s2">&quot;even&quot;</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="__codelineno-7-12"></a>    <span class="n">ODD</span> <span class="o">=</span> <span class="s2">&quot;odd&quot;</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="__codelineno-7-13"></a>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="__codelineno-7-14"></a>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="__codelineno-7-15"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="__codelineno-7-16"></a><span class="k">class</span> <span class="nc">NumberWithParity</span><span class="p">:</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="__codelineno-7-17"></a>    <span class="n">parity</span><span class="p">:</span> <span class="n">Parity</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="__codelineno-7-18"></a>    <span class="n">number</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">()</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="__codelineno-7-19"></a>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="__codelineno-7-20"></a>    <span class="nd">@validator</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="__codelineno-7-21"></a>    <span class="k">def</span> <span class="nf">check_parity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="__codelineno-7-22"></a>        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parity</span> <span class="o">==</span> <span class="n">Parity</span><span class="o">.</span><span class="n">EVEN</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="__codelineno-7-23"></a>            <span class="k">yield</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="__codelineno-7-24"></a>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="__codelineno-7-25"></a>    <span class="c1"># A field validator is equivalent to a discard argument and all error paths prefixed</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="__codelineno-7-26"></a>    <span class="c1"># with the field alias</span>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="__codelineno-7-27"></a>    <span class="nd">@validator</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="n">number</span><span class="p">)</span>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="__codelineno-7-28"></a>    <span class="k">def</span> <span class="nf">check_parity_equivalent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-7-29" name="__codelineno-7-29" href="__codelineno-7-29"></a>        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parity</span> <span class="o">==</span> <span class="n">Parity</span><span class="o">.</span><span class="n">EVEN</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+<a id="__codelineno-7-30" name="__codelineno-7-30" href="__codelineno-7-30"></a>            <span class="k">yield</span> <span class="n">get_alias</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">number</span><span class="p">,</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span>
+<a id="__codelineno-7-31" name="__codelineno-7-31" href="__codelineno-7-31"></a>
+<a id="__codelineno-7-32" name="__codelineno-7-32" href="__codelineno-7-32"></a>
+<a id="__codelineno-7-33" name="__codelineno-7-33" href="__codelineno-7-33"></a><span class="nd">@validator</span><span class="p">(</span><span class="n">get_field</span><span class="p">(</span><span class="n">NumberWithParity</span><span class="p">)</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+<a id="__codelineno-7-34" name="__codelineno-7-34" href="__codelineno-7-34"></a><span class="k">def</span> <span class="nf">check_parity_other_equivalent</span><span class="p">(</span><span class="n">number2</span><span class="p">:</span> <span class="n">NumberWithParity</span><span class="p">):</span>
+<a id="__codelineno-7-35" name="__codelineno-7-35" href="__codelineno-7-35"></a>    <span class="k">if</span> <span class="p">(</span><span class="n">number2</span><span class="o">.</span><span class="n">parity</span> <span class="o">==</span> <span class="n">Parity</span><span class="o">.</span><span class="n">EVEN</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">number2</span><span class="o">.</span><span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+<a id="__codelineno-7-36" name="__codelineno-7-36" href="__codelineno-7-36"></a>        <span class="k">yield</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span>
+<a id="__codelineno-7-37" name="__codelineno-7-37" href="__codelineno-7-37"></a>
+<a id="__codelineno-7-38" name="__codelineno-7-38" href="__codelineno-7-38"></a>
+<a id="__codelineno-7-39" name="__codelineno-7-39" href="__codelineno-7-39"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-7-40" name="__codelineno-7-40" href="__codelineno-7-40"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">NumberWithParity</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;parity&quot;</span><span class="p">:</span> <span class="s2">&quot;even&quot;</span><span class="p">,</span> <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+<a id="__codelineno-7-41" name="__codelineno-7-41" href="__codelineno-7-41"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;number doesn&#39;t respect parity&quot;</span><span class="p">}]</span>
 </code></pre></div>
 <h3 id="validators-inheritance">Validators inheritance<a class="headerlink" href="#validators-inheritance" title="Permanent link">&para;</a></h3>
 <p>Validators are inherited just like other class fields.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2"></a>
-<a id="__codelineno-8-3" name="__codelineno-8-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4"></a>
-<a id="__codelineno-8-5" name="__codelineno-8-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6"></a>
-<a id="__codelineno-8-7" name="__codelineno-8-7"></a>
-<a id="__codelineno-8-8" name="__codelineno-8-8"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-8-9" name="__codelineno-8-9"></a><span class="k">class</span> <span class="nc">PasswordForm</span><span class="p">:</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10"></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-8-11" name="__codelineno-8-11"></a>    <span class="n">confirmation</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-8-12" name="__codelineno-8-12"></a>
-<a id="__codelineno-8-13" name="__codelineno-8-13"></a>    <span class="nd">@validator</span>
-<a id="__codelineno-8-14" name="__codelineno-8-14"></a>    <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-8-15" name="__codelineno-8-15"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation</span><span class="p">:</span>
-<a id="__codelineno-8-16" name="__codelineno-8-16"></a>            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">)</span>
-<a id="__codelineno-8-17" name="__codelineno-8-17"></a>
-<a id="__codelineno-8-18" name="__codelineno-8-18"></a>
-<a id="__codelineno-8-19" name="__codelineno-8-19"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-8-20" name="__codelineno-8-20"></a><span class="k">class</span> <span class="nc">CompleteForm</span><span class="p">(</span><span class="n">PasswordForm</span><span class="p">):</span>
-<a id="__codelineno-8-21" name="__codelineno-8-21"></a>    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-8-22" name="__codelineno-8-22"></a>
-<a id="__codelineno-8-23" name="__codelineno-8-23"></a>
-<a id="__codelineno-8-24" name="__codelineno-8-24"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-8-25" name="__codelineno-8-25"></a>    <span class="n">deserialize</span><span class="p">(</span>
-<a id="__codelineno-8-26" name="__codelineno-8-26"></a>        <span class="n">CompleteForm</span><span class="p">,</span>
-<a id="__codelineno-8-27" name="__codelineno-8-27"></a>        <span class="p">{</span><span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;wyfo&quot;</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;p455w0rd&quot;</span><span class="p">,</span> <span class="s2">&quot;confirmation&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">},</span>
-<a id="__codelineno-8-28" name="__codelineno-8-28"></a>    <span class="p">)</span>
-<a id="__codelineno-8-29" name="__codelineno-8-29"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-<a id="__codelineno-8-30" name="__codelineno-8-30"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">}</span>
-<a id="__codelineno-8-31" name="__codelineno-8-31"></a><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="__codelineno-8-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="__codelineno-8-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="__codelineno-8-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="__codelineno-8-6"></a>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="__codelineno-8-7"></a>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="__codelineno-8-8"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="__codelineno-8-9"></a><span class="k">class</span> <span class="nc">PasswordForm</span><span class="p">:</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="__codelineno-8-10"></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="__codelineno-8-11"></a>    <span class="n">confirmation</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="__codelineno-8-12"></a>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="__codelineno-8-13"></a>    <span class="nd">@validator</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="__codelineno-8-14"></a>    <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="__codelineno-8-15"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation</span><span class="p">:</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="__codelineno-8-16"></a>            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="__codelineno-8-17"></a>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="__codelineno-8-18"></a>
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="__codelineno-8-19"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="__codelineno-8-20"></a><span class="k">class</span> <span class="nc">CompleteForm</span><span class="p">(</span><span class="n">PasswordForm</span><span class="p">):</span>
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="__codelineno-8-21"></a>    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-8-22" name="__codelineno-8-22" href="__codelineno-8-22"></a>
+<a id="__codelineno-8-23" name="__codelineno-8-23" href="__codelineno-8-23"></a>
+<a id="__codelineno-8-24" name="__codelineno-8-24" href="__codelineno-8-24"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-8-25" name="__codelineno-8-25" href="__codelineno-8-25"></a>    <span class="n">deserialize</span><span class="p">(</span>
+<a id="__codelineno-8-26" name="__codelineno-8-26" href="__codelineno-8-26"></a>        <span class="n">CompleteForm</span><span class="p">,</span>
+<a id="__codelineno-8-27" name="__codelineno-8-27" href="__codelineno-8-27"></a>        <span class="p">{</span><span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;wyfo&quot;</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;p455w0rd&quot;</span><span class="p">,</span> <span class="s2">&quot;confirmation&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">},</span>
+<a id="__codelineno-8-28" name="__codelineno-8-28" href="__codelineno-8-28"></a>    <span class="p">)</span>
+<a id="__codelineno-8-29" name="__codelineno-8-29" href="__codelineno-8-29"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+<a id="__codelineno-8-30" name="__codelineno-8-30" href="__codelineno-8-30"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;password doesn&#39;t match its confirmation&quot;</span><span class="p">}</span>
+<a id="__codelineno-8-31" name="__codelineno-8-31" href="__codelineno-8-31"></a><span class="p">]</span>
 </code></pre></div>
 <h3 id="validator-with-initvar">Validator with <code>InitVar</code><a class="headerlink" href="#validator-with-initvar" title="Permanent link">&para;</a></h3>
 <p>Dataclasses <code>InitVar</code> are accessible in validators by using parameters the same way <code>__post_init__</code> does. Only the needed fields have to be put in parameters, they are then added to validator dependencies.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">InitVar</span><span class="p">,</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2"></a>
-<a id="__codelineno-9-3" name="__codelineno-9-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4"></a>
-<a id="__codelineno-9-5" name="__codelineno-9-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6"></a><span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">init_var</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7"></a>
-<a id="__codelineno-9-8" name="__codelineno-9-8"></a>
-<a id="__codelineno-9-9" name="__codelineno-9-9"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-9-10" name="__codelineno-9-10"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-<a id="__codelineno-9-11" name="__codelineno-9-11"></a>    <span class="n">bar</span><span class="p">:</span> <span class="n">InitVar</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">init_var</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
-<a id="__codelineno-9-12" name="__codelineno-9-12"></a>
-<a id="__codelineno-9-13" name="__codelineno-9-13"></a>    <span class="nd">@validator</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span>
-<a id="__codelineno-9-14" name="__codelineno-9-14"></a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<a id="__codelineno-9-15" name="__codelineno-9-15"></a>        <span class="k">if</span> <span class="n">bar</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-9-16" name="__codelineno-9-16"></a>            <span class="k">yield</span> <span class="s2">&quot;negative&quot;</span>
-<a id="__codelineno-9-17" name="__codelineno-9-17"></a>
-<a id="__codelineno-9-18" name="__codelineno-9-18"></a>
-<a id="__codelineno-9-19" name="__codelineno-9-19"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-9-20" name="__codelineno-9-20"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">})</span>
-<a id="__codelineno-9-21" name="__codelineno-9-21"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;negative&quot;</span><span class="p">}]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="__codelineno-9-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">InitVar</span><span class="p">,</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="__codelineno-9-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="__codelineno-9-4"></a>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="__codelineno-9-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="__codelineno-9-6"></a><span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">init_var</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="__codelineno-9-7"></a>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="__codelineno-9-8"></a>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="__codelineno-9-9"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="__codelineno-9-10"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="__codelineno-9-11"></a>    <span class="n">bar</span><span class="p">:</span> <span class="n">InitVar</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">init_var</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="__codelineno-9-12"></a>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="__codelineno-9-13"></a>    <span class="nd">@validator</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="__codelineno-9-14"></a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="__codelineno-9-15"></a>        <span class="k">if</span> <span class="n">bar</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="__codelineno-9-16"></a>            <span class="k">yield</span> <span class="s2">&quot;negative&quot;</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="__codelineno-9-17"></a>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="__codelineno-9-18"></a>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="__codelineno-9-19"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="__codelineno-9-20"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">})</span>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="__codelineno-9-21"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;negative&quot;</span><span class="p">}]</span>
 </code></pre></div>
 <h3 id="validators-are-not-run-on-default-values">Validators are not run on default values<a class="headerlink" href="#validators-are-not-run-on-default-values" title="Permanent link">&para;</a></h3>
 <p>If all validator dependencies are initialized with their default values, they are not run.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2"></a>
-<a id="__codelineno-10-3" name="__codelineno-10-3"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4"></a>
-<a id="__codelineno-10-5" name="__codelineno-10-5"></a><span class="n">validator_run</span> <span class="o">=</span> <span class="kc">False</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6"></a>
-<a id="__codelineno-10-7" name="__codelineno-10-7"></a>
-<a id="__codelineno-10-8" name="__codelineno-10-8"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-10-9" name="__codelineno-10-9"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-<a id="__codelineno-10-10" name="__codelineno-10-10"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-10-11" name="__codelineno-10-11"></a>
-<a id="__codelineno-10-12" name="__codelineno-10-12"></a>    <span class="nd">@validator</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span>
-<a id="__codelineno-10-13" name="__codelineno-10-13"></a>    <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-10-14" name="__codelineno-10-14"></a>        <span class="k">global</span> <span class="n">validator_run</span>
-<a id="__codelineno-10-15" name="__codelineno-10-15"></a>        <span class="n">validator_run</span> <span class="o">=</span> <span class="kc">True</span>
-<a id="__codelineno-10-16" name="__codelineno-10-16"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bar</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-10-17" name="__codelineno-10-17"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;negative&quot;</span><span class="p">)</span>
-<a id="__codelineno-10-18" name="__codelineno-10-18"></a>
-<a id="__codelineno-10-19" name="__codelineno-10-19"></a>
-<a id="__codelineno-10-20" name="__codelineno-10-20"></a><span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{})</span>
-<a id="__codelineno-10-21" name="__codelineno-10-21"></a><span class="k">assert</span> <span class="ow">not</span> <span class="n">validator_run</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="__codelineno-10-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="__codelineno-10-3"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="__codelineno-10-4"></a>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="__codelineno-10-5"></a><span class="n">validator_run</span> <span class="o">=</span> <span class="kc">False</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="__codelineno-10-6"></a>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="__codelineno-10-7"></a>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="__codelineno-10-8"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="__codelineno-10-9"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="__codelineno-10-10"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="__codelineno-10-11"></a>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="__codelineno-10-12"></a>    <span class="nd">@validator</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="__codelineno-10-13"></a>    <span class="k">def</span> <span class="nf">password_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="__codelineno-10-14"></a>        <span class="k">global</span> <span class="n">validator_run</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="__codelineno-10-15"></a>        <span class="n">validator_run</span> <span class="o">=</span> <span class="kc">True</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="__codelineno-10-16"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bar</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="__codelineno-10-17"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;negative&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="__codelineno-10-18"></a>
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="__codelineno-10-19"></a>
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="__codelineno-10-20"></a><span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{})</span>
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="__codelineno-10-21"></a><span class="k">assert</span> <span class="ow">not</span> <span class="n">validator_run</span>
 </code></pre></div>
 <h2 id="validators-for-every-type">Validators for every type<a class="headerlink" href="#validators-for-every-type" title="Permanent link">&para;</a></h2>
 <p>Validators can also be declared as regular functions, in which case annotation of the first param is used to associate it to the validated type (you can also use the <code>owner</code> parameter); this allows adding a validator to every type.</p>
 <p>Last but not least, validators can be embedded directly into <code>Annotated</code> arguments using <code>validators</code> metadata.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">NewType</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2"></a>
-<a id="__codelineno-11-3" name="__codelineno-11-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4"></a>
-<a id="__codelineno-11-5" name="__codelineno-11-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6"></a><span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">validators</span>
-<a id="__codelineno-11-7" name="__codelineno-11-7"></a>
-<a id="__codelineno-11-8" name="__codelineno-11-8"></a><span class="n">Palindrome</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Palindrome&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
-<a id="__codelineno-11-9" name="__codelineno-11-9"></a>
-<a id="__codelineno-11-10" name="__codelineno-11-10"></a>
-<a id="__codelineno-11-11" name="__codelineno-11-11"></a><span class="nd">@validator</span>  <span class="c1"># could also use @validator(owner=Palindrome)</span>
-<a id="__codelineno-11-12" name="__codelineno-11-12"></a><span class="k">def</span> <span class="nf">check_palindrome</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">Palindrome</span><span class="p">):</span>
-<a id="__codelineno-11-13" name="__codelineno-11-13"></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
-<a id="__codelineno-11-14" name="__codelineno-11-14"></a>        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">]:</span>
-<a id="__codelineno-11-15" name="__codelineno-11-15"></a>            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;Not a palindrome&quot;</span><span class="p">)</span>
-<a id="__codelineno-11-16" name="__codelineno-11-16"></a>
-<a id="__codelineno-11-17" name="__codelineno-11-17"></a>
-<a id="__codelineno-11-18" name="__codelineno-11-18"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;tacocat&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;tacocat&quot;</span>
-<a id="__codelineno-11-19" name="__codelineno-11-19"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-11-20" name="__codelineno-11-20"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;palindrome&quot;</span><span class="p">)</span>
-<a id="__codelineno-11-21" name="__codelineno-11-21"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;Not a palindrome&quot;</span><span class="p">}]</span>
-<a id="__codelineno-11-22" name="__codelineno-11-22"></a>
-<a id="__codelineno-11-23" name="__codelineno-11-23"></a><span class="c1"># Using Annotated</span>
-<a id="__codelineno-11-24" name="__codelineno-11-24"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-11-25" name="__codelineno-11-25"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">validators</span><span class="p">(</span><span class="n">check_palindrome</span><span class="p">)],</span> <span class="s2">&quot;palindrom&quot;</span><span class="p">)</span>
-<a id="__codelineno-11-26" name="__codelineno-11-26"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;Not a palindrome&quot;</span><span class="p">}]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="__codelineno-11-1"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">NewType</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="__codelineno-11-2"></a>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="__codelineno-11-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="__codelineno-11-4"></a>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="__codelineno-11-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">validator</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="__codelineno-11-6"></a><span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">validators</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="__codelineno-11-7"></a>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="__codelineno-11-8"></a><span class="n">Palindrome</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Palindrome&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="__codelineno-11-9"></a>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="__codelineno-11-10"></a>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="__codelineno-11-11"></a><span class="nd">@validator</span>  <span class="c1"># could also use @validator(owner=Palindrome)</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="__codelineno-11-12"></a><span class="k">def</span> <span class="nf">check_palindrome</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">Palindrome</span><span class="p">):</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="__codelineno-11-13"></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="__codelineno-11-14"></a>        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">]:</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="__codelineno-11-15"></a>            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;Not a palindrome&quot;</span><span class="p">)</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="__codelineno-11-16"></a>
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="__codelineno-11-17"></a>
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="__codelineno-11-18"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;tacocat&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;tacocat&quot;</span>
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="__codelineno-11-19"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-11-20" name="__codelineno-11-20" href="__codelineno-11-20"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Palindrome</span><span class="p">,</span> <span class="s2">&quot;palindrome&quot;</span><span class="p">)</span>
+<a id="__codelineno-11-21" name="__codelineno-11-21" href="__codelineno-11-21"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;Not a palindrome&quot;</span><span class="p">}]</span>
+<a id="__codelineno-11-22" name="__codelineno-11-22" href="__codelineno-11-22"></a>
+<a id="__codelineno-11-23" name="__codelineno-11-23" href="__codelineno-11-23"></a><span class="c1"># Using Annotated</span>
+<a id="__codelineno-11-24" name="__codelineno-11-24" href="__codelineno-11-24"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-11-25" name="__codelineno-11-25" href="__codelineno-11-25"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">validators</span><span class="p">(</span><span class="n">check_palindrome</span><span class="p">)],</span> <span class="s2">&quot;palindrom&quot;</span><span class="p">)</span>
+<a id="__codelineno-11-26" name="__codelineno-11-26" href="__codelineno-11-26"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;Not a palindrome&quot;</span><span class="p">}]</span>
 </code></pre></div>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
 <h4 id="how-are-validator-dependencies-computed">How are validator dependencies computed?<a class="headerlink" href="#how-are-validator-dependencies-computed" title="Permanent link">&para;</a></h4>
@@ -1383,22 +1383,22 @@ Messages can be customized by setting the corresponding attribute of <code>apisc
 <h4 id="why-validators-cannot-raise-arbitrary-exception">Why validators cannot raise arbitrary exception?<a class="headerlink" href="#why-validators-cannot-raise-arbitrary-exception" title="Permanent link">&para;</a></h4>
 <p>Allowing arbitrary exception is in fact a security issue, because unwanted exception could be raised, and their message displayed in validation error. It could either contain sensitive data, or give information about the implementation which could be used to hack it.</p>
 <p>By the way, it's possible to define a decorator to convert precise exceptions to <code>ValidationError</code>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1"></a><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Callable</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2"></a><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypeVar</span>
-<a id="__codelineno-12-4" name="__codelineno-12-4"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5"></a>
-<a id="__codelineno-12-6" name="__codelineno-12-6"></a><span class="n">Func</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Func&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">Callable</span><span class="p">)</span>
-<a id="__codelineno-12-7" name="__codelineno-12-7"></a><span class="k">def</span> <span class="nf">catch</span><span class="p">(</span><span class="o">*</span><span class="n">exceptions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Func</span><span class="p">],</span> <span class="n">Func</span><span class="p">]:</span>
-<a id="__codelineno-12-8" name="__codelineno-12-8"></a>    <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Func</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Func</span><span class="p">:</span>
-<a id="__codelineno-12-9" name="__codelineno-12-9"></a>        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-<a id="__codelineno-12-10" name="__codelineno-12-10"></a>        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<a id="__codelineno-12-11" name="__codelineno-12-11"></a>            <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-12-12" name="__codelineno-12-12"></a>                <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<a id="__codelineno-12-13" name="__codelineno-12-13"></a>            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-12-14" name="__codelineno-12-14"></a>                <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">))</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="n">exceptions</span><span class="p">)</span> <span class="k">else</span> <span class="n">err</span>
-<a id="__codelineno-12-15" name="__codelineno-12-15"></a>        <span class="k">return</span> <span class="n">wrapper</span>
-<a id="__codelineno-12-16" name="__codelineno-12-16"></a>    <span class="k">return</span> <span class="n">decorator</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="__codelineno-12-1"></a><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Callable</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="__codelineno-12-2"></a><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="__codelineno-12-3"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypeVar</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="__codelineno-12-4"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">ValidationError</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="__codelineno-12-5"></a>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="__codelineno-12-6"></a><span class="n">Func</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Func&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">Callable</span><span class="p">)</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="__codelineno-12-7"></a><span class="k">def</span> <span class="nf">catch</span><span class="p">(</span><span class="o">*</span><span class="n">exceptions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Func</span><span class="p">],</span> <span class="n">Func</span><span class="p">]:</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="__codelineno-12-8"></a>    <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Func</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Func</span><span class="p">:</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="__codelineno-12-9"></a>        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="__codelineno-12-10"></a>        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="__codelineno-12-11"></a>            <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="__codelineno-12-12"></a>                <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="__codelineno-12-13"></a>            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="__codelineno-12-14"></a>                <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">))</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="n">exceptions</span><span class="p">)</span> <span class="k">else</span> <span class="n">err</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="__codelineno-12-15"></a>        <span class="k">return</span> <span class="n">wrapper</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="__codelineno-12-16"></a>    <span class="k">return</span> <span class="n">decorator</span>
 </code></pre></div></p>
 
               
