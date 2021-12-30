@@ -1,6 +1,6 @@
 # apischema
 
-JSON (de)serialization, *GraphQL* and JSON schema generation using Python typing.
+JSON (de)serialization, GraphQL and JSON schema generation using Python typing.
 
 *apischema* makes your life easier when dealing with API data.
 
@@ -28,7 +28,7 @@ This library fulfills the following goals:
 
 No known alternative achieves all of this, and apischema is also [faster](https://wyfo.github.io/apischema/performance_and_benchmark) than all of them.
 
-On top of that, because APIs are not only JSON, *apischema* is also a complete *GraphQL* library.
+On top of that, because APIs are not only JSON, *apischema* is also a complete GraphQL library.
 
 ## Example
 

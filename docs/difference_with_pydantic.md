@@ -8,7 +8,7 @@ According to [benchmark](performance_and_benchmark.md), *apischema* is a lot fas
 
 Better performance, but not at the cost of fewer functionalities; that's rather the opposite: [dynamic aliasing](json_schema.md#dynamic-aliasing-and-default-aliaser), [conversions](conversions.md), [flattened fields](data_model.md#composition-over-inheritance---composed-dataclasses-flattening), etc.
 
-### *apischema* can generate [*GraphQL* schema](graphql/overview.md) from your resolvers
+### *apischema* can generate [GraphQL schema](graphql/overview.md) from your resolvers
 
 Not just a simple printable schema but a complete `graphql.GraphQLSchema` (using [*graphql-core*](https://github.com/graphql-python/graphql-core/) library) which can be used to execute your queries/mutations/subscriptions through your resolvers, powered by *apischema* (de)serialization and conversions features.
 

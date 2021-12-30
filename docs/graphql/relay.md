@@ -1,6 +1,6 @@
 # Relay
 
-*apischema* provides some facilities to implement a *GraphQL* server following [*Relay* *GraphQL* server specification](https://relay.dev/docs/en/graphql-server-specification). They are included in the module `apischema.graphql.relay`.
+*apischema* provides some facilities to implement a GraphQL server following [*Relay* GraphQL server specification](https://relay.dev/docs/en/graphql-server-specification). They are included in the module `apischema.graphql.relay`.
 
 !!! note
     These facilities are independent of each others — you could keep only the mutations part and use your own identification and connection system for example.

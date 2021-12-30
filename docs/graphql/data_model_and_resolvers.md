@@ -1,12 +1,12 @@
 # Data model and resolvers
 
-Almost everything in the [Data model section](../data_model.md) remains valid in *GraphQL* integration, with a few differences.
+Almost everything in the [Data model section](../data_model.md) remains valid in GraphQL integration, with a few differences.
 
-## *GraphQL* specific data model
+## GraphQL specific data model
 
 ### `Enum`
 
-`Enum` members are represented in the schema using their **name** instead of their value. This is more consistent with the way *GraphQL* represents enumerations.
+`Enum` members are represented in the schema using their **name** instead of their value. This is more consistent with the way GraphQL represents enumerations.
 
 ### `TypedDict`
 
@@ -17,7 +17,7 @@ Unions are only supported between **output** object type, which means `dataclass
 
 There are 2 exceptions which can be always be used in `Union`:
 
-- `None`/`Optional`: Types are non-null (marked with an exclamation mark `!` in *GraphQL* schema) by default; `Optional` types however results in normal *GraphQL* types (without `!`).
+- `None`/`Optional`: Types are non-null (marked with an exclamation mark `!` in GraphQL schema) by default; `Optional` types however results in normal GraphQL types (without `!`).
 - `apischema.UndefinedType`: it is simply ignored. It is useful in resolvers, see [following section](#undefined_param_default)
  
 
@@ -44,7 +44,7 @@ Interfaces are simply classes marked with `apischema.graphql.interface` decorato
 
 ## Resolvers
 
-All `dataclass`/`NamedTuple` fields (excepted [skipped](../data_model.md#skip-dataclass-field)) are resolved with their [alias](../json_schema.md#field-alias) in the *GraphQL* schema.
+All `dataclass`/`NamedTuple` fields (excepted [skipped](../data_model.md#skip-dataclass-field)) are resolved with their [alias](../json_schema.md#field-alias) in the GraphQL schema.
 
 Custom resolvers can also be added by marking methods with `apischema.graphql.resolver` decorator — resolvers share a common interface with [`apischema.serialized`](../de_serialization.md#serialized-methodsproperties), with a few differences.
 
@@ -58,7 +58,7 @@ Resolvers parameters are included in the schema with their type, and their defau
 
 ### `GraphQLResolveInfo` parameter
 
-Resolvers can have an additional parameter of type [`graphql.GraphQLResolveInfo`](https://graphql-core-3.readthedocs.io/en/latest/modules/type.html?highlight=GraphQLResolveInfo#graphql.type.GraphQLResolveInfo) (or `Optional[graphql.GraphQLResolveInfo]`), which is automatically injected when the resolver is executed in the context of a *GraphQL* request. This parameter contains the info about the current *GraphQL* request being executed.
+Resolvers can have an additional parameter of type [`graphql.GraphQLResolveInfo`](https://graphql-core-3.readthedocs.io/en/latest/modules/type.html?highlight=GraphQLResolveInfo#graphql.type.GraphQLResolveInfo) (or `Optional[graphql.GraphQLResolveInfo]`), which is automatically injected when the resolver is executed in the context of a GraphQL request. This parameter contains the info about the current GraphQL request being executed.
 
 ### Undefined parameter default — `null` vs. `undefined`
 
@@ -104,7 +104,7 @@ Following the example of [type/field/method base schema](../json_schema.md#base-
 ```
 
 ## ID type
-*GraphQL* `ID` has no precise specification and is defined according API needs; it can be a UUID or and ObjectId, etc.
+GraphQL `ID` has no precise specification and is defined according API needs; it can be a UUID or and ObjectId, etc.
 
 `apischema.graphql_schema` has a parameter `id_types` which can be used to define which types will be marked as `ID` in the generated schema. Parameter value can be either a collection of types (each type will then be mapped to `ID` scalar), or a predicate returning if the given type must be marked as `ID`.
 
@@ -137,7 +137,7 @@ Following the example of [type/field/method base schema](../json_schema.md#base-
 ## Tagged unions
 
 !!! important
-    This feature has a provisional status, as the concerned [*GraphQL* RFC](https://github.com/graphql/graphql-spec/pull/733) is not finalized.
+    This feature has a provisional status, as the concerned [GraphQL RFC](https://github.com/graphql/graphql-spec/pull/733) is not finalized.
 
 *apischema* provides a `apischema.tagged_unions.TaggedUnion` base class which helps to implement the *tagged union* pattern.
 It's fields **must** be typed using `apischema.tagged_unions.Tagged` generic type.
@@ -156,7 +156,7 @@ Tagged unions JSON schema uses `minProperties: 1` and `maxProperties: 1`.
 
 ### GraphQL schema
 
-As tagged unions are not (yet?) part of the *GraphQL* spec, they are just implemented as normal (input) object type with nullable fields. An error is raised if several tags are passed in input.
+As tagged unions are not (yet?) part of the GraphQL spec, they are just implemented as normal (input) object type with nullable fields. An error is raised if several tags are passed in input.
 
 ```python
 {!tagged_union_graphql_schema.py!}

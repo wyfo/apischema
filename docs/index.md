@@ -2,7 +2,7 @@
 
 ## apischema
 
-JSON (de)serialization, *GraphQL* and JSON schema generation using Python typing.
+JSON (de)serialization, GraphQL and JSON schema generation using Python typing.
 
 *apischema* makes your life easier when dealing with API data.
 
@@ -24,7 +24,7 @@ This library fulfills the following goals:
 
 No known alternative achieves all of this, and apischema is also [faster](performance_and_benchmark.md#benchmark) than all of them.
 
-On top of that, because APIs are not only JSON, *apischema* is also a complete *GraphQL* library
+On top of that, because APIs are not only JSON, *apischema* is also a complete GraphQL library
 
 !!! note
     Actually, *apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code ([pydantic support example](examples/pydantic_support.md) using [conversions feature](conversions.md))  
@@ -45,7 +45,7 @@ All documentation examples are written using the last Python minor version — c
 
 Also, as stated above, examples are using `pytest.raises` as it is the most convenient way to test an exception is raised — and because it's simpler for the CI wrapping.
 
-Moreover, *apischema* has a *graphql-core* dependency when it comes to example involving *GraphQL*.
+Moreover, *apischema* has a *graphql-core* dependency when it comes to example involving GraphQL.
 
 Lastly, some examples of the [Examples](examples) section use third-party libraries: *SQLAlchemy*, *attrs* and *pydantic*.
 
