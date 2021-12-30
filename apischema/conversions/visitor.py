@@ -1,7 +1,5 @@
 from contextlib import contextmanager, suppress
 from dataclasses import replace
-from functools import lru_cache
-from types import new_class
 from typing import (
     Any,
     Collection,
@@ -11,7 +9,6 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    Type,
     TypeVar,
     Union,
 )
@@ -29,14 +26,13 @@ from apischema.conversions.conversions import (
 from apischema.conversions.utils import is_convertible
 from apischema.metadata.implem import ConversionMetadata
 from apischema.metadata.keys import CONVERSION_METADATA
-from apischema.type_names import type_name
 from apischema.types import AnyType
-from apischema.typing import get_args, is_type_var
+from apischema.typing import is_type_var
 from apischema.utils import (
     context_setter,
     get_args2,
     get_origin_or_type,
-    has_type_vars,
+    identity,
     is_subclass,
     substitute_type_vars,
     subtyping_substitution,
@@ -144,18 +140,6 @@ def sub_conversion(
     )
 
 
-@lru_cache(maxsize=0)
-def self_deserialization_wrapper(cls: Type) -> Type:
-    wrapper = new_class(
-        f"{cls.__name__}SelfDeserializer",
-        (cls[cls.__parameters__] if has_type_vars(cls) else cls,),
-        exec_body=lambda ns: ns.update(
-            {"__new__": lambda _, *args, **kwargs: cls(*args, **kwargs)}
-        ),
-    )
-    return type_name(None)(wrapper)
-
-
 class DeserializationVisitor(ConversionsVisitor[Deserialization, Result]):
     @staticmethod
     def _has_conversion(
@@ -169,12 +153,7 @@ class DeserializationVisitor(ConversionsVisitor[Deserialization, Result]):
                     if identity_conv:
                         continue
                     identity_conv = True
-                    wrapper: AnyType = self_deserialization_wrapper(
-                        get_origin_or_type(tp)
-                    )
-                    if get_args(tp):
-                        wrapper = wrapper[get_args(tp)]
-                    conv = ResolvedConversion(replace(conv, source=wrapper))
+                    conv = ResolvedConversion(replace(conv, sub_conversion=identity))
                 if is_type_var(conv.source) or any(
                     map(is_type_var, get_args2(conv.source))
                 ):

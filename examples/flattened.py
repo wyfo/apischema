@@ -46,7 +46,6 @@ assert deserialization_schema(RootJsonSchema) == {
             "additionalProperties": False,
         }
     },
-    "type": "object",
     # It results in allOf + unevaluatedProperties=False
     "allOf": [
         # RootJsonSchema (without JsonSchema)

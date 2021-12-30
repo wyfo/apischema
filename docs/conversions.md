@@ -261,7 +261,7 @@ Parameters metadata can be specified using `typing.Annotated`, or be passed with
 
 #### What's the difference between `conversion` and `default_conversion` parameters?
 
-Dynamic conversions (`conversion` parameter) exists to ensure consistency and reuse of subschemas referenced (with a `$ref`) in the JSON/*OpenAPI* schema. 
+Dynamic conversions (`conversion` parameter) exists to ensure consistency and reuse of subschemas referenced (with a `$ref`) in the JSON/OpenAPI schema. 
 
 In fact, different global conversions (`default_conversion` parameter) could lead to having a field with different schemas depending on global conversions, so a class would not be able to be referenced consistently. Because dynamic conversions are local, they cannot mess with an object field schema.
 

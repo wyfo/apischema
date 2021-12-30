@@ -32,6 +32,12 @@ from apischema.conversions.visitor import (
     SerializationVisitor,
 )
 from apischema.dependencies import get_dependent_required
+from apischema.discriminators import (
+    Discriminator,
+    get_discriminated_parent,
+    get_discriminator,
+    rec_subclasses,
+)
 from apischema.json_schema.conversions_resolver import WithConversionsResolver
 from apischema.json_schema.patterns import infer_pattern
 from apischema.json_schema.refs import DeserializationRefsExtractor, Refs
@@ -39,7 +45,7 @@ from apischema.json_schema.refs import RefsExtractor as RefsExtractor_
 from apischema.json_schema.refs import SerializationRefsExtractor
 from apischema.json_schema.types import JsonSchema, JsonType, json_schema
 from apischema.json_schema.versions import JsonSchemaVersion, RefFactory
-from apischema.metadata.keys import SCHEMA_METADATA
+from apischema.metadata.keys import DISCRIMINATOR_METADATA, SCHEMA_METADATA
 from apischema.objects import AliasedStr, ObjectField
 from apischema.objects.visitor import (
     DeserializationObjectVisitor,
@@ -57,14 +63,17 @@ from apischema.serialization.serialized_methods import (
 )
 from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.types import AnyType, OrderedDict, UndefinedType
-from apischema.typing import get_args, is_typed_dict
+from apischema.typing import get_args, get_origin, is_typed_dict, is_union
 from apischema.utils import (
     context_setter,
     deprecate_kwargs,
     get_origin_or_type,
+    identity,
+    is_hashable,
     is_union_of,
     literal_values,
 )
+from apischema.visitor import Unsupported
 
 
 def get_schema(tp: AnyType) -> Optional[Schema]:
@@ -138,8 +147,25 @@ class SchemaBuilder(
             assert isinstance(ref, str)
             return JsonSchema({"$ref": self.ref_factory(ref)})
 
+    def discriminator_schema(
+        self, discriminator: Discriminator, types: Sequence[type]
+    ) -> Mapping[str, Any]:
+        discriminator_schema: Dict[str, Any] = {
+            "propertyName": AliasedStr(discriminator.alias)
+        }
+        mapping = {
+            key: self.ref_factory(type_name)
+            for key, tp in discriminator.get_mapping(types).items()
+            for type_name in [get_type_name(tp).json_schema]
+            if type_name is not None and type_name != key
+        }
+        if mapping:
+            discriminator_schema["mapping"] = mapping
+        return {"discriminator": discriminator_schema}
+
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> JsonSchema:
         schema = None
+        discriminator: Optional[Discriminator] = None
         for annotation in reversed(annotations):
             if isinstance(annotation, TypeNameFactory):
                 ref = annotation.to_type_name(tp).json_schema
@@ -148,7 +174,17 @@ class SchemaBuilder(
                     return full_schema(ref_schema, schema)
             if isinstance(annotation, Mapping):
                 schema = merge_schema(annotation.get(SCHEMA_METADATA), schema)
-        return full_schema(super().annotated(tp, annotations), schema)
+                if DISCRIMINATOR_METADATA in annotation and is_union(get_origin(tp)):
+                    discriminator = annotation[DISCRIMINATOR_METADATA]
+        res = full_schema(super().annotated(tp, annotations), schema)
+        return (
+            json_schema(
+                oneOf=res["anyOf"],
+                **self.discriminator_schema(discriminator, get_args(tp)),
+            )
+            if discriminator is not None
+            else res
+        )
 
     def any(self) -> JsonSchema:
         return JsonSchema()
@@ -282,24 +318,39 @@ class SchemaBuilder(
                 )
         alias_by_names = {f.name: f.alias for f in fields}.__getitem__
         dependent_required = get_dependent_required(cls)
-        result = json_schema(
-            type=JsonType.OBJECT,
-            properties={p.alias: p.schema for p in properties},
-            required=[p.alias for p in properties if p.required],
-            additionalProperties=additional_properties,
-            patternProperties=pattern_properties,
-            dependentRequired=OrderedDict(
-                (alias_by_names(f), sorted(map(alias_by_names, dependent_required[f])))
-                for f in sorted(dependent_required, key=alias_by_names)
-            ),
+        result = []
+        discriminator_parent = get_discriminated_parent(cls)
+        if discriminator_parent is not None:
+            discriminator_ref = self.ref_schema(
+                get_type_name(discriminator_parent).json_schema
+            )
+            assert discriminator_ref is not None
+            result.append(discriminator_ref)
+            additional_properties = True
+        result.append(
+            json_schema(
+                type=JsonType.OBJECT,
+                properties={p.alias: p.schema for p in properties},
+                required=[p.alias for p in properties if p.required],
+                additionalProperties=additional_properties,
+                patternProperties=pattern_properties,
+                dependentRequired=OrderedDict(
+                    (
+                        alias_by_names(f),
+                        sorted(map(alias_by_names, dependent_required[f])),
+                    )
+                    for f in sorted(dependent_required, key=alias_by_names)
+                ),
+            )
         )
         if flattened_schemas:
-            result = json_schema(
-                type=JsonType.OBJECT,
-                allOf=[result, *flattened_schemas],
-                unevaluatedProperties=False,
+            return json_schema(
+                allOf=result + flattened_schemas, unevaluatedProperties=False
             )
-        return result
+        elif len(result) == 1:
+            return result[0]
+        else:
+            return json_schema(allOf=result)
 
     def primitive(self, cls: Type) -> JsonSchema:
         return JsonSchema(type=JsonType.from_type(cls))
@@ -360,6 +411,36 @@ class SchemaBuilder(
             if get_args(tp):
                 schema = merge_schema(schema, get_schema(get_origin_or_type(tp)))
             schema = merge_schema(schema, get_schema(tp))
+            if conversion is not None and is_hashable(tp) and get_discriminator(tp):
+                discriminator = get_discriminator(tp)
+                assert discriminator is not None
+                discriminator_alias = AliasedStr(discriminator.alias)
+                try:
+                    parent_schema = self.visit_with_conv(tp, conversion=identity)
+                except Unsupported:
+                    parent_schema = json_schema(type=JsonType.OBJECT)
+                required = parent_schema.get("required", [])
+                if discriminator_alias not in required:
+                    required = required + [discriminator_alias]
+                properties = parent_schema.get("properties", {})
+                if discriminator_alias not in properties:
+                    properties = {
+                        **properties,
+                        discriminator_alias: json_schema(type=JsonType.STRING),
+                    }
+                return full_schema(
+                    JsonSchema(
+                        {
+                            **parent_schema,
+                            "required": required,
+                            "properties": properties,
+                            **self.discriminator_schema(
+                                discriminator, list(rec_subclasses(tp))
+                            ),
+                        }
+                    ),
+                    schema,
+                )
         result = super().visit_conversion(tp, conversion, dynamic, next_conversion)
         return full_schema(result, schema)
 

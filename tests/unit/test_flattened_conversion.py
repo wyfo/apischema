@@ -36,7 +36,6 @@ def test_flattened_dataclass_model():
         == serialization_schema(Data)
         == {
             "$schema": "http://json-schema.org/draft/2020-12/schema#",
-            "type": "object",
             "allOf": [
                 {"type": "object", "additionalProperties": False},
                 {
@@ -104,7 +103,6 @@ def test_flattened_converted():
         == serialization_schema(Data)
         == {
             "$schema": "http://json-schema.org/draft/2020-12/schema#",
-            "type": "object",
             "allOf": [
                 {"type": "object", "additionalProperties": False},
                 {

@@ -18,7 +18,12 @@ from apischema.conversions.visitor import (
     DeserializationVisitor,
     SerializationVisitor,
 )
+from apischema.discriminators import (
+    get_discriminated_parent,
+    get_inherited_discriminator,
+)
 from apischema.json_schema.conversions_resolver import WithConversionsResolver
+from apischema.metadata.keys import DISCRIMINATOR_METADATA
 from apischema.objects import ObjectField
 from apischema.objects.visitor import (
     DeserializationObjectVisitor,
@@ -27,11 +32,11 @@ from apischema.objects.visitor import (
 )
 from apischema.type_names import TypeNameFactory, get_type_name
 from apischema.types import AnyType
-from apischema.utils import is_hashable, replace_builtins
+from apischema.utils import get_origin_or_type, is_hashable, replace_builtins
 from apischema.visitor import Unsupported
 
 try:
-    from apischema.typing import Annotated
+    from apischema.typing import Annotated, get_origin, is_union
 except ImportError:
     Annotated = ...  # type: ignore
 
@@ -75,6 +80,13 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
                 annotated = Annotated[(tp, *ref_annotations)]  # type: ignore
                 if self._incr_ref(ref, annotated):
                     return
+            if (
+                isinstance(annotation, Mapping)
+                and DISCRIMINATOR_METADATA in annotation
+                and is_union(get_origin(tp))
+            ):
+                # Visit one more time discriminated union in order to ensure ref count > 1
+                self.visit(tp)
         return super().annotated(tp, annotations)
 
     def any(self):
@@ -94,6 +106,9 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
         self.visit(value_type)
 
     def object(self, tp: AnyType, fields: Sequence[ObjectField]):
+        parent = get_discriminated_parent(get_origin_or_type(tp))
+        if parent is not None:
+            self._incr_ref(get_type_name(parent).json_schema, parent)
         for field in fields:
             self.visit_with_conv(field.type, self._field_conversion(field))
 
@@ -106,6 +121,12 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
 
     def _visited_union(self, results: Sequence):
         pass
+
+    def union(self, types: Sequence[AnyType]):
+        super().union(types)
+        if get_inherited_discriminator(types):
+            # Visit one more time discriminated union in order to ensure ref count > 1
+            super().union(types)
 
     def visit_conversion(
         self,

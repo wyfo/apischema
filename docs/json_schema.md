@@ -166,7 +166,7 @@ For complex schema with type reuse, it's convenient to extract definitions of sc
 - `all_refs=True` -> all types with a reference will be put in the definitions and referenced with `$ref`;
 - `all_refs=False` -> only types which are reused in the schema are put in definitions
   
-`all_refs` default value depends on the [JSON schema version](#json-schemaopenapi-version): it's `False` for JSON schema drafts but `True` for *OpenAPI*.
+`all_refs` default value depends on the [JSON schema version](#json-schemaopenapi-version): it's `False` for JSON schema drafts but `True` for OpenAPI.
 
 ```python
 {!all_refs.py!}
@@ -196,7 +196,7 @@ The default behavior can also be customized using `apischema.settings.default_ty
 
 ### Reference factory
 
-In JSON schema, `$ref` looks like `#/$defs/Foo`, not just `Foo`. In fact, schema generation use the ref given by `type_name`/`default_type_name` and pass it to a `ref_factory` function (a parameter of schema generation functions) which will convert it to its final form. [JSON schema version](#json-schemaopenapi-version) comes with its default `ref_factory`, for draft 2020-12, it prefixes the ref with `#/$defs/`, while it prefixes with `#/components/schema` in case of *OpenAPI*.
+In JSON schema, `$ref` looks like `#/$defs/Foo`, not just `Foo`. In fact, schema generation use the ref given by `type_name`/`default_type_name` and pass it to a `ref_factory` function (a parameter of schema generation functions) which will convert it to its final form. [JSON schema version](#json-schemaopenapi-version) comes with its default `ref_factory`, for draft 2020-12, it prefixes the ref with `#/$defs/`, while it prefixes with `#/components/schema` in case of OpenAPI.
 
 ```python
 {!ref_factory.py!}
@@ -211,21 +211,43 @@ In JSON schema, `$ref` looks like `#/$defs/Foo`, not just `Foo`. In fact, schema
 Definitions schemas can also be extracted using `apischema.json_schema.definitions_schema`. It takes two lists `deserialization`/`serialization` of types (or tuple of type + [dynamic conversion](conversions.md)) and returns a dictionary of all referenced schemas.
 
 !!! note
-    This is especially useful when it comes to *OpenAPI* schema to generate the components section.
+    This is especially useful when it comes to OpenAPI schema to generate the components section.
 
 ```python
 {!definitions_schema.py!}
 ```
 
-## JSON schema / *OpenAPI* version
+## JSON schema / OpenAPI version
 
-JSON schema has several versions — *OpenAPI* is treated as a JSON schema version. If *apischema* natively use the last one: draft 2020-12, it is possible to specify a schema version which will be used for the generation.
+JSON schema has several versions — OpenAPI is treated as a JSON schema version. If *apischema* natively use the last one: draft 2020-12, it is possible to specify a schema version which will be used for the generation.
 
 ```python
 {!schema_versions.py!}
 ```
 
+## OpenAPI Discriminator
+
+OpenAPI defines a [discriminator object](https://spec.openapis.org/oas/v3.1.0#discriminator-object) which can be used to shortcut deserialization of union of object types.
+
+*apischema* provides two different ways to declare a discriminator:
+
+- as an `Annotated` metadata of a union ;
+```python
+{!union_discriminator.py!}
+```
+
+- as a decorator of base class.
+```python
+{!inherited_discriminator.py!}
+```
+
+!!! note
+    Using discriminator doesn't require to have a dedicated field (except for `TypedDict`)
+
+Performance of union deserialization can be [improved](performance_and_benchmark.md#discriminator) using discriminator.
+
+
 ## `readOnly` / `writeOnly`
 Dataclasses `InitVar` and `field(init=False)` fields will be flagged respectively with `"writeOnly": true` and `"readOnly": true` in the generated schema.
 
-In [definitions schema](#definitions-schema), if a type appears both in deserialization and serialization, properties are merged and the resulting schema contains then `readOnly` and `writeOnly` properties. By the way, the `required` is not merged because it can't (it would mess up validation if some not-init field was required), so deserialization `required` is kept because it's more important as it can be used in validation (*OpenAPI* 3.0 semantic which allows the merge [has been dropped](https://www.openapis.org/blog/2020/06/18/openapi-3-1-0-rc0-its-here) in 3.1, so it has not been judged useful to be supported)
+In [definitions schema](#definitions-schema), if a type appears both in deserialization and serialization, properties are merged and the resulting schema contains then `readOnly` and `writeOnly` properties. By the way, the `required` is not merged because it can't (it would mess up validation if some not-init field was required), so deserialization `required` is kept because it's more important as it can be used in validation (OpenAPI 3.0 semantic which allows the merge [has been dropped](https://www.openapis.org/blog/2020/06/18/openapi-3-1-0-rc0-its-here) in 3.1, so it has not been judged useful to be supported)

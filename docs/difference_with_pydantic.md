@@ -80,11 +80,11 @@ Your API respects its schema.
 
 It can also coerce, for example to parse configuration file, and coercion can be adjusted (for example coercing list from comma-separated string). 
 
-### *apischema* has a better integration of JSON schema/*OpenAPI*
+### *apischema* has a better integration of JSON schema/OpenAPI
 
 With *pydantic*, if you want to have a `nullable` field in the generated schema, you have to put `nullable` into schema extra keywords.
 
-*apischema* is bound to the last JSON schema version but offers conversion to other version like *OpenAPI* 3.0 and `nullable` is added for `Optional` types.
+*apischema* is bound to the last JSON schema version but offers conversion to other version like OpenAPI 3.0 and `nullable` is added for `Optional` types.
 
 *apischema* also supports more advanced features like `dependentRequired` or `unevaluatedProperties`. Reference handling is also more [flexible](json_schema.md#complexrecursive-types---json-schema-definitionsopenapi-components)
 

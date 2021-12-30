@@ -3,7 +3,6 @@ from contextlib import suppress
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
-from itertools import starmap
 from typing import (
     Any,
     Callable,
@@ -27,8 +26,10 @@ from apischema.conversions.visitor import (
     SerializationVisitor,
     sub_conversion,
 )
+from apischema.discriminators import Discriminator, get_inherited_discriminator
 from apischema.fields import support_fields_set
-from apischema.objects import AliasedStr, ObjectField
+from apischema.metadata.keys import DISCRIMINATOR_METADATA
+from apischema.objects import AliasedStr, ObjectField, object_fields
 from apischema.objects.visitor import SerializationObjectVisitor
 from apischema.ordering import Ordering, sort_by_order
 from apischema.recursion import RecursiveConversionsVisitor
@@ -45,6 +46,8 @@ from apischema.serialization.methods import (
     ComplexField,
     ConversionMethod,
     DictMethod,
+    DiscriminatedAlternative,
+    DiscriminateTypedDict,
     EnumMethod,
     Fallback,
     FloatMethod,
@@ -75,7 +78,15 @@ from apischema.serialization.methods import (
 )
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import AnyType, NoneType, Undefined, UndefinedType
-from apischema.typing import is_new_type, is_type, is_type_var, is_typed_dict
+from apischema.typing import (
+    get_args,
+    get_origin,
+    is_new_type,
+    is_type,
+    is_type_var,
+    is_typed_dict,
+    is_union,
+)
 from apischema.utils import (
     CollectionOrPredicate,
     Lazy,
@@ -219,6 +230,47 @@ class SerializationMethodVisitor(
 
     def _recursive_result(self, lazy: Lazy[SerializationMethod]) -> SerializationMethod:
         return RecMethod(lazy)
+
+    def discriminate(self, discriminator: Discriminator, types: Sequence[Type]):
+        fallback = self._any_fallback(Union[types])
+        if all(map(is_typed_dict, types)):
+            with suppress(Exception):
+                field_names = set()
+                for tp in types:
+                    for field in object_fields(tp, serialization=True).values():
+                        if field.alias == discriminator.alias:
+                            field_names.add(field.name)
+                (field_name,) = field_names
+                return DiscriminateTypedDict(
+                    field_name,
+                    {
+                        key: self.visit(tp)
+                        for key, tp in discriminator.get_mapping(types).items()
+                    },
+                    fallback,
+                )
+        else:
+            return UnionMethod(
+                tuple(
+                    DiscriminatedAlternative(
+                        expected_class(tp), self.visit(tp), discriminator.alias, key
+                    )
+                    for key, tp in discriminator.get_mapping(types).items()
+                ),
+                fallback,
+            )
+
+    def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> SerializationMethod:
+        for annotation in reversed(annotations):
+            if (
+                isinstance(annotation, Mapping)
+                and DISCRIMINATOR_METADATA in annotation
+                and is_union(get_origin(tp))
+            ):
+                return self.discriminate(
+                    annotation[DISCRIMINATOR_METADATA], get_args(tp)
+                )
+        return super().annotated(tp, annotations)
 
     def any(self) -> SerializationMethod:
         if self.pass_through_options.any:
@@ -387,25 +439,32 @@ class SerializationMethodVisitor(
         return self._wrap(tuple, method)
 
     def union(self, types: Sequence[AnyType]) -> SerializationMethod:
+        discriminator = get_inherited_discriminator(types)
+        if discriminator is not None:
+            return self.discriminate(discriminator, types)
         alternatives = []
         for tp in types:
             with suppress(Unsupported):
-                # Do NOT use UnionAlternative here because it would erase type checking
-                # (forward and optional cases would then loose their type checking)
-                alternatives.append((expected_class(tp), self.visit(tp)))
+                method = _method = self.visit(tp)
+                if isinstance(method, TypeCheckMethod):
+                    _method = method.method
+                elif isinstance(method, TypeCheckIdentityMethod):
+                    _method = IdentityMethod()
+                alt = UnionAlternative(expected_class(tp), _method)
+                alternatives.append((method, alt))
         if not alternatives:
             raise Unsupported(Union[tuple(types)])  # type: ignore
         elif len(alternatives) == 1:
-            return alternatives[0][1]
-        elif all(alt[1] is IDENTITY_METHOD for alt in alternatives):
+            return alternatives[0][0]
+        elif all(meth is IDENTITY_METHOD for meth, _ in alternatives):
             return IDENTITY_METHOD
         elif len(alternatives) == 2 and NoneType in types:
             return OptionalMethod(
-                next(meth for cls, meth in alternatives if cls is not NoneType)
+                next(meth for meth, alt in alternatives if alt.cls is not NoneType)
             )
         else:
             fallback = self._any_fallback(Union[types])
-            return UnionMethod(tuple(starmap(UnionAlternative, alternatives)), fallback)
+            return UnionMethod(tuple(alt for _, alt in alternatives), fallback)
 
     def unsupported(self, tp: AnyType) -> SerializationMethod:
         try:
