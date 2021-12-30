@@ -17,16 +17,19 @@ Let's start again with the [overview example](index.md#example)
 
 Deserialization performs a validation of data, based on typing annotations and other information (see [schema](json_schema.md) and [validation](validation.md)).
 
-### Allowed types
+### Deserialization passthrough
 
 In some case, e.g. MessagePack loading with raw bytes inside, some data will have other type than
-JSON primitive ones. These types can be allowed using `allowed_types` parameter; it must be collection of classes, or a predicate.
+JSON primitive ones. These types can be allowed using `pass_through` parameter; it must be collection of classes, or a predicate. Behavior can also be set globally using `apischema.settings.deserialization.pass_through`.
 
 Only non JSON primitive classes can be allowed, because *apischema* relies on a type check with `isinstance` to skip deserialization. That exclude `NewType` but also `TypeDict`. 
 
 ```python
-{!allowed_types.py!}
+{!deserialization_pass_through.py!}
 ```
+
+!!! note
+    Equivalent serialization feature is presented in [optimizations documentation](performance_and_benchmark.md#serialization-passthrough).
 
 ### Strictness
 
