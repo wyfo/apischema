@@ -224,20 +224,20 @@ class DeserializationMethodVisitor(
         self,
         additional_properties: bool,
         aliaser: Aliaser,
-        allowed_types: CollectionOrPredicate[type],
         coercer: Optional[Coercer],
         default_conversion: DefaultConversion,
         fall_back_on_default: bool,
         no_copy: bool,
+        pass_through: CollectionOrPredicate[type],
     ):
         super().__init__(default_conversion)
         self.additional_properties = additional_properties
         self.aliaser = aliaser
-        self.allowed_types = allowed_types
-        self.allow_type = as_predicate(allowed_types)
         self.coercer = coercer
         self.fall_back_on_default = fall_back_on_default
         self.no_copy = no_copy
+        self.pass_through = pass_through
+        self.pass_through_type = as_predicate(pass_through)
 
     def _recursive_result(
         self, lazy: Lazy[DeserializationMethodFactory]
@@ -254,12 +254,12 @@ class DeserializationMethodVisitor(
             tp,
             self.additional_properties,
             self.aliaser,
-            self.allowed_types,
             self.coercer,
             self._conversion,
             self.default_conversion,
             self.fall_back_on_default,
             self.no_copy,
+            self.pass_through,
         )
 
     def annotated(
@@ -543,7 +543,7 @@ class DeserializationMethodVisitor(
             method = SubprimitiveMethod(
                 cls, primitive_factory.merge(constraints, validators).method
             )
-            if self.allow_type(cls):
+            if self.pass_through_type(cls):
                 return TypeCheckMethod(cls, method)
             return method
 
@@ -650,7 +650,7 @@ class DeserializationMethodVisitor(
         if (
             is_type(cls)  # check for type first in order to have it hashable
             and cls not in JSON_TYPES  # eliminate most common types
-            and self.allow_type(cls)
+            and self.pass_through_type(cls)
             and not is_typed_dict(cls)  # typed dict isinstance cannot be checked
         ):
 
@@ -668,21 +668,21 @@ def deserialization_method_factory(
     tp: AnyType,
     additional_properties: bool,
     aliaser: Aliaser,
-    allowed_types: CollectionOrPredicate[type],
     coercer: Optional[Coercer],
     conversion: Optional[AnyConversion],
     default_conversion: DefaultConversion,
     fall_back_on_default: bool,
     no_copy: bool,
+    pass_through: CollectionOrPredicate[type],
 ) -> DeserializationMethodFactory:
     return DeserializationMethodVisitor(
         additional_properties,
         aliaser,
-        allowed_types,
         coercer,
         default_conversion,
         fall_back_on_default,
         no_copy,
+        pass_through,
     ).visit_with_conv(tp, conversion)
 
 
@@ -692,12 +692,12 @@ def deserialization_method(
     *,
     additional_properties: bool = None,
     aliaser: Aliaser = None,
-    allowed_types: CollectionOrPredicate[type] = None,
     coerce: Coerce = None,
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     no_copy: bool = None,
+    pass_through: CollectionOrPredicate[type] = None,
     schema: Schema = None,
     validators: Collection[Callable] = ()
 ) -> Callable[[Any], T]:
@@ -710,12 +710,12 @@ def deserialization_method(
     *,
     additional_properties: bool = None,
     aliaser: Aliaser = None,
-    allowed_types: CollectionOrPredicate[type] = None,
     coerce: Coerce = None,
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     no_copy: bool = None,
+    pass_through: CollectionOrPredicate[type] = None,
     schema: Schema = None,
     validators: Collection[Callable] = ()
 ) -> Callable[[Any], Any]:
@@ -727,12 +727,12 @@ def deserialization_method(
     *,
     additional_properties: bool = None,
     aliaser: Aliaser = None,
-    allowed_types: CollectionOrPredicate[type] = None,
     coerce: Coerce = None,
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     no_copy: bool = None,
+    pass_through: CollectionOrPredicate[type] = None,
     schema: Schema = None,
     validators: Collection[Callable] = ()
 ) -> Callable[[Any], Any]:
@@ -743,20 +743,20 @@ def deserialization_method(
         coercer = coerce
     elif opt_or(coerce, settings.deserialization.coerce):
         coercer = settings.deserialization.coercer
-    allowed_types = opt_or(allowed_types, settings.deserialization.allowed_types)
-    if isinstance(allowed_types, Collection) and not isinstance(allowed_types, tuple):
-        allowed_types = tuple(allowed_types)
+    pass_through = opt_or(pass_through, settings.deserialization.pass_through)
+    if isinstance(pass_through, Collection) and not isinstance(pass_through, tuple):
+        pass_through = tuple(pass_through)
     return (
         deserialization_method_factory(
             type,
             opt_or(additional_properties, settings.additional_properties),
             opt_or(aliaser, settings.aliaser),
-            allowed_types,  # type: ignore
             coercer,
             conversion,
             opt_or(default_conversion, settings.deserialization.default_conversion),
             opt_or(fall_back_on_default, settings.deserialization.fall_back_on_default),
             opt_or(no_copy, settings.deserialization.no_copy),
+            pass_through,  # type: ignore
         )
         .merge(get_constraints(schema), tuple(map(Validator, validators)))
         .method.deserialize
@@ -770,12 +770,12 @@ def deserialize(
     *,
     additional_properties: bool = None,
     aliaser: Aliaser = None,
-    allowed_types: CollectionOrPredicate[type] = None,
     coerce: Coerce = None,
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     no_copy: bool = None,
+    pass_through: CollectionOrPredicate[type] = None,
     schema: Schema = None,
     validators: Collection[Callable] = ()
 ) -> T:
@@ -789,12 +789,12 @@ def deserialize(
     *,
     additional_properties: bool = None,
     aliaser: Aliaser = None,
-    allowed_types: CollectionOrPredicate[type] = None,
     coerce: Coerce = None,
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     no_copy: bool = None,
+    pass_through: CollectionOrPredicate[type] = None,
     schema: Schema = None,
     validators: Collection[Callable] = ()
 ) -> Any:
@@ -814,12 +814,12 @@ def deserialize(
     *,
     additional_properties: bool = None,
     aliaser: Aliaser = None,
-    allowed_types: CollectionOrPredicate[type] = None,
     coerce: Coerce = None,
     conversion: AnyConversion = None,
     default_conversion: DefaultConversion = None,
     fall_back_on_default: bool = None,
     no_copy: bool = None,
+    pass_through: CollectionOrPredicate[type] = None,
     schema: Schema = None,
     validators: Collection[Callable] = ()
 ) -> Any:
@@ -827,12 +827,12 @@ def deserialize(
         type,
         additional_properties=additional_properties,
         aliaser=aliaser,
-        allowed_types=allowed_types,
         coerce=coerce,
         conversion=conversion,
         default_conversion=default_conversion,
         fall_back_on_default=fall_back_on_default,
         no_copy=no_copy,
+        pass_through=pass_through,
         schema=schema,
         validators=validators,
     )(data)
