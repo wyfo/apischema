@@ -244,7 +244,7 @@ OpenAPI defines a [discriminator object](https://spec.openapis.org/oas/v3.1.0#di
 !!! note
     Using discriminator doesn't require to have a dedicated field (except for `TypedDict`)
 
-Performance of union deserialization can be [improved](performance_and_benchmark.md#discriminator) using discriminator.
+Performance of union deserialization can be [improved](optimizations_and_benchmark.md#discriminator) using discriminator.
 
 
 ## `readOnly` / `writeOnly`

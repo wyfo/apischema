@@ -29,7 +29,7 @@ Only non JSON primitive classes can be allowed, because *apischema* relies on a 
 ```
 
 !!! note
-    Equivalent serialization feature is presented in [optimizations documentation](performance_and_benchmark.md#serialization-passthrough).
+    Equivalent serialization feature is presented in [optimizations documentation](optimizations_and_benchmark.md#serialization-passthrough).
 
 ### Strictness
 
@@ -289,11 +289,11 @@ It's true that this feature has the little cost of adding a decorator everywhere
 
 #### Why isn't serialization type checking enabled by default?
 
-Type checking has a runtime cost, which means poorer performance. Moreover, as explained in [performances section](performance_and_benchmark.md#serialization-passthrough), it prevents "passthrough" optimization. At last, code is supposed to be statically verified, and thus types already checked. (If some silly things are done and leads to have unsupported types passed to the JSON library, an error will be raised anyway).
+Type checking has a runtime cost, which means poorer performance. Moreover, as explained in [performances section](optimizations_and_benchmark.md#serialization-passthrough), it prevents "passthrough" optimization. At last, code is supposed to be statically verified, and thus types already checked. (If some silly things are done and leads to have unsupported types passed to the JSON library, an error will be raised anyway).
 
 Runtime type checking is more a development feature, which could for example be with `apischema.settings.serialization.check_type = __debug__`.
 
 #### Why not use json library `default` fallback parameter for serialization?
-Some *apischema* features like [conversions](conversions.md) can simply not be implemented with `default` fallback. By the way, *apischema* can perform [surprisingly better](performance_and_benchmark.md#passing-through-is-not-always-faster) than using `default`.
+Some *apischema* features like [conversions](conversions.md) can simply not be implemented with `default` fallback. By the way, *apischema* can perform [surprisingly better](optimizations_and_benchmark.md#passing-through-is-not-always-faster) than using `default`.
 
-However, `default` can be used in combination with [passthrough optimization](performance_and_benchmark.md#serialization-passthrough) when needed to improve performance.  
+However, `default` can be used in combination with [passthrough optimization](optimizations_and_benchmark.md#serialization-passthrough) when needed to improve performance.  

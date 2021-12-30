@@ -1,4 +1,4 @@
-# Performance and benchmark
+# Optimizations and benchmark
 
 *apischema* is (a lot) [faster](#benchmark) than its known alternatives, thanks to advanced optimizations.    
 
@@ -64,7 +64,7 @@ To take advantage of that, *apischema* provides `apischema.PassThroughOptions` c
 ```
 
 !!! important
-    Passthrough optimization always requires `check_type` to be `False`, in parameters or settings.
+    Passthrough optimization is a lot diminished with `check_type=False`.
 
 `PassThroughOptions` has the following parameters:
 
