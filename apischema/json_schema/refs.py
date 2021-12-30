@@ -10,7 +10,6 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    get_origin,
 )
 
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
@@ -37,7 +36,7 @@ from apischema.utils import get_origin_or_type, is_hashable, replace_builtins
 from apischema.visitor import Unsupported
 
 try:
-    from apischema.typing import Annotated, is_union
+    from apischema.typing import Annotated, get_origin, is_union
 except ImportError:
     Annotated = ...  # type: ignore
 
