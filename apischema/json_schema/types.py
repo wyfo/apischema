@@ -81,7 +81,12 @@ def json_schema_kwargs(func: Func) -> Func:
         return JsonSchema(
             (k, v)
             for k, v in kwargs.items()
-            if k not in _json_schema_params or v != _json_schema_params[k].default
+            if k not in _json_schema_params
+            or (
+                v != _json_schema_params[k].default
+                if _json_schema_params[k].default is not True
+                else v not in (True, JsonSchema())
+            )
         )
 
     _json_schema_params = signature(func).parameters
@@ -91,7 +96,7 @@ def json_schema_kwargs(func: Func) -> Func:
 @json_schema_kwargs
 def json_schema(
     *,
-    additionalProperties: Union[bool, JsonSchema] = JsonSchema(),
+    additionalProperties: Union[bool, JsonSchema] = True,
     allOf: Sequence[JsonSchema] = [],
     anyOf: Sequence[JsonSchema] = [],
     const: Any = Undefined,
@@ -104,7 +109,7 @@ def json_schema(
     exclusiveMinimum: Number = None,
     examples: Sequence[Any] = None,
     format: str = None,
-    items: Union[bool, JsonSchema] = JsonSchema(),
+    items: Union[bool, JsonSchema] = True,
     maximum: Number = None,
     minimum: Number = None,
     maxItems: int = None,
@@ -124,7 +129,7 @@ def json_schema(
     title: str = None,
     type: Union[JsonType, Sequence[JsonType]] = None,
     uniqueItems: bool = False,
-    unevaluatedProperties: Union[bool, JsonSchema] = JsonSchema(),
+    unevaluatedProperties: Union[bool, JsonSchema] = True,
     writeOnly: bool = False,
 ) -> JsonSchema:
     ...

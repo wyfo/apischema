@@ -174,7 +174,7 @@ def is_subclass(tp: AnyType, base: AnyType) -> bool:
     )
 
 
-def _annotated(tp: AnyType) -> AnyType:
+def no_annotated(tp: AnyType) -> AnyType:
     return get_args(tp)[0] if is_annotated(tp) else tp
 
 
@@ -184,15 +184,15 @@ def get_origin_or_type(tp: AnyType) -> AnyType:
 
 
 def get_origin2(tp: AnyType) -> Optional[Type]:
-    return get_origin(_annotated(tp))
+    return get_origin(no_annotated(tp))
 
 
 def get_args2(tp: AnyType) -> Tuple[AnyType, ...]:
-    return get_args(_annotated(tp))
+    return get_args(no_annotated(tp))
 
 
 def get_origin_or_type2(tp: AnyType) -> AnyType:
-    tp2 = _annotated(tp)
+    tp2 = no_annotated(tp)
     origin = get_origin(tp2)
     return origin if origin is not None else tp2
 

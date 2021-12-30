@@ -3,6 +3,7 @@ import dataclasses
 import inspect
 import re
 from collections import defaultdict
+from contextlib import contextmanager
 from enum import Enum
 from functools import lru_cache, partial
 from typing import (
@@ -51,6 +52,7 @@ from apischema.deserialization.methods import (
     ConversionWithValueErrorMethod,
     DefaultField,
     DeserializationMethod,
+    DiscriminatorMethod,
     FactoryField,
     Field,
     FieldsConstructor,
@@ -80,9 +82,14 @@ from apischema.deserialization.methods import (
     ValidatorMethod,
     VariadicTupleMethod,
 )
+from apischema.discriminators import Discriminator, get_inherited_discriminator
 from apischema.json_schema.patterns import infer_pattern
 from apischema.metadata.implem import ValidatorsMetadata
-from apischema.metadata.keys import SCHEMA_METADATA, VALIDATORS_METADATA
+from apischema.metadata.keys import (
+    DISCRIMINATOR_METADATA,
+    SCHEMA_METADATA,
+    VALIDATORS_METADATA,
+)
 from apischema.objects import ObjectField
 from apischema.objects.fields import FieldKind
 from apischema.objects.visitor import DeserializationObjectVisitor
@@ -90,7 +97,7 @@ from apischema.recursion import RecursiveConversionsVisitor
 from apischema.schemas import Schema, get_schema
 from apischema.schemas.constraints import Constraints, merge_constraints
 from apischema.types import PRIMITIVE_TYPES, AnyType, NoneType
-from apischema.typing import get_args, get_origin, is_type, is_typed_dict
+from apischema.typing import get_args, get_origin, is_type, is_typed_dict, is_union
 from apischema.utils import (
     CollectionOrPredicate,
     Lazy,
@@ -226,6 +233,7 @@ class DeserializationMethodVisitor(
         aliaser: Aliaser,
         coercer: Optional[Coercer],
         default_conversion: DefaultConversion,
+        discriminator: Optional[str],
         fall_back_on_default: bool,
         no_copy: bool,
         pass_through: CollectionOrPredicate[type],
@@ -234,6 +242,7 @@ class DeserializationMethodVisitor(
         self.additional_properties = additional_properties
         self.aliaser = aliaser
         self.coercer = coercer
+        self._discriminator = discriminator
         self.fall_back_on_default = fall_back_on_default
         self.no_copy = no_copy
         self.pass_through = pass_through
@@ -257,15 +266,56 @@ class DeserializationMethodVisitor(
             self.coercer,
             self._conversion,
             self.default_conversion,
+            self._discriminator,
             self.fall_back_on_default,
             self.no_copy,
             self.pass_through,
         )
 
+    @contextmanager
+    def _discriminate(self, discriminator: Optional[str]):
+        discriminator_save = self._discriminator
+        self._discriminator = discriminator
+        try:
+            yield
+        finally:
+            self._discriminator = discriminator_save
+
+    def discriminate(
+        self, discriminator: Discriminator, types: Sequence[AnyType]
+    ) -> DeserializationMethodFactory:
+        mapping = {}
+        for key, tp in discriminator.get_mapping(types).items():
+            with self._discriminate(self.aliaser(discriminator.alias)):
+                mapping[key] = self.visit(tp)
+
+        def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
+            from apischema import settings
+
+            return DiscriminatorMethod(
+                self.aliaser(discriminator.alias),
+                {key: fact.merge(constraints).method for key, fact in mapping.items()},
+                settings.errors.missing_property,
+                preformat_error(settings.errors.one_of, list(mapping)),
+            )
+
+        return self._factory(factory)
+
     def annotated(
         self, tp: AnyType, annotations: Sequence[Any]
     ) -> DeserializationMethodFactory:
-        factory = super().annotated(tp, annotations)
+        for annotation in reversed(annotations):
+            if (
+                isinstance(annotation, Mapping)
+                and DISCRIMINATOR_METADATA in annotation
+                and is_union(get_origin(tp))
+            ):
+                factory = self.discriminate(
+                    annotation[DISCRIMINATOR_METADATA], get_args(tp)
+                )
+                break
+        else:
+            factory = super().annotated(tp, annotations)
         for annotation in reversed(annotations):
             if isinstance(annotation, Mapping):
                 factory = factory.merge(
@@ -356,12 +406,13 @@ class DeserializationMethodVisitor(
         self, tp: Type, fields: Sequence[ObjectField]
     ) -> DeserializationMethodFactory:
         cls = get_origin_or_type(tp)
-        field_factories = [
-            self.visit_with_conv(f.type, f.deserialization).merge(
-                get_constraints(f.schema), f.validators
-            )
-            for f in fields
-        ]
+        with self._discriminate(None):
+            field_factories = [
+                self.visit_with_conv(f.type, f.deserialization).merge(
+                    get_constraints(f.schema), f.validators
+                )
+                for f in fields
+            ]
 
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
@@ -471,6 +522,11 @@ class DeserializationMethodVisitor(
                 and not flattened_fields
                 and not pattern_fields
                 and not additional_field
+                and (
+                    self._discriminator is None
+                    or self._discriminator in all_alliases
+                    or is_typed_dict(cls)
+                )
                 and (is_typed_dict(cls) == self.additional_properties)
                 and (not is_typed_dict(cls) or self.no_copy)
                 and not validators
@@ -510,6 +566,7 @@ class DeserializationMethodVisitor(
                 self.aliaser,
                 settings.errors.missing_property,
                 settings.errors.unexpected_property,
+                self._discriminator,
             )
 
         return self._factory(factory, dict, validation=False)
@@ -566,6 +623,9 @@ class DeserializationMethodVisitor(
         return self._factory(factory, list)
 
     def union(self, types: Sequence[AnyType]) -> DeserializationMethodFactory:
+        discriminator = get_inherited_discriminator(types)
+        if discriminator is not None:
+            return self.discriminate(discriminator, types)
         alt_factories = self._union_results(types)
         if len(alt_factories) == 1:
             return alt_factories[0]
@@ -671,6 +731,7 @@ def deserialization_method_factory(
     coercer: Optional[Coercer],
     conversion: Optional[AnyConversion],
     default_conversion: DefaultConversion,
+    discriminator: Optional[str],
     fall_back_on_default: bool,
     no_copy: bool,
     pass_through: CollectionOrPredicate[type],
@@ -680,6 +741,7 @@ def deserialization_method_factory(
         aliaser,
         coercer,
         default_conversion,
+        discriminator,
         fall_back_on_default,
         no_copy,
         pass_through,
@@ -754,6 +816,7 @@ def deserialization_method(
             coercer,
             conversion,
             opt_or(default_conversion, settings.deserialization.default_conversion),
+            None,
             opt_or(fall_back_on_default, settings.deserialization.fall_back_on_default),
             opt_or(no_copy, settings.deserialization.no_copy),
             pass_through,  # type: ignore

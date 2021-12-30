@@ -26,7 +26,6 @@ assert deserialization_schema(Resource[Foo], all_refs=True) == {
     "$ref": "#/$defs/FooResource",
     "$defs": {
         "FooResource": {
-            "type": "object",
             "allOf": [
                 {
                     "type": "object",

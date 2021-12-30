@@ -333,7 +333,7 @@ class LiteralMethod(DeserializationMethod):
                         return self.value_map[self.coercer(cls, data)]
                     except IndexError:
                         pass
-            raise ValidationError([format_error(self.error, data)])
+            raise ValidationError(format_error(self.error, data))
         except TypeError:
             raise bad_type(data, *self.types)
 
@@ -495,12 +495,12 @@ class SimpleObjectMethod(DeserializationMethod):
                         field_errors = set_child_error(field_errors, field.alias, err)
             elif field.required:
                 field_errors = set_child_error(
-                    field_errors, field.alias, ValidationError([self.missing])
+                    field_errors, field.alias, ValidationError(self.missing)
                 )
         if len(data2) != fields_count and not self.typed_dict:
             for key in data2.keys() - self.all_aliases:
                 field_errors = set_child_error(
-                    field_errors, key, ValidationError([self.unexpected])
+                    field_errors, key, ValidationError(self.unexpected)
                 )
         if field_errors:
             raise ValidationError([], field_errors)
@@ -545,6 +545,7 @@ class ObjectMethod(DeserializationMethod):
     aliaser: Aliaser
     missing: str
     unexpected: str
+    discriminator: Optional[str]
     aggregate_fields: bool = field(init=False)
 
     def __post_init__(self):
@@ -573,7 +574,7 @@ class ObjectMethod(DeserializationMethod):
                     value: object = data2[field.alias]
                 except KeyError:
                     field_errors = set_child_error(
-                        field_errors, field.alias, ValidationError([self.missing])
+                        field_errors, field.alias, ValidationError(self.missing)
                     )
                 else:
                     fields_count += 1
@@ -649,18 +650,20 @@ class ObjectMethod(DeserializationMethod):
             elif remain:
                 if not self.additional_properties:
                     for key in remain:
-                        field_errors = set_child_error(
-                            field_errors, key, ValidationError([self.unexpected])
-                        )
+                        if key != self.discriminator:
+                            field_errors = set_child_error(
+                                field_errors, key, ValidationError(self.unexpected)
+                            )
                 elif self.typed_dict:
                     for key in remain:
                         values[key] = data2[key]
         elif len(data2) != fields_count:
             if not self.additional_properties:
                 for key in data2.keys() - self.all_aliases:
-                    field_errors = set_child_error(
-                        field_errors, key, ValidationError([self.unexpected])
-                    )
+                    if key != self.discriminator:
+                        field_errors = set_child_error(
+                            field_errors, key, ValidationError(self.unexpected)
+                        )
             elif self.typed_dict:
                 for key in data2.keys() - self.all_aliases:
                     values[key] = data2[key]
@@ -790,9 +793,9 @@ class TupleMethod(DeserializationMethod):
         data2: list = data
         if len(data2) != len(self.elt_methods):
             if len(data2) < len(self.elt_methods):
-                raise ValidationError([format_error(self.min_len_error, data2)])
+                raise ValidationError(format_error(self.min_len_error, data2))
             elif len(data2) > len(self.elt_methods):
-                raise ValidationError([format_error(self.max_len_error, data2)])
+                raise ValidationError(format_error(self.max_len_error, data2))
             else:
                 raise NotImplementedError
         elt_errors: dict = {}
@@ -900,3 +903,31 @@ class ConversionUnionMethod(DeserializationMethod):
                 return alternative.converter(value)
         assert error is not None
         raise error
+
+
+@dataclass
+class DiscriminatorMethod(DeserializationMethod):
+    alias: str
+    mapping: Dict[str, DeserializationMethod]
+    missing: str
+    error: Union[str, Callable[[Any], str]]
+
+    def deserialize(self, data: Any):
+        if not isinstance(data, dict):
+            raise bad_type(data, dict)
+        data2: dict = data
+        if self.alias not in data2:
+            raise ValidationError([], {self.alias: ValidationError(self.missing)})
+        try:
+            method: DeserializationMethod = self.mapping[data2[self.alias]]
+        except (TypeError, KeyError):
+            raise ValidationError(
+                [],
+                {
+                    self.alias: ValidationError(
+                        format_error(self.error, data2[self.alias])
+                    )
+                },
+            )
+        else:
+            return method.deserialize(data)

@@ -116,6 +116,17 @@ In case of "normal" dataclass (no `__slots__`, `__post_init__`, or `__init__`/`_
 
 This feature can be toggled on/off globally using `apischema.settings.deserialization.override_dataclass_constructors`
 
+## Discriminator
+
+[OpenAPI discriminator](json_schema.md#openapi-discriminator) allows making union deserialization time more homogeneous.
+
+```python
+{!discriminator_perf.py!}
+```
+
+!!! note
+    As you can notice in the example, discriminator brings its own additional cost, but it's completely worth it. 
+
 ## Benchmark
 
 Benchmark code is located [benchmark directory](https://github.com/wyfo/apischema/tree/master/benchmark) or *apischema* repository.

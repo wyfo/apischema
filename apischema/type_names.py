@@ -6,7 +6,13 @@ from typing import Any, Callable, MutableMapping, NamedTuple, Optional, TypeVar,
 
 from apischema.cache import CacheAwareDict
 from apischema.types import PRIMITIVE_TYPES, AnyType
-from apischema.typing import get_args, get_origin, is_named_tuple, is_type_var
+from apischema.typing import (
+    get_args,
+    get_origin,
+    is_named_tuple,
+    is_type_var,
+    is_typed_dict,
+)
 from apischema.utils import has_type_vars, merge_opts, replace_builtins
 
 
@@ -78,6 +84,7 @@ def default_type_name(tp: AnyType) -> Optional[TypeName]:
             not isinstance(tp, type)
             or not issubclass(tp, collections.abc.Collection)
             or is_named_tuple(tp)
+            or is_typed_dict(tp)
         )
     ):
         return TypeName(tp.__name__, tp.__name__)

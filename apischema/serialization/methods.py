@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import AbstractSet, Any, Callable, Optional, Tuple, Union
+from typing import AbstractSet, Any, Callable, Dict, Optional, Tuple, Union
 
 from apischema.conversions.utils import Converter
 from apischema.fields import FIELDS_SET_ATTR
@@ -376,15 +376,24 @@ class OptionalMethod(SerializationMethod):
 
 
 @dataclass
-class UnionAlternative:
+class UnionAlternative(SerializationMethod):
     cls: AnyType  # `type` would require exact match (i.e. no EnumMeta)
     method: SerializationMethod
 
-    def __post_init__(self):
-        if isinstance(self.method, TypeCheckMethod):
-            self.method = self.method.method
-        elif isinstance(self.method, TypeCheckIdentityMethod):
-            self.method = IdentityMethod()
+    def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
+        return self.method.serialize(obj, path)
+
+
+@dataclass
+class DiscriminatedAlternative(UnionAlternative):
+    alias: str
+    key: str
+
+    def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
+        res = super().serialize(obj, path)
+        if isinstance(res, dict) and self.alias not in res:
+            res[self.alias] = self.key
+        return res
 
 
 @dataclass
@@ -397,10 +406,10 @@ class UnionMethod(SerializationMethod):
             alternative: UnionAlternative = self.alternatives[i]
             if isinstance(obj, alternative.cls):
                 try:
-                    return alternative.method.serialize(obj, path)
+                    return alternative.serialize(obj, path)
                 except Exception:
                     pass
-        self.fallback.fall_back(obj, path)
+        return self.fallback.fall_back(obj, path)
 
 
 @dataclass
@@ -418,3 +427,17 @@ class ConversionMethod(SerializationMethod):
 
     def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
         return self.method.serialize(self.converter(obj))
+
+
+@dataclass
+class DiscriminateTypedDict(SerializationMethod):
+    field_name: str
+    mapping: Dict[str, SerializationMethod]
+    fallback: Fallback
+
+    def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
+        try:
+            method: SerializationMethod = self.mapping[obj[self.field_name]]
+        except Exception:
+            return self.fallback.fall_back(obj, path)
+        return method.serialize(obj, path)
