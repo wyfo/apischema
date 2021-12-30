@@ -19,27 +19,33 @@ class IdentityMethod(SerializationMethod):
 
 
 class ListMethod(SerializationMethod):
-    serialize = staticmethod(list)  # type: ignore
+    def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
+        return list(obj)
 
 
 class DictMethod(SerializationMethod):
-    serialize = staticmethod(dict)  # type: ignore
+    def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
+        return dict(obj)
 
 
 class StrMethod(SerializationMethod):
-    serialize = staticmethod(str)  # type: ignore
+    def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
+        return str(obj)
 
 
 class IntMethod(SerializationMethod):
-    serialize = staticmethod(int)  # type: ignore
+    def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
+        return int(obj)
 
 
 class BoolMethod(SerializationMethod):
-    serialize = staticmethod(bool)  # type: ignore
+    def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
+        return bool(obj)
 
 
 class FloatMethod(SerializationMethod):
-    serialize = staticmethod(float)  # type: ignore
+    def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
+        return float(obj)
 
 
 class NoneMethod(SerializationMethod):

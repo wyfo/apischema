@@ -232,7 +232,7 @@ def write_class(pyx: IndentedWriter, cls: type):
                 if (
                     not name.startswith("_")
                     and name not in annotations
-                    and isinstance(obj, (FunctionType, staticmethod))
+                    and isinstance(obj, FunctionType)
                 ):
                     pyx.writeln()
                     base_method = getattr(base_class, name)
@@ -267,16 +267,8 @@ def write_methods(pyx: IndentedWriter, method: Method):
     for cls, dispatch in get_dispatch(method.base_class).items():
         if method.name in cls.__dict__:
             sub_method = cls.__dict__[method.name]
-            if isinstance(sub_method, staticmethod):
-                with pyx.write_block(
-                    cython_signature("cdef inline", method.function, cls)  # type: ignore
-                ):
-                    _, param, *_ = inspect.signature(method.function).parameters
-                    func = sub_method.__get__(None, object)
-                    pyx.writeln(f"return {func.__name__}({param})")
-            else:
-                with pyx.write_block(cython_signature("cdef inline", sub_method, cls)):
-                    pyx.writelines(get_body(sub_method, cls))
+            with pyx.write_block(cython_signature("cdef inline", sub_method, cls)):
+                pyx.writelines(get_body(sub_method, cls))
             pyx.writeln()
 
 
