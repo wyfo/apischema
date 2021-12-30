@@ -988,9 +988,9 @@
 <h3 id="apischema-doesnt-coerce-by-default"><em>apischema</em> doesn't coerce by default<a class="headerlink" href="#apischema-doesnt-coerce-by-default" title="Permanent link">&para;</a></h3>
 <p>Your API respects its schema. </p>
 <p>It can also coerce, for example to parse configuration file, and coercion can be adjusted (for example coercing list from comma-separated string). </p>
-<h3 id="apischema-has-a-better-integration-of-json-schemaopenapi"><em>apischema</em> has a better integration of JSON schema/<em>OpenAPI</em><a class="headerlink" href="#apischema-has-a-better-integration-of-json-schemaopenapi" title="Permanent link">&para;</a></h3>
+<h3 id="apischema-has-a-better-integration-of-json-schemaopenapi"><em>apischema</em> has a better integration of JSON schema/OpenAPI<a class="headerlink" href="#apischema-has-a-better-integration-of-json-schemaopenapi" title="Permanent link">&para;</a></h3>
 <p>With <em>pydantic</em>, if you want to have a <code>nullable</code> field in the generated schema, you have to put <code>nullable</code> into schema extra keywords.</p>
-<p><em>apischema</em> is bound to the last JSON schema version but offers conversion to other version like <em>OpenAPI</em> 3.0 and <code>nullable</code> is added for <code>Optional</code> types.</p>
+<p><em>apischema</em> is bound to the last JSON schema version but offers conversion to other version like OpenAPI 3.0 and <code>nullable</code> is added for <code>Optional</code> types.</p>
 <p><em>apischema</em> also supports more advanced features like <code>dependentRequired</code> or <code>unevaluatedProperties</code>. Reference handling is also more <a href="../json_schema/#complexrecursive-types---json-schema-definitionsopenapi-components">flexible</a></p>
 <h3 id="apischema-can-add-validators-and-json-schema-to-newtype"><em>apischema</em> can add validators and JSON schema to <code>NewType</code><a class="headerlink" href="#apischema-can-add-validators-and-json-schema-to-newtype" title="Permanent link">&para;</a></h3>
 <p>So it will be used in deserialization validation. You can use <code>NewType</code> everywhere, to gain a better type checking, self-documented code.</p>

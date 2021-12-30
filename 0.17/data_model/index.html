@@ -1434,27 +1434,26 @@ Here with PEP 563 (requires 3.7+)
 <a id="__codelineno-11-46" name="__codelineno-11-46" href="__codelineno-11-46"></a>            <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
 <a id="__codelineno-11-47" name="__codelineno-11-47" href="__codelineno-11-47"></a>        <span class="p">}</span>
 <a id="__codelineno-11-48" name="__codelineno-11-48" href="__codelineno-11-48"></a>    <span class="p">},</span>
-<a id="__codelineno-11-49" name="__codelineno-11-49" href="__codelineno-11-49"></a>    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-<a id="__codelineno-11-50" name="__codelineno-11-50" href="__codelineno-11-50"></a>    <span class="c1"># It results in allOf + unevaluatedProperties=False</span>
-<a id="__codelineno-11-51" name="__codelineno-11-51" href="__codelineno-11-51"></a>    <span class="s2">&quot;allOf&quot;</span><span class="p">:</span> <span class="p">[</span>
-<a id="__codelineno-11-52" name="__codelineno-11-52" href="__codelineno-11-52"></a>        <span class="c1"># RootJsonSchema (without JsonSchema)</span>
-<a id="__codelineno-11-53" name="__codelineno-11-53" href="__codelineno-11-53"></a>        <span class="p">{</span>
-<a id="__codelineno-11-54" name="__codelineno-11-54" href="__codelineno-11-54"></a>            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-<a id="__codelineno-11-55" name="__codelineno-11-55" href="__codelineno-11-55"></a>            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-<a id="__codelineno-11-56" name="__codelineno-11-56" href="__codelineno-11-56"></a>                <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
-<a id="__codelineno-11-57" name="__codelineno-11-57" href="__codelineno-11-57"></a>                <span class="s2">&quot;$defs&quot;</span><span class="p">:</span> <span class="p">{</span>
-<a id="__codelineno-11-58" name="__codelineno-11-58" href="__codelineno-11-58"></a>                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
-<a id="__codelineno-11-59" name="__codelineno-11-59" href="__codelineno-11-59"></a>                    <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/JsonSchema&quot;</span><span class="p">},</span>
-<a id="__codelineno-11-60" name="__codelineno-11-60" href="__codelineno-11-60"></a>                    <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="p">[],</span>
-<a id="__codelineno-11-61" name="__codelineno-11-61" href="__codelineno-11-61"></a>                <span class="p">},</span>
-<a id="__codelineno-11-62" name="__codelineno-11-62" href="__codelineno-11-62"></a>            <span class="p">},</span>
-<a id="__codelineno-11-63" name="__codelineno-11-63" href="__codelineno-11-63"></a>            <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-11-64" name="__codelineno-11-64" href="__codelineno-11-64"></a>        <span class="p">},</span>
-<a id="__codelineno-11-65" name="__codelineno-11-65" href="__codelineno-11-65"></a>        <span class="c1"># JonsSchema</span>
-<a id="__codelineno-11-66" name="__codelineno-11-66" href="__codelineno-11-66"></a>        <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/JsonSchema&quot;</span><span class="p">},</span>
-<a id="__codelineno-11-67" name="__codelineno-11-67" href="__codelineno-11-67"></a>    <span class="p">],</span>
-<a id="__codelineno-11-68" name="__codelineno-11-68" href="__codelineno-11-68"></a>    <span class="s2">&quot;unevaluatedProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-11-69" name="__codelineno-11-69" href="__codelineno-11-69"></a><span class="p">}</span>
+<a id="__codelineno-11-49" name="__codelineno-11-49" href="__codelineno-11-49"></a>    <span class="c1"># It results in allOf + unevaluatedProperties=False</span>
+<a id="__codelineno-11-50" name="__codelineno-11-50" href="__codelineno-11-50"></a>    <span class="s2">&quot;allOf&quot;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-11-51" name="__codelineno-11-51" href="__codelineno-11-51"></a>        <span class="c1"># RootJsonSchema (without JsonSchema)</span>
+<a id="__codelineno-11-52" name="__codelineno-11-52" href="__codelineno-11-52"></a>        <span class="p">{</span>
+<a id="__codelineno-11-53" name="__codelineno-11-53" href="__codelineno-11-53"></a>            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<a id="__codelineno-11-54" name="__codelineno-11-54" href="__codelineno-11-54"></a>            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-11-55" name="__codelineno-11-55" href="__codelineno-11-55"></a>                <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
+<a id="__codelineno-11-56" name="__codelineno-11-56" href="__codelineno-11-56"></a>                <span class="s2">&quot;$defs&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-11-57" name="__codelineno-11-57" href="__codelineno-11-57"></a>                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+<a id="__codelineno-11-58" name="__codelineno-11-58" href="__codelineno-11-58"></a>                    <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/JsonSchema&quot;</span><span class="p">},</span>
+<a id="__codelineno-11-59" name="__codelineno-11-59" href="__codelineno-11-59"></a>                    <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="p">[],</span>
+<a id="__codelineno-11-60" name="__codelineno-11-60" href="__codelineno-11-60"></a>                <span class="p">},</span>
+<a id="__codelineno-11-61" name="__codelineno-11-61" href="__codelineno-11-61"></a>            <span class="p">},</span>
+<a id="__codelineno-11-62" name="__codelineno-11-62" href="__codelineno-11-62"></a>            <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-11-63" name="__codelineno-11-63" href="__codelineno-11-63"></a>        <span class="p">},</span>
+<a id="__codelineno-11-64" name="__codelineno-11-64" href="__codelineno-11-64"></a>        <span class="c1"># JonsSchema</span>
+<a id="__codelineno-11-65" name="__codelineno-11-65" href="__codelineno-11-65"></a>        <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/JsonSchema&quot;</span><span class="p">},</span>
+<a id="__codelineno-11-66" name="__codelineno-11-66" href="__codelineno-11-66"></a>    <span class="p">],</span>
+<a id="__codelineno-11-67" name="__codelineno-11-67" href="__codelineno-11-67"></a>    <span class="s2">&quot;unevaluatedProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-11-68" name="__codelineno-11-68" href="__codelineno-11-68"></a><span class="p">}</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>

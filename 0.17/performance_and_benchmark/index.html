@@ -646,6 +646,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#discriminator" class="md-nav__link">
+    Discriminator
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#benchmark" class="md-nav__link">
     Benchmark
   </a>
@@ -819,6 +826,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#discriminator" class="md-nav__link">
+    Discriminator
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#benchmark" class="md-nav__link">
     Benchmark
   </a>
@@ -979,6 +993,47 @@ That's another interest of generating <code>.pyx</code> files: keeping Python so
 They are indeed pure Python functions and cannot be compiled.</p>
 <p>In case of "normal" dataclass (no <code>__slots__</code>, <code>__post_init__</code>, or <code>__init__</code>/<code>__new__</code>/<code>__setattr__</code> overriding), <em>apischema</em> can override the constructor with a compilable code. </p>
 <p>This feature can be toggled on/off globally using <code>apischema.settings.deserialization.override_dataclass_constructors</code></p>
+<h2 id="discriminator">Discriminator<a class="headerlink" href="#discriminator" title="Permanent link">&para;</a></h2>
+<p><a href="../json_schema/#openapi-discriminator">OpenAPI discriminator</a> allows making union deserialization time more homogeneous.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="__codelineno-4-2"></a><span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">timeit</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="__codelineno-4-3"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Union</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="__codelineno-4-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialization_method</span><span class="p">,</span> <span class="n">discriminator</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="__codelineno-4-8"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="__codelineno-4-9"></a><span class="k">class</span> <span class="nc">Cat</span><span class="p">:</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="__codelineno-4-10"></a>    <span class="n">love_dog</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="__codelineno-4-11"></a>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="__codelineno-4-12"></a>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="__codelineno-4-13"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="__codelineno-4-14"></a><span class="k">class</span> <span class="nc">Dog</span><span class="p">:</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="__codelineno-4-15"></a>    <span class="n">love_cat</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="__codelineno-4-16"></a>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="__codelineno-4-17"></a>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="__codelineno-4-18"></a><span class="n">Pet</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Cat</span><span class="p">,</span> <span class="n">Dog</span><span class="p">]</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="__codelineno-4-19"></a><span class="n">DiscriminatedPet</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">Pet</span><span class="p">,</span> <span class="n">discriminator</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;dog&quot;</span><span class="p">:</span> <span class="n">Dog</span><span class="p">})]</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="__codelineno-4-20"></a>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="__codelineno-4-21"></a><span class="n">deserialize_union</span> <span class="o">=</span> <span class="n">deserialization_method</span><span class="p">(</span><span class="n">Union</span><span class="p">[</span><span class="n">Cat</span><span class="p">,</span> <span class="n">Dog</span><span class="p">])</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="__codelineno-4-22"></a><span class="n">deserialize_discriminated</span> <span class="o">=</span> <span class="n">deserialization_method</span><span class="p">(</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="__codelineno-4-23"></a>    <span class="n">Annotated</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Cat</span><span class="p">,</span> <span class="n">Dog</span><span class="p">],</span> <span class="n">discriminator</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)]</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="__codelineno-4-24"></a><span class="p">)</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="__codelineno-4-25"></a><span class="c1">##### Without discrimininator</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="__codelineno-4-26"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;deserialize_union({&quot;love_dog&quot;: False})&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="__codelineno-4-27"></a><span class="c1"># Cat: 0.760085788</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="__codelineno-4-28"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;deserialize_union({&quot;love_cat&quot;: False})&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="__codelineno-4-29"></a><span class="c1"># Dog: 3.078876515 ≈ x4</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30" href="__codelineno-4-30"></a><span class="c1">##### With discriminator</span>
+<a id="__codelineno-4-31" name="__codelineno-4-31" href="__codelineno-4-31"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;deserialize_discriminated({&quot;type&quot;: &quot;Cat&quot;})&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
+<a id="__codelineno-4-32" name="__codelineno-4-32" href="__codelineno-4-32"></a><span class="c1"># Cat: 1.244204702</span>
+<a id="__codelineno-4-33" name="__codelineno-4-33" href="__codelineno-4-33"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;deserialize_discriminated({&quot;type&quot;: &quot;Dog&quot;})&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
+<a id="__codelineno-4-34" name="__codelineno-4-34" href="__codelineno-4-34"></a><span class="c1"># Dog: 1.234058598 ≈ same</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As you can notice in the example, discriminator brings its own additional cost, but it's completely worth it. </p>
+</div>
 <h2 id="benchmark">Benchmark<a class="headerlink" href="#benchmark" title="Permanent link">&para;</a></h2>
 <p>Benchmark code is located <a href="https://github.com/wyfo/apischema/tree/master/benchmark">benchmark directory</a> or <em>apischema</em> repository.
 Performances are measured on two datasets: a simple, a more complex one.</p>
@@ -1004,32 +1059,32 @@ Performances are measured on two datasets: a simple, a more complex one.</p>
 <tr>
 <td>mashumaro</td>
 <td>2.9.1</td>
-<td align="right">x2.7 (3.4/2.0)</td>
 <td align="right">x2.5 (3.1/1.9)</td>
+<td align="right">x2.5 (3.1/2.0)</td>
 </tr>
 <tr>
 <td>typical</td>
 <td>2.8.0</td>
-<td align="right">x8.0 (8.1/7.9)</td>
-<td align="right">x8.1 (11.6/4.6)</td>
+<td align="right">x6.7 (7.3/6.2)</td>
+<td align="right">x8.0 (11.4/4.6)</td>
 </tr>
 <tr>
 <td>pydantic</td>
 <td>1.8.2</td>
-<td align="right">x13.9 (16.3/11.5)</td>
-<td align="right">x28.5 (40.1/17.0)</td>
+<td align="right">x11.9 (14.4/9.4)</td>
+<td align="right">x27.6 (38.9/16.4)</td>
 </tr>
 <tr>
 <td>marshmallow</td>
 <td>3.14.1</td>
-<td align="right">x26.8 (29.1/24.5)</td>
-<td align="right">x22.9 (29.0/16.7)</td>
+<td align="right">x22.2 (25.0/19.4)</td>
+<td align="right">x21.7 (27.2/16.1)</td>
 </tr>
 <tr>
 <td>typedload</td>
 <td>2.14</td>
-<td align="right">x13.6 (17.3/9.9)</td>
-<td align="right">x67.5 (80.3/54.7)</td>
+<td align="right">x11.8 (15.2/8.4)</td>
+<td align="right">x64.8 (76.9/52.6)</td>
 </tr>
 </tbody>
 </table>

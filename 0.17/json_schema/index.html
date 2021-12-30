@@ -447,6 +447,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#openapi-discriminator" class="md-nav__link">
+    OpenAPI Discriminator
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#readonly-writeonly" class="md-nav__link">
     readOnly / writeOnly
   </a>
@@ -937,6 +944,13 @@
         <li class="md-nav__item">
   <a href="#json-schema-openapi-version" class="md-nav__link">
     JSON schema / OpenAPI version
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#openapi-discriminator" class="md-nav__link">
+    OpenAPI Discriminator
   </a>
   
 </li>
@@ -1525,7 +1539,7 @@
 <li><code>all_refs=True</code> -&gt; all types with a reference will be put in the definitions and referenced with <code>$ref</code>;</li>
 <li><code>all_refs=False</code> -&gt; only types which are reused in the schema are put in definitions</li>
 </ul>
-<p><code>all_refs</code> default value depends on the <a href="#json-schemaopenapi-version">JSON schema version</a>: it's <code>False</code> for JSON schema drafts but <code>True</code> for <em>OpenAPI</em>.</p>
+<p><code>all_refs</code> default value depends on the <a href="#json-schemaopenapi-version">JSON schema version</a>: it's <code>False</code> for JSON schema drafts but <code>True</code> for OpenAPI.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="__codelineno-12-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <a id="__codelineno-12-2" name="__codelineno-12-2" href="__codelineno-12-2"></a>
 <a id="__codelineno-12-3" name="__codelineno-12-3" href="__codelineno-12-3"></a><span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
@@ -1652,30 +1666,29 @@
 <a id="__codelineno-14-26" name="__codelineno-14-26" href="__codelineno-14-26"></a>    <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/FooResource&quot;</span><span class="p">,</span>
 <a id="__codelineno-14-27" name="__codelineno-14-27" href="__codelineno-14-27"></a>    <span class="s2">&quot;$defs&quot;</span><span class="p">:</span> <span class="p">{</span>
 <a id="__codelineno-14-28" name="__codelineno-14-28" href="__codelineno-14-28"></a>        <span class="s2">&quot;FooResource&quot;</span><span class="p">:</span> <span class="p">{</span>
-<a id="__codelineno-14-29" name="__codelineno-14-29" href="__codelineno-14-29"></a>            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-<a id="__codelineno-14-30" name="__codelineno-14-30" href="__codelineno-14-30"></a>            <span class="s2">&quot;allOf&quot;</span><span class="p">:</span> <span class="p">[</span>
-<a id="__codelineno-14-31" name="__codelineno-14-31" href="__codelineno-14-31"></a>                <span class="p">{</span>
-<a id="__codelineno-14-32" name="__codelineno-14-32" href="__codelineno-14-32"></a>                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-<a id="__codelineno-14-33" name="__codelineno-14-33" href="__codelineno-14-33"></a>                    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
-<a id="__codelineno-14-34" name="__codelineno-14-34" href="__codelineno-14-34"></a>                    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
-<a id="__codelineno-14-35" name="__codelineno-14-35" href="__codelineno-14-35"></a>                    <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-14-36" name="__codelineno-14-36" href="__codelineno-14-36"></a>                <span class="p">},</span>
-<a id="__codelineno-14-37" name="__codelineno-14-37" href="__codelineno-14-37"></a>                <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Foo&quot;</span><span class="p">},</span>
-<a id="__codelineno-14-38" name="__codelineno-14-38" href="__codelineno-14-38"></a>            <span class="p">],</span>
-<a id="__codelineno-14-39" name="__codelineno-14-39" href="__codelineno-14-39"></a>            <span class="s2">&quot;unevaluatedProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-14-40" name="__codelineno-14-40" href="__codelineno-14-40"></a>        <span class="p">},</span>
-<a id="__codelineno-14-41" name="__codelineno-14-41" href="__codelineno-14-41"></a>        <span class="s2">&quot;Foo&quot;</span><span class="p">:</span> <span class="p">{</span>
-<a id="__codelineno-14-42" name="__codelineno-14-42" href="__codelineno-14-42"></a>            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-<a id="__codelineno-14-43" name="__codelineno-14-43" href="__codelineno-14-43"></a>            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
-<a id="__codelineno-14-44" name="__codelineno-14-44" href="__codelineno-14-44"></a>            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span>
-<a id="__codelineno-14-45" name="__codelineno-14-45" href="__codelineno-14-45"></a>            <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-14-46" name="__codelineno-14-46" href="__codelineno-14-46"></a>        <span class="p">},</span>
-<a id="__codelineno-14-47" name="__codelineno-14-47" href="__codelineno-14-47"></a>    <span class="p">},</span>
-<a id="__codelineno-14-48" name="__codelineno-14-48" href="__codelineno-14-48"></a><span class="p">}</span>
+<a id="__codelineno-14-29" name="__codelineno-14-29" href="__codelineno-14-29"></a>            <span class="s2">&quot;allOf&quot;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-14-30" name="__codelineno-14-30" href="__codelineno-14-30"></a>                <span class="p">{</span>
+<a id="__codelineno-14-31" name="__codelineno-14-31" href="__codelineno-14-31"></a>                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-32" name="__codelineno-14-32" href="__codelineno-14-32"></a>                    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">}},</span>
+<a id="__codelineno-14-33" name="__codelineno-14-33" href="__codelineno-14-33"></a>                    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
+<a id="__codelineno-14-34" name="__codelineno-14-34" href="__codelineno-14-34"></a>                    <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-14-35" name="__codelineno-14-35" href="__codelineno-14-35"></a>                <span class="p">},</span>
+<a id="__codelineno-14-36" name="__codelineno-14-36" href="__codelineno-14-36"></a>                <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Foo&quot;</span><span class="p">},</span>
+<a id="__codelineno-14-37" name="__codelineno-14-37" href="__codelineno-14-37"></a>            <span class="p">],</span>
+<a id="__codelineno-14-38" name="__codelineno-14-38" href="__codelineno-14-38"></a>            <span class="s2">&quot;unevaluatedProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-14-39" name="__codelineno-14-39" href="__codelineno-14-39"></a>        <span class="p">},</span>
+<a id="__codelineno-14-40" name="__codelineno-14-40" href="__codelineno-14-40"></a>        <span class="s2">&quot;Foo&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-14-41" name="__codelineno-14-41" href="__codelineno-14-41"></a>            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-42" name="__codelineno-14-42" href="__codelineno-14-42"></a>            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
+<a id="__codelineno-14-43" name="__codelineno-14-43" href="__codelineno-14-43"></a>            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bar&quot;</span><span class="p">],</span>
+<a id="__codelineno-14-44" name="__codelineno-14-44" href="__codelineno-14-44"></a>            <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-14-45" name="__codelineno-14-45" href="__codelineno-14-45"></a>        <span class="p">},</span>
+<a id="__codelineno-14-46" name="__codelineno-14-46" href="__codelineno-14-46"></a>    <span class="p">},</span>
+<a id="__codelineno-14-47" name="__codelineno-14-47" href="__codelineno-14-47"></a><span class="p">}</span>
 </code></pre></div>
 <p>The default behavior can also be customized using <code>apischema.settings.default_type_name</code>:</p>
 <h3 id="reference-factory">Reference factory<a class="headerlink" href="#reference-factory" title="Permanent link">&para;</a></h3>
-<p>In JSON schema, <code>$ref</code> looks like <code>#/$defs/Foo</code>, not just <code>Foo</code>. In fact, schema generation use the ref given by <code>type_name</code>/<code>default_type_name</code> and pass it to a <code>ref_factory</code> function (a parameter of schema generation functions) which will convert it to its final form. <a href="#json-schemaopenapi-version">JSON schema version</a> comes with its default <code>ref_factory</code>, for draft 2020-12, it prefixes the ref with <code>#/$defs/</code>, while it prefixes with <code>#/components/schema</code> in case of <em>OpenAPI</em>.</p>
+<p>In JSON schema, <code>$ref</code> looks like <code>#/$defs/Foo</code>, not just <code>Foo</code>. In fact, schema generation use the ref given by <code>type_name</code>/<code>default_type_name</code> and pass it to a <code>ref_factory</code> function (a parameter of schema generation functions) which will convert it to its final form. <a href="#json-schemaopenapi-version">JSON schema version</a> comes with its default <code>ref_factory</code>, for draft 2020-12, it prefixes the ref with <code>#/$defs/</code>, while it prefixes with <code>#/components/schema</code> in case of OpenAPI.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="__codelineno-15-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <a id="__codelineno-15-2" name="__codelineno-15-2" href="__codelineno-15-2"></a>
 <a id="__codelineno-15-3" name="__codelineno-15-3" href="__codelineno-15-3"></a><span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
@@ -1703,7 +1716,7 @@
 <p>Definitions schemas can also be extracted using <code>apischema.json_schema.definitions_schema</code>. It takes two lists <code>deserialization</code>/<code>serialization</code> of types (or tuple of type + <a href="../conversions/">dynamic conversion</a>) and returns a dictionary of all referenced schemas.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This is especially useful when it comes to <em>OpenAPI</em> schema to generate the components section.</p>
+<p>This is especially useful when it comes to OpenAPI schema to generate the components section.</p>
 </div>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="__codelineno-16-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <a id="__codelineno-16-2" name="__codelineno-16-2" href="__codelineno-16-2"></a>
@@ -1734,8 +1747,8 @@
 <a id="__codelineno-16-27" name="__codelineno-16-27" href="__codelineno-16-27"></a>    <span class="p">},</span>
 <a id="__codelineno-16-28" name="__codelineno-16-28" href="__codelineno-16-28"></a><span class="p">}</span>
 </code></pre></div>
-<h2 id="json-schema-openapi-version">JSON schema / <em>OpenAPI</em> version<a class="headerlink" href="#json-schema-openapi-version" title="Permanent link">&para;</a></h2>
-<p>JSON schema has several versions — <em>OpenAPI</em> is treated as a JSON schema version. If <em>apischema</em> natively use the last one: draft 2020-12, it is possible to specify a schema version which will be used for the generation.</p>
+<h2 id="json-schema-openapi-version">JSON schema / OpenAPI version<a class="headerlink" href="#json-schema-openapi-version" title="Permanent link">&para;</a></h2>
+<p>JSON schema has several versions — OpenAPI is treated as a JSON schema version. If <em>apischema</em> natively use the last one: draft 2020-12, it is possible to specify a schema version which will be used for the generation.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="__codelineno-17-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <a id="__codelineno-17-2" name="__codelineno-17-2" href="__codelineno-17-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Literal</span>
 <a id="__codelineno-17-3" name="__codelineno-17-3" href="__codelineno-17-3"></a>
@@ -1846,9 +1859,123 @@
 <a id="__codelineno-17-108" name="__codelineno-17-108" href="__codelineno-17-108"></a>    <span class="p">},</span>
 <a id="__codelineno-17-109" name="__codelineno-17-109" href="__codelineno-17-109"></a><span class="p">}</span>
 </code></pre></div>
+<h2 id="openapi-discriminator">OpenAPI Discriminator<a class="headerlink" href="#openapi-discriminator" title="Permanent link">&para;</a></h2>
+<p>OpenAPI defines a <a href="https://spec.openapis.org/oas/v3.1.0#discriminator-object">discriminator object</a> which can be used to shortcut deserialization of union of object types.</p>
+<p><em>apischema</em> provides two different ways to declare a discriminator:</p>
+<ul>
+<li>
+<p>as an <code>Annotated</code> metadata of a union ;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="__codelineno-18-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="__codelineno-18-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Union</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="__codelineno-18-3"></a>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="__codelineno-18-4"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="__codelineno-18-5"></a>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="__codelineno-18-6"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="__codelineno-18-7"></a>    <span class="n">ValidationError</span><span class="p">,</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="__codelineno-18-8"></a>    <span class="n">deserialization_method</span><span class="p">,</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="__codelineno-18-9"></a>    <span class="n">deserialize</span><span class="p">,</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="__codelineno-18-10"></a>    <span class="n">discriminator</span><span class="p">,</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="__codelineno-18-11"></a>    <span class="n">serialize</span><span class="p">,</span>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="__codelineno-18-12"></a><span class="p">)</span>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="__codelineno-18-13"></a><span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="__codelineno-18-14"></a>
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="__codelineno-18-15"></a>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="__codelineno-18-16"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="__codelineno-18-17"></a><span class="k">class</span> <span class="nc">Cat</span><span class="p">:</span>
+<a id="__codelineno-18-18" name="__codelineno-18-18" href="__codelineno-18-18"></a>    <span class="k">pass</span>
+<a id="__codelineno-18-19" name="__codelineno-18-19" href="__codelineno-18-19"></a>
+<a id="__codelineno-18-20" name="__codelineno-18-20" href="__codelineno-18-20"></a>
+<a id="__codelineno-18-21" name="__codelineno-18-21" href="__codelineno-18-21"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-18-22" name="__codelineno-18-22" href="__codelineno-18-22"></a><span class="k">class</span> <span class="nc">Dog</span><span class="p">:</span>
+<a id="__codelineno-18-23" name="__codelineno-18-23" href="__codelineno-18-23"></a>    <span class="k">pass</span>
+<a id="__codelineno-18-24" name="__codelineno-18-24" href="__codelineno-18-24"></a>
+<a id="__codelineno-18-25" name="__codelineno-18-25" href="__codelineno-18-25"></a>
+<a id="__codelineno-18-26" name="__codelineno-18-26" href="__codelineno-18-26"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-18-27" name="__codelineno-18-27" href="__codelineno-18-27"></a><span class="k">class</span> <span class="nc">Lizard</span><span class="p">:</span>
+<a id="__codelineno-18-28" name="__codelineno-18-28" href="__codelineno-18-28"></a>    <span class="k">pass</span>
+<a id="__codelineno-18-29" name="__codelineno-18-29" href="__codelineno-18-29"></a>
+<a id="__codelineno-18-30" name="__codelineno-18-30" href="__codelineno-18-30"></a>
+<a id="__codelineno-18-31" name="__codelineno-18-31" href="__codelineno-18-31"></a><span class="n">Pet</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Cat</span><span class="p">,</span> <span class="n">Dog</span><span class="p">,</span> <span class="n">Lizard</span><span class="p">],</span> <span class="n">discriminator</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;dog&quot;</span><span class="p">:</span> <span class="n">Dog</span><span class="p">})]</span>
+<a id="__codelineno-18-32" name="__codelineno-18-32" href="__codelineno-18-32"></a>
+<a id="__codelineno-18-33" name="__codelineno-18-33" href="__codelineno-18-33"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Pet</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;dog&quot;</span><span class="p">})</span> <span class="o">==</span> <span class="n">Dog</span><span class="p">()</span>
+<a id="__codelineno-18-34" name="__codelineno-18-34" href="__codelineno-18-34"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Pet</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Cat&quot;</span><span class="p">})</span> <span class="o">==</span> <span class="n">Cat</span><span class="p">()</span>
+<a id="__codelineno-18-35" name="__codelineno-18-35" href="__codelineno-18-35"></a><span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Pet</span><span class="p">,</span> <span class="n">Dog</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;dog&quot;</span><span class="p">}</span>
+<a id="__codelineno-18-36" name="__codelineno-18-36" href="__codelineno-18-36"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-18-37" name="__codelineno-18-37" href="__codelineno-18-37"></a>    <span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Pet</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;not a pet&quot;</span><span class="p">})</span>
+<a id="__codelineno-18-38" name="__codelineno-18-38" href="__codelineno-18-38"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+<a id="__codelineno-18-39" name="__codelineno-18-39" href="__codelineno-18-39"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;not one of [&#39;dog&#39;, &#39;Cat&#39;, &#39;Lizard&#39;] (oneOf)&quot;</span><span class="p">}</span>
+<a id="__codelineno-18-40" name="__codelineno-18-40" href="__codelineno-18-40"></a><span class="p">]</span>
+<a id="__codelineno-18-41" name="__codelineno-18-41" href="__codelineno-18-41"></a>
+<a id="__codelineno-18-42" name="__codelineno-18-42" href="__codelineno-18-42"></a><span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Pet</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+<a id="__codelineno-18-43" name="__codelineno-18-43" href="__codelineno-18-43"></a>    <span class="s2">&quot;oneOf&quot;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-18-44" name="__codelineno-18-44" href="__codelineno-18-44"></a>        <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Cat&quot;</span><span class="p">},</span>
+<a id="__codelineno-18-45" name="__codelineno-18-45" href="__codelineno-18-45"></a>        <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Dog&quot;</span><span class="p">},</span>
+<a id="__codelineno-18-46" name="__codelineno-18-46" href="__codelineno-18-46"></a>        <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Lizard&quot;</span><span class="p">},</span>
+<a id="__codelineno-18-47" name="__codelineno-18-47" href="__codelineno-18-47"></a>    <span class="p">],</span>
+<a id="__codelineno-18-48" name="__codelineno-18-48" href="__codelineno-18-48"></a>    <span class="s2">&quot;discriminator&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;propertyName&quot;</span><span class="p">:</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;mapping&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;dog&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Dog&quot;</span><span class="p">}},</span>
+<a id="__codelineno-18-49" name="__codelineno-18-49" href="__codelineno-18-49"></a>    <span class="s2">&quot;$defs&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-18-50" name="__codelineno-18-50" href="__codelineno-18-50"></a>        <span class="s2">&quot;Dog&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span> <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+<a id="__codelineno-18-51" name="__codelineno-18-51" href="__codelineno-18-51"></a>        <span class="s2">&quot;Cat&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span> <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+<a id="__codelineno-18-52" name="__codelineno-18-52" href="__codelineno-18-52"></a>        <span class="s2">&quot;Lizard&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span> <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+<a id="__codelineno-18-53" name="__codelineno-18-53" href="__codelineno-18-53"></a>    <span class="p">},</span>
+<a id="__codelineno-18-54" name="__codelineno-18-54" href="__codelineno-18-54"></a>    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2020-12/schema#&quot;</span><span class="p">,</span>
+<a id="__codelineno-18-55" name="__codelineno-18-55" href="__codelineno-18-55"></a><span class="p">}</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>as a decorator of base class.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="__codelineno-19-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="__codelineno-19-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="__codelineno-19-4"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">discriminator</span><span class="p">,</span> <span class="n">serialize</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="__codelineno-19-5"></a><span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="__codelineno-19-6"></a>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="__codelineno-19-7"></a>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="__codelineno-19-8"></a><span class="nd">@discriminator</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="__codelineno-19-9"></a><span class="k">class</span> <span class="nc">Pet</span><span class="p">:</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="__codelineno-19-10"></a>    <span class="k">pass</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="__codelineno-19-11"></a>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="__codelineno-19-12"></a>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="__codelineno-19-13"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="__codelineno-19-14"></a><span class="k">class</span> <span class="nc">Cat</span><span class="p">(</span><span class="n">Pet</span><span class="p">):</span>
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="__codelineno-19-15"></a>    <span class="k">pass</span>
+<a id="__codelineno-19-16" name="__codelineno-19-16" href="__codelineno-19-16"></a>
+<a id="__codelineno-19-17" name="__codelineno-19-17" href="__codelineno-19-17"></a>
+<a id="__codelineno-19-18" name="__codelineno-19-18" href="__codelineno-19-18"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-19-19" name="__codelineno-19-19" href="__codelineno-19-19"></a><span class="k">class</span> <span class="nc">Dog</span><span class="p">(</span><span class="n">Pet</span><span class="p">):</span>
+<a id="__codelineno-19-20" name="__codelineno-19-20" href="__codelineno-19-20"></a>    <span class="k">pass</span>
+<a id="__codelineno-19-21" name="__codelineno-19-21" href="__codelineno-19-21"></a>
+<a id="__codelineno-19-22" name="__codelineno-19-22" href="__codelineno-19-22"></a>
+<a id="__codelineno-19-23" name="__codelineno-19-23" href="__codelineno-19-23"></a><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Dog&quot;</span><span class="p">}</span>
+<a id="__codelineno-19-24" name="__codelineno-19-24" href="__codelineno-19-24"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Pet</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Union</span><span class="p">[</span><span class="n">Cat</span><span class="p">,</span> <span class="n">Dog</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="n">Dog</span><span class="p">()</span>
+<a id="__codelineno-19-25" name="__codelineno-19-25" href="__codelineno-19-25"></a><span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Pet</span><span class="p">,</span> <span class="n">Dog</span><span class="p">()),</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Union</span><span class="p">[</span><span class="n">Cat</span><span class="p">,</span> <span class="n">Dog</span><span class="p">],</span> <span class="n">Dog</span><span class="p">())</span> <span class="o">==</span> <span class="n">data</span>
+<a id="__codelineno-19-26" name="__codelineno-19-26" href="__codelineno-19-26"></a>
+<a id="__codelineno-19-27" name="__codelineno-19-27" href="__codelineno-19-27"></a>
+<a id="__codelineno-19-28" name="__codelineno-19-28" href="__codelineno-19-28"></a><span class="k">assert</span> <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Union</span><span class="p">[</span><span class="n">Cat</span><span class="p">,</span> <span class="n">Dog</span><span class="p">])</span> <span class="o">==</span> <span class="p">{</span>
+<a id="__codelineno-19-29" name="__codelineno-19-29" href="__codelineno-19-29"></a>    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2020-12/schema#&quot;</span><span class="p">,</span>
+<a id="__codelineno-19-30" name="__codelineno-19-30" href="__codelineno-19-30"></a>    <span class="s2">&quot;anyOf&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Cat&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Dog&quot;</span><span class="p">}],</span>
+<a id="__codelineno-19-31" name="__codelineno-19-31" href="__codelineno-19-31"></a>    <span class="s2">&quot;$defs&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-19-32" name="__codelineno-19-32" href="__codelineno-19-32"></a>        <span class="s2">&quot;Pet&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-19-33" name="__codelineno-19-33" href="__codelineno-19-33"></a>            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<a id="__codelineno-19-34" name="__codelineno-19-34" href="__codelineno-19-34"></a>            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span>
+<a id="__codelineno-19-35" name="__codelineno-19-35" href="__codelineno-19-35"></a>            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
+<a id="__codelineno-19-36" name="__codelineno-19-36" href="__codelineno-19-36"></a>            <span class="s2">&quot;discriminator&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;propertyName&quot;</span><span class="p">:</span> <span class="s2">&quot;type&quot;</span><span class="p">},</span>
+<a id="__codelineno-19-37" name="__codelineno-19-37" href="__codelineno-19-37"></a>        <span class="p">},</span>
+<a id="__codelineno-19-38" name="__codelineno-19-38" href="__codelineno-19-38"></a>        <span class="s2">&quot;Cat&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;allOf&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Pet&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">}]},</span>
+<a id="__codelineno-19-39" name="__codelineno-19-39" href="__codelineno-19-39"></a>        <span class="s2">&quot;Dog&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;allOf&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/$defs/Pet&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">}]},</span>
+<a id="__codelineno-19-40" name="__codelineno-19-40" href="__codelineno-19-40"></a>    <span class="p">},</span>
+<a id="__codelineno-19-41" name="__codelineno-19-41" href="__codelineno-19-41"></a><span class="p">}</span>
+</code></pre></div></p>
+</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Using discriminator doesn't require to have a dedicated field (except for <code>TypedDict</code>)</p>
+</div>
+<p>Performance of union deserialization can be <a href="../performance_and_benchmark/#discriminator">improved</a> using discriminator.</p>
 <h2 id="readonly-writeonly"><code>readOnly</code> / <code>writeOnly</code><a class="headerlink" href="#readonly-writeonly" title="Permanent link">&para;</a></h2>
 <p>Dataclasses <code>InitVar</code> and <code>field(init=False)</code> fields will be flagged respectively with <code>"writeOnly": true</code> and <code>"readOnly": true</code> in the generated schema.</p>
-<p>In <a href="#definitions-schema">definitions schema</a>, if a type appears both in deserialization and serialization, properties are merged and the resulting schema contains then <code>readOnly</code> and <code>writeOnly</code> properties. By the way, the <code>required</code> is not merged because it can't (it would mess up validation if some not-init field was required), so deserialization <code>required</code> is kept because it's more important as it can be used in validation (<em>OpenAPI</em> 3.0 semantic which allows the merge <a href="https://www.openapis.org/blog/2020/06/18/openapi-3-1-0-rc0-its-here">has been dropped</a> in 3.1, so it has not been judged useful to be supported)</p>
+<p>In <a href="#definitions-schema">definitions schema</a>, if a type appears both in deserialization and serialization, properties are merged and the resulting schema contains then <code>readOnly</code> and <code>writeOnly</code> properties. By the way, the <code>required</code> is not merged because it can't (it would mess up validation if some not-init field was required), so deserialization <code>required</code> is kept because it's more important as it can be used in validation (OpenAPI 3.0 semantic which allows the merge <a href="https://www.openapis.org/blog/2020/06/18/openapi-3-1-0-rc0-its-here">has been dropped</a> in 3.1, so it has not been judged useful to be supported)</p>
 
               
             </article>

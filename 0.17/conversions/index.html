@@ -1857,7 +1857,7 @@
 </code></pre></div>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
 <h4 id="whats-the-difference-between-conversion-and-default_conversion-parameters">What's the difference between <code>conversion</code> and <code>default_conversion</code> parameters?<a class="headerlink" href="#whats-the-difference-between-conversion-and-default_conversion-parameters" title="Permanent link">&para;</a></h4>
-<p>Dynamic conversions (<code>conversion</code> parameter) exists to ensure consistency and reuse of subschemas referenced (with a <code>$ref</code>) in the JSON/<em>OpenAPI</em> schema. </p>
+<p>Dynamic conversions (<code>conversion</code> parameter) exists to ensure consistency and reuse of subschemas referenced (with a <code>$ref</code>) in the JSON/OpenAPI schema. </p>
 <p>In fact, different global conversions (<code>default_conversion</code> parameter) could lead to having a field with different schemas depending on global conversions, so a class would not be able to be referenced consistently. Because dynamic conversions are local, they cannot mess with an object field schema.</p>
 <p>Schema generation uses the same default conversions for all definitions (which can have associated dynamic conversion).</p>
 <p><code>default_conversion</code> parameter allows having different (de)serialization contexts, for example to map date to string between frontend and backend, and to timestamp between backend services.</p>
