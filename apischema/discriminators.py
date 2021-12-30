@@ -1,4 +1,5 @@
 import operator
+import sys
 from dataclasses import dataclass
 from functools import reduce
 from typing import (
@@ -38,7 +39,11 @@ def get_discriminated(alias: str, tp: AnyType) -> Sequence[str]:
                 has_field = True
                 field_type = no_annotated(field.type)
                 if is_literal(field_type):
-                    return [v for v in get_args(field_type) if isinstance(v, str)]
+                    if sys.version_info < (3, 7):  # py36
+                        literal_args = field_type.__values__
+                    else:
+                        literal_args = get_args(field_type)
+                    return [v for v in literal_args if isinstance(v, str)]
         if (
             is_typed_dict(cls) and not has_field
         ):  # TypedDict must have a discriminator field
