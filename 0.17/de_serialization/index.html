@@ -768,8 +768,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../performance_and_benchmark/" class="md-nav__link">
-        Performance and benchmark
+      <a href="../optimizations_and_benchmark/" class="md-nav__link">
+        Optimizations and benchmark
       </a>
     </li>
   
@@ -1179,7 +1179,7 @@ JSON primitive ones. These types can be allowed using <code>pass_through</code> 
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Equivalent serialization feature is presented in <a href="../performance_and_benchmark/#serialization-passthrough">optimizations documentation</a>.</p>
+<p>Equivalent serialization feature is presented in <a href="../optimizations_and_benchmark/#serialization-passthrough">optimizations documentation</a>.</p>
 </div>
 <h3 id="strictness">Strictness<a class="headerlink" href="#strictness" title="Permanent link">&para;</a></h3>
 <h4 id="coercion">Coercion<a class="headerlink" href="#coercion" title="Permanent link">&para;</a></h4>
@@ -1738,11 +1738,11 @@ Using the previous feature of <a href="#fields-set">fields set tracking</a>, <co
 <h4 id="why-isnt-with_fields_set-enabled-by-default">Why isn't <code>with_fields_set</code> enabled by default?<a class="headerlink" href="#why-isnt-with_fields_set-enabled-by-default" title="Permanent link">&para;</a></h4>
 <p>It's true that this feature has the little cost of adding a decorator everywhere. However, keeping dataclass decorator allows IDEs/linters/type checkers/etc. to handle the class as such, so there is no need to develop a plugin for them. Standard compliance can be worth the additional decorator. (And little overhead can be avoided when not useful)</p>
 <h4 id="why-isnt-serialization-type-checking-enabled-by-default">Why isn't serialization type checking enabled by default?<a class="headerlink" href="#why-isnt-serialization-type-checking-enabled-by-default" title="Permanent link">&para;</a></h4>
-<p>Type checking has a runtime cost, which means poorer performance. Moreover, as explained in <a href="../performance_and_benchmark/#serialization-passthrough">performances section</a>, it prevents "passthrough" optimization. At last, code is supposed to be statically verified, and thus types already checked. (If some silly things are done and leads to have unsupported types passed to the JSON library, an error will be raised anyway).</p>
+<p>Type checking has a runtime cost, which means poorer performance. Moreover, as explained in <a href="../optimizations_and_benchmark/#serialization-passthrough">performances section</a>, it prevents "passthrough" optimization. At last, code is supposed to be statically verified, and thus types already checked. (If some silly things are done and leads to have unsupported types passed to the JSON library, an error will be raised anyway).</p>
 <p>Runtime type checking is more a development feature, which could for example be with <code>apischema.settings.serialization.check_type = __debug__</code>.</p>
 <h4 id="why-not-use-json-library-default-fallback-parameter-for-serialization">Why not use json library <code>default</code> fallback parameter for serialization?<a class="headerlink" href="#why-not-use-json-library-default-fallback-parameter-for-serialization" title="Permanent link">&para;</a></h4>
-<p>Some <em>apischema</em> features like <a href="../conversions/">conversions</a> can simply not be implemented with <code>default</code> fallback. By the way, <em>apischema</em> can perform <a href="../performance_and_benchmark/#passing-through-is-not-always-faster">surprisingly better</a> than using <code>default</code>.</p>
-<p>However, <code>default</code> can be used in combination with <a href="../performance_and_benchmark/#serialization-passthrough">passthrough optimization</a> when needed to improve performance.  </p>
+<p>Some <em>apischema</em> features like <a href="../conversions/">conversions</a> can simply not be implemented with <code>default</code> fallback. By the way, <em>apischema</em> can perform <a href="../optimizations_and_benchmark/#passing-through-is-not-always-faster">surprisingly better</a> than using <code>default</code>.</p>
+<p>However, <code>default</code> can be used in combination with <a href="../optimizations_and_benchmark/#serialization-passthrough">passthrough optimization</a> when needed to improve performance.  </p>
 
               
             </article>

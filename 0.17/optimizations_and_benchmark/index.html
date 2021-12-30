@@ -13,7 +13,7 @@
     
     
       
-        <title>Performance and benchmark - apischema</title>
+        <title>Optimizations and benchmark - apischema</title>
       
     
     
@@ -62,7 +62,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#performance-and-benchmark" class="md-skip">
+        <a href="#optimizations-and-benchmark" class="md-skip">
           Skip to content
         </a>
       
@@ -101,7 +101,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Performance and benchmark
+              Optimizations and benchmark
             
           </span>
         </div>
@@ -533,12 +533,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          Performance and benchmark
+          Optimizations and benchmark
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        Performance and benchmark
+        Optimizations and benchmark
       </a>
       
         
@@ -864,12 +864,12 @@
             <article class="md-content__inner md-typeset">
               
                 
-<a href="https://github.com/wyfo/apischema/edit/master/docs/performance_and_benchmark.md" title="Edit this page" class="md-content__button md-icon">
+<a href="https://github.com/wyfo/apischema/edit/master/docs/optimizations_and_benchmark.md" title="Edit this page" class="md-content__button md-icon">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
 </a>
 
 
-<h1 id="performance-and-benchmark">Performance and benchmark<a class="headerlink" href="#performance-and-benchmark" title="Permanent link">&para;</a></h1>
+<h1 id="optimizations-and-benchmark">Optimizations and benchmark<a class="headerlink" href="#optimizations-and-benchmark" title="Permanent link">&para;</a></h1>
 <p><em>apischema</em> is (a lot) <a href="#benchmark">faster</a> than its known alternatives, thanks to advanced optimizations.    </p>
 <p><img alt="benchmark chart" src="../benchmark_chart.svg" /></p>
 <div class="admonition note">
@@ -954,7 +954,7 @@
 </code></pre></div>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
-<p>Passthrough optimization always requires <code>check_type</code> to be <code>False</code>, in parameters or settings.</p>
+<p>Passthrough optimization is a lot diminished with <code>check_type=False</code>.</p>
 </div>
 <p><code>PassThroughOptions</code> has the following parameters:</p>
 <h4 id="any-pass-through-any"><code>any</code> — pass through <code>Any</code><a class="headerlink" href="#any-pass-through-any" title="Permanent link">&para;</a></h4>
@@ -1059,32 +1059,32 @@ Performances are measured on two datasets: a simple, a more complex one.</p>
 <tr>
 <td>mashumaro</td>
 <td>2.9.1</td>
-<td align="right">x2.5 (3.1/1.9)</td>
-<td align="right">x2.5 (3.1/2.0)</td>
+<td align="right">x2.8 (3.6/2.0)</td>
+<td align="right">x2.4 (2.8/1.9)</td>
 </tr>
 <tr>
 <td>typical</td>
 <td>2.8.0</td>
-<td align="right">x6.7 (7.3/6.2)</td>
-<td align="right">x8.0 (11.4/4.6)</td>
+<td align="right">x7.5 (8.4/6.7)</td>
+<td align="right">x7.7 (10.8/4.7)</td>
 </tr>
 <tr>
 <td>pydantic</td>
 <td>1.8.2</td>
-<td align="right">x11.9 (14.4/9.4)</td>
-<td align="right">x27.6 (38.9/16.4)</td>
+<td align="right">x13.7 (16.9/10.5)</td>
+<td align="right">x27.3 (37.9/16.8)</td>
 </tr>
 <tr>
 <td>marshmallow</td>
 <td>3.14.1</td>
-<td align="right">x22.2 (25.0/19.4)</td>
-<td align="right">x21.7 (27.2/16.1)</td>
+<td align="right">x25.9 (29.6/22.3)</td>
+<td align="right">x21.1 (25.7/16.5)</td>
 </tr>
 <tr>
 <td>typedload</td>
 <td>2.14</td>
-<td align="right">x11.8 (15.2/8.4)</td>
-<td align="right">x64.8 (76.9/52.6)</td>
+<td align="right">x13.9 (18.4/9.4)</td>
+<td align="right">x63.6 (74.0/53.3)</td>
 </tr>
 </tbody>
 </table>

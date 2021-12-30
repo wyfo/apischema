@@ -728,8 +728,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../performance_and_benchmark/" class="md-nav__link">
-        Performance and benchmark
+      <a href="../optimizations_and_benchmark/" class="md-nav__link">
+        Optimizations and benchmark
       </a>
     </li>
   
@@ -1972,7 +1972,7 @@
 <p class="admonition-title">Note</p>
 <p>Using discriminator doesn't require to have a dedicated field (except for <code>TypedDict</code>)</p>
 </div>
-<p>Performance of union deserialization can be <a href="../performance_and_benchmark/#discriminator">improved</a> using discriminator.</p>
+<p>Performance of union deserialization can be <a href="../optimizations_and_benchmark/#discriminator">improved</a> using discriminator.</p>
 <h2 id="readonly-writeonly"><code>readOnly</code> / <code>writeOnly</code><a class="headerlink" href="#readonly-writeonly" title="Permanent link">&para;</a></h2>
 <p>Dataclasses <code>InitVar</code> and <code>field(init=False)</code> fields will be flagged respectively with <code>"writeOnly": true</code> and <code>"readOnly": true</code> in the generated schema.</p>
 <p>In <a href="#definitions-schema">definitions schema</a>, if a type appears both in deserialization and serialization, properties are merged and the resulting schema contains then <code>readOnly</code> and <code>writeOnly</code> properties. By the way, the <code>required</code> is not merged because it can't (it would mess up validation if some not-init field was required), so deserialization <code>required</code> is kept because it's more important as it can be used in validation (OpenAPI 3.0 semantic which allows the merge <a href="https://www.openapis.org/blog/2020/06/18/openapi-3-1-0-rc0-its-here">has been dropped</a> in 3.1, so it has not been judged useful to be supported)</p>
