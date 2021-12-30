@@ -98,7 +98,11 @@ setup(
     author_email="joperez@hotmail.fr",
     license="MIT",
     packages=find_packages(include=["apischema*"]),
-    package_data={"apischema": ["py.typed"]},
+    package_data={
+        "apischema": ["py.typed"],
+        "apischema.deserialization": ["methods.pyx"],
+        "apischema.serialization": ["methods.pyx"],
+    },
     description="JSON (de)serialization, GraphQL and JSON schema generation using Python typing.",
     long_description=README,
     long_description_content_type="text/markdown",
