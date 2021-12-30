@@ -283,8 +283,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#allowed-types" class="md-nav__link">
-    Allowed types
+  <a href="#deserialization-passthrough" class="md-nav__link">
+    Deserialization passthrough
   </a>
   
 </li>
@@ -840,8 +840,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#allowed-types" class="md-nav__link">
-    Allowed types
+  <a href="#deserialization-passthrough" class="md-nav__link">
+    Deserialization passthrough
   </a>
   
 </li>
@@ -1158,9 +1158,9 @@
 <a id="__codelineno-1-19" name="__codelineno-1-19"></a><span class="p">}</span>
 </code></pre></div>
 <p>Deserialization performs a validation of data, based on typing annotations and other information (see <a href="../json_schema/">schema</a> and <a href="../validation/">validation</a>).</p>
-<h3 id="allowed-types">Allowed types<a class="headerlink" href="#allowed-types" title="Permanent link">&para;</a></h3>
+<h3 id="deserialization-passthrough">Deserialization passthrough<a class="headerlink" href="#deserialization-passthrough" title="Permanent link">&para;</a></h3>
 <p>In some case, e.g. MessagePack loading with raw bytes inside, some data will have other type than
-JSON primitive ones. These types can be allowed using <code>allowed_types</code> parameter; it must be collection of classes, or a predicate.</p>
+JSON primitive ones. These types can be allowed using <code>pass_through</code> parameter; it must be collection of classes, or a predicate. Behavior can also be set globally using <code>apischema.settings.deserialization.pass_through</code>.</p>
 <p>Only non JSON primitive classes can be allowed, because <em>apischema</em> relies on a type check with <code>isinstance</code> to skip deserialization. That exclude <code>NewType</code> but also <code>TypeDict</code>. </p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2"></a>
@@ -1168,15 +1168,19 @@ JSON primitive ones. These types can be allowed using <code>allowed_types</code>
 <a id="__codelineno-2-4" name="__codelineno-2-4"></a>
 <a id="__codelineno-2-5" name="__codelineno-2-5"></a><span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <a id="__codelineno-2-6" name="__codelineno-2-6"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7"></a>    <span class="nb">tuple</span><span class="p">[</span><span class="n">datetime</span><span class="p">,</span> <span class="n">datetime</span><span class="p">],</span> <span class="p">[</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">],</span> <span class="n">allowed_types</span><span class="o">=</span><span class="p">{</span><span class="n">datetime</span><span class="p">}</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7"></a>    <span class="nb">tuple</span><span class="p">[</span><span class="n">datetime</span><span class="p">,</span> <span class="n">datetime</span><span class="p">],</span> <span class="p">[</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">],</span> <span class="n">pass_through</span><span class="o">=</span><span class="p">{</span><span class="n">datetime</span><span class="p">}</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8"></a><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9"></a><span class="c1"># allowed types can also be deserialized normally from JSON types</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9"></a><span class="c1"># Passing through types can also be deserialized normally from JSON types</span>
 <a id="__codelineno-2-10" name="__codelineno-2-10"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span>
 <a id="__codelineno-2-11" name="__codelineno-2-11"></a>    <span class="nb">tuple</span><span class="p">[</span><span class="n">datetime</span><span class="p">,</span> <span class="n">datetime</span><span class="p">],</span>
 <a id="__codelineno-2-12" name="__codelineno-2-12"></a>    <span class="p">[</span><span class="n">start</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span> <span class="n">end</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()],</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13"></a>    <span class="n">allowed_types</span><span class="o">=</span><span class="p">{</span><span class="n">datetime</span><span class="p">},</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13"></a>    <span class="n">pass_through</span><span class="o">=</span><span class="p">{</span><span class="n">datetime</span><span class="p">},</span>
 <a id="__codelineno-2-14" name="__codelineno-2-14"></a><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
 </code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Equivalent serialization feature is presented in <a href="../performance_and_benchmark/#serialization-passthrough">optimizations documentation</a>.</p>
+</div>
 <h3 id="strictness">Strictness<a class="headerlink" href="#strictness" title="Permanent link">&para;</a></h3>
 <h4 id="coercion">Coercion<a class="headerlink" href="#coercion" title="Permanent link">&para;</a></h4>
 <p><em>apischema</em> is strict by default. You ask for an integer, you have to receive an integer. </p>
