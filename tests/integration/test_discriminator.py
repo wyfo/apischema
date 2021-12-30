@@ -46,7 +46,7 @@ class B:
     pass
 
 
-@pytest.mark.parametrize("type_, obj", [("a", A("a")), ("b", B())])
+@pytest.mark.parametrize("type_, obj", [("a", A("a")), ("B", B())])
 def test_discriminator_literal_field(type_, obj):
     assert (
         deserialize(Annotated[Union[A, B], discriminator("type")], {"type": type_})
