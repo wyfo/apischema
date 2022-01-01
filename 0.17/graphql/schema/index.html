@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.3">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.2">
     
     
       
@@ -17,7 +17,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.edf004c2.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.f7951f6f.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.e6a45f82.min.css">
@@ -769,239 +769,239 @@
 <p>In fact, <code>graphql_schema</code> is just a wrapper around <code>graphql.GraphQLSchema</code> (same parameters plus a few extras); it just uses <em>apischema</em> abstraction to build <code>GraphQL</code> object types directly from your code. </p>
 <h2 id="operations-metadata">Operations metadata<a class="headerlink" href="#operations-metadata" title="Permanent link">&para;</a></h2>
 <p>GraphQL operations can be passed to <code>graphql_schema</code> either using simple functions or wrapping it into <code>apischema.graphql.Query</code>/<code>apischema.graphql.Mutation</code>/<code>apischema.graphql.Subscription</code>. These wrappers have the same parameters as <code>apischema.graphql.resolver</code>: <code>alias</code>, <code>conversions</code>, <code>error_handler</code>, <code>order</code> and <code>schema</code> (<code>Subscription</code> has an <a href="#subscriptions">additional parameter</a>).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="__codelineno-0-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="__codelineno-0-5"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">Query</span><span class="p">,</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">resolver</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="__codelineno-0-7"></a>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="__codelineno-0-8"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="__codelineno-0-9"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="__codelineno-0-10"></a>    <span class="nd">@resolver</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="__codelineno-0-11"></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="__codelineno-0-12"></a>        <span class="o">...</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="__codelineno-0-13"></a>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="__codelineno-0-14"></a>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="__codelineno-0-15"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="__codelineno-0-16"></a>    <span class="o">...</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="__codelineno-0-17"></a>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="__codelineno-0-18"></a>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="__codelineno-0-19"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">Query</span><span class="p">(</span><span class="n">get_foo</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="n">error_handler</span><span class="o">=</span><span class="kc">None</span><span class="p">)])</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="__codelineno-0-20"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="__codelineno-0-21"></a><span class="s2">type Query {</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="__codelineno-0-22"></a><span class="s2">  foo: Foo</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="__codelineno-0-23"></a><span class="s2">}</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="__codelineno-0-24"></a>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="__codelineno-0-25"></a><span class="s2">type Foo {</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="__codelineno-0-26"></a><span class="s2">  bar(arg: Int! = 0): String!</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="__codelineno-0-27"></a><span class="s2">}</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="__codelineno-0-28"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="__codelineno-0-29"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">Query</span><span class="p">,</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">resolver</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10"></a>    <span class="nd">@resolver</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11"></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12"></a>        <span class="o">...</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13"></a>
+<a id="__codelineno-0-14" name="__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16"></a>    <span class="o">...</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17"></a>
+<a id="__codelineno-0-18" name="__codelineno-0-18"></a>
+<a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">Query</span><span class="p">(</span><span class="n">get_foo</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="n">error_handler</span><span class="o">=</span><span class="kc">None</span><span class="p">)])</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21"></a><span class="s2">type Query {</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="s2">  foo: Foo</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="s2">}</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24"></a>
+<a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="s2">type Foo {</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="s2">  bar(arg: Int! = 0): String!</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="s2">}</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 <h2 id="camelcase"><em>camelCase</em><a class="headerlink" href="#camelcase" title="Permanent link">&para;</a></h2>
 <p>GraphQL use <em>camelCase</em> as a convention for resolvers; <em>apischema</em> follows this convention by automatically convert all resolver names (and their parameters) to <em>camelCase</em>. <code>graphql_schema</code> has an <code>aliaser</code> parameter if you want to use another case.</p>
 <h2 id="type-names">Type names<a class="headerlink" href="#type-names" title="Permanent link">&para;</a></h2>
 <p>Schema types are named the same way they are in generated JSON schema: type name is used by default, and it can be overridden using <a href="../../json_schema/#customize-ref"><code>apischema.type_name</code></a></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="__codelineno-1-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="__codelineno-1-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="__codelineno-1-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">type_name</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="__codelineno-1-6"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="__codelineno-1-7"></a>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="__codelineno-1-8"></a>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="__codelineno-1-9"></a><span class="nd">@type_name</span><span class="p">(</span><span class="s2">&quot;Foo&quot;</span><span class="p">)</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="__codelineno-1-10"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="__codelineno-1-11"></a><span class="k">class</span> <span class="nc">FooFoo</span><span class="p">:</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="__codelineno-1-12"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="__codelineno-1-13"></a>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="__codelineno-1-14"></a>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="__codelineno-1-15"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">FooFoo</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="__codelineno-1-16"></a>    <span class="o">...</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="__codelineno-1-17"></a>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="__codelineno-1-18"></a>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="__codelineno-1-19"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="__codelineno-1-20"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="__codelineno-1-21"></a><span class="s2">type Query {</span>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="__codelineno-1-22"></a><span class="s2">  foo: Foo</span>
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="__codelineno-1-23"></a><span class="s2">}</span>
-<a id="__codelineno-1-24" name="__codelineno-1-24" href="__codelineno-1-24"></a>
-<a id="__codelineno-1-25" name="__codelineno-1-25" href="__codelineno-1-25"></a><span class="s2">type Foo {</span>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="__codelineno-1-26"></a><span class="s2">  bar: Int!</span>
-<a id="__codelineno-1-27" name="__codelineno-1-27" href="__codelineno-1-27"></a><span class="s2">}</span>
-<a id="__codelineno-1-28" name="__codelineno-1-28" href="__codelineno-1-28"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-1-29" name="__codelineno-1-29" href="__codelineno-1-29"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">type_name</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9"></a><span class="nd">@type_name</span><span class="p">(</span><span class="s2">&quot;Foo&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11"></a><span class="k">class</span> <span class="nc">FooFoo</span><span class="p">:</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13"></a>
+<a id="__codelineno-1-14" name="__codelineno-1-14"></a>
+<a id="__codelineno-1-15" name="__codelineno-1-15"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">FooFoo</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16"></a>    <span class="o">...</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17"></a>
+<a id="__codelineno-1-18" name="__codelineno-1-18"></a>
+<a id="__codelineno-1-19" name="__codelineno-1-19"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21"></a><span class="s2">type Query {</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22"></a><span class="s2">  foo: Foo</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23"></a><span class="s2">}</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24"></a>
+<a id="__codelineno-1-25" name="__codelineno-1-25"></a><span class="s2">type Foo {</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26"></a><span class="s2">  bar: Int!</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27"></a><span class="s2">}</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Type names can be distinguished between JSON schema and GraphQL schema using <code>type_name</code> named parameter. Indeed, <code>type_name("foo")</code> is equivalent to <code>type_name(json_schema="foo", graphql="foo")</code>.</p>
 </div>
 <p>However, in GraphQL schema, unions must be named, so <code>typing.Union</code> used should be annotated with <code>apischema.type_name</code>. <code>graphql_schema</code> also provides a <code>union_ref</code> parameter which can be passed as a function to generate a type name from the union argument. Default <code>union_ref</code> is <code>"Or".join</code> meaning <code>typing.Union[Foo, Bar]</code> will result in <code>union FooOrBar = Foo | Bar</code></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="__codelineno-2-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="__codelineno-2-4"></a>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="__codelineno-2-5"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="__codelineno-2-6"></a>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="__codelineno-2-7"></a>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="__codelineno-2-8"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="__codelineno-2-9"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="__codelineno-2-10"></a>    <span class="n">foo</span><span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="__codelineno-2-11"></a>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="__codelineno-2-12"></a>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="__codelineno-2-13"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="__codelineno-2-14"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="__codelineno-2-15"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="__codelineno-2-16"></a>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="__codelineno-2-17"></a>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="__codelineno-2-18"></a><span class="k">def</span> <span class="nf">foo_or_bar</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span> <span class="o">|</span> <span class="n">Bar</span><span class="p">:</span>
-<a id="__codelineno-2-19" name="__codelineno-2-19" href="__codelineno-2-19"></a>    <span class="o">...</span>
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="__codelineno-2-20"></a>
-<a id="__codelineno-2-21" name="__codelineno-2-21" href="__codelineno-2-21"></a>
-<a id="__codelineno-2-22" name="__codelineno-2-22" href="__codelineno-2-22"></a><span class="c1"># union_ref default value is made explicit here</span>
-<a id="__codelineno-2-23" name="__codelineno-2-23" href="__codelineno-2-23"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo_or_bar</span><span class="p">],</span> <span class="n">union_name</span><span class="o">=</span><span class="s2">&quot;Or&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">)</span>
-<a id="__codelineno-2-24" name="__codelineno-2-24" href="__codelineno-2-24"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<a id="__codelineno-2-25" name="__codelineno-2-25" href="__codelineno-2-25"></a><span class="s2">type Query {</span>
-<a id="__codelineno-2-26" name="__codelineno-2-26" href="__codelineno-2-26"></a><span class="s2">  fooOrBar: FooOrBar!</span>
-<a id="__codelineno-2-27" name="__codelineno-2-27" href="__codelineno-2-27"></a><span class="s2">}</span>
-<a id="__codelineno-2-28" name="__codelineno-2-28" href="__codelineno-2-28"></a>
-<a id="__codelineno-2-29" name="__codelineno-2-29" href="__codelineno-2-29"></a><span class="s2">union FooOrBar = Foo | Bar</span>
-<a id="__codelineno-2-30" name="__codelineno-2-30" href="__codelineno-2-30"></a>
-<a id="__codelineno-2-31" name="__codelineno-2-31" href="__codelineno-2-31"></a><span class="s2">type Foo {</span>
-<a id="__codelineno-2-32" name="__codelineno-2-32" href="__codelineno-2-32"></a><span class="s2">  foo: Int!</span>
-<a id="__codelineno-2-33" name="__codelineno-2-33" href="__codelineno-2-33"></a><span class="s2">}</span>
-<a id="__codelineno-2-34" name="__codelineno-2-34" href="__codelineno-2-34"></a>
-<a id="__codelineno-2-35" name="__codelineno-2-35" href="__codelineno-2-35"></a><span class="s2">type Bar {</span>
-<a id="__codelineno-2-36" name="__codelineno-2-36" href="__codelineno-2-36"></a><span class="s2">  bar: Int!</span>
-<a id="__codelineno-2-37" name="__codelineno-2-37" href="__codelineno-2-37"></a><span class="s2">}</span>
-<a id="__codelineno-2-38" name="__codelineno-2-38" href="__codelineno-2-38"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-2-39" name="__codelineno-2-39" href="__codelineno-2-39"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7"></a>
+<a id="__codelineno-2-8" name="__codelineno-2-8"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10"></a>    <span class="n">foo</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11"></a>
+<a id="__codelineno-2-12" name="__codelineno-2-12"></a>
+<a id="__codelineno-2-13" name="__codelineno-2-13"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16"></a>
+<a id="__codelineno-2-17" name="__codelineno-2-17"></a>
+<a id="__codelineno-2-18" name="__codelineno-2-18"></a><span class="k">def</span> <span class="nf">foo_or_bar</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span> <span class="o">|</span> <span class="n">Bar</span><span class="p">:</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19"></a>    <span class="o">...</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20"></a>
+<a id="__codelineno-2-21" name="__codelineno-2-21"></a>
+<a id="__codelineno-2-22" name="__codelineno-2-22"></a><span class="c1"># union_ref default value is made explicit here</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo_or_bar</span><span class="p">],</span> <span class="n">union_name</span><span class="o">=</span><span class="s2">&quot;Or&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">)</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25"></a><span class="s2">type Query {</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26"></a><span class="s2">  fooOrBar: FooOrBar!</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27"></a><span class="s2">}</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28"></a>
+<a id="__codelineno-2-29" name="__codelineno-2-29"></a><span class="s2">union FooOrBar = Foo | Bar</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30"></a>
+<a id="__codelineno-2-31" name="__codelineno-2-31"></a><span class="s2">type Foo {</span>
+<a id="__codelineno-2-32" name="__codelineno-2-32"></a><span class="s2">  foo: Int!</span>
+<a id="__codelineno-2-33" name="__codelineno-2-33"></a><span class="s2">}</span>
+<a id="__codelineno-2-34" name="__codelineno-2-34"></a>
+<a id="__codelineno-2-35" name="__codelineno-2-35"></a><span class="s2">type Bar {</span>
+<a id="__codelineno-2-36" name="__codelineno-2-36"></a><span class="s2">  bar: Int!</span>
+<a id="__codelineno-2-37" name="__codelineno-2-37"></a><span class="s2">}</span>
+<a id="__codelineno-2-38" name="__codelineno-2-38"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-2-39" name="__codelineno-2-39"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 <h2 id="enum-metadata"><code>Enum</code> metadata<a class="headerlink" href="#enum-metadata" title="Permanent link">&para;</a></h2>
 <p>Contrary to dataclasses, <code>Enum</code> doesn't provide a way to set metadata for its members, especially description, but also deprecation reason. They can however be passed using <code>enum_schemas</code> parameter of <code>graphql_schema</code>. </p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="__codelineno-3-1"></a><span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="__codelineno-3-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">graphql_sync</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="__codelineno-3-4"></a><span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="__codelineno-3-5"></a>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="__codelineno-3-6"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="__codelineno-3-7"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="__codelineno-3-8"></a>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="__codelineno-3-9"></a>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="__codelineno-3-10"></a><span class="k">class</span> <span class="nc">MyEnum</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="__codelineno-3-11"></a>    <span class="n">FOO</span> <span class="o">=</span> <span class="s2">&quot;FOO&quot;</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="__codelineno-3-12"></a>    <span class="n">BAR</span> <span class="o">=</span> <span class="s2">&quot;BAR&quot;</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="__codelineno-3-13"></a>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="__codelineno-3-14"></a>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="__codelineno-3-15"></a><span class="k">def</span> <span class="nf">echo</span><span class="p">(</span><span class="n">enum</span><span class="p">:</span> <span class="n">MyEnum</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyEnum</span><span class="p">:</span>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="__codelineno-3-16"></a>    <span class="k">return</span> <span class="n">enum</span>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="__codelineno-3-17"></a>
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="__codelineno-3-18"></a>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="__codelineno-3-19"></a><span class="n">schema_</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span>
-<a id="__codelineno-3-20" name="__codelineno-3-20" href="__codelineno-3-20"></a>    <span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">echo</span><span class="p">],</span> <span class="n">enum_schemas</span><span class="o">=</span><span class="p">{</span><span class="n">MyEnum</span><span class="o">.</span><span class="n">FOO</span><span class="p">:</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="p">)}</span>
-<a id="__codelineno-3-21" name="__codelineno-3-21" href="__codelineno-3-21"></a><span class="p">)</span>
-<a id="__codelineno-3-22" name="__codelineno-3-22" href="__codelineno-3-22"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span><span class="se">\</span>
-<a id="__codelineno-3-23" name="__codelineno-3-23" href="__codelineno-3-23"></a><span class="s1">type Query {</span>
-<a id="__codelineno-3-24" name="__codelineno-3-24" href="__codelineno-3-24"></a><span class="s1">  echo(enum: MyEnum!): MyEnum!</span>
-<a id="__codelineno-3-25" name="__codelineno-3-25" href="__codelineno-3-25"></a><span class="s1">}</span>
-<a id="__codelineno-3-26" name="__codelineno-3-26" href="__codelineno-3-26"></a>
-<a id="__codelineno-3-27" name="__codelineno-3-27" href="__codelineno-3-27"></a><span class="s1">enum MyEnum {</span>
-<a id="__codelineno-3-28" name="__codelineno-3-28" href="__codelineno-3-28"></a><span class="s1">  &quot;&quot;&quot;foo&quot;&quot;&quot;</span>
-<a id="__codelineno-3-29" name="__codelineno-3-29" href="__codelineno-3-29"></a><span class="s1">  FOO</span>
-<a id="__codelineno-3-30" name="__codelineno-3-30" href="__codelineno-3-30"></a><span class="s1">  BAR</span>
-<a id="__codelineno-3-31" name="__codelineno-3-31" href="__codelineno-3-31"></a><span class="s1">}</span>
-<a id="__codelineno-3-32" name="__codelineno-3-32" href="__codelineno-3-32"></a><span class="s1">&#39;&#39;&#39;</span>
-<a id="__codelineno-3-33" name="__codelineno-3-33" href="__codelineno-3-33"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema_</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
-<a id="__codelineno-3-34" name="__codelineno-3-34" href="__codelineno-3-34"></a><span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema_</span><span class="p">,</span> <span class="s2">&quot;{echo(enum: FOO)}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;echo&quot;</span><span class="p">:</span> <span class="s2">&quot;FOO&quot;</span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">graphql_sync</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5"></a>
+<a id="__codelineno-3-6" name="__codelineno-3-6"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8"></a>
+<a id="__codelineno-3-9" name="__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10"></a><span class="k">class</span> <span class="nc">MyEnum</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11"></a>    <span class="n">FOO</span> <span class="o">=</span> <span class="s2">&quot;FOO&quot;</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12"></a>    <span class="n">BAR</span> <span class="o">=</span> <span class="s2">&quot;BAR&quot;</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13"></a>
+<a id="__codelineno-3-14" name="__codelineno-3-14"></a>
+<a id="__codelineno-3-15" name="__codelineno-3-15"></a><span class="k">def</span> <span class="nf">echo</span><span class="p">(</span><span class="n">enum</span><span class="p">:</span> <span class="n">MyEnum</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyEnum</span><span class="p">:</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16"></a>    <span class="k">return</span> <span class="n">enum</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17"></a>
+<a id="__codelineno-3-18" name="__codelineno-3-18"></a>
+<a id="__codelineno-3-19" name="__codelineno-3-19"></a><span class="n">schema_</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20"></a>    <span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">echo</span><span class="p">],</span> <span class="n">enum_schemas</span><span class="o">=</span><span class="p">{</span><span class="n">MyEnum</span><span class="o">.</span><span class="n">FOO</span><span class="p">:</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="p">)}</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21"></a><span class="p">)</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span><span class="se">\</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23"></a><span class="s1">type Query {</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24"></a><span class="s1">  echo(enum: MyEnum!): MyEnum!</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25"></a><span class="s1">}</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26"></a>
+<a id="__codelineno-3-27" name="__codelineno-3-27"></a><span class="s1">enum MyEnum {</span>
+<a id="__codelineno-3-28" name="__codelineno-3-28"></a><span class="s1">  &quot;&quot;&quot;foo&quot;&quot;&quot;</span>
+<a id="__codelineno-3-29" name="__codelineno-3-29"></a><span class="s1">  FOO</span>
+<a id="__codelineno-3-30" name="__codelineno-3-30"></a><span class="s1">  BAR</span>
+<a id="__codelineno-3-31" name="__codelineno-3-31"></a><span class="s1">}</span>
+<a id="__codelineno-3-32" name="__codelineno-3-32"></a><span class="s1">&#39;&#39;&#39;</span>
+<a id="__codelineno-3-33" name="__codelineno-3-33"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema_</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<a id="__codelineno-3-34" name="__codelineno-3-34"></a><span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema_</span><span class="p">,</span> <span class="s2">&quot;{echo(enum: FOO)}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;echo&quot;</span><span class="p">:</span> <span class="s2">&quot;FOO&quot;</span><span class="p">}</span>
 </code></pre></div>
 <h2 id="additional-types">Additional types<a class="headerlink" href="#additional-types" title="Permanent link">&para;</a></h2>
 <p><em>apischema</em> will only include in the schema the types annotating resolvers. However, it is possible to add other types by using the <code>types</code> parameter of <code>graphql_schema</code>. This is especially useful to add interface implementations where only interface is used in resolver types. </p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="__codelineno-4-2"></a>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="__codelineno-4-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="__codelineno-4-4"></a>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="__codelineno-4-5"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">interface</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="__codelineno-4-6"></a>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="__codelineno-4-7"></a>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="__codelineno-4-8"></a><span class="nd">@interface</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="__codelineno-4-9"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="__codelineno-4-10"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="__codelineno-4-11"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="__codelineno-4-12"></a>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="__codelineno-4-13"></a>
-<a id="__codelineno-4-14" name="__codelineno-4-14" href="__codelineno-4-14"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-4-15" name="__codelineno-4-15" href="__codelineno-4-15"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">Bar</span><span class="p">):</span>
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="__codelineno-4-16"></a>    <span class="n">baz</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-4-17" name="__codelineno-4-17" href="__codelineno-4-17"></a>
-<a id="__codelineno-4-18" name="__codelineno-4-18" href="__codelineno-4-18"></a>
-<a id="__codelineno-4-19" name="__codelineno-4-19" href="__codelineno-4-19"></a><span class="k">def</span> <span class="nf">bar</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Bar</span><span class="p">:</span>
-<a id="__codelineno-4-20" name="__codelineno-4-20" href="__codelineno-4-20"></a>    <span class="o">...</span>
-<a id="__codelineno-4-21" name="__codelineno-4-21" href="__codelineno-4-21"></a>
-<a id="__codelineno-4-22" name="__codelineno-4-22" href="__codelineno-4-22"></a>
-<a id="__codelineno-4-23" name="__codelineno-4-23" href="__codelineno-4-23"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">bar</span><span class="p">],</span> <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="n">Foo</span><span class="p">])</span>
-<a id="__codelineno-4-24" name="__codelineno-4-24" href="__codelineno-4-24"></a><span class="c1"># type Foo would have not been present if Foo was not put in types</span>
-<a id="__codelineno-4-25" name="__codelineno-4-25" href="__codelineno-4-25"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<a id="__codelineno-4-26" name="__codelineno-4-26" href="__codelineno-4-26"></a><span class="s2">type Foo implements Bar {</span>
-<a id="__codelineno-4-27" name="__codelineno-4-27" href="__codelineno-4-27"></a><span class="s2">  bar: Int!</span>
-<a id="__codelineno-4-28" name="__codelineno-4-28" href="__codelineno-4-28"></a><span class="s2">  baz: String!</span>
-<a id="__codelineno-4-29" name="__codelineno-4-29" href="__codelineno-4-29"></a><span class="s2">}</span>
-<a id="__codelineno-4-30" name="__codelineno-4-30" href="__codelineno-4-30"></a>
-<a id="__codelineno-4-31" name="__codelineno-4-31" href="__codelineno-4-31"></a><span class="s2">interface Bar {</span>
-<a id="__codelineno-4-32" name="__codelineno-4-32" href="__codelineno-4-32"></a><span class="s2">  bar: Int!</span>
-<a id="__codelineno-4-33" name="__codelineno-4-33" href="__codelineno-4-33"></a><span class="s2">}</span>
-<a id="__codelineno-4-34" name="__codelineno-4-34" href="__codelineno-4-34"></a>
-<a id="__codelineno-4-35" name="__codelineno-4-35" href="__codelineno-4-35"></a><span class="s2">type Query {</span>
-<a id="__codelineno-4-36" name="__codelineno-4-36" href="__codelineno-4-36"></a><span class="s2">  bar: Bar!</span>
-<a id="__codelineno-4-37" name="__codelineno-4-37" href="__codelineno-4-37"></a><span class="s2">}</span>
-<a id="__codelineno-4-38" name="__codelineno-4-38" href="__codelineno-4-38"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-4-39" name="__codelineno-4-39" href="__codelineno-4-39"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">interface</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8"></a><span class="nd">@interface</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12"></a>
+<a id="__codelineno-4-13" name="__codelineno-4-13"></a>
+<a id="__codelineno-4-14" name="__codelineno-4-14"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">Bar</span><span class="p">):</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16"></a>    <span class="n">baz</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17"></a>
+<a id="__codelineno-4-18" name="__codelineno-4-18"></a>
+<a id="__codelineno-4-19" name="__codelineno-4-19"></a><span class="k">def</span> <span class="nf">bar</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Bar</span><span class="p">:</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20"></a>    <span class="o">...</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21"></a>
+<a id="__codelineno-4-22" name="__codelineno-4-22"></a>
+<a id="__codelineno-4-23" name="__codelineno-4-23"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">bar</span><span class="p">],</span> <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="n">Foo</span><span class="p">])</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24"></a><span class="c1"># type Foo would have not been present if Foo was not put in types</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26"></a><span class="s2">type Foo implements Bar {</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27"></a><span class="s2">  bar: Int!</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28"></a><span class="s2">  baz: String!</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29"></a><span class="s2">}</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30"></a>
+<a id="__codelineno-4-31" name="__codelineno-4-31"></a><span class="s2">interface Bar {</span>
+<a id="__codelineno-4-32" name="__codelineno-4-32"></a><span class="s2">  bar: Int!</span>
+<a id="__codelineno-4-33" name="__codelineno-4-33"></a><span class="s2">}</span>
+<a id="__codelineno-4-34" name="__codelineno-4-34"></a>
+<a id="__codelineno-4-35" name="__codelineno-4-35"></a><span class="s2">type Query {</span>
+<a id="__codelineno-4-36" name="__codelineno-4-36"></a><span class="s2">  bar: Bar!</span>
+<a id="__codelineno-4-37" name="__codelineno-4-37"></a><span class="s2">}</span>
+<a id="__codelineno-4-38" name="__codelineno-4-38"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-4-39" name="__codelineno-4-39"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 <h2 id="subscriptions">Subscriptions<a class="headerlink" href="#subscriptions" title="Permanent link">&para;</a></h2>
 <p>Subscriptions are particular operations which must return an <code>AsyncIterable</code>; this event generator can come with a dedicated resolver to post-process the event.</p>
 <h3 id="event-generator-only">Event generator only<a class="headerlink" href="#event-generator-only" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="__codelineno-5-1"></a><span class="kn">import</span> <span class="nn">asyncio</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="__codelineno-5-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">AsyncIterable</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="__codelineno-5-3"></a>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="__codelineno-5-4"></a><span class="kn">import</span> <span class="nn">graphql</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="__codelineno-5-5"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="__codelineno-5-6"></a>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="__codelineno-5-7"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="__codelineno-5-8"></a>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="__codelineno-5-9"></a>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="__codelineno-5-10"></a><span class="k">def</span> <span class="nf">hello</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="__codelineno-5-11"></a>    <span class="k">return</span> <span class="s2">&quot;world&quot;</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="__codelineno-5-12"></a>
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="__codelineno-5-13"></a>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="__codelineno-5-14"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">events</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">AsyncIterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="__codelineno-5-15"></a>    <span class="k">yield</span> <span class="s2">&quot;bonjour&quot;</span>
-<a id="__codelineno-5-16" name="__codelineno-5-16" href="__codelineno-5-16"></a>    <span class="k">yield</span> <span class="s2">&quot;au revoir&quot;</span>
-<a id="__codelineno-5-17" name="__codelineno-5-17" href="__codelineno-5-17"></a>
-<a id="__codelineno-5-18" name="__codelineno-5-18" href="__codelineno-5-18"></a>
-<a id="__codelineno-5-19" name="__codelineno-5-19" href="__codelineno-5-19"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">hello</span><span class="p">],</span> <span class="n">subscription</span><span class="o">=</span><span class="p">[</span><span class="n">events</span><span class="p">])</span>
-<a id="__codelineno-5-20" name="__codelineno-5-20" href="__codelineno-5-20"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<a id="__codelineno-5-21" name="__codelineno-5-21" href="__codelineno-5-21"></a><span class="s2">type Query {</span>
-<a id="__codelineno-5-22" name="__codelineno-5-22" href="__codelineno-5-22"></a><span class="s2">  hello: String!</span>
-<a id="__codelineno-5-23" name="__codelineno-5-23" href="__codelineno-5-23"></a><span class="s2">}</span>
-<a id="__codelineno-5-24" name="__codelineno-5-24" href="__codelineno-5-24"></a>
-<a id="__codelineno-5-25" name="__codelineno-5-25" href="__codelineno-5-25"></a><span class="s2">type Subscription {</span>
-<a id="__codelineno-5-26" name="__codelineno-5-26" href="__codelineno-5-26"></a><span class="s2">  events: String!</span>
-<a id="__codelineno-5-27" name="__codelineno-5-27" href="__codelineno-5-27"></a><span class="s2">}</span>
-<a id="__codelineno-5-28" name="__codelineno-5-28" href="__codelineno-5-28"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-5-29" name="__codelineno-5-29" href="__codelineno-5-29"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
-<a id="__codelineno-5-30" name="__codelineno-5-30" href="__codelineno-5-30"></a>
-<a id="__codelineno-5-31" name="__codelineno-5-31" href="__codelineno-5-31"></a>
-<a id="__codelineno-5-32" name="__codelineno-5-32" href="__codelineno-5-32"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
-<a id="__codelineno-5-33" name="__codelineno-5-33" href="__codelineno-5-33"></a>    <span class="n">subscription</span> <span class="o">=</span> <span class="k">await</span> <span class="n">graphql</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span>
-<a id="__codelineno-5-34" name="__codelineno-5-34" href="__codelineno-5-34"></a>        <span class="n">schema</span><span class="p">,</span> <span class="n">graphql</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;subscription </span><span class="si">{events}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-35" name="__codelineno-5-35" href="__codelineno-5-35"></a>    <span class="p">)</span>
-<a id="__codelineno-5-36" name="__codelineno-5-36" href="__codelineno-5-36"></a>    <span class="k">assert</span> <span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">data</span> <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">subscription</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span>
-<a id="__codelineno-5-37" name="__codelineno-5-37" href="__codelineno-5-37"></a>        <span class="p">{</span><span class="s2">&quot;events&quot;</span><span class="p">:</span> <span class="s2">&quot;bonjour&quot;</span><span class="p">},</span>
-<a id="__codelineno-5-38" name="__codelineno-5-38" href="__codelineno-5-38"></a>        <span class="p">{</span><span class="s2">&quot;events&quot;</span><span class="p">:</span> <span class="s2">&quot;au revoir&quot;</span><span class="p">},</span>
-<a id="__codelineno-5-39" name="__codelineno-5-39" href="__codelineno-5-39"></a>    <span class="p">]</span>
-<a id="__codelineno-5-40" name="__codelineno-5-40" href="__codelineno-5-40"></a>
-<a id="__codelineno-5-41" name="__codelineno-5-41" href="__codelineno-5-41"></a>
-<a id="__codelineno-5-42" name="__codelineno-5-42" href="__codelineno-5-42"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">test</span><span class="p">())</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="kn">import</span> <span class="nn">asyncio</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">AsyncIterable</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4"></a><span class="kn">import</span> <span class="nn">graphql</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8"></a>
+<a id="__codelineno-5-9" name="__codelineno-5-9"></a>
+<a id="__codelineno-5-10" name="__codelineno-5-10"></a><span class="k">def</span> <span class="nf">hello</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11"></a>    <span class="k">return</span> <span class="s2">&quot;world&quot;</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12"></a>
+<a id="__codelineno-5-13" name="__codelineno-5-13"></a>
+<a id="__codelineno-5-14" name="__codelineno-5-14"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">events</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">AsyncIterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15"></a>    <span class="k">yield</span> <span class="s2">&quot;bonjour&quot;</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16"></a>    <span class="k">yield</span> <span class="s2">&quot;au revoir&quot;</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17"></a>
+<a id="__codelineno-5-18" name="__codelineno-5-18"></a>
+<a id="__codelineno-5-19" name="__codelineno-5-19"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">hello</span><span class="p">],</span> <span class="n">subscription</span><span class="o">=</span><span class="p">[</span><span class="n">events</span><span class="p">])</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21"></a><span class="s2">type Query {</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22"></a><span class="s2">  hello: String!</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23"></a><span class="s2">}</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24"></a>
+<a id="__codelineno-5-25" name="__codelineno-5-25"></a><span class="s2">type Subscription {</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26"></a><span class="s2">  events: String!</span>
+<a id="__codelineno-5-27" name="__codelineno-5-27"></a><span class="s2">}</span>
+<a id="__codelineno-5-28" name="__codelineno-5-28"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-5-29" name="__codelineno-5-29"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<a id="__codelineno-5-30" name="__codelineno-5-30"></a>
+<a id="__codelineno-5-31" name="__codelineno-5-31"></a>
+<a id="__codelineno-5-32" name="__codelineno-5-32"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+<a id="__codelineno-5-33" name="__codelineno-5-33"></a>    <span class="n">subscription</span> <span class="o">=</span> <span class="k">await</span> <span class="n">graphql</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span>
+<a id="__codelineno-5-34" name="__codelineno-5-34"></a>        <span class="n">schema</span><span class="p">,</span> <span class="n">graphql</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;subscription </span><span class="si">{events}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-35" name="__codelineno-5-35"></a>    <span class="p">)</span>
+<a id="__codelineno-5-36" name="__codelineno-5-36"></a>    <span class="k">assert</span> <span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">data</span> <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">subscription</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span>
+<a id="__codelineno-5-37" name="__codelineno-5-37"></a>        <span class="p">{</span><span class="s2">&quot;events&quot;</span><span class="p">:</span> <span class="s2">&quot;bonjour&quot;</span><span class="p">},</span>
+<a id="__codelineno-5-38" name="__codelineno-5-38"></a>        <span class="p">{</span><span class="s2">&quot;events&quot;</span><span class="p">:</span> <span class="s2">&quot;au revoir&quot;</span><span class="p">},</span>
+<a id="__codelineno-5-39" name="__codelineno-5-39"></a>    <span class="p">]</span>
+<a id="__codelineno-5-40" name="__codelineno-5-40"></a>
+<a id="__codelineno-5-41" name="__codelineno-5-41"></a>
+<a id="__codelineno-5-42" name="__codelineno-5-42"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">test</span><span class="p">())</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1010,62 +1010,62 @@
 <h3 id="event-generator-resolver">Event generator + resolver<a class="headerlink" href="#event-generator-resolver" title="Permanent link">&para;</a></h3>
 <p>A resolver can be added by using the <code>resolver</code> parameter of <code>Subscription</code>.  In this case, <em>apischema</em> will map subscription name, parameters and return type on the resolver instead of the event generator. It allows using the same event generator with several resolvers to create different subscriptions.</p>
 <p>The first resolver argument will be the event yielded by the event generator.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="__codelineno-6-1"></a><span class="kn">import</span> <span class="nn">asyncio</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="__codelineno-6-2"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="__codelineno-6-3"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">AsyncIterable</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="__codelineno-6-4"></a>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="__codelineno-6-5"></a><span class="kn">import</span> <span class="nn">graphql</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="__codelineno-6-6"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="__codelineno-6-7"></a>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="__codelineno-6-8"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">Subscription</span><span class="p">,</span> <span class="n">graphql_schema</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="__codelineno-6-9"></a>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="__codelineno-6-10"></a>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="__codelineno-6-11"></a><span class="k">def</span> <span class="nf">hello</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="__codelineno-6-12"></a>    <span class="k">return</span> <span class="s2">&quot;world&quot;</span>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="__codelineno-6-13"></a>
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="__codelineno-6-14"></a>
-<a id="__codelineno-6-15" name="__codelineno-6-15" href="__codelineno-6-15"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">events</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">AsyncIterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<a id="__codelineno-6-16" name="__codelineno-6-16" href="__codelineno-6-16"></a>    <span class="k">yield</span> <span class="s2">&quot;bonjour&quot;</span>
-<a id="__codelineno-6-17" name="__codelineno-6-17" href="__codelineno-6-17"></a>    <span class="k">yield</span> <span class="s2">&quot;au revoir&quot;</span>
-<a id="__codelineno-6-18" name="__codelineno-6-18" href="__codelineno-6-18"></a>
-<a id="__codelineno-6-19" name="__codelineno-6-19" href="__codelineno-6-19"></a>
-<a id="__codelineno-6-20" name="__codelineno-6-20" href="__codelineno-6-20"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-6-21" name="__codelineno-6-21" href="__codelineno-6-21"></a><span class="k">class</span> <span class="nc">Message</span><span class="p">:</span>
-<a id="__codelineno-6-22" name="__codelineno-6-22" href="__codelineno-6-22"></a>    <span class="n">body</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-6-23" name="__codelineno-6-23" href="__codelineno-6-23"></a>
-<a id="__codelineno-6-24" name="__codelineno-6-24" href="__codelineno-6-24"></a>
-<a id="__codelineno-6-25" name="__codelineno-6-25" href="__codelineno-6-25"></a><span class="c1"># Message can also be used directly as a function</span>
-<a id="__codelineno-6-26" name="__codelineno-6-26" href="__codelineno-6-26"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span>
-<a id="__codelineno-6-27" name="__codelineno-6-27" href="__codelineno-6-27"></a>    <span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">hello</span><span class="p">],</span>
-<a id="__codelineno-6-28" name="__codelineno-6-28" href="__codelineno-6-28"></a>    <span class="n">subscription</span><span class="o">=</span><span class="p">[</span><span class="n">Subscription</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;messageReceived&quot;</span><span class="p">,</span> <span class="n">resolver</span><span class="o">=</span><span class="n">Message</span><span class="p">)],</span>
-<a id="__codelineno-6-29" name="__codelineno-6-29" href="__codelineno-6-29"></a><span class="p">)</span>
-<a id="__codelineno-6-30" name="__codelineno-6-30" href="__codelineno-6-30"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<a id="__codelineno-6-31" name="__codelineno-6-31" href="__codelineno-6-31"></a><span class="s2">type Query {</span>
-<a id="__codelineno-6-32" name="__codelineno-6-32" href="__codelineno-6-32"></a><span class="s2">  hello: String!</span>
-<a id="__codelineno-6-33" name="__codelineno-6-33" href="__codelineno-6-33"></a><span class="s2">}</span>
-<a id="__codelineno-6-34" name="__codelineno-6-34" href="__codelineno-6-34"></a>
-<a id="__codelineno-6-35" name="__codelineno-6-35" href="__codelineno-6-35"></a><span class="s2">type Subscription {</span>
-<a id="__codelineno-6-36" name="__codelineno-6-36" href="__codelineno-6-36"></a><span class="s2">  messageReceived: Message!</span>
-<a id="__codelineno-6-37" name="__codelineno-6-37" href="__codelineno-6-37"></a><span class="s2">}</span>
-<a id="__codelineno-6-38" name="__codelineno-6-38" href="__codelineno-6-38"></a>
-<a id="__codelineno-6-39" name="__codelineno-6-39" href="__codelineno-6-39"></a><span class="s2">type Message {</span>
-<a id="__codelineno-6-40" name="__codelineno-6-40" href="__codelineno-6-40"></a><span class="s2">  body: String!</span>
-<a id="__codelineno-6-41" name="__codelineno-6-41" href="__codelineno-6-41"></a><span class="s2">}</span>
-<a id="__codelineno-6-42" name="__codelineno-6-42" href="__codelineno-6-42"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-6-43" name="__codelineno-6-43" href="__codelineno-6-43"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
-<a id="__codelineno-6-44" name="__codelineno-6-44" href="__codelineno-6-44"></a>
-<a id="__codelineno-6-45" name="__codelineno-6-45" href="__codelineno-6-45"></a>
-<a id="__codelineno-6-46" name="__codelineno-6-46" href="__codelineno-6-46"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
-<a id="__codelineno-6-47" name="__codelineno-6-47" href="__codelineno-6-47"></a>    <span class="n">subscription</span> <span class="o">=</span> <span class="k">await</span> <span class="n">graphql</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span>
-<a id="__codelineno-6-48" name="__codelineno-6-48" href="__codelineno-6-48"></a>        <span class="n">schema</span><span class="p">,</span> <span class="n">graphql</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;subscription {messageReceived </span><span class="si">{body}</span><span class="s2">}&quot;</span><span class="p">)</span>
-<a id="__codelineno-6-49" name="__codelineno-6-49" href="__codelineno-6-49"></a>    <span class="p">)</span>
-<a id="__codelineno-6-50" name="__codelineno-6-50" href="__codelineno-6-50"></a>    <span class="k">assert</span> <span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">data</span> <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">subscription</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span>
-<a id="__codelineno-6-51" name="__codelineno-6-51" href="__codelineno-6-51"></a>        <span class="p">{</span><span class="s2">&quot;messageReceived&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;bonjour&quot;</span><span class="p">}},</span>
-<a id="__codelineno-6-52" name="__codelineno-6-52" href="__codelineno-6-52"></a>        <span class="p">{</span><span class="s2">&quot;messageReceived&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;au revoir&quot;</span><span class="p">}},</span>
-<a id="__codelineno-6-53" name="__codelineno-6-53" href="__codelineno-6-53"></a>    <span class="p">]</span>
-<a id="__codelineno-6-54" name="__codelineno-6-54" href="__codelineno-6-54"></a>
-<a id="__codelineno-6-55" name="__codelineno-6-55" href="__codelineno-6-55"></a>
-<a id="__codelineno-6-56" name="__codelineno-6-56" href="__codelineno-6-56"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">test</span><span class="p">())</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="kn">import</span> <span class="nn">asyncio</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">AsyncIterable</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5"></a><span class="kn">import</span> <span class="nn">graphql</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">Subscription</span><span class="p">,</span> <span class="n">graphql_schema</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9"></a>
+<a id="__codelineno-6-10" name="__codelineno-6-10"></a>
+<a id="__codelineno-6-11" name="__codelineno-6-11"></a><span class="k">def</span> <span class="nf">hello</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12"></a>    <span class="k">return</span> <span class="s2">&quot;world&quot;</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13"></a>
+<a id="__codelineno-6-14" name="__codelineno-6-14"></a>
+<a id="__codelineno-6-15" name="__codelineno-6-15"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">events</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">AsyncIterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16"></a>    <span class="k">yield</span> <span class="s2">&quot;bonjour&quot;</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17"></a>    <span class="k">yield</span> <span class="s2">&quot;au revoir&quot;</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18"></a>
+<a id="__codelineno-6-19" name="__codelineno-6-19"></a>
+<a id="__codelineno-6-20" name="__codelineno-6-20"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21"></a><span class="k">class</span> <span class="nc">Message</span><span class="p">:</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22"></a>    <span class="n">body</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23"></a>
+<a id="__codelineno-6-24" name="__codelineno-6-24"></a>
+<a id="__codelineno-6-25" name="__codelineno-6-25"></a><span class="c1"># Message can also be used directly as a function</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27"></a>    <span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">hello</span><span class="p">],</span>
+<a id="__codelineno-6-28" name="__codelineno-6-28"></a>    <span class="n">subscription</span><span class="o">=</span><span class="p">[</span><span class="n">Subscription</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;messageReceived&quot;</span><span class="p">,</span> <span class="n">resolver</span><span class="o">=</span><span class="n">Message</span><span class="p">)],</span>
+<a id="__codelineno-6-29" name="__codelineno-6-29"></a><span class="p">)</span>
+<a id="__codelineno-6-30" name="__codelineno-6-30"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<a id="__codelineno-6-31" name="__codelineno-6-31"></a><span class="s2">type Query {</span>
+<a id="__codelineno-6-32" name="__codelineno-6-32"></a><span class="s2">  hello: String!</span>
+<a id="__codelineno-6-33" name="__codelineno-6-33"></a><span class="s2">}</span>
+<a id="__codelineno-6-34" name="__codelineno-6-34"></a>
+<a id="__codelineno-6-35" name="__codelineno-6-35"></a><span class="s2">type Subscription {</span>
+<a id="__codelineno-6-36" name="__codelineno-6-36"></a><span class="s2">  messageReceived: Message!</span>
+<a id="__codelineno-6-37" name="__codelineno-6-37"></a><span class="s2">}</span>
+<a id="__codelineno-6-38" name="__codelineno-6-38"></a>
+<a id="__codelineno-6-39" name="__codelineno-6-39"></a><span class="s2">type Message {</span>
+<a id="__codelineno-6-40" name="__codelineno-6-40"></a><span class="s2">  body: String!</span>
+<a id="__codelineno-6-41" name="__codelineno-6-41"></a><span class="s2">}</span>
+<a id="__codelineno-6-42" name="__codelineno-6-42"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-6-43" name="__codelineno-6-43"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<a id="__codelineno-6-44" name="__codelineno-6-44"></a>
+<a id="__codelineno-6-45" name="__codelineno-6-45"></a>
+<a id="__codelineno-6-46" name="__codelineno-6-46"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+<a id="__codelineno-6-47" name="__codelineno-6-47"></a>    <span class="n">subscription</span> <span class="o">=</span> <span class="k">await</span> <span class="n">graphql</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span>
+<a id="__codelineno-6-48" name="__codelineno-6-48"></a>        <span class="n">schema</span><span class="p">,</span> <span class="n">graphql</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;subscription {messageReceived </span><span class="si">{body}</span><span class="s2">}&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-49" name="__codelineno-6-49"></a>    <span class="p">)</span>
+<a id="__codelineno-6-50" name="__codelineno-6-50"></a>    <span class="k">assert</span> <span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">data</span> <span class="k">async</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">subscription</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span>
+<a id="__codelineno-6-51" name="__codelineno-6-51"></a>        <span class="p">{</span><span class="s2">&quot;messageReceived&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;bonjour&quot;</span><span class="p">}},</span>
+<a id="__codelineno-6-52" name="__codelineno-6-52"></a>        <span class="p">{</span><span class="s2">&quot;messageReceived&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;au revoir&quot;</span><span class="p">}},</span>
+<a id="__codelineno-6-53" name="__codelineno-6-53"></a>    <span class="p">]</span>
+<a id="__codelineno-6-54" name="__codelineno-6-54"></a>
+<a id="__codelineno-6-55" name="__codelineno-6-55"></a>
+<a id="__codelineno-6-56" name="__codelineno-6-56"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">test</span><span class="p">())</span>
 </code></pre></div>
 
               
@@ -1135,7 +1135,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.0bbba5b5.min.js", "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e1a181d9.min.js"></script>
+      <script src="../../assets/javascripts/bundle.649a939e.min.js"></script>
       
     
   </body>
