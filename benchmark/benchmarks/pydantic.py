@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Generic, Optional, TypeVar
+from typing import Generic, Optional, Type, TypeVar
 
 import pydantic.generics
 from common import Benchmark, Methods, Payment, to_camel_case
@@ -46,7 +46,7 @@ class Envelop(pydantic.generics.GenericModel, Generic[T]):
     __root__: list[T]
 
 
-def methods(model: type) -> Methods:
+def methods(model: Type[CamelModel]) -> Methods:
     envelop = Envelop[model]  # type: ignore
 
     def serialize_receipts(obj: Envelop[Receipt]):

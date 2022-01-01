@@ -1,13 +1,13 @@
 from collections.abc import Callable
 from enum import Enum
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from apischema.utils import to_camel_case
 
 
 class Methods(NamedTuple):
-    deserializer: Callable
-    serializer: Callable
+    deserializer: Callable[[Any], Any]
+    serializer: Callable[[Any], Any]
 
 
 class Benchmark(NamedTuple):
