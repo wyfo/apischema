@@ -41,7 +41,6 @@ def run_benchmark(
     methods: Methods, data: Mapping[str, Any], key: str
 ) -> BenchmarkResult:
     print(f"\t{key}")
-    assert isinstance(methods, Methods)
     deserializer, serializer = methods
     first_run_start = time.perf_counter_ns()
     deserialized = deserializer(data[key])
