@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.2">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.3">
     
     
       
@@ -17,7 +17,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.f7951f6f.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.edf004c2.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
@@ -883,21 +883,21 @@
 <p>The cache is automatically reset when global settings are modified, because it impacts the generated methods.</p>
 </div>
 <p>However, if <code>lru_cache</code> is fast, using the methods directly is faster, so <em>apischema</em> provides <code>apischema.deserialization_method</code> and <code>apischema.serialization_method</code>. These functions share the same parameters than <code>deserialize</code>/<code>serialize</code>, except the data/object parameter to (de)serialize. Using the computed methods directly can increase performances by 10%.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialization_method</span><span class="p">,</span> <span class="n">serialization_method</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9"></a>
-<a id="__codelineno-0-10" name="__codelineno-0-10"></a>
-<a id="__codelineno-0-11" name="__codelineno-0-11"></a><span class="n">deserialize_foo</span> <span class="o">=</span> <span class="n">deserialization_method</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12"></a><span class="n">serialize_foo</span> <span class="o">=</span> <span class="n">serialization_method</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13"></a>
-<a id="__codelineno-0-14" name="__codelineno-0-14"></a><span class="k">assert</span> <span class="n">deserialize_foo</span><span class="p">({</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="k">assert</span> <span class="n">serialize_foo</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="__codelineno-0-3"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialization_method</span><span class="p">,</span> <span class="n">serialization_method</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="__codelineno-0-6"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="__codelineno-0-7"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="__codelineno-0-8"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="__codelineno-0-11"></a><span class="n">deserialize_foo</span> <span class="o">=</span> <span class="n">deserialization_method</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="__codelineno-0-12"></a><span class="n">serialize_foo</span> <span class="o">=</span> <span class="n">serialization_method</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="__codelineno-0-13"></a>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="__codelineno-0-14"></a><span class="k">assert</span> <span class="n">deserialize_foo</span><span class="p">({</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="__codelineno-0-15"></a><span class="k">assert</span> <span class="n">serialize_foo</span><span class="p">(</span><span class="n">Foo</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -906,19 +906,19 @@
 <h2 id="avoid-unnecessary-copies">Avoid unnecessary copies<a class="headerlink" href="#avoid-unnecessary-copies" title="Permanent link">&para;</a></h2>
 <p>As an example, when a list of integers is deserialized, <code>json.load</code> already return a list of integers. The loaded data can thus be "reused", and the deserialization just become a validation step. The same principle applies to serialization.</p>
 <p>It's controlled by the settings <code>apischema.settings.deserialization.no_copy</code>/<code>apischema.settings.serialization.no_copy</code>, or <code>no_copy</code> parameter of <code>deserialize</code>/<code>serialize</code> methods. Default behavior is to avoid these unnecessary copies, i.e. <code>no_copy=False</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">timeit</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5"></a><span class="n">ints</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">))</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6"></a>
-<a id="__codelineno-1-7" name="__codelineno-1-7"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">ints</span><span class="p">,</span> <span class="n">no_copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="ow">is</span> <span class="n">ints</span>  <span class="c1"># default</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">ints</span><span class="p">,</span> <span class="n">no_copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">ints</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9"></a>
-<a id="__codelineno-1-10" name="__codelineno-1-10"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;deserialize(list[int], ints, no_copy=True)&quot;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11"></a><span class="c1"># 8.596703557006549</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;deserialize(list[int], ints, no_copy=False)&quot;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13"></a><span class="c1"># 9.365363762015477</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="__codelineno-1-1"></a><span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">timeit</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="__codelineno-1-3"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="__codelineno-1-5"></a><span class="n">ints</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">))</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="__codelineno-1-7"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">ints</span><span class="p">,</span> <span class="n">no_copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="ow">is</span> <span class="n">ints</span>  <span class="c1"># default</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="__codelineno-1-8"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">ints</span><span class="p">,</span> <span class="n">no_copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">ints</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="__codelineno-1-10"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;deserialize(list[int], ints, no_copy=True)&quot;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="__codelineno-1-11"></a><span class="c1"># 8.596703557006549</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="__codelineno-1-12"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;deserialize(list[int], ints, no_copy=False)&quot;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="__codelineno-1-13"></a><span class="c1"># 9.365363762015477</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -928,10 +928,10 @@
 <p>JSON serialization libraries expect primitive data types (<code>dict</code>/<code>list</code>/<code>str</code>/etc.). A non-negligible part of objects to be serialized are primitive.</p>
 <p>When <a href="#type-checking">type checking</a> is disabled (this is default), objects annotated with primitive types doesn't need to be transformed or checked; <em>apischema</em> can simply "pass through" them, and it will result into an identity serialization method, just returning its argument.</p>
 <p>Container types like <code>list</code> or <code>dict</code> are passed through only when the contained types are passed through too (and when <code>no_copy=True</code>)</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">serialize</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3"></a><span class="n">ints</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">ints</span><span class="p">)</span> <span class="ow">is</span> <span class="n">ints</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">serialize</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="__codelineno-2-3"></a><span class="n">ints</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="__codelineno-2-4"></a><span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">ints</span><span class="p">)</span> <span class="ow">is</span> <span class="n">ints</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -941,16 +941,16 @@
 <p>Some JSON serialization libraries natively support types like <code>UUID</code> or <code>datetime</code>, sometimes with a faster implementation than the <em>apischema</em> one — <a href="https://github.com/ijl/orjson">orjson</a>, written in Rust, is a good example.</p>
 <p>To take advantage of that, <em>apischema</em> provides <code>apischema.PassThroughOptions</code> class to specify which type should be passed through, whether they are supported natively by JSON libraries (or handled in a <code>default</code> fallback). </p>
 <p><code>apischema.serialization_default</code> can be used as <code>default</code> fallback in combination to <code>PassThroughOptions</code>. It has to be instantiated with the same kwargs parameters (<code>aliaser</code>, etc.) than <code>serialization_method</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Collection</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">uuid4</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3"></a>
-<a id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">PassThroughOptions</span><span class="p">,</span> <span class="n">serialization_method</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5"></a>
-<a id="__codelineno-3-6" name="__codelineno-3-6"></a><span class="n">uuids_method</span> <span class="o">=</span> <span class="n">serialization_method</span><span class="p">(</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7"></a>    <span class="n">Collection</span><span class="p">[</span><span class="n">UUID</span><span class="p">],</span> <span class="n">pass_through</span><span class="o">=</span><span class="n">PassThroughOptions</span><span class="p">(</span><span class="n">collections</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="p">{</span><span class="n">UUID</span><span class="p">})</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8"></a><span class="p">)</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9"></a><span class="n">uuids</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)]</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10"></a><span class="k">assert</span> <span class="n">uuids_method</span><span class="p">(</span><span class="n">uuids</span><span class="p">)</span> <span class="ow">is</span> <span class="n">uuids</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="__codelineno-3-1"></a><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Collection</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="__codelineno-3-2"></a><span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">uuid4</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="__codelineno-3-4"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">PassThroughOptions</span><span class="p">,</span> <span class="n">serialization_method</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="__codelineno-3-5"></a>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="__codelineno-3-6"></a><span class="n">uuids_method</span> <span class="o">=</span> <span class="n">serialization_method</span><span class="p">(</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="__codelineno-3-7"></a>    <span class="n">Collection</span><span class="p">[</span><span class="n">UUID</span><span class="p">],</span> <span class="n">pass_through</span><span class="o">=</span><span class="n">PassThroughOptions</span><span class="p">(</span><span class="n">collections</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="p">{</span><span class="n">UUID</span><span class="p">})</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="__codelineno-3-8"></a><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="__codelineno-3-9"></a><span class="n">uuids</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)]</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="__codelineno-3-10"></a><span class="k">assert</span> <span class="n">uuids_method</span><span class="p">(</span><span class="n">uuids</span><span class="p">)</span> <span class="ow">is</span> <span class="n">uuids</span>
 </code></pre></div>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
@@ -995,40 +995,40 @@ They are indeed pure Python functions and cannot be compiled.</p>
 <p>This feature can be toggled on/off globally using <code>apischema.settings.deserialization.override_dataclass_constructors</code></p>
 <h2 id="discriminator">Discriminator<a class="headerlink" href="#discriminator" title="Permanent link">&para;</a></h2>
 <p><a href="../json_schema/#openapi-discriminator">OpenAPI discriminator</a> allows making union deserialization time more homogeneous.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2"></a><span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">timeit</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Union</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4"></a>
-<a id="__codelineno-4-5" name="__codelineno-4-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialization_method</span><span class="p">,</span> <span class="n">discriminator</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6"></a>
-<a id="__codelineno-4-7" name="__codelineno-4-7"></a>
-<a id="__codelineno-4-8" name="__codelineno-4-8"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9"></a><span class="k">class</span> <span class="nc">Cat</span><span class="p">:</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10"></a>    <span class="n">love_dog</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11"></a>
-<a id="__codelineno-4-12" name="__codelineno-4-12"></a>
-<a id="__codelineno-4-13" name="__codelineno-4-13"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-4-14" name="__codelineno-4-14"></a><span class="k">class</span> <span class="nc">Dog</span><span class="p">:</span>
-<a id="__codelineno-4-15" name="__codelineno-4-15"></a>    <span class="n">love_cat</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-<a id="__codelineno-4-16" name="__codelineno-4-16"></a>
-<a id="__codelineno-4-17" name="__codelineno-4-17"></a>
-<a id="__codelineno-4-18" name="__codelineno-4-18"></a><span class="n">Pet</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Cat</span><span class="p">,</span> <span class="n">Dog</span><span class="p">]</span>
-<a id="__codelineno-4-19" name="__codelineno-4-19"></a><span class="n">DiscriminatedPet</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">Pet</span><span class="p">,</span> <span class="n">discriminator</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;dog&quot;</span><span class="p">:</span> <span class="n">Dog</span><span class="p">})]</span>
-<a id="__codelineno-4-20" name="__codelineno-4-20"></a>
-<a id="__codelineno-4-21" name="__codelineno-4-21"></a><span class="n">deserialize_union</span> <span class="o">=</span> <span class="n">deserialization_method</span><span class="p">(</span><span class="n">Union</span><span class="p">[</span><span class="n">Cat</span><span class="p">,</span> <span class="n">Dog</span><span class="p">])</span>
-<a id="__codelineno-4-22" name="__codelineno-4-22"></a><span class="n">deserialize_discriminated</span> <span class="o">=</span> <span class="n">deserialization_method</span><span class="p">(</span>
-<a id="__codelineno-4-23" name="__codelineno-4-23"></a>    <span class="n">Annotated</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Cat</span><span class="p">,</span> <span class="n">Dog</span><span class="p">],</span> <span class="n">discriminator</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)]</span>
-<a id="__codelineno-4-24" name="__codelineno-4-24"></a><span class="p">)</span>
-<a id="__codelineno-4-25" name="__codelineno-4-25"></a><span class="c1">##### Without discrimininator</span>
-<a id="__codelineno-4-26" name="__codelineno-4-26"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;deserialize_union({&quot;love_dog&quot;: False})&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
-<a id="__codelineno-4-27" name="__codelineno-4-27"></a><span class="c1"># Cat: 0.760085788</span>
-<a id="__codelineno-4-28" name="__codelineno-4-28"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;deserialize_union({&quot;love_cat&quot;: False})&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
-<a id="__codelineno-4-29" name="__codelineno-4-29"></a><span class="c1"># Dog: 3.078876515 ≈ x4</span>
-<a id="__codelineno-4-30" name="__codelineno-4-30"></a><span class="c1">##### With discriminator</span>
-<a id="__codelineno-4-31" name="__codelineno-4-31"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;deserialize_discriminated({&quot;type&quot;: &quot;Cat&quot;})&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
-<a id="__codelineno-4-32" name="__codelineno-4-32"></a><span class="c1"># Cat: 1.244204702</span>
-<a id="__codelineno-4-33" name="__codelineno-4-33"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;deserialize_discriminated({&quot;type&quot;: &quot;Dog&quot;})&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
-<a id="__codelineno-4-34" name="__codelineno-4-34"></a><span class="c1"># Dog: 1.234058598 ≈ same</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="__codelineno-4-2"></a><span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">timeit</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="__codelineno-4-3"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Union</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="__codelineno-4-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialization_method</span><span class="p">,</span> <span class="n">discriminator</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="__codelineno-4-8"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="__codelineno-4-9"></a><span class="k">class</span> <span class="nc">Cat</span><span class="p">:</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="__codelineno-4-10"></a>    <span class="n">love_dog</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="__codelineno-4-11"></a>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="__codelineno-4-12"></a>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="__codelineno-4-13"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="__codelineno-4-14"></a><span class="k">class</span> <span class="nc">Dog</span><span class="p">:</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="__codelineno-4-15"></a>    <span class="n">love_cat</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="__codelineno-4-16"></a>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="__codelineno-4-17"></a>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="__codelineno-4-18"></a><span class="n">Pet</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Cat</span><span class="p">,</span> <span class="n">Dog</span><span class="p">]</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="__codelineno-4-19"></a><span class="n">DiscriminatedPet</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">Pet</span><span class="p">,</span> <span class="n">discriminator</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;dog&quot;</span><span class="p">:</span> <span class="n">Dog</span><span class="p">})]</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="__codelineno-4-20"></a>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="__codelineno-4-21"></a><span class="n">deserialize_union</span> <span class="o">=</span> <span class="n">deserialization_method</span><span class="p">(</span><span class="n">Union</span><span class="p">[</span><span class="n">Cat</span><span class="p">,</span> <span class="n">Dog</span><span class="p">])</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="__codelineno-4-22"></a><span class="n">deserialize_discriminated</span> <span class="o">=</span> <span class="n">deserialization_method</span><span class="p">(</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="__codelineno-4-23"></a>    <span class="n">Annotated</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Cat</span><span class="p">,</span> <span class="n">Dog</span><span class="p">],</span> <span class="n">discriminator</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)]</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="__codelineno-4-24"></a><span class="p">)</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="__codelineno-4-25"></a><span class="c1">##### Without discrimininator</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="__codelineno-4-26"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;deserialize_union({&quot;love_dog&quot;: False})&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="__codelineno-4-27"></a><span class="c1"># Cat: 0.760085788</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="__codelineno-4-28"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;deserialize_union({&quot;love_cat&quot;: False})&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="__codelineno-4-29"></a><span class="c1"># Dog: 3.078876515 ≈ x4</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30" href="__codelineno-4-30"></a><span class="c1">##### With discriminator</span>
+<a id="__codelineno-4-31" name="__codelineno-4-31" href="__codelineno-4-31"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;deserialize_discriminated({&quot;type&quot;: &quot;Cat&quot;})&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
+<a id="__codelineno-4-32" name="__codelineno-4-32" href="__codelineno-4-32"></a><span class="c1"># Cat: 1.244204702</span>
+<a id="__codelineno-4-33" name="__codelineno-4-33" href="__codelineno-4-33"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;deserialize_discriminated({&quot;type&quot;: &quot;Dog&quot;})&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
+<a id="__codelineno-4-34" name="__codelineno-4-34" href="__codelineno-4-34"></a><span class="c1"># Dog: 1.234058598 ≈ same</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1052,45 +1052,45 @@ Performances are measured on two datasets: a simple, a more complex one.</p>
 <tbody>
 <tr>
 <td>apischema</td>
-<td>0.17.0</td>
+<td>0.17.1</td>
 <td align="right">/</td>
 <td align="right">/</td>
 </tr>
 <tr>
 <td>mashumaro</td>
 <td>2.10.1</td>
-<td align="right">x2.8 (3.5/2.0)</td>
-<td align="right">x2.5 (3.1/2.0)</td>
+<td align="right">x2.6 (3.3/1.9)</td>
+<td align="right">x2.6 (3.1/2.1)</td>
 </tr>
 <tr>
 <td>cattrs</td>
 <td>1.9.0</td>
-<td align="right">x3.1 (4.1/2.1)</td>
-<td align="right">x3.8 (5.9/1.7)</td>
+<td align="right">x3.0 (4.1/2.0)</td>
+<td align="right">x3.9 (6.0/1.8)</td>
 </tr>
 <tr>
 <td>typical</td>
 <td>2.8.0</td>
-<td align="right">x7.1 (7.7/6.4)</td>
-<td align="right">x8.2 (11.7/4.6)</td>
+<td align="right">x6.8 (7.5/6.2)</td>
+<td align="right">x8.2 (11.6/4.7)</td>
 </tr>
 <tr>
 <td>pydantic</td>
 <td>1.9.0</td>
-<td align="right">x11.5 (14.3/8.8)</td>
-<td align="right">x30.9 (43.3/18.5)</td>
+<td align="right">x11.1 (13.9/8.4)</td>
+<td align="right">x32.1 (44.8/19.5)</td>
 </tr>
 <tr>
 <td>marshmallow</td>
 <td>3.14.1</td>
-<td align="right">x24.7 (28.1/21.2)</td>
-<td align="right">x21.9 (27.3/16.4)</td>
+<td align="right">x23.5 (26.8/20.2)</td>
+<td align="right">x22.1 (27.7/16.6)</td>
 </tr>
 <tr>
 <td>typedload</td>
 <td>2.14</td>
-<td align="right">x12.5 (16.2/8.8)</td>
-<td align="right">x64.6 (77.0/52.3)</td>
+<td align="right">x12.3 (16.1/8.5)</td>
+<td align="right">x65.6 (77.3/53.8)</td>
 </tr>
 </tbody>
 </table>
@@ -1166,7 +1166,7 @@ Performances are measured on two datasets: a simple, a more complex one.</p>
     <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.0bbba5b5.min.js", "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.649a939e.min.js"></script>
+      <script src="../assets/javascripts/bundle.e1a181d9.min.js"></script>
       
     
   </body>
