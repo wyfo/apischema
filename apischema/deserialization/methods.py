@@ -350,7 +350,6 @@ class MappingCheckOnly(DeserializationMethod):
         data2: dict = data
         item_errors = None
         for key, value in data2.items():
-            assert isinstance(key, str)
             try:
                 self.key_method.deserialize(key)
                 self.value_method.deserialize(value)
@@ -373,7 +372,6 @@ class MappingMethod(DeserializationMethod):
         item_errors = None
         items: dict = {}
         for key, value in data2.items():
-            assert isinstance(key, str)
             try:
                 items[self.key_method.deserialize(key)] = self.value_method.deserialize(
                     value
