@@ -1,11 +1,12 @@
 name: Documentation
 
 on:
+  workflow_dispatch:
+  release:
+    types: [published]
   push:
     branches:
       - master
-    tags:
-      - v[0-9]*.*.*
     paths:
       - apischema/**
       - benchmark/**
@@ -81,7 +82,7 @@ jobs:
   publish_doc:
     needs: [run_benchmark]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'release'
     steps:
       - uses: actions/cache@v2
         with:
@@ -106,18 +107,19 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git fetch origin gh-pages --depth=1
-      - name: Publish documentation
+      - name: Set environment variable
         run: |
-          export version=$(python setup.py --version | cut -d. -f-2)
-          export revision=$(python setup.py --version | cut -d. -f3)
-          if [[ $GITHUB_REF != refs/tags/* ]]; then
-            mike deploy -p $version dev -t "$version (dev)" -u
-            echo "deploy $version dev"
-          elif [[ $revision == 0 ]]; then
-            mike retitle latest "$(mike list latest -j | jq .version -r)"
-            mike deploy -p $version latest -t "$version (latest)" -u
-            echo "deploy $version latest"
-          else
-            mike deploy -p $version
-            echo "deploy $version"
-          fi
+          echo "version=$(python setup.py --version | cut -d. -f-2)" >> $GITHUB_ENV
+          echo "revision=$(python setup.py --version | cut -d. -f3)" >> $GITHUB_ENV
+          echo "latest=$(mike list latest -j | jq .version -r)" >> $GITHUB_ENV
+      - name: Publish dev documentation
+        if: github.event_name == 'push' && env.version != env.latest
+        run: mike deploy -p $version dev -t "$version (dev)" -u
+      - name: Publish latest documentation
+        if: github.event_name == 'release' && env.revision == '0'
+        run: |
+          mike retitle latest "$latest"
+          mike deploy -p $version latest -t "$version (latest)" -u
+      - name: Publish patch documentation
+        if: github.event_name == 'release' && env.revision != '0'
+        run: mike deploy -p $version
