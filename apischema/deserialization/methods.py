@@ -868,8 +868,9 @@ class ConversionMethod(DeserializationMethod):
 @dataclass
 class ConversionWithValueErrorMethod(ConversionMethod):
     def deserialize(self, data: Any) -> Any:
+        value = self.method.deserialize(data)
         try:
-            return self.converter(self.method.deserialize(data))
+            return self.converter(value)
         except ValueError as err:
             raise ValidationError(str(err))
 
@@ -893,12 +894,15 @@ class ConversionUnionMethod(DeserializationMethod):
                 value = alternative.method.deserialize(data)
             except ValidationError as err:
                 error = merge_errors(error, err)
+                continue
+            try:
+                return alternative.converter(value)
+            except ValidationError as err:
+                error = merge_errors(error, err)
             except ValueError as err:
                 if not alternative.value_error:
                     raise
                 error = merge_errors(error, ValidationError(str(err)))
-            else:
-                return alternative.converter(value)
         assert error is not None
         raise error
 
