@@ -92,7 +92,7 @@ if platform.python_implementation() != "PyPy":
 
 setup(
     name="apischema",
-    version="0.17.0",
+    version="0.17.1",
     url="https://github.com/wyfo/apischema",
     author="Joseph Perez",
     author_email="joperez@hotmail.fr",
