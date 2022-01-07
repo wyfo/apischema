@@ -103,8 +103,16 @@ Following the example of [type/field/method base schema](../json_schema.md#base-
 {!base_schema_parameter.py!}
 ```
 
+## Scalars
+
+`NewType` or non-object types annotated with `type_name`  will be translated in the GraphQL schema by a `scalar`. By the way, `Any` will automatically be translated to a `JSON` scalar, as it is deserialized from and serialized to JSON.
+
+```python
+{!scalar.py!}
+```
+
 ## ID type
-GraphQL `ID` has no precise specification and is defined according API needs; it can be a UUID or and ObjectId, etc.
+GraphQL `ID` has no precise specification and is defined according API needs; it can be a UUID or/and ObjectId, etc.
 
 `apischema.graphql_schema` has a parameter `id_types` which can be used to define which types will be marked as `ID` in the generated schema. Parameter value can be either a collection of types (each type will then be mapped to `ID` scalar), or a predicate returning if the given type must be marked as `ID`.
 
@@ -133,6 +141,7 @@ GraphQL `ID` has no precise specification and is defined according API needs; it
     `ID` serialization (respectively deserialization) is applied **after** *apischema* conversions (respectively before *apischema* conversion): in the example, uuid is already converted into string before being passed to `id_serializer`.
 
     If you use base64 encodeing and an ID type which is converted by *apischema* to a base64 str, you will get a double encoded base64 string
+
 
 ## Tagged unions
 

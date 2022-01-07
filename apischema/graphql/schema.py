@@ -78,10 +78,6 @@ from apischema.utils import (
 )
 
 JsonScalar = graphql.GraphQLScalarType("JSON")
-if graphql.version_info >= (3, 1, 2):
-    JsonScalar.specified_by_url = (
-        "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf"
-    )
 GRAPHQL_PRIMITIVE_TYPES = {
     int: graphql.GraphQLInt,
     float: graphql.GraphQLFloat,
