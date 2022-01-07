@@ -77,7 +77,7 @@ from apischema.utils import (
     to_camel_case,
 )
 
-JsonScalar = graphql.GraphQLScalarType("JSON")
+JSON_SCALAR = graphql.GraphQLScalarType("JSON")
 GRAPHQL_PRIMITIVE_TYPES = {
     int: graphql.GraphQLInt,
     float: graphql.GraphQLFloat,
@@ -225,7 +225,8 @@ def cache_type(method: Method) -> Method:
             name: Optional[str], description: Optional[str]
         ) -> graphql.GraphQLNonNull:
             if name is None:
-                return graphql.GraphQLNonNull(factory.factory(name, description))  # type: ignore
+                tp = factory.factory(name, description)  # type: ignore
+                return graphql.GraphQLNonNull(tp) if tp is not JSON_SCALAR else tp
             # Method is in cache key because scalar types will have the same method,
             # and then be shared by both visitors, while input/output types will have
             # their own cache entry.
@@ -302,7 +303,7 @@ class SchemaBuilder(
             name: Optional[str], description: Optional[str]
         ) -> graphql.GraphQLScalarType:
             if name is None:
-                return JsonScalar
+                return JSON_SCALAR
             else:
                 return graphql.GraphQLScalarType(name, description=description)
 
@@ -362,7 +363,7 @@ class SchemaBuilder(
             if name is not None:
                 return graphql.GraphQLScalarType(name, description=description)
             else:
-                return JsonScalar
+                return JSON_SCALAR
 
         return TypeFactory(factory)
 
