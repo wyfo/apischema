@@ -27,7 +27,7 @@ repos:
   - id: flake8
     exclude: ^examples/.*\.py$
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v0.930
+  rev: v0.931
   hooks:
   - id: mypy
     exclude: ^examples/.*\.py$
