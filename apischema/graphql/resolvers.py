@@ -83,10 +83,6 @@ class PartialSerializationMethodVisitor(SerializationMethodVisitor):
             pass_through_options,
         )
 
-    @property
-    def _factory(self) -> Callable[[type], SerializationMethod]:
-        raise NotImplementedError
-
     def enum(self, cls: Type[Enum]) -> SerializationMethod:
         return IDENTITY_METHOD
 
