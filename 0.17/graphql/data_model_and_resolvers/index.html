@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.3">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.5">
     
     
       
@@ -17,7 +17,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.edf004c2.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ee0f47ba.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.e6a45f82.min.css">
@@ -480,6 +480,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#scalars" class="md-nav__link">
+    Scalars
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#id-type" class="md-nav__link">
     ID type
   </a>
@@ -896,6 +903,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#scalars" class="md-nav__link">
+    Scalars
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#id-type" class="md-nav__link">
     ID type
   </a>
@@ -1004,106 +1018,106 @@
 <p>In input, fields become nullable when <code>Undefined</code> is their default value.</p>
 <h2 id="interfaces">Interfaces<a class="headerlink" href="#interfaces" title="Permanent link">&para;</a></h2>
 <p>Interfaces are simply classes marked with <code>apischema.graphql.interface</code> decorator. An object type implements an interface when its class inherits from an interface-marked class, or when it has <a href="../../data_model/#composition-over-inheritance---composed-dataclasses-flattening">flattened fields</a> of interface-marked dataclass.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="__codelineno-0-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="__codelineno-0-5"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">interface</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="__codelineno-0-7"></a>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="__codelineno-0-8"></a><span class="nd">@interface</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="__codelineno-0-9"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="__codelineno-0-10"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="__codelineno-0-11"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="__codelineno-0-12"></a>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="__codelineno-0-13"></a>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="__codelineno-0-14"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="__codelineno-0-15"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">Bar</span><span class="p">):</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="__codelineno-0-16"></a>    <span class="n">baz</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="__codelineno-0-17"></a>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="__codelineno-0-18"></a>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="__codelineno-0-19"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="__codelineno-0-20"></a>    <span class="o">...</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="__codelineno-0-21"></a>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="__codelineno-0-22"></a>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="__codelineno-0-23"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="__codelineno-0-24"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="__codelineno-0-25"></a><span class="s2">type Query {</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="__codelineno-0-26"></a><span class="s2">  foo: Foo</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="__codelineno-0-27"></a><span class="s2">}</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="__codelineno-0-28"></a>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="__codelineno-0-29"></a><span class="s2">type Foo implements Bar {</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="__codelineno-0-30"></a><span class="s2">  bar: Int!</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="__codelineno-0-31"></a><span class="s2">  baz: String!</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="__codelineno-0-32"></a><span class="s2">}</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="__codelineno-0-33"></a>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="__codelineno-0-34"></a><span class="s2">interface Bar {</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="__codelineno-0-35"></a><span class="s2">  bar: Int!</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="__codelineno-0-36"></a><span class="s2">}</span>
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="__codelineno-0-37"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="__codelineno-0-38"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">interface</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="nd">@interface</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">bar</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">Bar</span><span class="p">):</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">baz</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="o">...</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="s2">type Query {</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="s2">  foo: Foo</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="s2">}</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="s2">type Foo implements Bar {</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="s2">  bar: Int!</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="s2">  baz: String!</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="s2">}</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="s2">interface Bar {</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="s2">  bar: Int!</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="s2">}</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 <h2 id="resolvers">Resolvers<a class="headerlink" href="#resolvers" title="Permanent link">&para;</a></h2>
 <p>All <code>dataclass</code>/<code>NamedTuple</code> fields (excepted <a href="../../data_model/#skip-dataclass-field">skipped</a>) are resolved with their <a href="../../json_schema/#field-alias">alias</a> in the GraphQL schema.</p>
 <p>Custom resolvers can also be added by marking methods with <code>apischema.graphql.resolver</code> decorator — resolvers share a common interface with <a href="../../de_serialization/#serialized-methodsproperties"><code>apischema.serialized</code></a>, with a few differences.</p>
 <p>Methods can be synchronous or asynchronous (defined with <code>async def</code> or annotated with an <code>typing.Awaitable</code> return type).</p>
 <p>Resolvers parameters are included in the schema with their type, and their default value.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="__codelineno-1-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="__codelineno-1-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="__codelineno-1-5"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">resolver</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="__codelineno-1-6"></a>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="__codelineno-1-7"></a>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="__codelineno-1-8"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="__codelineno-1-9"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="__codelineno-1-10"></a>    <span class="n">baz</span><span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="__codelineno-1-11"></a>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="__codelineno-1-12"></a>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="__codelineno-1-13"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="__codelineno-1-14"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="__codelineno-1-15"></a>    <span class="nd">@resolver</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="__codelineno-1-16"></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Bar</span><span class="p">:</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="__codelineno-1-17"></a>        <span class="o">...</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="__codelineno-1-18"></a>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="__codelineno-1-19"></a>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="__codelineno-1-20"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="__codelineno-1-21"></a>    <span class="o">...</span>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="__codelineno-1-22"></a>
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="__codelineno-1-23"></a>
-<a id="__codelineno-1-24" name="__codelineno-1-24" href="__codelineno-1-24"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
-<a id="__codelineno-1-25" name="__codelineno-1-25" href="__codelineno-1-25"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="__codelineno-1-26"></a><span class="s2">type Query {</span>
-<a id="__codelineno-1-27" name="__codelineno-1-27" href="__codelineno-1-27"></a><span class="s2">  foo: Foo</span>
-<a id="__codelineno-1-28" name="__codelineno-1-28" href="__codelineno-1-28"></a><span class="s2">}</span>
-<a id="__codelineno-1-29" name="__codelineno-1-29" href="__codelineno-1-29"></a>
-<a id="__codelineno-1-30" name="__codelineno-1-30" href="__codelineno-1-30"></a><span class="s2">type Foo {</span>
-<a id="__codelineno-1-31" name="__codelineno-1-31" href="__codelineno-1-31"></a><span class="s2">  bar(arg: Int! = 0): Bar!</span>
-<a id="__codelineno-1-32" name="__codelineno-1-32" href="__codelineno-1-32"></a><span class="s2">}</span>
-<a id="__codelineno-1-33" name="__codelineno-1-33" href="__codelineno-1-33"></a>
-<a id="__codelineno-1-34" name="__codelineno-1-34" href="__codelineno-1-34"></a><span class="s2">type Bar {</span>
-<a id="__codelineno-1-35" name="__codelineno-1-35" href="__codelineno-1-35"></a><span class="s2">  baz: Int!</span>
-<a id="__codelineno-1-36" name="__codelineno-1-36" href="__codelineno-1-36"></a><span class="s2">}</span>
-<a id="__codelineno-1-37" name="__codelineno-1-37" href="__codelineno-1-37"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-1-38" name="__codelineno-1-38" href="__codelineno-1-38"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">resolver</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">baz</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    <span class="nd">@resolver</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Bar</span><span class="p">:</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>        <span class="o">...</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>    <span class="o">...</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="s2">type Query {</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="s2">  foo: Foo</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="s2">}</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="s2">type Foo {</span>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="s2">  bar(arg: Int! = 0): Bar!</span>
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="s2">}</span>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="s2">type Bar {</span>
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="s2">  baz: Int!</span>
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="s2">}</span>
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 <h3 id="graphqlresolveinfo-parameter"><code>GraphQLResolveInfo</code> parameter<a class="headerlink" href="#graphqlresolveinfo-parameter" title="Permanent link">&para;</a></h3>
 <p>Resolvers can have an additional parameter of type <a href="https://graphql-core-3.readthedocs.io/en/latest/modules/type.html?highlight=GraphQLResolveInfo#graphql.type.GraphQLResolveInfo"><code>graphql.GraphQLResolveInfo</code></a> (or <code>Optional[graphql.GraphQLResolveInfo]</code>), which is automatically injected when the resolver is executed in the context of a GraphQL request. This parameter contains the info about the current GraphQL request being executed.</p>
 <h3 id="undefined-parameter-default-null-vs-undefined">Undefined parameter default — <code>null</code> vs. <code>undefined</code><a class="headerlink" href="#undefined-parameter-default-null-vs-undefined" title="Permanent link">&para;</a></h3>
 <p><code>Undefined</code> can be used as default value of resolver parameters. It can be to distinguish a <code>null</code> input from an absent/<code>undefined</code> input. In fact, <code>null</code> value will result in a <code>None</code> argument where no value will use the default value, <code>Undefined</code> so.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">graphql_sync</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="__codelineno-2-3"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">UndefinedType</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="__codelineno-2-4"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="__codelineno-2-5"></a>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="__codelineno-2-6"></a>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="__codelineno-2-7"></a><span class="k">def</span> <span class="nf">arg_is_absent</span><span class="p">(</span><span class="n">arg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">UndefinedType</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Undefined</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="__codelineno-2-8"></a>    <span class="k">return</span> <span class="n">arg</span> <span class="ow">is</span> <span class="n">Undefined</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="__codelineno-2-9"></a>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="__codelineno-2-10"></a>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="__codelineno-2-11"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">arg_is_absent</span><span class="p">])</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="__codelineno-2-12"></a><span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;{argIsAbsent(arg: null)}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;argIsAbsent&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="__codelineno-2-13"></a><span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{argIsAbsent}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;argIsAbsent&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">graphql_sync</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">UndefinedType</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="k">def</span> <span class="nf">arg_is_absent</span><span class="p">(</span><span class="n">arg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">UndefinedType</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Undefined</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="k">return</span> <span class="n">arg</span> <span class="ow">is</span> <span class="n">Undefined</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">arg_is_absent</span><span class="p">])</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;{argIsAbsent(arg: null)}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;argIsAbsent&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{argIsAbsent}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;argIsAbsent&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
 </code></pre></div>
 <h3 id="error-handling">Error handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h3>
 <p>Errors occurring in resolvers can be caught in a dedicated error handler registered with <code>error_handler</code> parameter. This function takes in parameters the exception, the object, the <a href="#graphqlresolveinfo-parameter">info</a> and the <em>kwargs</em> of the failing resolver; it can return a new value or raise the current or another exception — it can for example be used to log errors without throwing the complete serialization.</p>
@@ -1111,99 +1125,99 @@
 <p><code>error_handler=None</code> correspond to a default handler which only return <code>None</code> — exception is thus discarded and the resolver type becomes <code>Optional</code>.</p>
 <p>The error handler is only executed by <em>apischema</em> serialization process, it's not added to the function, so this one can be executed normally and raise an exception in the rest of your code.</p>
 <p>Error handler can be synchronous or asynchronous.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="__codelineno-3-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="__codelineno-3-2"></a><span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="__codelineno-3-3"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="__codelineno-3-5"></a><span class="kn">import</span> <span class="nn">graphql</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="__codelineno-3-6"></a><span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="__codelineno-3-7"></a>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="__codelineno-3-8"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">resolver</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="__codelineno-3-9"></a>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="__codelineno-3-10"></a><span class="n">logger</span> <span class="o">=</span> <span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="__codelineno-3-11"></a>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="__codelineno-3-12"></a>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="__codelineno-3-13"></a><span class="k">def</span> <span class="nf">log_error</span><span class="p">(</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="__codelineno-3-14"></a>    <span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">graphql</span><span class="o">.</span><span class="n">GraphQLResolveInfo</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="__codelineno-3-15"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="__codelineno-3-16"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="__codelineno-3-17"></a>        <span class="s2">&quot;Resolve error in </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">as_list</span><span class="p">())),</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">error</span>
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="__codelineno-3-18"></a>    <span class="p">)</span>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="__codelineno-3-19"></a>    <span class="k">return</span> <span class="kc">None</span>
-<a id="__codelineno-3-20" name="__codelineno-3-20" href="__codelineno-3-20"></a>
-<a id="__codelineno-3-21" name="__codelineno-3-21" href="__codelineno-3-21"></a>
-<a id="__codelineno-3-22" name="__codelineno-3-22" href="__codelineno-3-22"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-3-23" name="__codelineno-3-23" href="__codelineno-3-23"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-<a id="__codelineno-3-24" name="__codelineno-3-24" href="__codelineno-3-24"></a>    <span class="nd">@resolver</span><span class="p">(</span><span class="n">error_handler</span><span class="o">=</span><span class="n">log_error</span><span class="p">)</span>
-<a id="__codelineno-3-25" name="__codelineno-3-25" href="__codelineno-3-25"></a>    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<a id="__codelineno-3-26" name="__codelineno-3-26" href="__codelineno-3-26"></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Bar error&quot;</span><span class="p">)</span>
-<a id="__codelineno-3-27" name="__codelineno-3-27" href="__codelineno-3-27"></a>
-<a id="__codelineno-3-28" name="__codelineno-3-28" href="__codelineno-3-28"></a>    <span class="nd">@resolver</span>
-<a id="__codelineno-3-29" name="__codelineno-3-29" href="__codelineno-3-29"></a>    <span class="k">def</span> <span class="nf">baz</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<a id="__codelineno-3-30" name="__codelineno-3-30" href="__codelineno-3-30"></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Baz error&quot;</span><span class="p">)</span>
-<a id="__codelineno-3-31" name="__codelineno-3-31" href="__codelineno-3-31"></a>
-<a id="__codelineno-3-32" name="__codelineno-3-32" href="__codelineno-3-32"></a>
-<a id="__codelineno-3-33" name="__codelineno-3-33" href="__codelineno-3-33"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">info</span><span class="p">:</span> <span class="n">graphql</span><span class="o">.</span><span class="n">GraphQLResolveInfo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
-<a id="__codelineno-3-34" name="__codelineno-3-34" href="__codelineno-3-34"></a>    <span class="k">return</span> <span class="n">Foo</span><span class="p">()</span>
-<a id="__codelineno-3-35" name="__codelineno-3-35" href="__codelineno-3-35"></a>
-<a id="__codelineno-3-36" name="__codelineno-3-36" href="__codelineno-3-36"></a>
-<a id="__codelineno-3-37" name="__codelineno-3-37" href="__codelineno-3-37"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
-<a id="__codelineno-3-38" name="__codelineno-3-38" href="__codelineno-3-38"></a><span class="c1"># Notice that bar is Int while baz is Int!</span>
-<a id="__codelineno-3-39" name="__codelineno-3-39" href="__codelineno-3-39"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<a id="__codelineno-3-40" name="__codelineno-3-40" href="__codelineno-3-40"></a><span class="s2">type Query {</span>
-<a id="__codelineno-3-41" name="__codelineno-3-41" href="__codelineno-3-41"></a><span class="s2">  foo: Foo!</span>
-<a id="__codelineno-3-42" name="__codelineno-3-42" href="__codelineno-3-42"></a><span class="s2">}</span>
-<a id="__codelineno-3-43" name="__codelineno-3-43" href="__codelineno-3-43"></a>
-<a id="__codelineno-3-44" name="__codelineno-3-44" href="__codelineno-3-44"></a><span class="s2">type Foo {</span>
-<a id="__codelineno-3-45" name="__codelineno-3-45" href="__codelineno-3-45"></a><span class="s2">  bar: Int</span>
-<a id="__codelineno-3-46" name="__codelineno-3-46" href="__codelineno-3-46"></a><span class="s2">  baz: Int!</span>
-<a id="__codelineno-3-47" name="__codelineno-3-47" href="__codelineno-3-47"></a><span class="s2">}</span>
-<a id="__codelineno-3-48" name="__codelineno-3-48" href="__codelineno-3-48"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-3-49" name="__codelineno-3-49" href="__codelineno-3-49"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
-<a id="__codelineno-3-50" name="__codelineno-3-50" href="__codelineno-3-50"></a><span class="c1"># Logs &quot;Resolve error in foo.bar&quot;, no error raised</span>
-<a id="__codelineno-3-51" name="__codelineno-3-51" href="__codelineno-3-51"></a><span class="k">assert</span> <span class="n">graphql</span><span class="o">.</span><span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;{foo</span><span class="si">{bar}</span><span class="s2">}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;foo&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}}</span>
-<a id="__codelineno-3-52" name="__codelineno-3-52" href="__codelineno-3-52"></a><span class="c1"># Error is raised</span>
-<a id="__codelineno-3-53" name="__codelineno-3-53" href="__codelineno-3-53"></a><span class="k">assert</span> <span class="n">graphql</span><span class="o">.</span><span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;{foo</span><span class="si">{baz}</span><span class="s2">}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">errors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span> <span class="o">==</span> <span class="s2">&quot;Baz error&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="kn">import</span> <span class="nn">graphql</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">resolver</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">logger</span> <span class="o">=</span> <span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="k">def</span> <span class="nf">log_error</span><span class="p">(</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>    <span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">graphql</span><span class="o">.</span><span class="n">GraphQLResolveInfo</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>        <span class="s2">&quot;Resolve error in </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">as_list</span><span class="p">())),</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">error</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>    <span class="p">)</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>    <span class="k">return</span> <span class="kc">None</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>    <span class="nd">@resolver</span><span class="p">(</span><span class="n">error_handler</span><span class="o">=</span><span class="n">log_error</span><span class="p">)</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Bar error&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>    <span class="nd">@resolver</span>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>    <span class="k">def</span> <span class="nf">baz</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Baz error&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">info</span><span class="p">:</span> <span class="n">graphql</span><span class="o">.</span><span class="n">GraphQLResolveInfo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
+<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a>    <span class="k">return</span> <span class="n">Foo</span><span class="p">()</span>
+<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a>
+<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>
+<a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
+<a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a><span class="c1"># Notice that bar is Int while baz is Int!</span>
+<a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a><span class="s2">type Query {</span>
+<a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a><span class="s2">  foo: Foo!</span>
+<a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a><span class="s2">}</span>
+<a id="__codelineno-3-43" name="__codelineno-3-43" href="#__codelineno-3-43"></a>
+<a id="__codelineno-3-44" name="__codelineno-3-44" href="#__codelineno-3-44"></a><span class="s2">type Foo {</span>
+<a id="__codelineno-3-45" name="__codelineno-3-45" href="#__codelineno-3-45"></a><span class="s2">  bar: Int</span>
+<a id="__codelineno-3-46" name="__codelineno-3-46" href="#__codelineno-3-46"></a><span class="s2">  baz: Int!</span>
+<a id="__codelineno-3-47" name="__codelineno-3-47" href="#__codelineno-3-47"></a><span class="s2">}</span>
+<a id="__codelineno-3-48" name="__codelineno-3-48" href="#__codelineno-3-48"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-3-49" name="__codelineno-3-49" href="#__codelineno-3-49"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<a id="__codelineno-3-50" name="__codelineno-3-50" href="#__codelineno-3-50"></a><span class="c1"># Logs &quot;Resolve error in foo.bar&quot;, no error raised</span>
+<a id="__codelineno-3-51" name="__codelineno-3-51" href="#__codelineno-3-51"></a><span class="k">assert</span> <span class="n">graphql</span><span class="o">.</span><span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;{foo</span><span class="si">{bar}</span><span class="s2">}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;foo&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}}</span>
+<a id="__codelineno-3-52" name="__codelineno-3-52" href="#__codelineno-3-52"></a><span class="c1"># Error is raised</span>
+<a id="__codelineno-3-53" name="__codelineno-3-53" href="#__codelineno-3-53"></a><span class="k">assert</span> <span class="n">graphql</span><span class="o">.</span><span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;{foo</span><span class="si">{baz}</span><span class="s2">}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">errors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span> <span class="o">==</span> <span class="s2">&quot;Baz error&quot;</span>
 </code></pre></div>
 <h3 id="parameters-metadata">Parameters metadata<a class="headerlink" href="#parameters-metadata" title="Permanent link">&para;</a></h3>
 <p>Resolvers parameters can have metadata like dataclass fields. They can be passed using <code>typing.Annotated</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="__codelineno-4-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="__codelineno-4-3"></a>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="__codelineno-4-4"></a><span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="__codelineno-4-5"></a>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="__codelineno-4-6"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">alias</span><span class="p">,</span> <span class="n">schema</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="__codelineno-4-7"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">resolver</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="__codelineno-4-8"></a>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="__codelineno-4-9"></a>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="__codelineno-4-10"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="__codelineno-4-11"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="__codelineno-4-12"></a>    <span class="nd">@resolver</span>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="__codelineno-4-13"></a>    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span>
-<a id="__codelineno-4-14" name="__codelineno-4-14" href="__codelineno-4-14"></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">alias</span><span class="p">(</span><span class="s2">&quot;arg&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;argument&quot;</span><span class="p">)]</span>
-<a id="__codelineno-4-15" name="__codelineno-4-15" href="__codelineno-4-15"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="__codelineno-4-16"></a>        <span class="k">return</span> <span class="n">param</span>
-<a id="__codelineno-4-17" name="__codelineno-4-17" href="__codelineno-4-17"></a>
-<a id="__codelineno-4-18" name="__codelineno-4-18" href="__codelineno-4-18"></a>
-<a id="__codelineno-4-19" name="__codelineno-4-19" href="__codelineno-4-19"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
-<a id="__codelineno-4-20" name="__codelineno-4-20" href="__codelineno-4-20"></a>    <span class="k">return</span> <span class="n">Foo</span><span class="p">()</span>
-<a id="__codelineno-4-21" name="__codelineno-4-21" href="__codelineno-4-21"></a>
-<a id="__codelineno-4-22" name="__codelineno-4-22" href="__codelineno-4-22"></a>
-<a id="__codelineno-4-23" name="__codelineno-4-23" href="__codelineno-4-23"></a><span class="n">schema_</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
-<a id="__codelineno-4-24" name="__codelineno-4-24" href="__codelineno-4-24"></a><span class="c1"># Notice that bar is Int while baz is Int!</span>
-<a id="__codelineno-4-25" name="__codelineno-4-25" href="__codelineno-4-25"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span><span class="se">\</span>
-<a id="__codelineno-4-26" name="__codelineno-4-26" href="__codelineno-4-26"></a><span class="s1">type Query {</span>
-<a id="__codelineno-4-27" name="__codelineno-4-27" href="__codelineno-4-27"></a><span class="s1">  foo: Foo!</span>
-<a id="__codelineno-4-28" name="__codelineno-4-28" href="__codelineno-4-28"></a><span class="s1">}</span>
-<a id="__codelineno-4-29" name="__codelineno-4-29" href="__codelineno-4-29"></a>
-<a id="__codelineno-4-30" name="__codelineno-4-30" href="__codelineno-4-30"></a><span class="s1">type Foo {</span>
-<a id="__codelineno-4-31" name="__codelineno-4-31" href="__codelineno-4-31"></a><span class="s1">  bar(</span>
-<a id="__codelineno-4-32" name="__codelineno-4-32" href="__codelineno-4-32"></a><span class="s1">    &quot;&quot;&quot;argument&quot;&quot;&quot;</span>
-<a id="__codelineno-4-33" name="__codelineno-4-33" href="__codelineno-4-33"></a><span class="s1">    arg: Int!</span>
-<a id="__codelineno-4-34" name="__codelineno-4-34" href="__codelineno-4-34"></a><span class="s1">  ): Int!</span>
-<a id="__codelineno-4-35" name="__codelineno-4-35" href="__codelineno-4-35"></a><span class="s1">}</span>
-<a id="__codelineno-4-36" name="__codelineno-4-36" href="__codelineno-4-36"></a><span class="s1">&#39;&#39;&#39;</span>
-<a id="__codelineno-4-37" name="__codelineno-4-37" href="__codelineno-4-37"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema_</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Annotated</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">alias</span><span class="p">,</span> <span class="n">schema</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">resolver</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    <span class="nd">@resolver</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">alias</span><span class="p">(</span><span class="s2">&quot;arg&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;argument&quot;</span><span class="p">)]</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>        <span class="k">return</span> <span class="n">param</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>    <span class="k">return</span> <span class="n">Foo</span><span class="p">()</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="n">schema_</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="c1"># Notice that bar is Int while baz is Int!</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span><span class="se">\</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="s1">type Query {</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="s1">  foo: Foo!</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="s1">}</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a>
+<a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="s1">type Foo {</span>
+<a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="s1">  bar(</span>
+<a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a><span class="s1">    &quot;&quot;&quot;argument&quot;&quot;&quot;</span>
+<a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="s1">    arg: Int!</span>
+<a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a><span class="s1">  ): Int!</span>
+<a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a><span class="s1">}</span>
+<a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a><span class="s1">&#39;&#39;&#39;</span>
+<a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema_</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1211,98 +1225,136 @@
 <p>Metadata can also be passed with <code>parameters_metadata</code> parameter; it takes a mapping of parameter names as key and mapped metadata as value.</p>
 <h3 id="parameters-base-schema">Parameters base schema<a class="headerlink" href="#parameters-base-schema" title="Permanent link">&para;</a></h3>
 <p>Following the example of <a href="../../json_schema/#base-schema">type/field/method base schema</a>, resolver parameters also support a base schema definition</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="__codelineno-5-1"></a><span class="kn">import</span> <span class="nn">inspect</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="__codelineno-5-2"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="__codelineno-5-3"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="__codelineno-5-4"></a>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="__codelineno-5-5"></a><span class="kn">import</span> <span class="nn">docstring_parser</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="__codelineno-5-6"></a><span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="__codelineno-5-7"></a>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="__codelineno-5-8"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="__codelineno-5-9"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">resolver</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="__codelineno-5-10"></a><span class="kn">from</span> <span class="nn">apischema.schemas</span> <span class="kn">import</span> <span class="n">Schema</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="__codelineno-5-11"></a>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="__codelineno-5-12"></a>
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="__codelineno-5-13"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="__codelineno-5-14"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="__codelineno-5-15"></a>    <span class="nd">@resolver</span>
-<a id="__codelineno-5-16" name="__codelineno-5-16" href="__codelineno-5-16"></a>    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<a id="__codelineno-5-17" name="__codelineno-5-17" href="__codelineno-5-17"></a>        <span class="sd">&quot;&quot;&quot;bar method</span>
-<a id="__codelineno-5-18" name="__codelineno-5-18" href="__codelineno-5-18"></a>
-<a id="__codelineno-5-19" name="__codelineno-5-19" href="__codelineno-5-19"></a><span class="sd">        :param arg: arg parameter</span>
-<a id="__codelineno-5-20" name="__codelineno-5-20" href="__codelineno-5-20"></a><span class="sd">        &quot;&quot;&quot;</span>
-<a id="__codelineno-5-21" name="__codelineno-5-21" href="__codelineno-5-21"></a>        <span class="o">...</span>
-<a id="__codelineno-5-22" name="__codelineno-5-22" href="__codelineno-5-22"></a>
-<a id="__codelineno-5-23" name="__codelineno-5-23" href="__codelineno-5-23"></a>
-<a id="__codelineno-5-24" name="__codelineno-5-24" href="__codelineno-5-24"></a><span class="k">def</span> <span class="nf">method_base_schema</span><span class="p">(</span><span class="n">tp</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">alias</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-5-25" name="__codelineno-5-25" href="__codelineno-5-25"></a>    <span class="k">return</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">docstring_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span><span class="o">.</span><span class="n">short_description</span><span class="p">)</span>
-<a id="__codelineno-5-26" name="__codelineno-5-26" href="__codelineno-5-26"></a>
-<a id="__codelineno-5-27" name="__codelineno-5-27" href="__codelineno-5-27"></a>
-<a id="__codelineno-5-28" name="__codelineno-5-28" href="__codelineno-5-28"></a><span class="k">def</span> <span class="nf">parameter_base_schema</span><span class="p">(</span>
-<a id="__codelineno-5-29" name="__codelineno-5-29" href="__codelineno-5-29"></a>    <span class="n">method</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">parameter</span><span class="p">:</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">alias</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-5-30" name="__codelineno-5-30" href="__codelineno-5-30"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-5-31" name="__codelineno-5-31" href="__codelineno-5-31"></a>    <span class="k">for</span> <span class="n">doc_param</span> <span class="ow">in</span> <span class="n">docstring_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
-<a id="__codelineno-5-32" name="__codelineno-5-32" href="__codelineno-5-32"></a>        <span class="k">if</span> <span class="n">doc_param</span><span class="o">.</span><span class="n">arg_name</span> <span class="o">==</span> <span class="n">parameter</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
-<a id="__codelineno-5-33" name="__codelineno-5-33" href="__codelineno-5-33"></a>            <span class="k">return</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">doc_param</span><span class="o">.</span><span class="n">description</span><span class="p">)</span>
-<a id="__codelineno-5-34" name="__codelineno-5-34" href="__codelineno-5-34"></a>    <span class="k">return</span> <span class="kc">None</span>
-<a id="__codelineno-5-35" name="__codelineno-5-35" href="__codelineno-5-35"></a>
-<a id="__codelineno-5-36" name="__codelineno-5-36" href="__codelineno-5-36"></a>
-<a id="__codelineno-5-37" name="__codelineno-5-37" href="__codelineno-5-37"></a><span class="n">settings</span><span class="o">.</span><span class="n">base_schema</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method_base_schema</span>
-<a id="__codelineno-5-38" name="__codelineno-5-38" href="__codelineno-5-38"></a><span class="n">settings</span><span class="o">.</span><span class="n">base_schema</span><span class="o">.</span><span class="n">parameter</span> <span class="o">=</span> <span class="n">parameter_base_schema</span>
-<a id="__codelineno-5-39" name="__codelineno-5-39" href="__codelineno-5-39"></a>
-<a id="__codelineno-5-40" name="__codelineno-5-40" href="__codelineno-5-40"></a>
-<a id="__codelineno-5-41" name="__codelineno-5-41" href="__codelineno-5-41"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
-<a id="__codelineno-5-42" name="__codelineno-5-42" href="__codelineno-5-42"></a>    <span class="o">...</span>
-<a id="__codelineno-5-43" name="__codelineno-5-43" href="__codelineno-5-43"></a>
-<a id="__codelineno-5-44" name="__codelineno-5-44" href="__codelineno-5-44"></a>
-<a id="__codelineno-5-45" name="__codelineno-5-45" href="__codelineno-5-45"></a><span class="n">schema_</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
-<a id="__codelineno-5-46" name="__codelineno-5-46" href="__codelineno-5-46"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span><span class="se">\</span>
-<a id="__codelineno-5-47" name="__codelineno-5-47" href="__codelineno-5-47"></a><span class="s1">type Query {</span>
-<a id="__codelineno-5-48" name="__codelineno-5-48" href="__codelineno-5-48"></a><span class="s1">  foo: Foo!</span>
-<a id="__codelineno-5-49" name="__codelineno-5-49" href="__codelineno-5-49"></a><span class="s1">}</span>
-<a id="__codelineno-5-50" name="__codelineno-5-50" href="__codelineno-5-50"></a>
-<a id="__codelineno-5-51" name="__codelineno-5-51" href="__codelineno-5-51"></a><span class="s1">type Foo {</span>
-<a id="__codelineno-5-52" name="__codelineno-5-52" href="__codelineno-5-52"></a><span class="s1">  &quot;&quot;&quot;bar method&quot;&quot;&quot;</span>
-<a id="__codelineno-5-53" name="__codelineno-5-53" href="__codelineno-5-53"></a><span class="s1">  bar(</span>
-<a id="__codelineno-5-54" name="__codelineno-5-54" href="__codelineno-5-54"></a><span class="s1">    &quot;&quot;&quot;arg parameter&quot;&quot;&quot;</span>
-<a id="__codelineno-5-55" name="__codelineno-5-55" href="__codelineno-5-55"></a><span class="s1">    arg: String!</span>
-<a id="__codelineno-5-56" name="__codelineno-5-56" href="__codelineno-5-56"></a><span class="s1">  ): Int!</span>
-<a id="__codelineno-5-57" name="__codelineno-5-57" href="__codelineno-5-57"></a><span class="s1">}</span>
-<a id="__codelineno-5-58" name="__codelineno-5-58" href="__codelineno-5-58"></a><span class="s1">&#39;&#39;&#39;</span>
-<a id="__codelineno-5-59" name="__codelineno-5-59" href="__codelineno-5-59"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema_</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span> <span class="nn">inspect</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="kn">import</span> <span class="nn">docstring_parser</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">resolver</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="kn">from</span> <span class="nn">apischema.schemas</span> <span class="kn">import</span> <span class="n">Schema</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>    <span class="nd">@resolver</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>        <span class="sd">&quot;&quot;&quot;bar method</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="sd">        :param arg: arg parameter</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>        <span class="o">...</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="k">def</span> <span class="nf">method_base_schema</span><span class="p">(</span><span class="n">tp</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">alias</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a>    <span class="k">return</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">docstring_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span><span class="o">.</span><span class="n">short_description</span><span class="p">)</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a>
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a><span class="k">def</span> <span class="nf">parameter_base_schema</span><span class="p">(</span>
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a>    <span class="n">method</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">parameter</span><span class="p">:</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">alias</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a>    <span class="k">for</span> <span class="n">doc_param</span> <span class="ow">in</span> <span class="n">docstring_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+<a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a>        <span class="k">if</span> <span class="n">doc_param</span><span class="o">.</span><span class="n">arg_name</span> <span class="o">==</span> <span class="n">parameter</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+<a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a>            <span class="k">return</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">doc_param</span><span class="o">.</span><span class="n">description</span><span class="p">)</span>
+<a id="__codelineno-5-34" name="__codelineno-5-34" href="#__codelineno-5-34"></a>    <span class="k">return</span> <span class="kc">None</span>
+<a id="__codelineno-5-35" name="__codelineno-5-35" href="#__codelineno-5-35"></a>
+<a id="__codelineno-5-36" name="__codelineno-5-36" href="#__codelineno-5-36"></a>
+<a id="__codelineno-5-37" name="__codelineno-5-37" href="#__codelineno-5-37"></a><span class="n">settings</span><span class="o">.</span><span class="n">base_schema</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method_base_schema</span>
+<a id="__codelineno-5-38" name="__codelineno-5-38" href="#__codelineno-5-38"></a><span class="n">settings</span><span class="o">.</span><span class="n">base_schema</span><span class="o">.</span><span class="n">parameter</span> <span class="o">=</span> <span class="n">parameter_base_schema</span>
+<a id="__codelineno-5-39" name="__codelineno-5-39" href="#__codelineno-5-39"></a>
+<a id="__codelineno-5-40" name="__codelineno-5-40" href="#__codelineno-5-40"></a>
+<a id="__codelineno-5-41" name="__codelineno-5-41" href="#__codelineno-5-41"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
+<a id="__codelineno-5-42" name="__codelineno-5-42" href="#__codelineno-5-42"></a>    <span class="o">...</span>
+<a id="__codelineno-5-43" name="__codelineno-5-43" href="#__codelineno-5-43"></a>
+<a id="__codelineno-5-44" name="__codelineno-5-44" href="#__codelineno-5-44"></a>
+<a id="__codelineno-5-45" name="__codelineno-5-45" href="#__codelineno-5-45"></a><span class="n">schema_</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
+<a id="__codelineno-5-46" name="__codelineno-5-46" href="#__codelineno-5-46"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span><span class="se">\</span>
+<a id="__codelineno-5-47" name="__codelineno-5-47" href="#__codelineno-5-47"></a><span class="s1">type Query {</span>
+<a id="__codelineno-5-48" name="__codelineno-5-48" href="#__codelineno-5-48"></a><span class="s1">  foo: Foo!</span>
+<a id="__codelineno-5-49" name="__codelineno-5-49" href="#__codelineno-5-49"></a><span class="s1">}</span>
+<a id="__codelineno-5-50" name="__codelineno-5-50" href="#__codelineno-5-50"></a>
+<a id="__codelineno-5-51" name="__codelineno-5-51" href="#__codelineno-5-51"></a><span class="s1">type Foo {</span>
+<a id="__codelineno-5-52" name="__codelineno-5-52" href="#__codelineno-5-52"></a><span class="s1">  &quot;&quot;&quot;bar method&quot;&quot;&quot;</span>
+<a id="__codelineno-5-53" name="__codelineno-5-53" href="#__codelineno-5-53"></a><span class="s1">  bar(</span>
+<a id="__codelineno-5-54" name="__codelineno-5-54" href="#__codelineno-5-54"></a><span class="s1">    &quot;&quot;&quot;arg parameter&quot;&quot;&quot;</span>
+<a id="__codelineno-5-55" name="__codelineno-5-55" href="#__codelineno-5-55"></a><span class="s1">    arg: String!</span>
+<a id="__codelineno-5-56" name="__codelineno-5-56" href="#__codelineno-5-56"></a><span class="s1">  ): Int!</span>
+<a id="__codelineno-5-57" name="__codelineno-5-57" href="#__codelineno-5-57"></a><span class="s1">}</span>
+<a id="__codelineno-5-58" name="__codelineno-5-58" href="#__codelineno-5-58"></a><span class="s1">&#39;&#39;&#39;</span>
+<a id="__codelineno-5-59" name="__codelineno-5-59" href="#__codelineno-5-59"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema_</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+</code></pre></div>
+<h2 id="scalars">Scalars<a class="headerlink" href="#scalars" title="Permanent link">&para;</a></h2>
+<p><code>NewType</code> or non-object types annotated with <code>type_name</code>  will be translated in the GraphQL schema by a <code>scalar</code>. By the way, <code>Any</code> will automatically be translated to a <code>JSON</code> scalar, as it is deserialized from and serialized to JSON.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">UUID</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>    <span class="n">content</span><span class="p">:</span> <span class="n">Any</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>    <span class="o">...</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">])</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="s2">type Query {</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="s2">  foo: Foo</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="s2">}</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="s2">type Foo {</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="s2">  id: UUID!</span>
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="s2">  content: JSON</span>
+<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="s2">}</span>
+<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a>
+<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="s2">scalar UUID</span>
+<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a>
+<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="s2">scalar JSON</span>
+<a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 <h2 id="id-type">ID type<a class="headerlink" href="#id-type" title="Permanent link">&para;</a></h2>
-<p>GraphQL <code>ID</code> has no precise specification and is defined according API needs; it can be a UUID or and ObjectId, etc.</p>
+<p>GraphQL <code>ID</code> has no precise specification and is defined according API needs; it can be a UUID or/and ObjectId, etc.</p>
 <p><code>apischema.graphql_schema</code> has a parameter <code>id_types</code> which can be used to define which types will be marked as <code>ID</code> in the generated schema. Parameter value can be either a collection of types (each type will then be mapped to <code>ID</code> scalar), or a predicate returning if the given type must be marked as <code>ID</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="__codelineno-6-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="__codelineno-6-2"></a><span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="__codelineno-6-3"></a>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="__codelineno-6-4"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="__codelineno-6-5"></a>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="__codelineno-6-6"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="__codelineno-6-7"></a>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="__codelineno-6-8"></a>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="__codelineno-6-9"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="__codelineno-6-10"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="__codelineno-6-11"></a>    <span class="n">bar</span><span class="p">:</span> <span class="n">UUID</span>
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="__codelineno-6-12"></a>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="__codelineno-6-13"></a>
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="__codelineno-6-14"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-6-15" name="__codelineno-6-15" href="__codelineno-6-15"></a>    <span class="o">...</span>
-<a id="__codelineno-6-16" name="__codelineno-6-16" href="__codelineno-6-16"></a>
-<a id="__codelineno-6-17" name="__codelineno-6-17" href="__codelineno-6-17"></a>
-<a id="__codelineno-6-18" name="__codelineno-6-18" href="__codelineno-6-18"></a><span class="c1"># id_types={UUID} is equivalent to id_types=lambda t: t in {UUID}</span>
-<a id="__codelineno-6-19" name="__codelineno-6-19" href="__codelineno-6-19"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">],</span> <span class="n">id_types</span><span class="o">=</span><span class="p">{</span><span class="n">UUID</span><span class="p">})</span>
-<a id="__codelineno-6-20" name="__codelineno-6-20" href="__codelineno-6-20"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<a id="__codelineno-6-21" name="__codelineno-6-21" href="__codelineno-6-21"></a><span class="s2">type Query {</span>
-<a id="__codelineno-6-22" name="__codelineno-6-22" href="__codelineno-6-22"></a><span class="s2">  foo: Foo</span>
-<a id="__codelineno-6-23" name="__codelineno-6-23" href="__codelineno-6-23"></a><span class="s2">}</span>
-<a id="__codelineno-6-24" name="__codelineno-6-24" href="__codelineno-6-24"></a>
-<a id="__codelineno-6-25" name="__codelineno-6-25" href="__codelineno-6-25"></a><span class="s2">type Foo {</span>
-<a id="__codelineno-6-26" name="__codelineno-6-26" href="__codelineno-6-26"></a><span class="s2">  bar: ID!</span>
-<a id="__codelineno-6-27" name="__codelineno-6-27" href="__codelineno-6-27"></a><span class="s2">}</span>
-<a id="__codelineno-6-28" name="__codelineno-6-28" href="__codelineno-6-28"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-6-29" name="__codelineno-6-29" href="__codelineno-6-29"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    <span class="n">bar</span><span class="p">:</span> <span class="n">UUID</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>    <span class="o">...</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="c1"># id_types={UUID} is equivalent to id_types=lambda t: t in {UUID}</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">],</span> <span class="n">id_types</span><span class="o">=</span><span class="p">{</span><span class="n">UUID</span><span class="p">})</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="s2">type Query {</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="s2">  foo: Foo</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="s2">}</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="s2">type Foo {</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="s2">  bar: ID!</span>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="s2">}</span>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1311,36 +1363,36 @@
 <p><em>apischema</em> also provides a simple <code>ID</code> type with <code>apischema.graphql.ID</code>. It is just defined as a <code>NewType</code> of string, so you can use it when you want to manipulate raw <code>ID</code> strings in your resolvers.</p>
 <h3 id="id-encoding">ID encoding<a class="headerlink" href="#id-encoding" title="Permanent link">&para;</a></h3>
 <p><code>ID</code> encoding can directly be controlled the <code>id_encoding</code> parameters of <code>graphql_schema</code>. A current practice is to use <em>base64</em> encoding for <code>ID</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="__codelineno-7-1"></a><span class="kn">from</span> <span class="nn">base64</span> <span class="kn">import</span> <span class="n">b64decode</span><span class="p">,</span> <span class="n">b64encode</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="__codelineno-7-2"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="__codelineno-7-3"></a><span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="__codelineno-7-4"></a>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="__codelineno-7-5"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">graphql_sync</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="__codelineno-7-6"></a>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="__codelineno-7-7"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="__codelineno-7-8"></a>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="__codelineno-7-9"></a>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="__codelineno-7-10"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="__codelineno-7-11"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="__codelineno-7-12"></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">UUID</span>
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="__codelineno-7-13"></a>
-<a id="__codelineno-7-14" name="__codelineno-7-14" href="__codelineno-7-14"></a>
-<a id="__codelineno-7-15" name="__codelineno-7-15" href="__codelineno-7-15"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-7-16" name="__codelineno-7-16" href="__codelineno-7-16"></a>    <span class="k">return</span> <span class="n">Foo</span><span class="p">(</span><span class="n">UUID</span><span class="p">(</span><span class="s2">&quot;58c88e87-5769-4723-8974-f9ec5007a38b&quot;</span><span class="p">))</span>
-<a id="__codelineno-7-17" name="__codelineno-7-17" href="__codelineno-7-17"></a>
-<a id="__codelineno-7-18" name="__codelineno-7-18" href="__codelineno-7-18"></a>
-<a id="__codelineno-7-19" name="__codelineno-7-19" href="__codelineno-7-19"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span>
-<a id="__codelineno-7-20" name="__codelineno-7-20" href="__codelineno-7-20"></a>    <span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">],</span>
-<a id="__codelineno-7-21" name="__codelineno-7-21" href="__codelineno-7-21"></a>    <span class="n">id_types</span><span class="o">=</span><span class="p">{</span><span class="n">UUID</span><span class="p">},</span>
-<a id="__codelineno-7-22" name="__codelineno-7-22" href="__codelineno-7-22"></a>    <span class="n">id_encoding</span><span class="o">=</span><span class="p">(</span>
-<a id="__codelineno-7-23" name="__codelineno-7-23" href="__codelineno-7-23"></a>        <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">b64decode</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(),</span>
-<a id="__codelineno-7-24" name="__codelineno-7-24" href="__codelineno-7-24"></a>        <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">b64encode</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(),</span>
-<a id="__codelineno-7-25" name="__codelineno-7-25" href="__codelineno-7-25"></a>    <span class="p">),</span>
-<a id="__codelineno-7-26" name="__codelineno-7-26" href="__codelineno-7-26"></a><span class="p">)</span>
-<a id="__codelineno-7-27" name="__codelineno-7-27" href="__codelineno-7-27"></a>
-<a id="__codelineno-7-28" name="__codelineno-7-28" href="__codelineno-7-28"></a><span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;{foo</span><span class="si">{id}</span><span class="s2">}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span>
-<a id="__codelineno-7-29" name="__codelineno-7-29" href="__codelineno-7-29"></a>    <span class="s2">&quot;foo&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;NThjODhlODctNTc2OS00NzIzLTg5NzQtZjllYzUwMDdhMzhi&quot;</span><span class="p">}</span>
-<a id="__codelineno-7-30" name="__codelineno-7-30" href="__codelineno-7-30"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span> <span class="nn">base64</span> <span class="kn">import</span> <span class="n">b64decode</span><span class="p">,</span> <span class="n">b64encode</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">graphql_sync</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">UUID</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="k">def</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Foo</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>    <span class="k">return</span> <span class="n">Foo</span><span class="p">(</span><span class="n">UUID</span><span class="p">(</span><span class="s2">&quot;58c88e87-5769-4723-8974-f9ec5007a38b&quot;</span><span class="p">))</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span>
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>    <span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">foo</span><span class="p">],</span>
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>    <span class="n">id_types</span><span class="o">=</span><span class="p">{</span><span class="n">UUID</span><span class="p">},</span>
+<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>    <span class="n">id_encoding</span><span class="o">=</span><span class="p">(</span>
+<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>        <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">b64decode</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(),</span>
+<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>        <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">b64encode</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(),</span>
+<a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>    <span class="p">),</span>
+<a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a><span class="p">)</span>
+<a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a>
+<a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="s2">&quot;{foo</span><span class="si">{id}</span><span class="s2">}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span>
+<a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a>    <span class="s2">&quot;foo&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;NThjODhlODctNTc2OS00NzIzLTg5NzQtZjllYzUwMDdhMzhi&quot;</span><span class="p">}</span>
+<a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a><span class="p">}</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1358,153 +1410,153 @@
 </div>
 <p><em>apischema</em> provides a <code>apischema.tagged_unions.TaggedUnion</code> base class which helps to implement the <em>tagged union</em> pattern.
 It's fields <strong>must</strong> be typed using <code>apischema.tagged_unions.Tagged</code> generic type.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="__codelineno-8-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="__codelineno-8-2"></a>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="__codelineno-8-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="__codelineno-8-4"></a>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="__codelineno-8-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">alias</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">serialize</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="__codelineno-8-6"></a><span class="kn">from</span> <span class="nn">apischema.tagged_unions</span> <span class="kn">import</span> <span class="n">Tagged</span><span class="p">,</span> <span class="n">TaggedUnion</span><span class="p">,</span> <span class="n">get_tagged</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="__codelineno-8-7"></a>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="__codelineno-8-8"></a>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="__codelineno-8-9"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="__codelineno-8-10"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
-<a id="__codelineno-8-11" name="__codelineno-8-11" href="__codelineno-8-11"></a>    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-8-12" name="__codelineno-8-12" href="__codelineno-8-12"></a>
-<a id="__codelineno-8-13" name="__codelineno-8-13" href="__codelineno-8-13"></a>
-<a id="__codelineno-8-14" name="__codelineno-8-14" href="__codelineno-8-14"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">TaggedUnion</span><span class="p">):</span>
-<a id="__codelineno-8-15" name="__codelineno-8-15" href="__codelineno-8-15"></a>    <span class="n">bar</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">Bar</span><span class="p">]</span>
-<a id="__codelineno-8-16" name="__codelineno-8-16" href="__codelineno-8-16"></a>    <span class="c1"># Tagged can have metadata like a dataclass fields</span>
-<a id="__codelineno-8-17" name="__codelineno-8-17" href="__codelineno-8-17"></a>    <span class="n">i</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">(</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;baz&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">schema</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
-<a id="__codelineno-8-18" name="__codelineno-8-18" href="__codelineno-8-18"></a>
-<a id="__codelineno-8-19" name="__codelineno-8-19" href="__codelineno-8-19"></a>
-<a id="__codelineno-8-20" name="__codelineno-8-20" href="__codelineno-8-20"></a><span class="c1"># Instantiate using class fields</span>
-<a id="__codelineno-8-21" name="__codelineno-8-21" href="__codelineno-8-21"></a><span class="n">tagged_bar</span> <span class="o">=</span> <span class="n">Foo</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">Bar</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">))</span>
-<a id="__codelineno-8-22" name="__codelineno-8-22" href="__codelineno-8-22"></a><span class="c1"># you can also use default constructor, but it&#39;s not typed-checked</span>
-<a id="__codelineno-8-23" name="__codelineno-8-23" href="__codelineno-8-23"></a><span class="k">assert</span> <span class="n">tagged_bar</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="n">bar</span><span class="o">=</span><span class="n">Bar</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">))</span>
-<a id="__codelineno-8-24" name="__codelineno-8-24" href="__codelineno-8-24"></a>
-<a id="__codelineno-8-25" name="__codelineno-8-25" href="__codelineno-8-25"></a><span class="c1"># All fields that are not tagged are Undefined</span>
-<a id="__codelineno-8-26" name="__codelineno-8-26" href="__codelineno-8-26"></a><span class="k">assert</span> <span class="n">tagged_bar</span><span class="o">.</span><span class="n">bar</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Undefined</span> <span class="ow">and</span> <span class="n">tagged_bar</span><span class="o">.</span><span class="n">i</span> <span class="ow">is</span> <span class="n">Undefined</span>
-<a id="__codelineno-8-27" name="__codelineno-8-27" href="__codelineno-8-27"></a><span class="c1"># get_tagged allows to retrieve the tag and it&#39;s value</span>
-<a id="__codelineno-8-28" name="__codelineno-8-28" href="__codelineno-8-28"></a><span class="c1"># (but the value is not typed-checked)</span>
-<a id="__codelineno-8-29" name="__codelineno-8-29" href="__codelineno-8-29"></a><span class="k">assert</span> <span class="n">get_tagged</span><span class="p">(</span><span class="n">tagged_bar</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="n">Bar</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">))</span>
-<a id="__codelineno-8-30" name="__codelineno-8-30" href="__codelineno-8-30"></a>
-<a id="__codelineno-8-31" name="__codelineno-8-31" href="__codelineno-8-31"></a><span class="c1"># (De)serialization works as expected</span>
-<a id="__codelineno-8-32" name="__codelineno-8-32" href="__codelineno-8-32"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}})</span> <span class="o">==</span> <span class="n">tagged_bar</span>
-<a id="__codelineno-8-33" name="__codelineno-8-33" href="__codelineno-8-33"></a><span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">tagged_bar</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}}</span>
-<a id="__codelineno-8-34" name="__codelineno-8-34" href="__codelineno-8-34"></a>
-<a id="__codelineno-8-35" name="__codelineno-8-35" href="__codelineno-8-35"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-8-36" name="__codelineno-8-36" href="__codelineno-8-36"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;unknown&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">})</span>
-<a id="__codelineno-8-37" name="__codelineno-8-37" href="__codelineno-8-37"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;unknown&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;unexpected property&quot;</span><span class="p">}]</span>
-<a id="__codelineno-8-38" name="__codelineno-8-38" href="__codelineno-8-38"></a>
-<a id="__codelineno-8-39" name="__codelineno-8-39" href="__codelineno-8-39"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-<a id="__codelineno-8-40" name="__codelineno-8-40" href="__codelineno-8-40"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">},</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
-<a id="__codelineno-8-41" name="__codelineno-8-41" href="__codelineno-8-41"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
-<a id="__codelineno-8-42" name="__codelineno-8-42" href="__codelineno-8-42"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;property count greater than 1 (maxProperties)&quot;</span><span class="p">}</span>
-<a id="__codelineno-8-43" name="__codelineno-8-43" href="__codelineno-8-43"></a><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="kn">import</span> <span class="nn">pytest</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">Undefined</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">alias</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">serialize</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="kn">from</span> <span class="nn">apischema.tagged_unions</span> <span class="kn">import</span> <span class="n">Tagged</span><span class="p">,</span> <span class="n">TaggedUnion</span><span class="p">,</span> <span class="n">get_tagged</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">TaggedUnion</span><span class="p">):</span>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>    <span class="n">bar</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">Bar</span><span class="p">]</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>    <span class="c1"># Tagged can have metadata like a dataclass fields</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>    <span class="n">i</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">(</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;baz&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="n">schema</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="c1"># Instantiate using class fields</span>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="n">tagged_bar</span> <span class="o">=</span> <span class="n">Foo</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">Bar</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">))</span>
+<a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="c1"># you can also use default constructor, but it&#39;s not typed-checked</span>
+<a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="k">assert</span> <span class="n">tagged_bar</span> <span class="o">==</span> <span class="n">Foo</span><span class="p">(</span><span class="n">bar</span><span class="o">=</span><span class="n">Bar</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">))</span>
+<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a>
+<a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="c1"># All fields that are not tagged are Undefined</span>
+<a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a><span class="k">assert</span> <span class="n">tagged_bar</span><span class="o">.</span><span class="n">bar</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Undefined</span> <span class="ow">and</span> <span class="n">tagged_bar</span><span class="o">.</span><span class="n">i</span> <span class="ow">is</span> <span class="n">Undefined</span>
+<a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="c1"># get_tagged allows to retrieve the tag and it&#39;s value</span>
+<a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="c1"># (but the value is not typed-checked)</span>
+<a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="k">assert</span> <span class="n">get_tagged</span><span class="p">(</span><span class="n">tagged_bar</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="n">Bar</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">))</span>
+<a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a>
+<a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a><span class="c1"># (De)serialization works as expected</span>
+<a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a><span class="k">assert</span> <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}})</span> <span class="o">==</span> <span class="n">tagged_bar</span>
+<a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a><span class="k">assert</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="n">tagged_bar</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}}</span>
+<a id="__codelineno-9-34" name="__codelineno-9-34" href="#__codelineno-9-34"></a>
+<a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;unknown&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">})</span>
+<a id="__codelineno-9-37" name="__codelineno-9-37" href="#__codelineno-9-37"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;unknown&quot;</span><span class="p">],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;unexpected property&quot;</span><span class="p">}]</span>
+<a id="__codelineno-9-38" name="__codelineno-9-38" href="#__codelineno-9-38"></a>
+<a id="__codelineno-9-39" name="__codelineno-9-39" href="#__codelineno-9-39"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+<a id="__codelineno-9-40" name="__codelineno-9-40" href="#__codelineno-9-40"></a>    <span class="n">deserialize</span><span class="p">(</span><span class="n">Foo</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">},</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+<a id="__codelineno-9-41" name="__codelineno-9-41" href="#__codelineno-9-41"></a><span class="k">assert</span> <span class="n">err</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+<a id="__codelineno-9-42" name="__codelineno-9-42" href="#__codelineno-9-42"></a>    <span class="p">{</span><span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;err&quot;</span><span class="p">:</span> <span class="s2">&quot;property count greater than 1 (maxProperties)&quot;</span><span class="p">}</span>
+<a id="__codelineno-9-43" name="__codelineno-9-43" href="#__codelineno-9-43"></a><span class="p">]</span>
 </code></pre></div>
 <h3 id="json-schema">JSON schema<a class="headerlink" href="#json-schema" title="Permanent link">&para;</a></h3>
 <p>Tagged unions JSON schema uses <code>minProperties: 1</code> and <code>maxProperties: 1</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="__codelineno-9-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="__codelineno-9-2"></a>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="__codelineno-9-3"></a><span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span><span class="p">,</span> <span class="n">serialization_schema</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="__codelineno-9-4"></a><span class="kn">from</span> <span class="nn">apischema.tagged_unions</span> <span class="kn">import</span> <span class="n">Tagged</span><span class="p">,</span> <span class="n">TaggedUnion</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="__codelineno-9-5"></a>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="__codelineno-9-6"></a>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="__codelineno-9-7"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="__codelineno-9-8"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="__codelineno-9-9"></a>    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-9-10" name="__codelineno-9-10" href="__codelineno-9-10"></a>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="__codelineno-9-11"></a>
-<a id="__codelineno-9-12" name="__codelineno-9-12" href="__codelineno-9-12"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">TaggedUnion</span><span class="p">):</span>
-<a id="__codelineno-9-13" name="__codelineno-9-13" href="__codelineno-9-13"></a>    <span class="n">bar</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">Bar</span><span class="p">]</span>
-<a id="__codelineno-9-14" name="__codelineno-9-14" href="__codelineno-9-14"></a>    <span class="n">baz</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
-<a id="__codelineno-9-15" name="__codelineno-9-15" href="__codelineno-9-15"></a>
-<a id="__codelineno-9-16" name="__codelineno-9-16" href="__codelineno-9-16"></a>
-<a id="__codelineno-9-17" name="__codelineno-9-17" href="__codelineno-9-17"></a><span class="k">assert</span> <span class="p">(</span>
-<a id="__codelineno-9-18" name="__codelineno-9-18" href="__codelineno-9-18"></a>    <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
-<a id="__codelineno-9-19" name="__codelineno-9-19" href="__codelineno-9-19"></a>    <span class="o">==</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
-<a id="__codelineno-9-20" name="__codelineno-9-20" href="__codelineno-9-20"></a>    <span class="o">==</span> <span class="p">{</span>
-<a id="__codelineno-9-21" name="__codelineno-9-21" href="__codelineno-9-21"></a>        <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2020-12/schema#&quot;</span><span class="p">,</span>
-<a id="__codelineno-9-22" name="__codelineno-9-22" href="__codelineno-9-22"></a>        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-<a id="__codelineno-9-23" name="__codelineno-9-23" href="__codelineno-9-23"></a>        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-<a id="__codelineno-9-24" name="__codelineno-9-24" href="__codelineno-9-24"></a>            <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span>
-<a id="__codelineno-9-25" name="__codelineno-9-25" href="__codelineno-9-25"></a>                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-<a id="__codelineno-9-26" name="__codelineno-9-26" href="__codelineno-9-26"></a>                <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
-<a id="__codelineno-9-27" name="__codelineno-9-27" href="__codelineno-9-27"></a>                <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field&quot;</span><span class="p">],</span>
-<a id="__codelineno-9-28" name="__codelineno-9-28" href="__codelineno-9-28"></a>                <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-9-29" name="__codelineno-9-29" href="__codelineno-9-29"></a>            <span class="p">},</span>
-<a id="__codelineno-9-30" name="__codelineno-9-30" href="__codelineno-9-30"></a>            <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
-<a id="__codelineno-9-31" name="__codelineno-9-31" href="__codelineno-9-31"></a>        <span class="p">},</span>
-<a id="__codelineno-9-32" name="__codelineno-9-32" href="__codelineno-9-32"></a>        <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-9-33" name="__codelineno-9-33" href="__codelineno-9-33"></a>        <span class="s2">&quot;minProperties&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-9-34" name="__codelineno-9-34" href="__codelineno-9-34"></a>        <span class="s2">&quot;maxProperties&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-9-35" name="__codelineno-9-35" href="__codelineno-9-35"></a>    <span class="p">}</span>
-<a id="__codelineno-9-36" name="__codelineno-9-36" href="__codelineno-9-36"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">from</span> <span class="nn">apischema.json_schema</span> <span class="kn">import</span> <span class="n">deserialization_schema</span><span class="p">,</span> <span class="n">serialization_schema</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="kn">from</span> <span class="nn">apischema.tagged_unions</span> <span class="kn">import</span> <span class="n">Tagged</span><span class="p">,</span> <span class="n">TaggedUnion</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">TaggedUnion</span><span class="p">):</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>    <span class="n">bar</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">Bar</span><span class="p">]</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>    <span class="n">baz</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="k">assert</span> <span class="p">(</span>
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>    <span class="n">deserialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>    <span class="o">==</span> <span class="n">serialization_schema</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>    <span class="o">==</span> <span class="p">{</span>
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>        <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft/2020-12/schema#&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a>        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a>            <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a>                <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
+<a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a>                <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field&quot;</span><span class="p">],</span>
+<a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a>                <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a>            <span class="p">},</span>
+<a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a>            <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">},</span>
+<a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a>        <span class="p">},</span>
+<a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a>        <span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a>        <span class="s2">&quot;minProperties&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a>        <span class="s2">&quot;maxProperties&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a>    <span class="p">}</span>
+<a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a><span class="p">)</span>
 </code></pre></div>
 <h3 id="graphql-schema">GraphQL schema<a class="headerlink" href="#graphql-schema" title="Permanent link">&para;</a></h3>
 <p>As tagged unions are not (yet?) part of the GraphQL spec, they are just implemented as normal (input) object type with nullable fields. An error is raised if several tags are passed in input.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="__codelineno-10-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="__codelineno-10-2"></a>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="__codelineno-10-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">graphql_sync</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="__codelineno-10-4"></a><span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="__codelineno-10-5"></a>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="__codelineno-10-6"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="__codelineno-10-7"></a><span class="kn">from</span> <span class="nn">apischema.tagged_unions</span> <span class="kn">import</span> <span class="n">Tagged</span><span class="p">,</span> <span class="n">TaggedUnion</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="__codelineno-10-8"></a>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="__codelineno-10-9"></a>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="__codelineno-10-10"></a><span class="nd">@dataclass</span>
-<a id="__codelineno-10-11" name="__codelineno-10-11" href="__codelineno-10-11"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
-<a id="__codelineno-10-12" name="__codelineno-10-12" href="__codelineno-10-12"></a>    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-10-13" name="__codelineno-10-13" href="__codelineno-10-13"></a>
-<a id="__codelineno-10-14" name="__codelineno-10-14" href="__codelineno-10-14"></a>
-<a id="__codelineno-10-15" name="__codelineno-10-15" href="__codelineno-10-15"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">TaggedUnion</span><span class="p">):</span>
-<a id="__codelineno-10-16" name="__codelineno-10-16" href="__codelineno-10-16"></a>    <span class="n">bar</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">Bar</span><span class="p">]</span>
-<a id="__codelineno-10-17" name="__codelineno-10-17" href="__codelineno-10-17"></a>    <span class="n">baz</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
-<a id="__codelineno-10-18" name="__codelineno-10-18" href="__codelineno-10-18"></a>
-<a id="__codelineno-10-19" name="__codelineno-10-19" href="__codelineno-10-19"></a>
-<a id="__codelineno-10-20" name="__codelineno-10-20" href="__codelineno-10-20"></a><span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="n">foo</span><span class="p">:</span> <span class="n">Foo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
-<a id="__codelineno-10-21" name="__codelineno-10-21" href="__codelineno-10-21"></a>    <span class="k">return</span> <span class="n">foo</span>
-<a id="__codelineno-10-22" name="__codelineno-10-22" href="__codelineno-10-22"></a>
-<a id="__codelineno-10-23" name="__codelineno-10-23" href="__codelineno-10-23"></a>
-<a id="__codelineno-10-24" name="__codelineno-10-24" href="__codelineno-10-24"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">query</span><span class="p">])</span>
-<a id="__codelineno-10-25" name="__codelineno-10-25" href="__codelineno-10-25"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<a id="__codelineno-10-26" name="__codelineno-10-26" href="__codelineno-10-26"></a><span class="s2">type Query {</span>
-<a id="__codelineno-10-27" name="__codelineno-10-27" href="__codelineno-10-27"></a><span class="s2">  query(foo: FooInput!): Foo!</span>
-<a id="__codelineno-10-28" name="__codelineno-10-28" href="__codelineno-10-28"></a><span class="s2">}</span>
-<a id="__codelineno-10-29" name="__codelineno-10-29" href="__codelineno-10-29"></a>
-<a id="__codelineno-10-30" name="__codelineno-10-30" href="__codelineno-10-30"></a><span class="s2">type Foo {</span>
-<a id="__codelineno-10-31" name="__codelineno-10-31" href="__codelineno-10-31"></a><span class="s2">  bar: Bar</span>
-<a id="__codelineno-10-32" name="__codelineno-10-32" href="__codelineno-10-32"></a><span class="s2">  baz: Int</span>
-<a id="__codelineno-10-33" name="__codelineno-10-33" href="__codelineno-10-33"></a><span class="s2">}</span>
-<a id="__codelineno-10-34" name="__codelineno-10-34" href="__codelineno-10-34"></a>
-<a id="__codelineno-10-35" name="__codelineno-10-35" href="__codelineno-10-35"></a><span class="s2">type Bar {</span>
-<a id="__codelineno-10-36" name="__codelineno-10-36" href="__codelineno-10-36"></a><span class="s2">  field: String!</span>
-<a id="__codelineno-10-37" name="__codelineno-10-37" href="__codelineno-10-37"></a><span class="s2">}</span>
-<a id="__codelineno-10-38" name="__codelineno-10-38" href="__codelineno-10-38"></a>
-<a id="__codelineno-10-39" name="__codelineno-10-39" href="__codelineno-10-39"></a><span class="s2">input FooInput {</span>
-<a id="__codelineno-10-40" name="__codelineno-10-40" href="__codelineno-10-40"></a><span class="s2">  bar: BarInput</span>
-<a id="__codelineno-10-41" name="__codelineno-10-41" href="__codelineno-10-41"></a><span class="s2">  baz: Int</span>
-<a id="__codelineno-10-42" name="__codelineno-10-42" href="__codelineno-10-42"></a><span class="s2">}</span>
-<a id="__codelineno-10-43" name="__codelineno-10-43" href="__codelineno-10-43"></a>
-<a id="__codelineno-10-44" name="__codelineno-10-44" href="__codelineno-10-44"></a><span class="s2">input BarInput {</span>
-<a id="__codelineno-10-45" name="__codelineno-10-45" href="__codelineno-10-45"></a><span class="s2">  field: String!</span>
-<a id="__codelineno-10-46" name="__codelineno-10-46" href="__codelineno-10-46"></a><span class="s2">}</span>
-<a id="__codelineno-10-47" name="__codelineno-10-47" href="__codelineno-10-47"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-10-48" name="__codelineno-10-48" href="__codelineno-10-48"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
-<a id="__codelineno-10-49" name="__codelineno-10-49" href="__codelineno-10-49"></a>
-<a id="__codelineno-10-50" name="__codelineno-10-50" href="__codelineno-10-50"></a><span class="n">query_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-10-51" name="__codelineno-10-51" href="__codelineno-10-51"></a><span class="s2">{</span>
-<a id="__codelineno-10-52" name="__codelineno-10-52" href="__codelineno-10-52"></a><span class="s2">    query(foo: {bar: {field: &quot;value&quot;}}) {</span>
-<a id="__codelineno-10-53" name="__codelineno-10-53" href="__codelineno-10-53"></a><span class="s2">        bar {</span>
-<a id="__codelineno-10-54" name="__codelineno-10-54" href="__codelineno-10-54"></a><span class="s2">            field</span>
-<a id="__codelineno-10-55" name="__codelineno-10-55" href="__codelineno-10-55"></a><span class="s2">        }</span>
-<a id="__codelineno-10-56" name="__codelineno-10-56" href="__codelineno-10-56"></a><span class="s2">        baz</span>
-<a id="__codelineno-10-57" name="__codelineno-10-57" href="__codelineno-10-57"></a><span class="s2">    }</span>
-<a id="__codelineno-10-58" name="__codelineno-10-58" href="__codelineno-10-58"></a><span class="s2">}</span>
-<a id="__codelineno-10-59" name="__codelineno-10-59" href="__codelineno-10-59"></a><span class="s2">&quot;&quot;&quot;</span>
-<a id="__codelineno-10-60" name="__codelineno-10-60" href="__codelineno-10-60"></a><span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">query_str</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span>
-<a id="__codelineno-10-61" name="__codelineno-10-61" href="__codelineno-10-61"></a>    <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">},</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
-<a id="__codelineno-10-62" name="__codelineno-10-62" href="__codelineno-10-62"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="kn">from</span> <span class="nn">graphql</span> <span class="kn">import</span> <span class="n">graphql_sync</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="kn">from</span> <span class="nn">graphql.utilities</span> <span class="kn">import</span> <span class="n">print_schema</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="kn">from</span> <span class="nn">apischema.tagged_unions</span> <span class="kn">import</span> <span class="n">Tagged</span><span class="p">,</span> <span class="n">TaggedUnion</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="nd">@dataclass</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="k">class</span> <span class="nc">Bar</span><span class="p">:</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">TaggedUnion</span><span class="p">):</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>    <span class="n">bar</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">Bar</span><span class="p">]</span>
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>    <span class="n">baz</span><span class="p">:</span> <span class="n">Tagged</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>
+<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="n">foo</span><span class="p">:</span> <span class="n">Foo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Foo</span><span class="p">:</span>
+<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>    <span class="k">return</span> <span class="n">foo</span>
+<a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a>
+<a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a>
+<a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">query</span><span class="p">])</span>
+<a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a><span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a><span class="s2">type Query {</span>
+<a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a><span class="s2">  query(foo: FooInput!): Foo!</span>
+<a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a><span class="s2">}</span>
+<a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a>
+<a id="__codelineno-11-30" name="__codelineno-11-30" href="#__codelineno-11-30"></a><span class="s2">type Foo {</span>
+<a id="__codelineno-11-31" name="__codelineno-11-31" href="#__codelineno-11-31"></a><span class="s2">  bar: Bar</span>
+<a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a><span class="s2">  baz: Int</span>
+<a id="__codelineno-11-33" name="__codelineno-11-33" href="#__codelineno-11-33"></a><span class="s2">}</span>
+<a id="__codelineno-11-34" name="__codelineno-11-34" href="#__codelineno-11-34"></a>
+<a id="__codelineno-11-35" name="__codelineno-11-35" href="#__codelineno-11-35"></a><span class="s2">type Bar {</span>
+<a id="__codelineno-11-36" name="__codelineno-11-36" href="#__codelineno-11-36"></a><span class="s2">  field: String!</span>
+<a id="__codelineno-11-37" name="__codelineno-11-37" href="#__codelineno-11-37"></a><span class="s2">}</span>
+<a id="__codelineno-11-38" name="__codelineno-11-38" href="#__codelineno-11-38"></a>
+<a id="__codelineno-11-39" name="__codelineno-11-39" href="#__codelineno-11-39"></a><span class="s2">input FooInput {</span>
+<a id="__codelineno-11-40" name="__codelineno-11-40" href="#__codelineno-11-40"></a><span class="s2">  bar: BarInput</span>
+<a id="__codelineno-11-41" name="__codelineno-11-41" href="#__codelineno-11-41"></a><span class="s2">  baz: Int</span>
+<a id="__codelineno-11-42" name="__codelineno-11-42" href="#__codelineno-11-42"></a><span class="s2">}</span>
+<a id="__codelineno-11-43" name="__codelineno-11-43" href="#__codelineno-11-43"></a>
+<a id="__codelineno-11-44" name="__codelineno-11-44" href="#__codelineno-11-44"></a><span class="s2">input BarInput {</span>
+<a id="__codelineno-11-45" name="__codelineno-11-45" href="#__codelineno-11-45"></a><span class="s2">  field: String!</span>
+<a id="__codelineno-11-46" name="__codelineno-11-46" href="#__codelineno-11-46"></a><span class="s2">}</span>
+<a id="__codelineno-11-47" name="__codelineno-11-47" href="#__codelineno-11-47"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-11-48" name="__codelineno-11-48" href="#__codelineno-11-48"></a><span class="k">assert</span> <span class="n">print_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="n">schema_str</span>
+<a id="__codelineno-11-49" name="__codelineno-11-49" href="#__codelineno-11-49"></a>
+<a id="__codelineno-11-50" name="__codelineno-11-50" href="#__codelineno-11-50"></a><span class="n">query_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-11-51" name="__codelineno-11-51" href="#__codelineno-11-51"></a><span class="s2">{</span>
+<a id="__codelineno-11-52" name="__codelineno-11-52" href="#__codelineno-11-52"></a><span class="s2">    query(foo: {bar: {field: &quot;value&quot;}}) {</span>
+<a id="__codelineno-11-53" name="__codelineno-11-53" href="#__codelineno-11-53"></a><span class="s2">        bar {</span>
+<a id="__codelineno-11-54" name="__codelineno-11-54" href="#__codelineno-11-54"></a><span class="s2">            field</span>
+<a id="__codelineno-11-55" name="__codelineno-11-55" href="#__codelineno-11-55"></a><span class="s2">        }</span>
+<a id="__codelineno-11-56" name="__codelineno-11-56" href="#__codelineno-11-56"></a><span class="s2">        baz</span>
+<a id="__codelineno-11-57" name="__codelineno-11-57" href="#__codelineno-11-57"></a><span class="s2">    }</span>
+<a id="__codelineno-11-58" name="__codelineno-11-58" href="#__codelineno-11-58"></a><span class="s2">}</span>
+<a id="__codelineno-11-59" name="__codelineno-11-59" href="#__codelineno-11-59"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-11-60" name="__codelineno-11-60" href="#__codelineno-11-60"></a><span class="k">assert</span> <span class="n">graphql_sync</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">query_str</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="p">{</span>
+<a id="__codelineno-11-61" name="__codelineno-11-61" href="#__codelineno-11-61"></a>    <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">},</span> <span class="s2">&quot;baz&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+<a id="__codelineno-11-62" name="__codelineno-11-62" href="#__codelineno-11-62"></a><span class="p">}</span>
 </code></pre></div>
 <h2 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
 <h4 id="why-typeddict-is-not-supported-as-an-output-type">Why <code>TypedDict</code> is not supported as an output type?<a class="headerlink" href="#why-typeddict-is-not-supported-as-an-output-type" title="Permanent link">&para;</a></h4>
@@ -1574,10 +1626,10 @@ It's fields <strong>must</strong> be typed using <code>apischema.tagged_unions.T
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.0bbba5b5.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.b6ff8c07.min.js", "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e1a181d9.min.js"></script>
+      <script src="../../assets/javascripts/bundle.5e13d264.min.js"></script>
       
     
   </body>
