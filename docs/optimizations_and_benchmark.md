@@ -33,9 +33,6 @@ It's controlled by the settings `apischema.settings.deserialization.no_copy`/`ap
 {!no_copy.py!}
 ```
 
-!!! note
-    Object deserialization is also optimized following 
-
 ## Serialization passthrough
 
 JSON serialization libraries expect primitive data types (`dict`/`list`/`str`/etc.). A non-negligible part of objects to be serialized are primitive.
