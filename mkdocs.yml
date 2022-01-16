@@ -5,9 +5,20 @@ repo_url: https://github.com/wyfo/apischema
 theme:
   name: material
   palette:
-    scheme: preference
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
     primary: green
     accent: indigo
+    toggle:
+      icon: material/brightness-4
+      name: "Switch to dark mode"
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: green
+    accent: indigo
+    toggle:
+      icon: material/brightness-7
+      name: "Switch to light mode"
 
 nav:
 - index.md
