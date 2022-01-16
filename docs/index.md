@@ -37,10 +37,6 @@ No known alternative achieves all of this, and apischema is also [(a lot) faster
 
 On top of that, because APIs are not only JSON, *apischema* is also a complete GraphQL library
 
-<!--
-![benchmark chart](benchmark_chart_light.svg#gh-light-mode-only)![benchmark chart](benchmark_chart_dark.svg#gh-dark-mode-only)
--->
-
 !!! note
     Actually, *apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code ([pydantic support example](examples/pydantic_support.md) using [conversions feature](conversions.md))
 
