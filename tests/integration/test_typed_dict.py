@@ -61,11 +61,10 @@ class AggregateAdditional(TypedDict):
     "cls", [SimpleAdditional, ComplexAdditional, AggregateAdditional]
 )
 def test_additional_properties(cls):
+    data = {"key": "1970-01-01", "additional": 42}
     with pytest.raises(ValidationError):
-        deserialize(cls, {"key": "1970-01-01", "additional": 42})
-    assert (
-        deserialize(
-            cls, {"key": "1970-01-01", "additional": 42}, additional_properties=True
-        )["additional"]
-        == 42
-    )
+        deserialize(cls, data)
+    typed_dict = deserialize(cls, data, additional_properties=True)
+    assert typed_dict["additional"] == 42
+    assert "additional" not in serialize(cls, typed_dict)
+    assert serialize(cls, typed_dict, additional_properties=True)["additional"] == 42
