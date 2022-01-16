@@ -2,7 +2,9 @@
 
 *apischema* is (a lot) [faster](#benchmark) than its known alternatives, thanks to advanced optimizations.    
 
-![benchmark chart](benchmark_chart.svg)
+![benchmark chart](benchmark_chart_light.svg#only-light)
+![benchmark chart](benchmark_chart_dark.svg#only-dark)
+
 
 !!! note
     Chart is truncated to a relative performance of 20x slower. Benchmark results are detailed in the [results table](#relative-execution-time-lower-is-better).

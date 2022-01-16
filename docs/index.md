@@ -6,6 +6,12 @@ JSON (de)serialization, GraphQL and JSON schema generation using Python typing.
 
 *apischema* makes your life easier when dealing with API data.
 
+<!--
+## Documentation
+
+[https://wyfo.github.io/apischema/](https://wyfo.github.io/apischema/)
+-->
+
 ## Install
 ```shell
 pip install apischema
@@ -16,18 +22,28 @@ It requires only Python 3.6+ (and dataclasses [official backport](https://pypi.o
 
 ## Why another library?
 
+<!--
+(If you wonder how this differs from the *pydantic* library, see the [dedicated section of the documentation(difference_with_pydantic.md) — there are many differences.)
+-->
+
 This library fulfills the following goals:
 
 - stay as close as possible to the standard library (dataclasses, typing, etc.) — as a consequence we do not need plugins for editors/linters/etc.;
+- avoid object-oriented limitations — do not require a base class — thus handle easily every type (`Foo`, `list[Bar]`, `NewType(Id, int)`, etc.) the same way.
 - be adaptable, provide tools to support any types (ORM, etc.);
 - avoid dynamic things like using raw strings for attributes name - play nicely with your IDE.
 
-No known alternative achieves all of this, and apischema is also [faster](optimizations_and_benchmark.md#benchmark) than all of them.
+No known alternative achieves all of this, and apischema is also [(a lot) faster](optimizations_and_benchmark.md#benchmark) than all of them.
 
 On top of that, because APIs are not only JSON, *apischema* is also a complete GraphQL library
 
+<!--
+![benchmark chart](benchmark_chart_light.svg#gh-light-mode-only)
+![benchmark chart](benchmark_chart_dark.svg#gh-dark-mode-only)
+-->
+
 !!! note
-    Actually, *apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code ([pydantic support example](examples/pydantic_support.md) using [conversions feature](conversions.md))  
+    Actually, *apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code ([pydantic support example](examples/pydantic_support.md) using [conversions feature](conversions.md))
 
 ## Example
 
@@ -41,15 +57,9 @@ On top of that, because APIs are not only JSON, *apischema* is also a complete G
 
 ### Run the documentation examples
 
-All documentation examples are written using the last Python minor version — currently 3.9 — in order to provide up-to-date documentation. Because Python 3.9 specificities (like [PEP 585](https://www.python.org/dev/peps/pep-0585/)) are used, this version is "mandatory" to execute the examples as-is.
+All documentation examples are written using the last Python minor version — currently 3.10 — in order to provide up-to-date documentation. Because Python 3.10 specificities (like [PEP 585](https://www.python.org/dev/peps/pep-0604/)) are used, this version is "mandatory" to execute the examples as-is.
 
-Also, as stated above, examples are using `pytest.raises` as it is the most convenient way to test an exception is raised — and because it's simpler for the CI wrapping.
-
-Moreover, *apischema* has a *graphql-core* dependency when it comes to example involving GraphQL.
-
-Lastly, some examples of the [Examples](examples) section use third-party libraries: *SQLAlchemy*, *attrs* and *pydantic*.
-
-All of these dependencies can be downloaded using the `examples` dependencies with 
+In addition to *pytest*, some examples use third-party libraries like *SQLAlchemy* or *attrs*. All of this dependencies can be downloaded using the `examples` extra with
 ```shell
 pip install apischema[examples]
 ```
@@ -67,5 +77,3 @@ No, `apischema` works with user-defined types as well as types from foreign libr
 
 #### I need more accurate validation than "ensure this is an integer and not a string ", can I do that?
 See the [validation](validation.md) section. You can use standard JSON schema validation (`maxItems`, `pattern`, etc.) that will be embedded in your schema or add custom Python validators for each class/fields/`NewType` you want.
-
-*Let's start the apischema tour.*
