@@ -23,6 +23,7 @@ It requires only Python 3.6+ (and dataclasses [official backport](https://pypi.o
 This library fulfills the following goals:
 
 - stay as close as possible to the standard library (dataclasses, typing, etc.) — as a consequence we do not need plugins for editors/linters/etc.;
+- avoid object-oriented limitations — do not require a base class — thus handle easily every type (`Foo`, `list[Bar]`, `NewType(Id, int)`, etc.) the same way.
 - be adaptable, provide tools to support any types (ORM, etc.);
 - avoid dynamic things like using raw strings for attributes name - play nicely with your IDE.
 
