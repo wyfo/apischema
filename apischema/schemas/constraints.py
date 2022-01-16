@@ -78,7 +78,7 @@ class Constraints:
             if attr is not None:
                 alias = metadata.alias
                 if alias in base_schema:
-                    base_schema[alias] = metadata.merge(attr, base_schema[alias])  # type: ignore
+                    base_schema[alias] = metadata.merge(attr, base_schema[alias])
                 else:
                     base_schema[alias] = attr
 
@@ -93,5 +93,5 @@ def merge_constraints(c1: Constraints, c2: Constraints) -> Constraints:
         elif attr2 is None:
             constraints[name] = attr1
         else:
-            constraints[name] = metadata.merge(attr1, attr2)  # type: ignore
-    return Constraints(**constraints)  # type: ignore
+            constraints[name] = metadata.merge(attr1, attr2)
+    return Constraints(**constraints)

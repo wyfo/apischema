@@ -54,7 +54,7 @@ class Receipt:
 
 
 def methods(cls: type) -> Methods:
-    proto = typic.protocol(cls)  # type: ignore
+    proto = typic.protocol(cls)
     return Methods(proto.deserialize, proto.serialize)
 
 

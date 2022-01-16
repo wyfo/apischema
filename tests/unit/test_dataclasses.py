@@ -1,5 +1,5 @@
 from dataclasses import InitVar, dataclass, field
-from dataclasses import replace as std_replace  # type: ignore
+from dataclasses import replace as std_replace
 
 from apischema.dataclasses import replace
 from apischema.fields import fields_set, with_fields_set

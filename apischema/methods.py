@@ -2,7 +2,7 @@ import inspect
 from functools import wraps
 from inspect import signature
 from types import FunctionType
-from typing import Callable, Generic, Optional, Type, Union, cast
+from typing import Callable, Generic, Optional, Type, Union
 
 from apischema.typing import get_type_hints
 from apischema.utils import PREFIX, T, get_origin_or_type2
@@ -131,7 +131,7 @@ def method_registerer(
                 except (KeyError, StopIteration):
                     raise TypeError("First parameter of method must be typed") from None
             assert not isinstance(method, property)
-            register(cast(Callable, method), owner2, method.__name__)
+            register(method, owner2, method.__name__)
             return method
 
     return decorator if arg is None else decorator(arg)

@@ -52,7 +52,7 @@ class Schema(MetadataMixin):
         if self.annotations is not None:
             self.annotations.merge_into(base_schema)
         if self.extra is not None:
-            self.extra(base_schema)  # type: ignore
+            self.extra(base_schema)
 
 
 def schema(

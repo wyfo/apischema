@@ -131,4 +131,4 @@ class WithConversionsResolver:
             )
 
         assert issubclass(cls, WithConversionsResolver)
-        cls.resolve_conversion = resolve_conversion  # type: ignore
+        cls.resolve_conversion = resolve_conversion

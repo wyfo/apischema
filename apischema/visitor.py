@@ -65,7 +65,7 @@ def dataclass_types_and_fields(
             continue
         field_type = types[field.name]
         if isinstance(field_type, InitVar):
-            types[field.name] = field_type.type  # type: ignore
+            types[field.name] = field_type.type
             init_fields.append(field)
         elif field_type is InitVar:
             metadata = getattr(cls, _FIELDS)[field.name].metadata
@@ -102,7 +102,7 @@ Result = TypeVar("Result", covariant=True)
 class Visitor(Generic[Result]):
     def annotated(self, tp: AnyType, annotations: Sequence[Any]) -> Result:
         if Unsupported in annotations:
-            raise Unsupported(Annotated[(tp, *annotations)])  # type: ignore
+            raise Unsupported(Annotated[(tp, *annotations)])
         return self.visit(tp)
 
     def any(self) -> Result:
@@ -178,7 +178,7 @@ class Visitor(Generic[Result]):
         if origin in PRIMITIVE_TYPES:
             return self.primitive(origin)
         if is_dataclass(origin):
-            return self.dataclass(tp, *dataclass_types_and_fields(tp))  # type: ignore
+            return self.dataclass(tp, *dataclass_types_and_fields(tp))
         if hasattr(origin, "__supertype__"):
             return self.new_type(origin, origin.__supertype__)
         if origin is Any:
@@ -205,7 +205,7 @@ class Visitor(Generic[Result]):
                     origin, types, origin._field_defaults  # type: ignore
                 )
         if is_literal(origin):  # pragma: no cover py36
-            return self.literal(origin.__values__)  # type: ignore
+            return self.literal(origin.__values__)
         if is_typed_dict(origin):
             return self.typed_dict(
                 origin, resolve_type_hints(origin), required_keys(origin)

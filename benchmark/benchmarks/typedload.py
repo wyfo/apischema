@@ -68,7 +68,7 @@ dumper.handlers.insert(
 
 def methods(cls: type) -> Methods:
     load = loader.load
-    return Methods(lambda data: load(data, cls), dumper.dump)  # type: ignore
+    return Methods(lambda data: load(data, cls), dumper.dump)
 
 
 benchmarks = Benchmark(methods(Message), methods(Receipt))

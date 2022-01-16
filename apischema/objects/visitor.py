@@ -15,7 +15,7 @@ from apischema.visitor import Result, Visitor
 def object_field_from_field(
     field: Field, field_type: AnyType, init_var: bool
 ) -> ObjectField:
-    required = field.default is MISSING and field.default_factory is MISSING  # type: ignore
+    required = field.default is MISSING and field.default_factory is MISSING
     if init_var:
         kind = FieldKind.WRITE_ONLY
     elif not field.init:
@@ -28,7 +28,7 @@ def object_field_from_field(
         required,
         field.metadata,
         default=field.default,
-        default_factory=field.default_factory,  # type: ignore
+        default_factory=field.default_factory,
         kind=kind,
     )
 

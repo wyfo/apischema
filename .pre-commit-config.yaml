@@ -34,4 +34,5 @@ repos:
     rev: v0.931
     hooks:
       - id: mypy
+        args: [--ignore-missing-imports, --scripts-are-modules, --warn-unused-ignores, --warn-redundant-cast]
         exclude: ^examples/.*\.py$

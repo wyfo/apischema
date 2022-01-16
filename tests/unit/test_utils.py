@@ -133,8 +133,8 @@ else:
     ]
 
 
-@pytest.mark.parametrize("annotated", [False, True])  # type: ignore
-@pytest.mark.parametrize("wrapped", [False, True])  # type: ignore
+@pytest.mark.parametrize("annotated", [False, True])
+@pytest.mark.parametrize("wrapped", [False, True])
 @pytest.mark.parametrize("tp, expected", replace_builtins_cases)
 def test_replace_builtins(tp, expected, annotated, wrapped):
     if wrapped:

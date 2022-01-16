@@ -7,7 +7,7 @@ import warnings
 # https://github.com/tornadoweb/tornado/blob/master/setup.py
 # to support installing without the extension on platforms where
 # no compiler is available.
-from distutils.command.build_ext import build_ext  # type: ignore
+from distutils.command.build_ext import build_ext
 
 from setuptools import Extension, find_packages, setup
 

@@ -123,7 +123,7 @@ class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
         dynamic, conversion = self._has_conversion(tp, self._conversion)
         if not dynamic:
             _, conversion = self._has_conversion(
-                tp, self.default_conversion(get_origin_or_type(tp))  # type: ignore
+                tp, self.default_conversion(get_origin_or_type(tp))
             )
         next_conversion = None
         if not dynamic and is_subclass(tp, Collection) and not is_subclass(tp, str):

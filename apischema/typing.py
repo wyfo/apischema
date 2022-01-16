@@ -4,7 +4,7 @@ __all__ = ["get_args", "get_origin", "get_type_hints"]
 import sys
 from contextlib import suppress
 from types import ModuleType, new_class
-from typing import (  # type: ignore
+from typing import (
     Any,
     Callable,
     Collection,
@@ -35,12 +35,10 @@ else:  # pragma: no cover
     except ImportError:
         from typing import get_type_hints as _gth
 
-        def gth(obj, globalns=None, localns=None, include_extras=False):  # type: ignore
+        def gth(obj, globalns=None, localns=None, include_extras=False):
             return _gth(obj, globalns, localns)
 
-    def get_type_hints(  # type: ignore
-        obj, globalns=None, localns=None, include_extras=False
-    ):
+    def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
         # TODO This has been fixed in recent 3.7 and 3.8
         # fix https://bugs.python.org/issue37838
         if not isinstance(obj, (type, ModuleType)) and globalns is None:
@@ -59,13 +57,13 @@ else:  # pragma: no cover
             if not isinstance(tree, tuple):
                 return tree
             else:
-                origin, *args = tree  # type: ignore
+                origin, *args = tree
                 with suppress(NameError):
                     if origin is Annotated:
                         return Annotated[(_assemble_tree(args[0]), *args[1])]
                 return origin[tuple(map(_assemble_tree, args))]
 
-        def get_origin(tp):  # type: ignore
+        def get_origin(tp):
             # In Python 3.6: List[Collection[T]][int].__args__ == int != Collection[int]
             if hasattr(tp, "_subs_tree"):
                 tp = _assemble_tree(tp._subs_tree())
@@ -75,7 +73,7 @@ else:  # pragma: no cover
                 return Generic
             return getattr(tp, "__origin__", None)
 
-        def get_args(tp):  # type: ignore
+        def get_args(tp):
             # In Python 3.6: List[Collection[T]][int].__args__ == int != Collection[int]
             if hasattr(tp, "_subs_tree"):
                 tp = _assemble_tree(tp._subs_tree())
@@ -193,7 +191,7 @@ try:
     _LiteralMeta: Any = type(Literal)
     _TypedDictMeta: Any = type(_TypedDictImplem)
 except NameError:
-    _LiteralMeta, _TypedDictMeta = _FakeType, _FakeType  # type: ignore
+    _LiteralMeta, _TypedDictMeta = _FakeType, _FakeType
 
 
 def is_new_type(tp: Any) -> bool:
@@ -202,7 +200,7 @@ def is_new_type(tp: Any) -> bool:
 
 def is_annotated(tp: Any) -> bool:
     try:
-        from typing import Annotated  # type: ignore
+        from typing import Annotated
 
         return get_origin(tp) == Annotated
     except ImportError:
@@ -239,7 +237,7 @@ def is_typed_dict(tp: Any) -> bool:
         return isinstance(tp, type(new_class("_TypedDictImplem", (TypedDict,))))
     except ImportError:
         try:
-            from typing_extensions import TypedDict  # type: ignore
+            from typing_extensions import TypedDict
 
             return isinstance(tp, type(new_class("_TypedDictImplem", (TypedDict,))))
         except ImportError:
@@ -247,7 +245,7 @@ def is_typed_dict(tp: Any) -> bool:
 
 
 def is_type_var(tp: Any) -> bool:
-    return isinstance(tp, TypeVar)  # type: ignore
+    return isinstance(tp, TypeVar)
 
 
 # Don't use sys.version_info because it can also depend of typing_extensions version
@@ -263,7 +261,7 @@ def required_keys(typed_dict: Type) -> Collection[str]:
                 continue
             bases_annotations.update(base.__annotations__)
             required.update(required_keys(base))
-        if typed_dict.__total__:  # type: ignore
+        if typed_dict.__total__:
             required.update(typed_dict.__annotations__.keys() - bases_annotations)
         return required
 
@@ -291,7 +289,7 @@ def is_type(tp: Any) -> bool:
 
 def is_union(tp: Any) -> bool:
     try:
-        from types import UnionType  # type: ignore
+        from types import UnionType
 
         return tp in (UnionType, Union)
     except ImportError:

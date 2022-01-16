@@ -115,7 +115,7 @@ class Node(Generic[Id], ABC):
 
     @wrap_generic_init_subclass
     def __init_subclass__(cls, not_a_node: bool = False, **kwargs):
-        super().__init_subclass__(**kwargs)  # type: ignore
+        super().__init_subclass__(**kwargs)
         if not not_a_node:
             _tmp_nodes.append(cls)
 

@@ -13,14 +13,12 @@ from typing import (
     Type,
     TypeVar,
     Union,
-    cast,
     overload,
 )
 
 from apischema.aliases import Aliaser
 from apischema.cache import cache
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
-from apischema.conversions.utils import Converter
 from apischema.conversions.visitor import (
     Serialization,
     SerializationVisitor,
@@ -414,7 +412,7 @@ class SerializationMethodVisitor(
             )
         base_fields = tuple(
             f.field
-            for f in sort_by_order(  # type: ignore
+            for f in sort_by_order(
                 cls, fields_to_order, lambda f: f.name, lambda f: f.ordering
             )
         )
@@ -474,7 +472,7 @@ class SerializationMethodVisitor(
                 alt = UnionAlternative(expected_class(tp), _method)
                 alternatives.append((method, alt))
         if not alternatives:
-            raise Unsupported(Union[tuple(types)])  # type: ignore
+            raise Unsupported(Union[tuple(types)])
         elif len(alternatives) == 1:
             return alternatives[0][0]
         elif all(meth is IDENTITY_METHOD for meth, _ in alternatives):
@@ -508,7 +506,7 @@ class SerializationMethodVisitor(
         conv_method = self.visit_with_conv(
             conversion.target, sub_conversion(conversion, next_conversion)
         )
-        converter = cast(Converter, conversion.converter)
+        converter = conversion.converter
         if converter is identity:
             method = conv_method
         elif conv_method is identity:

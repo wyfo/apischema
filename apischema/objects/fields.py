@@ -141,7 +141,7 @@ class ObjectField:
         if self.required:
             raise RuntimeError("Field is required")
         assert self.default_factory is not None
-        return self.default_factory()  # type: ignore
+        return self.default_factory()
 
     @property
     def is_aggregate(self) -> bool:

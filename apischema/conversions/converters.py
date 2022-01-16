@@ -118,8 +118,8 @@ def deserializer(
         elif isinstance(deserializer, LazyConversion):
             stop_signature_abuse()
         else:
-            resolved = resolve_conversion(deserializer)  # type: ignore
-            _add_deserializer(deserializer, resolved.target)  # type: ignore
+            resolved = resolve_conversion(deserializer)
+            _add_deserializer(deserializer, resolved.target)
             return deserializer
     elif lazy is not None and target is not None:
         _add_deserializer(LazyConversion(lazy), target)

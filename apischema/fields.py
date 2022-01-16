@@ -82,7 +82,7 @@ def with_fields_set(cls: Cls) -> Cls:
         if hasattr(old, _ALREADY_SET):
             continue
         setattr(new, _ALREADY_SET, True)
-        setattr(cls, attr, wraps(old)(new))  # type: ignore
+        setattr(cls, attr, wraps(old)(new))
 
     _fields_set_classes.add(cls)
     return cls

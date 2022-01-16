@@ -83,7 +83,7 @@ pep_585: list = []
 if sys.version_info >= (3, 9):
     pep_585 = [
         (list[int], Visitor.collection, [list, int]),
-        (tuple[str, ...], Visitor.collection, [tuple, str]),  # type: ignore
+        (tuple[str, ...], Visitor.collection, [tuple, str]),
         (
             collections.abc.Collection[int],
             Visitor.collection,

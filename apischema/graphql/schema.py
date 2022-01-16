@@ -105,7 +105,7 @@ TypeThunk = Thunk[graphql.GraphQLType]
 def exec_thunk(thunk: TypeThunk, *, non_null=None) -> Any:
     result = thunk if isinstance(thunk, graphql.GraphQLType) else thunk()
     if non_null is True and not isinstance(result, graphql.GraphQLNonNull):
-        return graphql.GraphQLNonNull(result)  # type: ignore
+        return graphql.GraphQLNonNull(result)
     if non_null is False and isinstance(result, graphql.GraphQLNonNull):
         return result.of_type
     return result
@@ -295,7 +295,7 @@ class SchemaBuilder(
             if isinstance(annotation, Mapping):
                 if type_name:
                     factory = factory.merge(schema=annotation.get(SCHEMA_METADATA))
-        return factory  # type: ignore
+        return factory
 
     @cache_type
     def any(self) -> TypeFactory[GraphQLTp]:
@@ -346,7 +346,7 @@ class SchemaBuilder(
             name: Optional[str], description: Optional[str]
         ) -> graphql.GraphQLEnumType:
             return graphql.GraphQLEnumType(
-                unwrap_name(name, Literal[tuple(values)]),  # type: ignore
+                unwrap_name(name, Literal[tuple(values)]),
                 dict(zip(map(self.enum_aliaser, values), values)),
                 description=description,
             )
@@ -418,7 +418,7 @@ class SchemaBuilder(
             factory = factory.merge(get_type_name(tp), get_schema(tp))
             if get_args(tp):
                 factory = factory.merge(schema=get_schema(get_origin(tp)))
-        return factory  # type: ignore
+        return factory
 
 
 FieldType = TypeVar("FieldType", graphql.GraphQLInputField, graphql.GraphQLField)
@@ -509,7 +509,7 @@ class InputSchemaBuilder(
                 field_type = Optional[field_type]
         factory = self.visit_with_conv(field_type, field.deserialization)
         return lambda: graphql.GraphQLInputField(
-            factory.type,  # type: ignore
+            factory.type,
             default_value=default,
             description=get_description(get_field_schema(tp, field), field.type),
         )
@@ -694,7 +694,7 @@ class OutputSchemaBuilder(
         factory = self.visit_with_conv(field.types["return"], field.resolver.conversion)
         field_schema = get_method_schema(tp, field.resolver)
         return lambda: graphql.GraphQLField(
-            factory.type,  # type: ignore
+            factory.type,
             {name: arg() for name, arg in args.items()} if args else None,
             resolve,
             field.subscribe,
@@ -767,10 +767,7 @@ class OutputSchemaBuilder(
                     cast(graphql.GraphQLInterfaceType, i.raw_type) for i in interfaces
                 }
                 for flattened_factory in flattened_factories:
-                    flattened = cast(
-                        Union[graphql.GraphQLObjectType, graphql.GraphQLInterfaceType],
-                        flattened_factory.raw_type,
-                    )
+                    flattened = flattened_factory.raw_type
                     if isinstance(flattened, graphql.GraphQLObjectType):
                         all_interfaces.update(flattened.interfaces)
                     elif isinstance(flattened, graphql.GraphQLInterfaceType):
@@ -923,7 +920,7 @@ def graphql_schema(
         (query, Query, query_fields),
         (mutation, Mutation, mutation_fields),
     ]:
-        for operation in operations:  # type: ignore
+        for operation in operations:
             resolver = operation_resolver(operation, op_class)
             resolver_field = ResolverField(
                 resolver,
@@ -932,7 +929,7 @@ def graphql_schema(
                 resolver.parameters_metadata,
             )
             fields.append(resolver_field)
-    for sub_op in subscription:  # type: ignore
+    for sub_op in subscription:
         if not isinstance(sub_op, Subscription):
             sub_op = Subscription(sub_op)  # type: ignore
         sub_parameters: Sequence[Parameter]
@@ -1024,13 +1021,13 @@ def graphql_schema(
         if not fields:
             return None
         tp, type_name = type(name, (), {}), TypeName(graphql=name)
-        return output_builder.object(tp, (), fields).merge(type_name, None).raw_type  # type: ignore
+        return output_builder.object(tp, (), fields).merge(type_name, None).raw_type
 
     return graphql.GraphQLSchema(
         query=root_type("Query", query_fields),
         mutation=root_type("Mutation", mutation_fields),
         subscription=root_type("Subscription", subscription_fields),
-        types=[output_builder.visit(cls).raw_type for cls in types],  # type: ignore
+        types=[output_builder.visit(cls).raw_type for cls in types],
         directives=directives,
         description=description,
         extensions=extensions,

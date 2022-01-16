@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Annotated, Union  # type: ignore
+from typing import Annotated, Union
 
 import pytest
 

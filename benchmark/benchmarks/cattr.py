@@ -46,8 +46,7 @@ cattr.register_structure_hook(datetime, lambda v, _: datetime.fromisoformat(v))
 
 def methods(cls: type) -> Methods:
     return Methods(
-        lambda data: cattr.structure(data, cls),  # type: ignore
-        lambda obj: cattr.unstructure(obj, cls),  # type: ignore
+        lambda data: cattr.structure(data, cls), lambda obj: cattr.unstructure(obj, cls)
     )
 
 
