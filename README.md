@@ -31,8 +31,7 @@ No known alternative achieves all of this, and apischema is also [(a lot) faster
 
 On top of that, because APIs are not only JSON, *apischema* is also a complete GraphQL library
 
-![benchmark chart](https://wyfo.github.io/apischema/0.17/benchmark_chart_light.svg#gh-light-mode-only)
-![benchmark chart](https://wyfo.github.io/apischema/0.17/benchmark_chart_dark.svg#gh-dark-mode-only)
+![benchmark chart](https://wyfo.github.io/apischema/0.17/benchmark_chart_light.svg#gh-light-mode-only)![benchmark chart](https://wyfo.github.io/apischema/0.17/benchmark_chart_dark.svg#gh-dark-mode-only)
 
 > Actually, *apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code ([pydantic support example](https://wyfo.github.io/apischema/0.17/examples/pydantic_support) using [conversions feature](https://wyfo.github.io/apischema/0.17/conversions))
 

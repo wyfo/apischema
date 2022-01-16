@@ -106,7 +106,11 @@ jobs:
           path: examples
       - uses: actions/download-artifact@v2
         with:
-          name: benchmark_chart
+          name: benchmark_chart_light
+          path: docs
+      - uses: actions/download-artifact@v2
+        with:
+          name: benchmark_chart_dark
           path: docs
       - name: Install requirements
         run: pip install -r docs/requirements.txt
