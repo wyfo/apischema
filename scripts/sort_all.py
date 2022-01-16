@@ -1,31 +1,34 @@
 #!/usr/bin/env python3
-import os
-from pathlib import Path
-from subprocess import run
+import pathlib
+import re
+import sys
 
-PACKAGE_DIR = Path(__file__).parent.parent / "apischema"
+PATH = pathlib.Path(__file__)
+ROOT_DIR = PATH.parent.parent
+ALL_REGEX = re.compile(r"__all__ = \[(.|\n)*?\]")
+WORD_REGEX = re.compile(r"\"\w+\"")
 
-for root, dirs, files in os.walk(PACKAGE_DIR):
-    for filename in files:
-        if not filename.endswith(".py"):
+
+def sort_all(match: re.Match) -> str:
+    s = match.group()
+    assert s.startswith("__all__ = [")
+    words = sorted(WORD_REGEX.findall(s))
+    if len("__all__ = []") + sum(map(len, words)) + 2 * (len(words) - 1) > 88:
+        return "__all__ = [\n    " + ",\n    ".join(words) + ",\n]"
+    else:
+        return "__all__ = [" + ", ".join(words) + "]"
+
+
+def main():
+    for filename in sys.argv[1:]:
+        path = ROOT_DIR / filename
+        if path == PATH:
             continue
-        path = f"{root}/{filename}"
-        with open(path) as f:
-            lines = f.readlines()
-        try:
-            all_first_line = next(i for i, l in enumerate(lines) if "__all__ = [" in l)
-        except StopIteration:
-            continue
-        all_last_line = next(
-            i + all_first_line for i, l in enumerate(lines[all_first_line:]) if "]" in l
-        )
-        namespace: dict = {}
-        exec("".join(lines[all_first_line : all_last_line + 1]), namespace)
-        if namespace["__all__"] == sorted(namespace["__all__"]):
-            continue
-        __all__ = ", ".join(f'"{s}"' for s in sorted(namespace["__all__"]))
-        with open(path, "w") as f:
-            f.writelines(lines[:all_first_line])
-            f.write(f"__all__ = [{__all__}]\n")
-            f.writelines(lines[all_last_line + 1 :])
-        run(["black", path])
+        text = path.read_text()
+        new_text = ALL_REGEX.sub(sort_all, text)
+        if new_text != text:
+            path.write_text(new_text)
+
+
+if __name__ == "__main__":
+    main()

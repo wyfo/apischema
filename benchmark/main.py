@@ -15,7 +15,8 @@ from common import Benchmark, Methods
 ROOT_DIR = pathlib.Path(__file__).parent.parent
 DATA_PATH = ROOT_DIR / "benchmark" / "data.json"
 TABLE_PATH = ROOT_DIR / "examples" / "benchmark_table.md"
-CHART_PATH = ROOT_DIR / "docs" / "benchmark_chart.svg"
+LIGHT_CHART_PATH = ROOT_DIR / "docs" / "benchmark_chart_light.svg"
+DARK_CHART_PATH = ROOT_DIR / "docs" / "benchmark_chart_dark.svg"
 CHART_TRUNCATE = 20
 
 packages = [
@@ -174,7 +175,8 @@ def main():
     )
     relative_results = [res.relative(results[0]) for res in results]
     export_table(relative_results)
-    export_chart(relative_results, CHART_PATH, "default")
+    export_chart(relative_results, LIGHT_CHART_PATH, "default")
+    export_chart(relative_results, DARK_CHART_PATH, "default")
 
 
 if __name__ == "__main__":

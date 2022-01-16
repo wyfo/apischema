@@ -18,17 +18,22 @@ It requires only Python 3.6+ (and dataclasses [official backport](https://pypi.o
 
 ## Why another library?
 
-(If you wonder how this differs from the *pydantic* library, see the [dedicated section of the documentation](https://wyfo.github.io/apischema/dev/difference_with_pydantic/) — there are many differences.)
+(If you wonder how this differs from the *pydantic* library, see the [dedicated section of the documentation(https://wyfo.github.io/apischema/0.17/difference_with_pydantic) — there are many differences.)
 
 This library fulfills the following goals:
 
 - stay as close as possible to the standard library (dataclasses, typing, etc.) — as a consequence we do not need plugins for editors/linters/etc.;
 - be adaptable, provide tools to support any types (ORM, etc.);
-- avoid dynamic things like using raw strings for attributes name — play nicely with your IDE.
+- avoid dynamic things like using raw strings for attributes name - play nicely with your IDE.
 
-No known alternative achieves all of this, and apischema is also [faster](https://wyfo.github.io/apischema/dev/optimizations_and_benchmark) than all of them.
+No known alternative achieves all of this, and apischema is also [(a lot) faster](https://wyfo.github.io/apischema/0.17/optimizations_and_benchmark#benchmark) than all of them.
 
-On top of that, because APIs are not only JSON, *apischema* is also a complete GraphQL library.
+On top of that, because APIs are not only JSON, *apischema* is also a complete GraphQL library
+
+![benchmark chart](https://wyfo.github.io/apischema/0.17/benchmark_chart_light.svg#gh-light-mode-only)
+![benchmark chart](https://wyfo.github.io/apischema/0.17/benchmark_chart_dark.svg#gh-dark-mode-only)
+
+> Actually, *apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code ([pydantic support example](https://wyfo.github.io/apischema/0.17/examples/pydantic_support) using [conversions feature](https://wyfo.github.io/apischema/0.17/conversions))
 
 ## Example
 
@@ -37,8 +42,8 @@ from collections.abc import Collection
 from dataclasses import dataclass, field
 from uuid import UUID, uuid4
 
+import pytest
 from graphql import print_schema
-from pytest import raises
 
 from apischema import ValidationError, deserialize, serialize
 from apischema.graphql import graphql_schema
@@ -62,10 +67,10 @@ assert resource == Resource(uuid, "wyfo", {"some_tag"})
 # Serialize objects
 assert serialize(Resource, resource) == data
 # Validate during deserialization
-with raises(ValidationError) as err:  # pytest checks exception is raised
+with pytest.raises(ValidationError) as err:  # pytest checks exception is raised
     deserialize(Resource, {"id": "42", "name": "wyfo"})
 assert err.value.errors == [
-    {"loc": ["id"], "msg": "badly formed hexadecimal UUID string"}
+    {"loc": ["id"], "err": "badly formed hexadecimal UUID string"}
 ]
 # Generate JSON Schema
 assert deserialization_schema(Resource) == {
@@ -74,7 +79,12 @@ assert deserialization_schema(Resource) == {
     "properties": {
         "id": {"type": "string", "format": "uuid"},
         "name": {"type": "string"},
-        "tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
+        "tags": {
+            "type": "array",
+            "items": {"type": "string"},
+            "uniqueItems": True,
+            "default": [],
+        },
     },
     "required": ["id", "name"],
     "additionalProperties": False,
@@ -103,8 +113,16 @@ assert print_schema(schema) == schema_str
 ```
 *apischema* works out of the box with your data model.
 
-[*Let's start the apischema tour.*](https://wyfo.github.io/apischema/)
+> This example and further ones are using *pytest* API because they are in fact run as tests in the library CI
 
-## Changelog
+### Run the documentation examples
 
-See [releases](https://github.com/wyfo/apischema/releases)
+All documentation examples are written using the last Python minor version — currently 3.10 — in order to provide up-to-date documentation. Because Python 3.10 specificities (like [PEP 585](https://www.python.org/dev/peps/pep-0604/)) are used, this version is "mandatory" to execute the examples as-is.
+
+In addition to *pytest*, some examples use third-party libraries like *SQLAlchemy* or *attrs*. All of this dependencies can be downloaded using the `examples` extra with
+```shell
+pip install apischema[examples]
+```
+
+Once dependencies are installed, you can simply copy-paste examples and execute them, using the proper Python version. 
+
