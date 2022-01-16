@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.5">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.7">
     
     
       
@@ -17,14 +17,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ee0f47ba.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.cd566b2a.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
-        
-          
-          
-          <meta name="theme-color" content="#4cae4f">
         
       
     
@@ -49,12 +45,16 @@
   
     
     
+      
     
     
     
-    <body dir="ltr" data-md-color-scheme="preference" data-md-color-primary="green" data-md-color-accent="indigo">
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="indigo">
   
     
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
@@ -107,6 +107,28 @@
         </div>
       </div>
     </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69z"/></svg>
+            </label>
+          
+        
+          
+          
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69z"/></svg>
+            </label>
+          
+        
+      </form>
     
     
     
@@ -601,8 +623,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#enums-pass-through-enums" class="md-nav__link">
-    enums — pass through enums
+  <a href="#dataclasses-pass-through-dataclasses" class="md-nav__link">
+    dataclasses - pass through dataclasses
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enums-pass-through-enumenum-subclasses" class="md-nav__link">
+    enums — pass through enum.Enum subclasses
   </a>
   
 </li>
@@ -781,8 +810,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#enums-pass-through-enums" class="md-nav__link">
-    enums — pass through enums
+  <a href="#dataclasses-pass-through-dataclasses" class="md-nav__link">
+    dataclasses - pass through dataclasses
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enums-pass-through-enumenum-subclasses" class="md-nav__link">
+    enums — pass through enum.Enum subclasses
   </a>
   
 </li>
@@ -871,7 +907,8 @@
 
 <h1 id="optimizations-and-benchmark">Optimizations and benchmark<a class="headerlink" href="#optimizations-and-benchmark" title="Permanent link">&para;</a></h1>
 <p><em>apischema</em> is (a lot) <a href="#benchmark">faster</a> than its known alternatives, thanks to advanced optimizations.    </p>
-<p><img alt="benchmark chart" src="../benchmark_chart.svg" /></p>
+<p><img alt="benchmark chart" src="../benchmark_chart_light.svg#only-light" />
+<img alt="benchmark chart" src="../benchmark_chart_dark.svg#only-dark" /></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Chart is truncated to a relative performance of 20x slower. Benchmark results are detailed in the <a href="#relative-execution-time-lower-is-better">results table</a>.</p>
@@ -920,10 +957,6 @@
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;deserialize(list[int], ints, no_copy=False)&quot;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()))</span>
 <a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c1"># 9.365363762015477</span>
 </code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Object deserialization is also optimized following </p>
-</div>
 <h2 id="serialization-passthrough">Serialization passthrough<a class="headerlink" href="#serialization-passthrough" title="Permanent link">&para;</a></h2>
 <p>JSON serialization libraries expect primitive data types (<code>dict</code>/<code>list</code>/<code>str</code>/etc.). A non-negligible part of objects to be serialized are primitive.</p>
 <p>When <a href="#type-checking">type checking</a> is disabled (this is default), objects annotated with primitive types doesn't need to be transformed or checked; <em>apischema</em> can simply "pass through" them, and it will result into an identity serialization method, just returning its argument.</p>
@@ -967,7 +1000,10 @@ not guaranteed to have their runtime type supported (having a <code>set</code> a
 <p class="admonition-title">Note</p>
 <p>Set-like type will not be passed through.</p>
 </div>
-<h4 id="enums-pass-through-enums"><code>enums</code> — pass through enums<a class="headerlink" href="#enums-pass-through-enums" title="Permanent link">&para;</a></h4>
+<h4 id="dataclasses-pass-through-dataclasses"><code>dataclasses</code> - pass through dataclasses<a class="headerlink" href="#dataclasses-pass-through-dataclasses" title="Permanent link">&para;</a></h4>
+<p>Some JSON libraries, like <a href="https://github.com/ijl/orjson">orjson</a>, support dataclasses natively. 
+However, because <em>apischema</em> has a lot of specific features (<a href="../json_schema/#field-alias">aliasing</a>, <a href="../data_model/#composition-over-inheritance---composed-dataclasses-flattening">flatten fields</a>, <a href="../data_model/#skip-field-serialization-depending-on-condition">conditional skipping</a>, <a href="../de_serialization/#field-ordering">fields ordering</a>, etc.), only dataclasses with none of these features, and only passed through fields, will be passed through too.</p>
+<h4 id="enums-pass-through-enumenum-subclasses"><code>enums</code> — pass through <code>enum.Enum</code> subclasses<a class="headerlink" href="#enums-pass-through-enumenum-subclasses" title="Permanent link">&para;</a></h4>
 <h4 id="tuple-pass-through-tuple"><code>tuple</code> — pass through <code>tuple</code><a class="headerlink" href="#tuple-pass-through-tuple" title="Permanent link">&para;</a></h4>
 <p>Even if <code>tuple</code> is often supported by JSON serializers, if this options is not enabled, tuples will be serialized as lists. It also allows easier test writing for example.</p>
 <div class="admonition note">
@@ -1052,45 +1088,45 @@ Performances are measured on two datasets: a simple, a more complex one.</p>
 <tbody>
 <tr>
 <td>apischema</td>
-<td>0.17.2</td>
+<td>0.17.3</td>
 <td align="right">/</td>
 <td align="right">/</td>
 </tr>
 <tr>
 <td>mashumaro</td>
 <td>2.11</td>
-<td align="right">x2.6 (3.3/1.9)</td>
-<td align="right">x2.6 (3.1/2.1)</td>
+<td align="right">x2.2 (2.6/1.9)</td>
+<td align="right">x2.1 (2.3/1.9)</td>
 </tr>
 <tr>
 <td>cattrs</td>
 <td>1.10.0</td>
-<td align="right">x3.1 (4.1/2.1)</td>
-<td align="right">x3.9 (6.1/1.8)</td>
+<td align="right">x3.0 (4.0/2.1)</td>
+<td align="right">x3.9 (6.1/1.7)</td>
 </tr>
 <tr>
 <td>typical</td>
 <td>2.8.0</td>
-<td align="right">x7.1 (8.0/6.2)</td>
-<td align="right">x8.4 (11.9/4.9)</td>
+<td align="right">x7.1 (7.2/7.0)</td>
+<td align="right">x8.1 (11.7/4.6)</td>
 </tr>
 <tr>
 <td>pydantic</td>
 <td>1.9.0</td>
-<td align="right">x11.7 (14.7/8.7)</td>
-<td align="right">x31.1 (43.9/18.3)</td>
+<td align="right">x10.4 (11.1/9.8)</td>
+<td align="right">x26.0 (34.4/17.7)</td>
+</tr>
+<tr>
+<td>typedload</td>
+<td>2.15</td>
+<td align="right">x12.6 (16.6/8.6)</td>
+<td align="right">x61.8 (71.6/51.9)</td>
 </tr>
 <tr>
 <td>marshmallow</td>
 <td>3.14.1</td>
-<td align="right">x23.3 (26.2/20.5)</td>
-<td align="right">x21.6 (26.8/16.3)</td>
-</tr>
-<tr>
-<td>typedload</td>
-<td>2.14</td>
-<td align="right">x12.4 (15.7/9.1)</td>
-<td align="right">x63.6 (75.4/51.8)</td>
+<td align="right">x27.5 (31.0/24.1)</td>
+<td align="right">x23.1 (29.5/16.8)</td>
 </tr>
 </tbody>
 </table>
@@ -1163,10 +1199,10 @@ Performances are measured on two datasets: a simple, a more complex one.</p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.b6ff8c07.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.22074ed6.min.js", "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.5e13d264.min.js"></script>
+      <script src="../assets/javascripts/bundle.01de222e.min.js"></script>
       
     
   </body>
