@@ -186,54 +186,35 @@ class MappingMethod(SerializationMethod):
         }
 
 
+@dataclass
 class BaseField:
-    def update_result(
-        self, obj: Any, result: dict, typed_dict: bool, exclude_unset: bool
-    ):
+    name: str
+    alias: str
+
+    def update_result(self, obj: Any, result: dict):
         raise NotImplementedError
 
 
 @dataclass
 class IdentityField(BaseField):
-    name: str
-    alias: str
-    required: bool
-
-    def update_result(
-        self, obj: Any, result: dict, typed_dict: bool, exclude_unset: bool
-    ):
-        if serialize_field(self, obj, typed_dict, exclude_unset):
-            result[self.alias] = get_field_value(self, obj, typed_dict)
-
-
-def serialize_field(
-    field: IdentityField, obj: Any, typed_dict: bool, exclude_unset: bool
-) -> bool:
-    if typed_dict:
-        return field.required or field.name in obj
-    else:
-        return not exclude_unset or field.name in getattr(obj, FIELDS_SET_ATTR)
-
-
-def get_field_value(field: IdentityField, obj: Any, typed_dict: bool) -> object:
-    return obj[field.name] if typed_dict else getattr(obj, field.name)
+    def update_result(self, obj: Any, result: dict):
+        result[self.alias] = getattr(obj, self.name)
 
 
 @dataclass
-class SimpleField(IdentityField):
+class SimpleField(BaseField):
     method: SerializationMethod
 
-    def update_result(
-        self, obj: Any, result: dict, typed_dict: bool, exclude_unset: bool
-    ):
-        if serialize_field(self, obj, typed_dict, exclude_unset):
-            result[self.alias] = self.method.serialize(
-                get_field_value(self, obj, typed_dict), self.alias
-            )
+    def update_result(self, obj: Any, result: dict):
+        result[self.alias] = self.method.serialize(getattr(obj, self.name), self.alias)
 
 
 @dataclass
-class ComplexField(SimpleField):
+class ComplexField(BaseField):
+    method: SerializationMethod
+    typed_dict: bool
+    required: bool
+    exclude_unset: bool
     skip_if: Optional[Callable]
     undefined: bool
     skip_none: bool
@@ -246,11 +227,15 @@ class ComplexField(SimpleField):
             self.skip_if or self.undefined or self.skip_none or self.skip_default
         )
 
-    def update_result(
-        self, obj: Any, result: dict, typed_dict: bool, exclude_unset: bool
-    ):
-        if serialize_field(self, obj, typed_dict, exclude_unset):
-            value: object = get_field_value(self, obj, typed_dict)
+    def update_result(self, obj: Any, result: dict):
+        if (
+            (self.required or self.name in obj)
+            if self.typed_dict
+            else (not self.exclude_unset or self.name in getattr(obj, FIELDS_SET_ATTR))
+        ):
+            value: object = (
+                obj[self.name] if self.typed_dict else getattr(obj, self.name)
+            )
             if not self.skippable or not (
                 (self.skip_if is not None and self.skip_if(value))
                 or (self.undefined and value is Undefined)
@@ -265,15 +250,12 @@ class ComplexField(SimpleField):
 
 @dataclass
 class SerializedField(BaseField):
-    alias: str
     func: Callable[[Any], Any]
     undefined: bool
     skip_none: bool
     method: SerializationMethod
 
-    def update_result(
-        self, obj: Any, result: dict, typed_dict: bool, exclude_unset: bool
-    ):
+    def update_result(self, obj: Any, result: dict):
         value = self.func(obj)
         if not (self.undefined and value is Undefined) and not (
             self.skip_none and value is None
@@ -282,50 +264,35 @@ class SerializedField(BaseField):
 
 
 @dataclass
+class SimpleObjectMethod(SerializationMethod):
+    fields: Tuple[str, ...]
+
+    def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
+        return {name: getattr(obj, name) for name in self.fields}
+
+
+@dataclass
 class ObjectMethod(SerializationMethod):
     fields: Tuple[BaseField, ...]
 
-
-@dataclass
-class ClassMethod(ObjectMethod):
     def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
         result: dict = {}
         for i in range(len(self.fields)):
             field: BaseField = self.fields[i]
-            field.update_result(obj, result, False, False)
+            field.update_result(obj, result)
         return result
 
 
 @dataclass
-class ClassWithFieldsSetMethod(ObjectMethod):
-    def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
-        result: dict = {}
-        for i in range(len(self.fields)):
-            field: BaseField = self.fields[i]
-            field.update_result(obj, result, False, True)
-        return result
-
-
-@dataclass
-class TypedDictMethod(ObjectMethod):
-    def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
-        result: dict = {}
-        for i in range(len(self.fields)):
-            field: BaseField = self.fields[i]
-            field.update_result(obj, result, True, False)
-        return result
-
-
-@dataclass
-class TypedDictWithAdditionalMethod(TypedDictMethod):
+class ObjectAdditionalMethod(ObjectMethod):
     field_names: AbstractSet[str]
     any_method: SerializationMethod
 
     def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
         result: dict = super().serialize(obj)
         for key, value in obj.items():
-            if key not in self.field_names and isinstance(key, str):
-                result[str(key)] = self.any_method.serialize(value, key)
+            if isinstance(key, str) and not (key in self.field_names or key in result):
+                result[key] = self.any_method.serialize(value, key)
         return result
 
 
@@ -441,3 +408,7 @@ class DiscriminateTypedDict(SerializationMethod):
         except Exception:
             return self.fallback.fall_back(obj, path)
         return method.serialize(obj, path)
+
+
+def identity(arg: Any) -> Any:
+    return arg
