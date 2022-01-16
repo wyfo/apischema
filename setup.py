@@ -1,4 +1,4 @@
-import os
+import pathlib
 import platform
 import sys
 import warnings
@@ -74,12 +74,6 @@ MacOS users should run:
             )
 
 
-README = None
-# README cannot be read by older python version run by tox
-if "TOX_ENV_NAME" not in os.environ:
-    with open("README.md") as f:
-        README = f.read()
-
 ext_modules = None
 # Cythonization makes apischema a lot slower using PyPy
 if platform.python_implementation() != "PyPy":
@@ -92,7 +86,7 @@ if platform.python_implementation() != "PyPy":
 
 setup(
     name="apischema",
-    version="0.17.2",
+    version="0.17.3",
     url="https://github.com/wyfo/apischema",
     author="Joseph Perez",
     author_email="joperez@hotmail.fr",
@@ -104,7 +98,7 @@ setup(
         "apischema.serialization": ["methods.pyx"],
     },
     description="JSON (de)serialization, GraphQL and JSON schema generation using Python typing.",
-    long_description=README,
+    long_description=pathlib.Path("README.md").read_text(),
     long_description_content_type="text/markdown",
     python_requires=">=3.6",
     install_requires=["dataclasses>=0.7;python_version<'3.7'"],
