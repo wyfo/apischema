@@ -176,7 +176,7 @@ def main():
     relative_results = [res.relative(results[0]) for res in results]
     export_table(relative_results)
     export_chart(relative_results, LIGHT_CHART_PATH, "default")
-    export_chart(relative_results, DARK_CHART_PATH, "default")
+    export_chart(relative_results, DARK_CHART_PATH, "dark_background")
 
 
 if __name__ == "__main__":
