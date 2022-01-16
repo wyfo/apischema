@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Generic, Optional, Type, TypeVar
+from typing import Optional, Type
 
 import pydantic.generics
 from common import Benchmark, Methods, Payment, to_camel_case
@@ -39,24 +39,14 @@ class Receipt(CamelModel):
     special_offers: Optional[float] = pydantic.Field(None, ge=0)
 
 
-T = TypeVar("T")
-
-
-class Envelop(pydantic.generics.GenericModel, Generic[T]):
-    __root__: list[T]
-
-
 def methods(model: Type[CamelModel]) -> Methods:
-    envelop = Envelop[model]  # type: ignore
-
-    def serialize_receipts(obj: Envelop[Receipt]):
-        for elt in obj.__root__:
-            elt.date.isoformat()
+    def serialize_receipts(obj: Receipt):
+        obj.date.isoformat()
         return obj.dict()
 
     return Methods(
-        lambda data: envelop(__root__=data),
-        envelop.dict if model is Message else serialize_receipts,
+        lambda data: model(**data),
+        model.dict if model is Message else serialize_receipts,
     )
 
 

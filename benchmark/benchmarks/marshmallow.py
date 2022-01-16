@@ -57,7 +57,7 @@ class Receipt(CamelCaseSchema):
 
 
 def methods(cls: type[CamelCaseSchema]) -> Methods:
-    return Methods(cls(many=True).load, cls(many=True).dump)
+    return Methods(cls().load, cls().dump)
 
 
 benchmarks = Benchmark(methods(Message), methods(Receipt))

@@ -3,7 +3,7 @@ import json
 import pathlib
 import time
 import timeit
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Collection, Mapping, Sequence
 from dataclasses import dataclass, replace
 from typing import Any, NamedTuple
 
@@ -31,6 +31,10 @@ def time_it(func: Callable, arg: Any) -> float:
     return min(timer.repeat(number=number)) / number
 
 
+def time_it_mean(func: Callable, args: Collection) -> float:
+    return sum(time_it(func, arg) for arg in args) / len(args)
+
+
 class BenchmarkResult(NamedTuple):
     first_run: float
     deserialization: float
@@ -43,14 +47,15 @@ def run_benchmark(
     print(f"\t{key}")
     deserializer, serializer = methods
     first_run_start = time.perf_counter_ns()
-    deserialized = deserializer(data[key])
-    serializer(deserialized)
+    deserialized = [deserializer(elt) for elt in data[key]]
+    for obj in deserialized:
+        serializer(obj)
     first_run_end = time.perf_counter_ns()
     first_run = (first_run_end - first_run_start) * 1e-9
     print(f"\t\tfirst run: {first_run}")
-    deserialization = time_it(deserializer, data[key])
+    deserialization = time_it_mean(deserializer, data[key])
     print(f"\t\tdeserialization: {deserialization}")
-    serialization = time_it(serializer, deserialized)
+    serialization = time_it_mean(serializer, deserialized)
     print(f"\t\tserialization: {serialization}")
     return BenchmarkResult(first_run, deserialization, serialization)
 
@@ -111,18 +116,11 @@ def run_library_benchmark(
     )
 
 
-def main():
-    with open(DATA_PATH) as json_file:
-        data = json.load(json_file)
-    results = sorted(
-        (run_library_benchmark(p, data) for p in packages),
-        key=LibraryBenchmarkResult.total,
-    )
-    relative_results = [res.relative(results[0]) for res in results]
+def export_table(results: Sequence[LibraryBenchmarkResult]):
     with open(TABLE_PATH, "w") as table:
         table.write("|library|version|deserialization|serialization|\n")
         table.write("|-|-|-:|-:|\n")
-        for res in relative_results:
+        for res in results:
             if all(r == 1.0 for r in res.result):
                 deserialization, serialization = "/", "/"
             else:
@@ -134,19 +132,27 @@ def main():
             table.write(
                 f"|{res.library}|{res.version}|{deserialization}|{serialization}|\n"
             )
+
+
+def export_chart(
+    results: Sequence[LibraryBenchmarkResult], path: pathlib.Path, style: str
+):
+    plt.style.use(style)
     columns = [
         f"{op} ({bench})"
         for op in ("deserialization", "serialization")
         for bench in ("simple", "complex")
     ]
+    # I've used pandas because I was not able to do what I wanted with matplotlib alone
     df = pandas.DataFrame(
         [
-            [res.library] + [min(r, CHART_TRUNCATE) for r in res.result]
-            for res in relative_results
+            [res.library] + [min(r, CHART_TRUNCATE) for r in res.result]  # type: ignore
+            for res in results
         ],
         columns=["library"] + columns,
     )
     ax = df.plot.bar(x="library", title="Benchmark (lower is better)", rot=45)
+    ax.legend(framealpha=0, loc="upper left")
     plt.xlabel("")
     plt.tight_layout()
     for container in ax.containers:
@@ -156,7 +162,19 @@ def main():
             padding=2,
             rotation=90,
         )
-    plt.savefig(str(CHART_PATH))
+    plt.savefig(str(path), transparent=True)
+
+
+def main():
+    with open(DATA_PATH) as json_file:
+        data = json.load(json_file)
+    results = sorted(
+        (run_library_benchmark(p, data) for p in packages),
+        key=LibraryBenchmarkResult.total,
+    )
+    relative_results = [res.relative(results[0]) for res in results]
+    export_table(relative_results)
+    export_chart(relative_results, CHART_PATH, "default")
 
 
 if __name__ == "__main__":

@@ -49,8 +49,7 @@ class Receipt:
 
 def methods(cls: type) -> Methods:
     return Methods(
-        apischema.deserialization_method(list[cls]),  # type: ignore
-        apischema.serialization_method(list[cls]),  # type: ignore
+        apischema.deserialization_method(cls), apischema.serialization_method(cls)
     )
 
 
