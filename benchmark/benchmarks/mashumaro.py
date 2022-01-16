@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Generic, Optional, TypeVar
+from typing import Optional
 
 import mashumaro
 from common import Benchmark, Methods, Payment
@@ -53,22 +53,8 @@ class Receipt(mashumaro.DataClassDictMixin):
             raise ValueError
 
 
-T = TypeVar("T")
-
-
-@dataclass(frozen=True)
-class Envelop(Generic[T]):
-    values: list[T]
-
-
-def methods(cls: type) -> Methods:
-    class ConcreteEnvelop(Envelop[cls], mashumaro.DataClassDictMixin):  # type: ignore
-        pass
-
-    return Methods(
-        lambda data: ConcreteEnvelop.from_dict({"values": data}),
-        ConcreteEnvelop.to_dict,
-    )
+def methods(cls: type[mashumaro.DataClassDictMixin]) -> Methods:
+    return Methods(cls.from_dict, cls.to_dict)
 
 
 benchmarks = Benchmark(methods(Message), methods(Receipt))
