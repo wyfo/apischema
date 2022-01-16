@@ -1,6 +1,6 @@
 import collections.abc
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import dataclass, is_dataclass
 from enum import Enum
 from functools import lru_cache
 from typing import (
@@ -39,8 +39,6 @@ from apischema.serialization.methods import (
     BaseField,
     BoolMethod,
     CheckedTupleMethod,
-    ClassMethod,
-    ClassWithFieldsSetMethod,
     CollectionCheckOnlyMethod,
     CollectionMethod,
     ComplexField,
@@ -59,23 +57,25 @@ from apischema.serialization.methods import (
     MappingMethod,
     NoFallback,
     NoneMethod,
+    ObjectAdditionalMethod,
+    ObjectMethod,
     OptionalMethod,
     RecMethod,
     SerializationMethod,
     SerializedField,
     SimpleField,
+    SimpleObjectMethod,
     StrMethod,
     TupleCheckOnlyMethod,
     TupleMethod,
     TypeCheckIdentityMethod,
     TypeCheckMethod,
-    TypedDictMethod,
-    TypedDictWithAdditionalMethod,
     UnionAlternative,
     UnionMethod,
     ValueMethod,
     WrapperMethod,
 )
+from apischema.serialization.methods import identity as optimized_identity
 from apischema.serialization.serialized_methods import get_serialized_methods
 from apischema.types import AnyType, NoneType, Undefined, UndefinedType
 from apischema.typing import (
@@ -138,6 +138,7 @@ def expected_class(tp: AnyType) -> type:
 class PassThroughOptions:
     any: bool = False
     collections: bool = False
+    dataclasses: bool = False
     enums: bool = False
     tuple: bool = False
     types: CollectionOrPredicate[AnyType] = ()
@@ -208,6 +209,7 @@ class SerializationMethodVisitor(
         self.no_copy = no_copy
         self.pass_through_options = pass_through_options
         self.pass_through_type = as_predicate(self.pass_through_options.types)
+        self._has_skipped_field = False
 
     @property
     def _factory(self) -> SerializationMethodFactory:
@@ -350,22 +352,35 @@ class SerializationMethodVisitor(
             method = MappingMethod(key_method, value_method)
         return self._wrap(cls, method)
 
+    def _object(
+        self, tp: AnyType, fields: Sequence[ObjectField]
+    ) -> SerializationMethod:
+        self._has_skipped_field = any(map(self._skip_field, fields))
+        return super()._object(tp, fields)
+
     def object(self, tp: AnyType, fields: Sequence[ObjectField]) -> SerializationMethod:
         cls = get_origin_or_type(tp)
         fields_to_order = []
+        exclude_unset = self.exclude_unset and support_fields_set(cls)
+        typed_dict = is_typed_dict(cls)
         for field in fields:
             field_alias = self.aliaser(field.alias) if not field.is_aggregate else None
             field_method = self.visit_with_conv(field.type, field.serialization)
             field_default = ... if field.required else field.get_default()
             base_field: BaseField
-            if field_alias is None or field.skippable(
-                self.exclude_defaults, self.exclude_none
+            if (
+                typed_dict
+                or exclude_unset
+                or field_alias is None
+                or field.skippable(self.exclude_defaults, self.exclude_none)
             ):
                 base_field = ComplexField(
                     field.name,
                     field_alias,  # type: ignore
-                    field.required,
                     field_method,
+                    typed_dict,
+                    field.required,
+                    exclude_unset,
                     field.skip.serialization_if,
                     is_union_of(field.type, UndefinedType)
                     or field_default is Undefined,
@@ -377,11 +392,9 @@ class SerializationMethodVisitor(
                     field_default,
                 )
             elif field_method is IDENTITY_METHOD:
-                base_field = IdentityField(field.name, field_alias, field.required)
+                base_field = IdentityField(field.name, field_alias)
             else:
-                base_field = SimpleField(
-                    field.name, field_alias, field.required, field_method
-                )
+                base_field = SimpleField(field.name, field_alias, field_method)
             fields_to_order.append(FieldToOrder(field.name, field.ordering, base_field))
         for serialized, types in get_serialized_methods(tp):
             ret_type = types["return"]
@@ -390,6 +403,7 @@ class SerializationMethodVisitor(
                     serialized.func.__name__,
                     serialized.ordering,
                     SerializedField(
+                        serialized.func.__name__,
                         self.aliaser(serialized.alias),
                         serialized.func,
                         is_union_of(ret_type, UndefinedType),
@@ -398,23 +412,30 @@ class SerializationMethodVisitor(
                     ),
                 )
             )
-
-        fields_to_order = sort_by_order(  # type: ignore
-            cls, fields_to_order, lambda f: f.name, lambda f: f.ordering
+        base_fields = tuple(
+            f.field
+            for f in sort_by_order(  # type: ignore
+                cls, fields_to_order, lambda f: f.name, lambda f: f.ordering
+            )
         )
-        base_fields = tuple(f.field for f in fields_to_order)
         method: SerializationMethod
-        if is_typed_dict(cls):
-            if self.additional_properties:
-                method = TypedDictWithAdditionalMethod(
-                    base_fields, {f.name for f in fields}, self.any()
-                )
-            else:
-                method = TypedDictMethod(base_fields)
-        elif self.exclude_unset and support_fields_set(cls):
-            method = ClassWithFieldsSetMethod(base_fields)
+        if is_typed_dict(cls) and self.additional_properties:
+            method = ObjectAdditionalMethod(
+                base_fields, {f.name for f in fields}, self.any()
+            )
+        elif not all(
+            isinstance(f, IdentityField) and f.alias == f.name for f in base_fields
+        ):
+            method = ObjectMethod(base_fields)
+        elif (
+            is_dataclass(cls)
+            and self.pass_through_options.dataclasses
+            and all(f2.field for f, f2 in zip(base_fields, fields_to_order))
+            and not self._has_skipped_field
+        ):
+            method = IDENTITY_METHOD
         else:
-            method = ClassMethod(base_fields)
+            method = SimpleObjectMethod(tuple(f.name for f in base_fields))
         return self._wrap(cls, method)
 
     def primitive(self, cls: Type) -> SerializationMethod:
@@ -558,7 +579,7 @@ def serialization_method(
 ) -> Callable[[Any], Any]:
     from apischema import settings
 
-    return serialization_method_factory(
+    method = serialization_method_factory(
         opt_or(additional_properties, settings.additional_properties),
         opt_or(aliaser, settings.aliaser),
         opt_or(check_type, settings.serialization.check_type),
@@ -570,7 +591,8 @@ def serialization_method(
         opt_or(fall_back_on_any, settings.serialization.fall_back_on_any),
         opt_or(no_copy, settings.serialization.no_copy),
         opt_or(pass_through, settings.serialization.pass_through),
-    )(type).serialize
+    )(type)
+    return optimized_identity if method is IDENTITY_METHOD else method.serialize  # type: ignore
 
 
 NO_OBJ = object()

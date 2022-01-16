@@ -78,7 +78,12 @@ But, most of the time, collections runtime types are `list`/`dict`, so others ca
 !!! note
     Set-like type will not be passed through.
 
-#### `enums` — pass through enums
+#### `dataclasses` - pass through dataclasses
+
+Some JSON libraries, like [orjson](https://github.com/ijl/orjson), support dataclasses natively. 
+However, because *apischema* has a lot of specific features ([aliasing](json_schema.md#field-alias), [flatten fields](data_model.md#composition-over-inheritance---composed-dataclasses-flattening), [conditional skipping](data_model.md#skip-field-serialization-depending-on-condition), [fields ordering](de_serialization.md#field-ordering), etc.), only dataclasses with none of these features, and only passed through fields, will be passed through too.
+
+#### `enums` — pass through `enum.Enum` subclasses
 
 #### `tuple` — pass through `tuple`
 
