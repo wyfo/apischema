@@ -50,7 +50,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: benchmark_chart_light
-          path: docs/benchmark_chart.svg
+          path: docs/benchmark_chart_light.svg
       - uses: actions/upload-artifact@v2
         with:
           name: benchmark_chart_dark
