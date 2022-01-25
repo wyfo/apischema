@@ -8,6 +8,7 @@ from typing import (
     List,
     Mapping,
     MutableMapping,
+    Optional,
     Set,
     Tuple,
     overload,
@@ -43,17 +44,19 @@ class DependentRequiredDescriptor:
 
 @overload
 def dependent_required(
-    fields: Mapping[Any, Collection[Any]], *groups: Collection[Any], owner: type = None
+    fields: Mapping[Any, Collection[Any]],
+    *groups: Collection[Any],
+    owner: Optional[type] = None
 ):
     ...
 
 
 @overload
-def dependent_required(*groups: Collection[Any], owner: type = None):
+def dependent_required(*groups: Collection[Any], owner: Optional[type] = None):
     ...
 
 
-def dependent_required(*groups: Collection[Any], owner: type = None):  # type: ignore
+def dependent_required(*groups: Collection[Any], owner: Optional[type] = None):  # type: ignore
     if not groups:
         return
     fields: Mapping[Any, Collection[Any]] = {}

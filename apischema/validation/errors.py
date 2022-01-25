@@ -52,15 +52,15 @@ class ValidationError(Exception):
     @overload
     def __init__(
         self,
-        messages: Sequence[ErrorMsg] = None,
-        children: Mapping[ErrorKey, "ValidationError"] = None,
+        messages: Optional[Sequence[ErrorMsg]] = None,
+        children: Optional[Mapping[ErrorKey, "ValidationError"]] = None,
     ):
         ...
 
     def __init__(
         self,
-        messages: Union[ErrorMsg, Sequence[ErrorMsg]] = None,
-        children: Mapping[ErrorKey, "ValidationError"] = None,
+        messages: Optional[Union[ErrorMsg, Sequence[ErrorMsg]]] = None,
+        children: Optional[Mapping[ErrorKey, "ValidationError"]] = None,
     ):
         if isinstance(messages, str):
             messages = [messages]

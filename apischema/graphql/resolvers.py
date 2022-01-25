@@ -166,15 +166,15 @@ def resolver(__method_or_property: MethodOrProp) -> MethodOrProp:
 
 @overload
 def resolver(
-    alias: str = None,
+    alias: Optional[str] = None,
     *,
-    conversion: AnyConversion = None,
+    conversion: Optional[AnyConversion] = None,
     error_handler: ErrorHandler = Undefined,
     order: Optional[Ordering] = None,
-    schema: Schema = None,
-    parameters_metadata: Mapping[str, Mapping] = None,
+    schema: Optional[Schema] = None,
+    parameters_metadata: Optional[Mapping[str, Mapping]] = None,
     serialized: bool = False,
-    owner: Type = None,
+    owner: Optional[Type] = None,
 ) -> Callable[[MethodOrProp], MethodOrProp]:
     ...
 
@@ -183,14 +183,14 @@ def resolver(
 def resolver(
     __arg=None,
     *,
-    alias: str = None,
-    conversion: AnyConversion = None,
+    alias: Optional[str] = None,
+    conversion: Optional[AnyConversion] = None,
     error_handler: ErrorHandler = Undefined,
     order: Optional[Ordering] = None,
-    schema: Schema = None,
-    parameters_metadata: Mapping[str, Mapping] = None,
+    schema: Optional[Schema] = None,
+    parameters_metadata: Optional[Mapping[str, Mapping]] = None,
     serialized: bool = False,
-    owner: Type = None,
+    owner: Optional[Type] = None,
 ):
     def register(func: Callable, owner: Type, alias2: str):
         alias2 = alias or alias2

@@ -7,6 +7,7 @@ from typing import (
     Dict,
     Generic,
     List,
+    Optional,
     Type,
     TypeVar,
     Union,
@@ -102,7 +103,7 @@ class Node(Generic[Id], ABC):
     @classmethod
     @abstractmethod
     def get_by_id(
-        cls: Type[Node_], id: Id, info: graphql.GraphQLResolveInfo = None
+        cls: Type[Node_], id: Id, info: Optional[graphql.GraphQLResolveInfo] = None
     ) -> Union[Node_, Awaitable[Node_]]:
         raise NotImplementedError
 
@@ -156,7 +157,7 @@ def nodes() -> Collection[Type[Node]]:
     return list(_nodes.values())
 
 
-def node(id: ID, info: graphql.GraphQLResolveInfo = None) -> Node:
+def node(id: ID, info: Optional[graphql.GraphQLResolveInfo] = None) -> Node:
     global_id = deserialize_global_id(id)
     node_type = global_id.node_type
     return node_type.get_by_id(node_type.id_from_global(global_id), info)

@@ -3,7 +3,7 @@ from dataclasses import MISSING
 from dataclasses import field as field_
 from dataclasses import make_dataclass
 from inspect import Parameter, iscoroutinefunction, signature
-from typing import Any, Callable, Mapping, Tuple, Type
+from typing import Any, Callable, Mapping, Optional, Tuple, Type
 
 from apischema.metadata import properties
 from apischema.typing import get_type_hints
@@ -11,7 +11,7 @@ from apischema.utils import to_camel_case
 
 
 def dataclass_input_wrapper(
-    func: Callable, parameters_metadata: Mapping[str, Mapping] = None
+    func: Callable, parameters_metadata: Optional[Mapping[str, Mapping]] = None
 ) -> Tuple[Callable, Type]:
     warnings.warn(
         "dataclass_input_wrapper is deprecated, use object_deserialization instead",

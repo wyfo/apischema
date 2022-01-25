@@ -8,6 +8,7 @@ from typing import (
     Generic,
     Iterable,
     Mapping,
+    Optional,
     Sequence,
     Tuple,
     Type,
@@ -35,7 +36,7 @@ T = TypeVar("T")
 def object_deserialization(
     func: Callable[..., T],
     *input_class_modifiers: Callable[[type], Any],
-    parameters_metadata: Mapping[str, Mapping] = None,
+    parameters_metadata: Optional[Mapping[str, Mapping]] = None,
 ) -> Any:
     fields = parameters_as_fields(func, parameters_metadata)
     types = get_type_hints(func, include_extras=True)

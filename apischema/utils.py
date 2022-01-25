@@ -292,7 +292,7 @@ def literal_values(values: Sequence[Any]) -> Sequence[Any]:
 awaitable_origin = get_origin(Awaitable[Any])
 
 
-def is_async(func: Callable, types: Mapping[str, AnyType] = None) -> bool:
+def is_async(func: Callable, types: Optional[Mapping[str, AnyType]] = None) -> bool:
     wrapped_func = func
     while hasattr(wrapped_func, "__wrapped__"):
         wrapped_func = wrapped_func.__wrapped__  # type: ignore
