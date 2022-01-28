@@ -43,6 +43,5 @@ type Faction implements Node {
 
 type Query {
   node(id: ID!): Node!
-}
-"""
+}"""
 assert print_schema(schema) == schema_str

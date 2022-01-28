@@ -28,7 +28,6 @@ enum MyEnum {
   """foo"""
   FOO
   BAR
-}
-'''
+}'''
 assert print_schema(schema_) == schema_str
 assert graphql_sync(schema_, "{echo(enum: FOO)}").data == {"echo": "FOO"}

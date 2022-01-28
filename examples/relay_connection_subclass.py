@@ -72,6 +72,5 @@ type PageInfo {
   hasNextPage: Boolean!
   startCursor: Int
   endCursor: Int
-}
-"""
+}"""
 assert print_schema(schema) == schema_str

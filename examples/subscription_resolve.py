@@ -38,8 +38,7 @@ type Subscription {
 
 type Message {
   body: String!
-}
-"""
+}"""
 assert print_schema(schema) == schema_str
 
 

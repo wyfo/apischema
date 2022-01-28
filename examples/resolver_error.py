@@ -44,8 +44,7 @@ type Query {
 type Foo {
   bar: Int
   baz: Int!
-}
-"""
+}"""
 assert print_schema(schema) == schema_str
 # Logs "Resolve error in foo.bar", no error raised
 assert graphql.graphql_sync(schema, "{foo{bar}}").data == {"foo": {"bar": None}}

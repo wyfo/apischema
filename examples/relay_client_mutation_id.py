@@ -59,6 +59,5 @@ input IntroduceShipInput {
   factionId: String!
   shipName: String!
   clientMutationId: String!
-}
-"""
+}"""
 assert print_schema(schema) == schema_str

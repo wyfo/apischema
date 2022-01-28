@@ -82,6 +82,5 @@ type A {
 }
 
 """type description"""
-scalar someInt
-'''
+scalar someInt'''
     )

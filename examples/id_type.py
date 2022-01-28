@@ -24,6 +24,5 @@ type Query {
 
 type Foo {
   bar: ID!
-}
-"""
+}"""
 assert print_schema(schema) == schema_str

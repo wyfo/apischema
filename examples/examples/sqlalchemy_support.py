@@ -76,6 +76,5 @@ type Query {
 type Foo {
   bar: Int!
   baz: String
-}
-"""
+}"""
 assert print_schema(schema) == schema_str

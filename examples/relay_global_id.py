@@ -25,8 +25,7 @@ query factionName($id: ID!) {
             name
         }
     }
-}
-"""
+}"""
 assert graphql.graphql_sync(  # ... and use it in a query
     schema, query, variable_values={"id": serialize(relay.GlobalId, some_global_id)}
 ).data == {"node": {"name": "Empire"}}

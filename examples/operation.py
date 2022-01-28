@@ -24,6 +24,5 @@ type Query {
 
 type Foo {
   bar(arg: Int! = 0): String!
-}
-"""
+}"""
 assert print_schema(schema) == schema_str

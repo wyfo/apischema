@@ -67,6 +67,5 @@ type Resource {
   id: ID!
   name: String!
   tags: [String!]!
-}
-"""
+}"""
 assert print_schema(schema) == schema_str

@@ -33,6 +33,5 @@ type Foo {
 
 type Bar {
   baz: Int!
-}
-"""
+}"""
 assert print_schema(schema) == schema_str

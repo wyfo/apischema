@@ -34,6 +34,5 @@ interface Bar {
 
 type Query {
   bar: Bar!
-}
-"""
+}"""
 assert print_schema(schema) == schema_str
