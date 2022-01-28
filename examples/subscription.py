@@ -24,8 +24,7 @@ type Query {
 
 type Subscription {
   events: String!
-}
-"""
+}"""
 assert print_schema(schema) == schema_str
 
 

@@ -35,8 +35,7 @@ type Query {
 
 type B {
   a: Int!
-}
-"""
+}"""
     )
     assert serialization_schema(B, all_refs=True) == {
         "$ref": "#/$defs/B",

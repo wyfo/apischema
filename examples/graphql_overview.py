@@ -71,8 +71,7 @@ type Post {
   content: String!
 }
 
-scalar Datetime
-"""
+scalar Datetime"""
 assert print_schema(schema) == schema_str
 
 query = """
@@ -83,8 +82,7 @@ query = """
         content
     }
   }
-}
-"""
+}"""
 assert graphql_sync(schema, query).data == {
     "users": [
         {"username": "foo", "posts": [{"content": "Hello world!"}]},

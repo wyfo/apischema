@@ -30,6 +30,5 @@ type Foo {
 
 scalar UUID
 
-scalar JSON
-"""
+scalar JSON"""
 assert print_schema(schema) == schema_str

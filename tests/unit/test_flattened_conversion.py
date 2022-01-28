@@ -59,8 +59,7 @@ type Query {
 
 type Data {
   attr: Int!
-}
-"""
+}"""
     )
 
 
@@ -126,8 +125,7 @@ type Query {
 
 type Data2 {
   attr: Int!
-}
-"""
+}"""
     )
 
 

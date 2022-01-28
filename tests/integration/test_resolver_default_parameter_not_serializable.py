@@ -32,8 +32,7 @@ def test_resolver_default_parameter_not_serializable(tp, default):
         == """\
 type Query {
   resolver(arg: Int): Boolean!
-}
-"""
+}"""
     )
     assert (
         graphql_sync(schema, "{resolver}").data

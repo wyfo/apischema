@@ -54,6 +54,5 @@ type Foo {
     """arg parameter"""
     arg: String!
   ): Int!
-}
-'''
+}'''
 assert print_schema(schema_) == schema_str

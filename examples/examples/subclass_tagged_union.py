@@ -167,8 +167,7 @@ input SizedLineInput {
 input ConcatInput {
   left: DrawingInput!
   right: DrawingInput!
-}
-"""
+}"""
 )
 
 query = """\
@@ -200,8 +199,7 @@ echo(drawing: {
         }
     }
 }
-}
-"""
+}"""
 
 assert graphql.graphql_sync(drawing_schema, query).data == {
     "echo": {

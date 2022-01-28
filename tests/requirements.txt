@@ -1,5 +1,5 @@
 dataclasses==0.8;python_version<'3.7'
-graphql-core==3.1.7
+graphql-core==3.2.0
 attrs==21.4.0
 bson==0.5.10
 docstring-parser==0.13

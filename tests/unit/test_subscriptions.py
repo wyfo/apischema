@@ -84,8 +84,7 @@ type Query {
 
 type Subscription {
   %s
-}
-"""
+}"""
     assert print_schema(schema) == schema_str % sub_field
     sub_query = sub_name
     if conversion is None:

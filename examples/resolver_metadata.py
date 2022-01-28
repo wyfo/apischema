@@ -32,6 +32,5 @@ type Foo {
     """argument"""
     arg: Int!
   ): Int!
-}
-'''
+}'''
 assert print_schema(schema_) == schema_str

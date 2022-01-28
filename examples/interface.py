@@ -33,6 +33,5 @@ type Foo implements Bar {
 
 interface Bar {
   bar: Int!
-}
-"""
+}"""
 assert print_schema(schema) == schema_str

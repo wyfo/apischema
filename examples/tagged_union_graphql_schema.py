@@ -43,8 +43,7 @@ input FooInput {
 
 input BarInput {
   field: String!
-}
-"""
+}"""
 assert print_schema(schema) == schema_str
 
 query_str = """
@@ -55,8 +54,7 @@ query_str = """
         }
         baz
     }
-}
-"""
+}"""
 assert graphql_sync(schema, query_str).data == {
     "query": {"bar": {"field": "value"}, "baz": None}
 }

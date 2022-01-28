@@ -105,8 +105,7 @@ type Resource {
   id: ID!
   name: String!
   tags: [String!]!
-}
-"""
+}"""
 assert print_schema(schema) == schema_str
 ```
 *apischema* works out of the box with your data model.

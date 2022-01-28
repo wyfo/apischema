@@ -60,8 +60,7 @@ type PageInfo {
   hasNextPage: Boolean!
   startCursor: Int
   endCursor: Int
-}
-"""
+}"""
 assert print_schema(schema) == schema_str
 query = """
 {
@@ -79,8 +78,7 @@ query = """
             }
         }
     }
-}
-"""
+}"""
 assert graphql.graphql_sync(schema, query).data == {
     "faction": {
         "ships": {
