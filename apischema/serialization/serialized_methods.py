@@ -118,13 +118,13 @@ def serialized(__method_or_property: MethodOrProp) -> MethodOrProp:
 
 @overload
 def serialized(
-    alias: str = None,
+    alias: Optional[str] = None,
     *,
-    conversion: AnyConversion = None,
+    conversion: Optional[AnyConversion] = None,
     error_handler: ErrorHandler = Undefined,
     order: Optional[Ordering] = None,
-    schema: Schema = None,
-    owner: Type = None,
+    schema: Optional[Schema] = None,
+    owner: Optional[Type] = None,
 ) -> Callable[[MethodOrProp], MethodOrProp]:
     ...
 
@@ -133,12 +133,12 @@ def serialized(
 def serialized(
     __arg=None,
     *,
-    alias: str = None,
-    conversion: AnyConversion = None,
+    alias: Optional[str] = None,
+    conversion: Optional[AnyConversion] = None,
     error_handler: ErrorHandler = Undefined,
     order: Optional[Ordering] = None,
-    schema: Schema = None,
-    owner: Type = None,
+    schema: Optional[Schema] = None,
+    owner: Optional[Type] = None,
 ):
     def register(func: Callable, owner: Type, alias2: str):
         alias2 = alias or alias2

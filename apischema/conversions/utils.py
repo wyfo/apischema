@@ -17,9 +17,9 @@ Converter = Callable[[Any], Any]
 
 def converter_types(
     converter: Converter,
-    source: Optional[AnyType] = None,
-    target: Optional[AnyType] = None,
-    namespace: Dict[str, Any] = None,
+    source: AnyType = None,
+    target: AnyType = None,
+    namespace: Optional[Dict[str, Any]] = None,
 ) -> Tuple[AnyType, AnyType]:
     try:
         # in pre 3.9, Generic __new__ perturb signature of types

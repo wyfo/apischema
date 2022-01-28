@@ -55,8 +55,8 @@ class Validator:
     def __init__(
         self,
         func: Callable,
-        field: FieldOrName = None,
-        discard: Collection[FieldOrName] = None,
+        field: Optional[FieldOrName] = None,
+        discard: Optional[Collection[FieldOrName]] = None,
     ):
         wraps(func)(self)
         self.func = func
@@ -112,7 +112,7 @@ T = TypeVar("T")
 
 def validate(
     obj: T,
-    validators: Iterable[Validator] = None,
+    validators: Optional[Iterable[Validator]] = None,
     kwargs: Optional[Mapping[str, Any]] = None,
     *,
     aliaser: Aliaser = lambda s: s,
@@ -167,7 +167,7 @@ def validator(func: V) -> V:
 
 @overload
 def validator(
-    field: Any = None, *, discard: Any = None, owner: Type = None
+    field: Any = None, *, discard: Any = None, owner: Optional[Type] = None
 ) -> Callable[[V], V]:
     ...
 

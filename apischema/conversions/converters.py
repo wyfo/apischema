@@ -109,8 +109,8 @@ def deserializer(
 def deserializer(
     deserializer: Deserializer = None,
     *,
-    lazy: Callable[[], Union[Converter, Conversion]] = None,
-    target: Type = None,
+    lazy: Optional[Callable[[], Union[Converter, Conversion]]] = None,
+    target: Optional[Type] = None,
 ):
     if deserializer is not None:
         if isinstance(deserializer, staticmethod):
@@ -151,10 +151,10 @@ def serializer(
 
 
 def serializer(
-    serializer: Serializer = None,
+    serializer: Optional[Serializer] = None,
     *,
-    lazy: Callable[[], Union[Converter, Conversion]] = None,
-    source: Type = None,
+    lazy: Optional[Callable[[], Union[Converter, Conversion]]] = None,
+    source: Optional[Type] = None,
 ):
     if serializer is not None:
         if is_method(serializer) and method_class(serializer) is None:  # type: ignore

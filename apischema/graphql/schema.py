@@ -902,8 +902,8 @@ def graphql_schema(
         Optional[Callable[[str], Any]], Optional[Callable[[Any], str]]
     ] = (None, None),
     union_name: UnionNameFactory = "Or".join,
-    default_deserialization: DefaultConversion = None,
-    default_serialization: DefaultConversion = None,
+    default_deserialization: Optional[DefaultConversion] = None,
+    default_serialization: Optional[DefaultConversion] = None,
 ) -> graphql.GraphQLSchema:
     if aliaser is None:
         aliaser = settings.aliaser

@@ -118,7 +118,7 @@ def get_alias(obj: Union[Type[T], T]) -> T:
 
 
 def parameters_as_fields(
-    func: Callable, parameters_metadata: Mapping[str, Mapping] = None
+    func: Callable, parameters_metadata: Optional[Mapping[str, Mapping]] = None
 ) -> Sequence[ObjectField]:
     parameters_metadata = parameters_metadata or {}
     types = get_type_hints(func, include_extras=True)

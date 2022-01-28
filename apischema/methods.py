@@ -51,7 +51,7 @@ def method_class(method: MethodOrProperty) -> Optional[Type]:
 METHOD_WRAPPER_ATTR = f"{PREFIX}method_wrapper"
 
 
-def method_wrapper(method: MethodOrProperty, name: str = None) -> Callable:
+def method_wrapper(method: MethodOrProperty, name: Optional[str] = None) -> Callable:
     if isinstance(method, property):
         assert method.fget is not None
         name = name or method.fget.__name__
