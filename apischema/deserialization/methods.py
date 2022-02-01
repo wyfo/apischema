@@ -309,6 +309,14 @@ class SetMethod(DeserializationMethod):
 
 
 @dataclass
+class FrozenSetMethod(DeserializationMethod):
+    method: DeserializationMethod
+
+    def deserialize(self, data: Any) -> Any:
+        return frozenset(self.method.deserialize(data))
+
+
+@dataclass
 class VariadicTupleMethod(DeserializationMethod):
     method: DeserializationMethod
 
