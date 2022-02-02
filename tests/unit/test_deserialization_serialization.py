@@ -1,7 +1,17 @@
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import AbstractSet, Any, List, Mapping, Optional, Sequence, Set, Union
+from typing import (
+    AbstractSet,
+    Any,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Union,
+)
 from uuid import UUID, uuid4
 
 import pytest
@@ -93,6 +103,18 @@ def test_primitive_error(data):
 def test_collection(cls, expected):
     data = [0, {"a": 0}]
     bijection(cls[Union[int, SimpleDataclass]], data, expected)
+
+
+def test_collection_tuple():
+    data = [0, {"a": 0}]
+    expected = (0, SimpleDataclass(0))
+    bijection(Tuple[2 * (Union[int, SimpleDataclass],)], data, expected)
+
+
+def test_collection_tuple_variadic():
+    data = [0, {"a": 0}]
+    expected = (0, SimpleDataclass(0))
+    bijection(Tuple[Union[int, SimpleDataclass], ...], data, expected)
 
 
 @pytest.mark.parametrize("data", [{}, ["", 0]])
