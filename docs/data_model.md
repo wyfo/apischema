@@ -56,9 +56,6 @@ They correspond to JSON primitive types.
 
 They correspond to JSON *array* and are serialized to `list`.
 
-Some of them are abstract; deserialization will instantiate a concrete child class. For example `collection.abc.Sequence` will be instantiated with `tuple` while `collection.MutableSequence` will be instantiated with `list`.
-
-
 #### Mapping
 
 - `collection.abc.Mapping` (*`typing.Mapping`*)
