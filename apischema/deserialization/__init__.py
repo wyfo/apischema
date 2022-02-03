@@ -366,7 +366,7 @@ class DeserializationMethodVisitor(
                 method = ListCheckOnlyMethod(list_constraints, value_method)
             else:
                 method = ListMethod(list_constraints, value_method)
-            return VariadicTupleMethod(method) if isinstance(cls, tuple) else method
+            return VariadicTupleMethod(method) if issubclass(cls, tuple) else method
 
         return self._factory(factory, list)
 
