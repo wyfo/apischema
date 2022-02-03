@@ -119,6 +119,7 @@ if sys.version_info < (3, 9):
         (AbstractSet[int], Set[int]),
         (Tuple[int], Tuple[int]),
         (Mapping[int, int], Dict[int, int]),
+        (Tuple[int, ...], List[int]),
     ]
 else:
     replace_builtins_cases = [
@@ -126,10 +127,12 @@ else:
         (AbstractSet[int], set[int]),
         (Tuple[int], tuple[int]),
         (Mapping[int, int], dict[int, int]),
+        (Tuple[int, ...], list[int]),
         (collections.abc.Collection[int], list[int]),
         (set[int], set[int]),
         (tuple[int], tuple[int]),
         (dict[int, int], dict[int, int]),
+        (tuple[int, ...], list[int]),
     ]
 
 
