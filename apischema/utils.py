@@ -230,10 +230,13 @@ def replace_builtins(tp: AnyType) -> AnyType:
     if origin in COLLECTION_TYPES:
         if issubclass(origin, collections.abc.Set):
             replacement = SET_ORIGIN
-        elif issubclass(origin, tuple) and (len(args) < 2 or args[1] is not ...):
-            replacement = TUPLE_ORIGIN
-        else:
+        elif not issubclass(origin, tuple):
             replacement = LIST_ORIGIN
+        elif len(args) == 2 and args[1] is ...:
+            args = args[:1]
+            replacement = LIST_ORIGIN
+        else:
+            replacement = TUPLE_ORIGIN
     elif origin in MAPPING_TYPES:
         replacement = DICT_ORIGIN
     elif is_union(origin):
