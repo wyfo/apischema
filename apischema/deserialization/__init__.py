@@ -604,14 +604,9 @@ class DeserializationMethodVisitor(
         def factory(
             constraints: Optional[Constraints], validators: Sequence[Validator]
         ) -> DeserializationMethod:
-            method = SubprimitiveMethod(
-                cls, primitive_factory.merge(constraints, validators).method
-            )
-            if self.pass_through_type(cls):
-                return TypeCheckMethod(cls, method)
-            return method
+            return SubprimitiveMethod(cls, primitive_factory.merge(constraints).method)
 
-        return dataclasses.replace(primitive_factory, factory=factory)
+        return self._factory(factory)
 
     def tuple(self, types: Sequence[AnyType]) -> DeserializationMethodFactory:
         elt_factories = [self.visit(tp) for tp in types]
