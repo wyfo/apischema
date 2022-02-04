@@ -58,6 +58,7 @@ from apischema.deserialization.methods import (
     FieldsConstructor,
     FlattenedField,
     FloatMethod,
+    FrozenSetMethod,
     IntMethod,
     ListCheckOnlyMethod,
     ListMethod,
@@ -360,13 +361,19 @@ class DeserializationMethodVisitor(
             value_method = value_factory.method
             list_constraints = constraints_validators(constraints)[list]
             method: DeserializationMethod
-            if issubclass(cls, collections.abc.Set):
+            if issubclass(cls, collections.abc.Set) and not issubclass(cls, frozenset):
                 return SetMethod(list_constraints, value_method)
-            elif self.no_copy and check_only(value_method):
+
+            if self.no_copy and check_only(value_method):
                 method = ListCheckOnlyMethod(list_constraints, value_method)
             else:
                 method = ListMethod(list_constraints, value_method)
-            return VariadicTupleMethod(method) if issubclass(cls, tuple) else method
+
+            if issubclass(cls, tuple):
+                return VariadicTupleMethod(method)
+            if issubclass(cls, frozenset):
+                return FrozenSetMethod(method)
+            return method
 
         return self._factory(factory, list)
 

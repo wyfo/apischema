@@ -4,6 +4,7 @@ from enum import Enum
 from typing import (
     AbstractSet,
     Any,
+    FrozenSet,
     List,
     Mapping,
     Optional,
@@ -30,6 +31,7 @@ uuid = str(uuid4())
 def bijection(cls, data, expected):
     obj = deserialize(cls, data)
     assert obj == expected
+    assert type(obj) is type(expected)
     assert serialize(cls, obj) == data
 
 
@@ -97,7 +99,8 @@ def test_primitive_error(data):
         (List, [0, SimpleDataclass(0)]),
         (Set, {0, SimpleDataclass(0)}),
         (Sequence, [0, SimpleDataclass(0)]),
-        (AbstractSet, frozenset([0, SimpleDataclass(0)])),
+        (AbstractSet, {0, SimpleDataclass(0)}),
+        (FrozenSet, frozenset([0, SimpleDataclass(0)])),
     ],
 )
 def test_collection(cls, expected):
@@ -188,7 +191,7 @@ def test_with_class_context():
     class BigInt(int):
         pass
 
-    bijection(BigInt, 100, 100)
+    bijection(BigInt, 100, BigInt(100))
 
 
 def test_properties():
