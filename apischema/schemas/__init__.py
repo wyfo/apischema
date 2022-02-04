@@ -120,10 +120,6 @@ def schema(
     return Schema(annotations, constraints, extra, override)
 
 
-def default_schema(tp: AnyType) -> Optional[Schema]:
-    return None
-
-
 _schemas: Dict[Any, Schema] = {}
 
 
