@@ -1,5 +1,4 @@
 import collections.abc
-import warnings
 from contextlib import suppress
 from dataclasses import dataclass
 from typing import Any, Callable, MutableMapping, NamedTuple, Optional, TypeVar, Union
@@ -110,8 +109,3 @@ def merge_type_name(default: TypeName, override: TypeName) -> TypeName:
     return TypeName(
         override.json_schema or default.json_schema, override.graphql or default.graphql
     )
-
-
-def schema_ref(ref: Optional[str]) -> Callable[[T], T]:
-    warnings.warn("schema_ref is deprecated, use type_name instead", DeprecationWarning)
-    return type_name(ref)

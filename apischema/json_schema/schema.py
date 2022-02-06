@@ -66,7 +66,6 @@ from apischema.types import AnyType, OrderedDict, UndefinedType
 from apischema.typing import get_args, get_origin, is_typed_dict, is_union
 from apischema.utils import (
     context_setter,
-    deprecate_kwargs,
     get_origin_or_type,
     identity,
     is_hashable,
@@ -619,7 +618,6 @@ def _schema(
     return result
 
 
-@deprecate_kwargs({"conversions": "conversion"})
 def deserialization_schema(
     tp: AnyType,
     *,
@@ -650,7 +648,6 @@ def deserialization_schema(
     )
 
 
-@deprecate_kwargs({"conversions": "conversion"})
 def serialization_schema(
     tp: AnyType,
     *,

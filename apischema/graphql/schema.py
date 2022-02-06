@@ -67,7 +67,6 @@ from apischema.utils import (
     Lazy,
     as_predicate,
     context_setter,
-    deprecate_kwargs,
     empty_dict,
     get_args2,
     get_origin2,
@@ -883,7 +882,6 @@ def operation_resolver(operation: Union[Callable, Op], op_class: Type[Op]) -> Re
     )
 
 
-@deprecate_kwargs({"union_ref": "union_name"})
 def graphql_schema(
     *,
     query: Iterable[Union[Callable, Query]] = (),
