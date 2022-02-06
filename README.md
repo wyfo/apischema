@@ -18,7 +18,7 @@ It requires only Python 3.6+ (and dataclasses [official backport](https://pypi.o
 
 ## Why another library?
 
-(If you wonder how this differs from the *pydantic* library, see the [dedicated section of the documentation(https://wyfo.github.io/apischema/0.18/difference_with_pydantic) — there are many differences.)
+(If you wonder how this differs from the *pydantic* library, see the [dedicated section of the documentation](https://wyfo.github.io/apischema/0.18/difference_with_pydantic) — there are many differences.)
 
 This library fulfills the following goals:
 
