@@ -13,21 +13,36 @@ from typing import (
     Union,
 )
 
+from apischema.constraints import Constraints
 from apischema.metadata.keys import SCHEMA_METADATA
-from apischema.schemas.annotations import Annotations, ContentEncoding, Deprecated
-from apischema.schemas.constraints import Constraints
 from apischema.types import AnyType, MetadataMixin, Number, Undefined
 from apischema.typing import is_annotated
-from apischema.utils import merge_opts, replace_builtins
+from apischema.utils import merge_opts, replace_builtins, to_camel_case
 
 T = TypeVar("T")
 Extra = Union[Mapping[str, Any], Callable[[Dict[str, Any]], None]]
+
+Deprecated = Union[bool, str]
+try:
+    from apischema.typing import Literal
+
+    ContentEncoding = Literal["7bit", "8bit", "binary", "quoted-printable", "base64"]
+except ImportError:
+    ContentEncoding = str  # type: ignore
 
 
 @dataclass(frozen=True)
 class Schema(MetadataMixin):
     key = SCHEMA_METADATA
-    annotations: Optional[Annotations] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    # use a callable wrapper in order to be hashable
+    default: Optional[Callable[[], Any]] = None
+    examples: Optional[Sequence[Any]] = None
+    format: Optional[str] = None
+    deprecated: Optional[Deprecated] = None
+    media_type: Optional[str] = None
+    encoding: Optional[ContentEncoding] = None
     constraints: Optional[Constraints] = None
     extra: Optional[Callable[[Dict[str, Any]], None]] = None
     override: bool = False
@@ -39,9 +54,6 @@ class Schema(MetadataMixin):
         _schemas[replace_builtins(tp)] = self
         return tp
 
-    def __set_name__(self, owner, name):
-        self.__call__(owner)
-
     def merge_into(self, base_schema: Dict[str, Any]):
         if self.override:
             base_schema.clear()
@@ -49,8 +61,16 @@ class Schema(MetadataMixin):
             self.child.merge_into(base_schema)
         if self.constraints is not None:
             self.constraints.merge_into(base_schema)
-        if self.annotations is not None:
-            self.annotations.merge_into(base_schema)
+        if self.deprecated:
+            base_schema["deprecated"] = bool(self.deprecated)
+        for k in ("title", "description", "examples", "format"):
+            if getattr(self, k) is not None:
+                base_schema[k] = getattr(self, k)
+        for k in ("media_type", "encoding"):
+            if getattr(self, k) is not None:
+                base_schema[to_camel_case("content_" + k)] = getattr(self, k)
+        if self.default is not None:
+            base_schema["default"] = self.default()
         if self.extra is not None:
             self.extra(base_schema)
 
@@ -99,25 +119,34 @@ def schema(
         pattern = re.compile(pattern)
     if isinstance(extra, Mapping):
         extra = lambda js, to_update=extra: js.update(to_update)  # type: ignore
-    annotations = Annotations(
-        title, description, default, examples, format, deprecated, media_type, encoding
-    )
     constraints = Constraints(
-        min,
-        max,
-        exc_min,
-        exc_max,
-        mult_of,
-        min_len,
-        max_len,
-        pattern,
-        min_items,
-        max_items,
-        unique,
-        min_props,
-        max_props,
+        min=min,
+        max=max,
+        exc_min=exc_min,
+        exc_max=exc_max,
+        mult_of=mult_of,
+        min_len=min_len,
+        max_len=max_len,
+        pattern=pattern,
+        min_items=min_items,
+        max_items=max_items,
+        unique=unique,
+        min_props=min_props,
+        max_props=max_props,
     )
-    return Schema(annotations, constraints, extra, override)
+    return Schema(
+        title=title,
+        description=description,
+        default=default,
+        examples=examples,
+        format=format,
+        deprecated=deprecated,
+        media_type=media_type,
+        encoding=encoding,
+        constraints=constraints,
+        extra=extra,
+        override=override,
+    )
 
 
 _schemas: Dict[Any, Schema] = {}

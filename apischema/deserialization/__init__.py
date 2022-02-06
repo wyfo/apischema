@@ -26,6 +26,7 @@ from typing import (
 
 from apischema.aliases import Aliaser
 from apischema.cache import cache
+from apischema.constraints import Constraints, merge_constraints
 from apischema.conversions.conversions import AnyConversion, DefaultConversion
 from apischema.conversions.converters import ValueErrorCatcher
 from apischema.conversions.visitor import (
@@ -96,7 +97,6 @@ from apischema.objects.fields import FieldKind
 from apischema.objects.visitor import DeserializationObjectVisitor
 from apischema.recursion import RecursiveConversionsVisitor
 from apischema.schemas import Schema, get_schema
-from apischema.schemas.constraints import Constraints, merge_constraints
 from apischema.types import PRIMITIVE_TYPES, AnyType, NoneType
 from apischema.typing import get_args, get_origin, is_type, is_typed_dict, is_union
 from apischema.utils import (
