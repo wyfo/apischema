@@ -1,5 +1,5 @@
+from apischema.constraints import merge_constraints
 from apischema.schemas import Constraints
-from apischema.schemas.constraints import merge_constraints
 
 
 def test_constraint_merging():

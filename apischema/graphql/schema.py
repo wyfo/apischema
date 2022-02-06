@@ -150,11 +150,10 @@ def get_deprecated(
     if not schema_dict.get("deprecated", False):
         return None
     while schema is not None:
-        if schema.annotations is not None:
-            if isinstance(schema.annotations.deprecated, str):
-                return schema.annotations.deprecated
-            elif schema.annotations.deprecated:
-                return graphql.DEFAULT_DEPRECATION_REASON
+        if isinstance(schema.deprecated, str):
+            return schema.deprecated
+        elif schema.deprecated:
+            return graphql.DEFAULT_DEPRECATION_REASON
         schema = schema.child
     return graphql.DEFAULT_DEPRECATION_REASON
 
