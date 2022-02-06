@@ -13,6 +13,7 @@ on:
       - docs/**
       - examples/**
       - mkdocs.yml
+      - setup.py
   pull_request:
     paths:
       - apischema/**
