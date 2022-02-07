@@ -1,4 +1,3 @@
-import warnings
 from inspect import Parameter
 from typing import Any, Callable, Optional, Sequence, Union
 
@@ -31,31 +30,11 @@ class ResetCache(type):
 class MetaSettings(ResetCache):
     @property
     def camel_case(cls) -> bool:
-        raise NotImplementedError
+        return settings.aliaser is to_camel_case
 
     @camel_case.setter
     def camel_case(cls, value: bool):
         settings.aliaser = to_camel_case if value else lambda s: s
-
-    @property
-    def default_schema(cls) -> Callable[[AnyType], Optional[Schema]]:
-        warnings.warn(
-            "settings.default_schema is deprecated,"
-            " use settings.base_schema.type instead",
-            DeprecationWarning,
-        )
-        assert cls is settings
-        return cls.base_schema.type  # type: ignore
-
-    @default_schema.setter
-    def default_schema(cls, value: Callable[[AnyType], Optional[Schema]]):
-        warnings.warn(
-            "settings.default_schema is deprecated,"
-            " use settings.base_schema.type instead",
-            DeprecationWarning,
-        )
-        assert cls is settings
-        cls.base_schema.type = value  # type: ignore
 
 
 ConstraintError = Union[str, Callable[[Any, Any], str]]

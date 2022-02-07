@@ -26,7 +26,6 @@ from apischema.schemas import Schema
 from apischema.types import AnyType, Undefined, UndefinedType
 from apischema.typing import generic_mro, get_type_hints, is_type
 from apischema.utils import (
-    deprecate_kwargs,
     get_args2,
     get_origin_or_type,
     get_origin_or_type2,
@@ -129,7 +128,6 @@ def serialized(
     ...
 
 
-@deprecate_kwargs({"conversions": "conversion"})
 def serialized(
     __arg=None,
     *,

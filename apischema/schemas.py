@@ -1,5 +1,4 @@
 import re
-import warnings
 from dataclasses import dataclass, replace
 from typing import (
     Any,
@@ -107,13 +106,6 @@ def schema(
     extra: Optional[Extra] = None,
     override: bool = False,
 ) -> Schema:
-    if default is ...:
-        warnings.warn(
-            "default=... is deprecated as default value is now"
-            " automatically added to the schema",
-            DeprecationWarning,
-        )
-        default = Undefined
     default = None if default is Undefined else (lambda d=default: d)
     if pattern is not None:
         pattern = re.compile(pattern)

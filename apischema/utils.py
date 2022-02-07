@@ -2,7 +2,6 @@ import collections.abc
 import inspect
 import re
 import sys
-import warnings
 from contextlib import contextmanager, suppress
 from dataclasses import dataclass, is_dataclass
 from enum import Enum
@@ -378,34 +377,6 @@ else:
 
     def type_dict_wrapper(wrapped: M) -> M:
         return wrapped
-
-
-def deprecate_kwargs(
-    parameters_map: Mapping[str, Optional[str]]
-) -> Callable[[Func], Func]:
-    def decorator(func: Func) -> Func:
-        wrapped = func.__init__ if isinstance(func, type) else func  # type: ignore
-
-        def wrapper(*args, **kwargs):
-            for param, replacement in parameters_map.items():
-                if param in kwargs:
-                    instead = f", use '{replacement}' instead" if replacement else ""
-                    warnings.warn(
-                        f"{func.__name__} parameter '{param}' is deprecated{instead}",
-                        DeprecationWarning,
-                    )
-                    arg = kwargs.pop(param)
-                    if replacement:
-                        kwargs[replacement] = kwargs.get(replacement, arg)
-            return wrapped(*args, **kwargs)
-
-        if isinstance(func, type):
-            func.__init__ = wraps(func.__init__)(wrapper)  # type: ignore
-            return cast(Func, func)
-        else:
-            return cast(Func, wraps(func)(wrapper))
-
-    return decorator
 
 
 CollectionOrPredicate = Union[Collection[T], Callable[[T], bool]]

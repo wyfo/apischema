@@ -5,9 +5,8 @@ import pytest
 from graphql import graphql_sync
 from graphql.utilities import print_schema
 
-from apischema import Undefined, UndefinedType
+from apischema import Undefined, UndefinedType, Unsupported
 from apischema.graphql import graphql_schema
-from apischema.skip import Skip
 from apischema.typing import Annotated
 
 
@@ -17,7 +16,10 @@ class Foo:
 
 @pytest.mark.parametrize(
     "tp, default",
-    [(Union[UndefinedType, int], Undefined), (Union[int, Annotated[Foo, Skip]], Foo())],
+    [
+        (Union[UndefinedType, int], Undefined),
+        (Union[int, Annotated[Foo, Unsupported]], Foo()),
+    ],
 )
 def test_resolver_default_parameter_not_serializable(tp, default):
     def resolver(arg=default) -> bool:

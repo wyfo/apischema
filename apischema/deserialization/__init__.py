@@ -103,7 +103,6 @@ from apischema.utils import (
     CollectionOrPredicate,
     Lazy,
     as_predicate,
-    deprecate_kwargs,
     get_origin_or_type,
     literal_values,
     opt_or,
@@ -866,13 +865,6 @@ def deserialize(
     ...
 
 
-@deprecate_kwargs(
-    {
-        "coercion": "coerce",
-        "conversions": "conversion",
-        "default_fallback": "fall_back_on_default",
-    }
-)
 def deserialize(
     type: AnyType,
     data: Any,

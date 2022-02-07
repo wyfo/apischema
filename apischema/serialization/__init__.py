@@ -89,7 +89,6 @@ from apischema.utils import (
     CollectionOrPredicate,
     Lazy,
     as_predicate,
-    deprecate_kwargs,
     get_origin_or_type,
     get_origin_or_type2,
     identity,
@@ -635,8 +634,7 @@ def serialize(
     ...
 
 
-@deprecate_kwargs({"conversions": "conversion"})  # type: ignore
-def serialize(
+def serialize(  # type: ignore
     type: AnyType = Any,
     obj: Any = NO_OBJ,
     *,

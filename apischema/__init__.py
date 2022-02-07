@@ -14,7 +14,6 @@ __all__ = [
     "order",
     "properties",
     "schema",
-    "schema_ref",
     "serialization_default",
     "serialization_method",
     "serialize",
@@ -35,7 +34,6 @@ from . import (  # noqa: F401
     json_schema,
     metadata,
     objects,
-    skip,
     tagged_unions,
     validation,
 )
@@ -55,7 +53,7 @@ from .serialization import (
 )
 from .serialization.serialized_methods import serialized
 from .settings import settings
-from .type_names import schema_ref, type_name
+from .type_names import type_name
 from .types import Undefined, UndefinedType
 from .utils import identity
 from .validation import ValidationError, validator
@@ -84,8 +82,6 @@ def __getattr__(name):
             "GraphQL feature requires graphql-core library\n"
             "Run `pip install apischema[graphql]` to install it"
         )
-    if name == "skip":
-        warnings.warn("apischema.skip module is deprecated")
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 

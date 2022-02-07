@@ -20,7 +20,7 @@ from apischema.dataclasses import replace
 from apischema.methods import is_method, method_class, method_wrapper
 from apischema.types import AnyType
 from apischema.typing import is_type_var
-from apischema.utils import deprecate_kwargs, identity
+from apischema.utils import identity
 
 if TYPE_CHECKING:
     pass
@@ -35,9 +35,6 @@ class Conversion(Generic[ConvOrProp]):
     target: AnyType = None
     sub_conversion: Optional["AnyConversion"] = None
     inherited: Optional[bool] = None
-
-
-deprecate_kwargs({"sub_conversions": "sub_conversion"})(Conversion)
 
 
 @dataclass(frozen=True)

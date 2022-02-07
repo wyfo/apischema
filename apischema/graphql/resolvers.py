@@ -49,7 +49,6 @@ from apischema.types import AnyType, NoneType, Undefined
 from apischema.typing import is_type
 from apischema.utils import (
     awaitable_origin,
-    deprecate_kwargs,
     empty_dict,
     get_args2,
     get_origin_or_type2,
@@ -179,7 +178,6 @@ def resolver(
     ...
 
 
-@deprecate_kwargs({"conversions": "conversion"})
 def resolver(
     __arg=None,
     *,

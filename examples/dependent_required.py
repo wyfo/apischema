@@ -2,17 +2,22 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from apischema import ValidationError, dependent_required, deserialize
+from apischema import (
+    Undefined,
+    UndefinedType,
+    ValidationError,
+    dependent_required,
+    deserialize,
+)
 from apischema.json_schema import deserialization_schema
-from apischema.skip import NotNull
 
 
 @dataclass
 class Billing:
     name: str
     # Fields used in dependencies MUST be declared with `field`
-    credit_card: NotNull[int] = field(default=None)
-    billing_address: NotNull[str] = field(default=None)
+    credit_card: int | UndefinedType = field(default=Undefined)
+    billing_address: str | UndefinedType = field(default=Undefined)
 
     dependencies = dependent_required({credit_card: [billing_address]})
 

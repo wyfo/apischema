@@ -1,22 +1,8 @@
 __all__ = ["Tagged", "TaggedUnion", "get_tagged"]
 
-import warnings
-from dataclasses import InitVar, dataclass, field
-from typing import (
-    Any,
-    ClassVar,
-    Generic,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    overload,
-)
+from dataclasses import dataclass, field
+from typing import Any, ClassVar, Generic, Tuple, Type, TypeVar, Union, overload
 
-from apischema.aliases import alias as alias_metadata
-from apischema.conversions.conversions import ConvOrFunc
-from apischema.metadata import conversion
 from apischema.metadata.keys import (
     DEFAULT_AS_SET_METADATA,
     FALL_BACK_ON_DEFAULT_METADATA,
@@ -27,7 +13,7 @@ from apischema.metadata.keys import (
     REQUIRED_METADATA,
     SKIP_METADATA,
 )
-from apischema.schemas import Schema, schema
+from apischema.schemas import schema
 from apischema.types import Metadata, MetadataImplem, Undefined, UndefinedType
 from apischema.typing import get_type_hints
 from apischema.utils import PREFIX, get_args2, get_origin2, wrap_generic_init_subclass
@@ -65,36 +51,8 @@ INVALID_METADATA = {
 @dataclass(frozen=True)
 class Tagged(Generic[V]):
     metadata: Metadata = field(default_factory=MetadataImplem)
-    alias: InitVar[Optional[str]] = None
-    schema: InitVar[Optional[Schema]] = None
-    deserialization: InitVar[Optional[ConvOrFunc]] = None
-    serialization: InitVar[Optional[ConvOrFunc]] = None
 
-    def __post_init__(
-        self,
-        alias: Optional[str],
-        schema: Optional[Schema],
-        deserialization: Optional[ConvOrFunc],
-        serialization: Optional[ConvOrFunc],
-    ):
-        if self.metadata is None or isinstance(self.metadata, str):
-            raise TypeError(
-                "Tagged alias parameter is deprecated, use metadata instead"
-            )
-        if any(m is not None for m in (alias, schema, deserialization, serialization)):
-            metadata = self.metadata
-            warnings.warn(
-                "Tagged keyword parameters are deprecated,"
-                " use metadata parameter instead",
-                DeprecationWarning,
-            )
-            if alias is not None:
-                metadata |= alias_metadata(alias)
-            if schema is not None:
-                metadata |= schema
-            if deserialization is not None or serialization is not None:
-                metadata |= conversion(deserialization, serialization)
-            object.__setattr__(self, "metadata", metadata)
+    def __post_init__(self):
         if self.metadata.keys() & INVALID_METADATA:
             raise TypeError("Invalid metadata in a TaggedUnion field")
 

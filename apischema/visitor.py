@@ -1,4 +1,3 @@
-import warnings
 from dataclasses import (  # type: ignore
     _FIELD_CLASSVAR,
     _FIELDS,
@@ -86,14 +85,6 @@ def dataclass_types_and_fields(
 class Unsupported(TypeError):
     def __init__(self, tp: AnyType):
         self.type = tp
-
-    @property
-    def cls(self) -> AnyType:
-        warnings.warn(
-            "Unsupported.cls is deprecated, use Unsupported.type instead",
-            DeprecationWarning,
-        )
-        return self.type
 
 
 Result = TypeVar("Result", covariant=True)
