@@ -16,3 +16,7 @@ updates:
     directory: "benchmark"
     schedule:
       interval: "daily"
+  - package-ecosystem: "pip"
+    directory: "scripts"
+    schedule:
+      interval: "daily"

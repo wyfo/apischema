@@ -72,7 +72,9 @@ class AnyMethod(SerializationMethod):
     factory: Callable[[AnyType], SerializationMethod]
 
     def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
-        method = self.factory(obj.__class__)  # tmp  variable for substitution
+        method: SerializationMethod = self.factory(
+            obj.__class__
+        )  # tmp  variable for substitution
         return method.serialize(obj, path)
 
 
@@ -233,9 +235,7 @@ class ComplexField(BaseField):
             if self.typed_dict
             else (not self.exclude_unset or self.name in getattr(obj, FIELDS_SET_ATTR))
         ):
-            value: object = (
-                obj[self.name] if self.typed_dict else getattr(obj, self.name)
-            )
+            value = obj[self.name] if self.typed_dict else getattr(obj, self.name)
             if not self.skippable or not (
                 (self.skip_if is not None and self.skip_if(value))
                 or (self.undefined and value is Undefined)
@@ -277,8 +277,7 @@ class ObjectMethod(SerializationMethod):
 
     def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
         result: dict = {}
-        for i in range(len(self.fields)):
-            field: BaseField = self.fields[i]
+        for field in self.fields:
             field.update_result(obj, result)
         return result
 
@@ -301,8 +300,7 @@ class TupleCheckOnlyMethod(SerializationMethod):
     elt_methods: Tuple[SerializationMethod, ...]
 
     def serialize(self, obj: tuple, path: Union[int, str, None] = None) -> Any:
-        for i in range(len(self.elt_methods)):
-            method: SerializationMethod = self.elt_methods[i]
+        for i, method in enumerate(self.elt_methods):
             method.serialize(obj[i], i)
         return obj
 
@@ -313,8 +311,7 @@ class TupleMethod(SerializationMethod):
 
     def serialize(self, obj: tuple, path: Union[int, str, None] = None) -> Any:
         elts: list = [None] * len(self.elt_methods)
-        for i in range(len(self.elt_methods)):
-            method: SerializationMethod = self.elt_methods[i]
+        for i, method in enumerate(self.elt_methods):
             elts[i] = method.serialize(obj[i], i)
         return elts
 
@@ -369,8 +366,7 @@ class UnionMethod(SerializationMethod):
     fallback: Fallback
 
     def serialize(self, obj: Any, path: Union[int, str, None] = None) -> Any:
-        for i in range(len(self.alternatives)):
-            alternative: UnionAlternative = self.alternatives[i]
+        for alternative in self.alternatives:
             if isinstance(obj, alternative.cls):
                 try:
                     return alternative.serialize(obj, path)

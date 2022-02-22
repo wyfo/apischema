@@ -41,7 +41,7 @@ class Constraint:
 class MinimumConstraint(Constraint):
     minimum: int
 
-    def validate(self, data: int) -> bool:
+    def validate(self, data: Any) -> bool:
         return data >= self.minimum
 
 
@@ -49,7 +49,7 @@ class MinimumConstraint(Constraint):
 class MaximumConstraint(Constraint):
     maximum: int
 
-    def validate(self, data: int) -> bool:
+    def validate(self, data: Any) -> bool:
         return data <= self.maximum
 
 
@@ -57,7 +57,7 @@ class MaximumConstraint(Constraint):
 class ExclusiveMinimumConstraint(Constraint):
     exc_min: int
 
-    def validate(self, data: int) -> bool:
+    def validate(self, data: Any) -> bool:
         return data > self.exc_min
 
 
@@ -65,7 +65,7 @@ class ExclusiveMinimumConstraint(Constraint):
 class ExclusiveMaximumConstraint(Constraint):
     exc_max: int
 
-    def validate(self, data: int) -> bool:
+    def validate(self, data: Any) -> bool:
         return data < self.exc_max
 
 
@@ -73,7 +73,7 @@ class ExclusiveMaximumConstraint(Constraint):
 class MultipleOfConstraint(Constraint):
     mult_of: int
 
-    def validate(self, data: int) -> bool:
+    def validate(self, data: Any) -> bool:
         return not (data % self.mult_of)
 
 
@@ -81,7 +81,7 @@ class MultipleOfConstraint(Constraint):
 class MinLengthConstraint(Constraint):
     min_len: int
 
-    def validate(self, data: str) -> bool:
+    def validate(self, data: Any) -> bool:
         return len(data) >= self.min_len
 
 
@@ -89,7 +89,7 @@ class MinLengthConstraint(Constraint):
 class MaxLengthConstraint(Constraint):
     max_len: int
 
-    def validate(self, data: str) -> bool:
+    def validate(self, data: Any) -> bool:
         return len(data) <= self.max_len
 
 
@@ -97,7 +97,7 @@ class MaxLengthConstraint(Constraint):
 class PatternConstraint(Constraint):
     pattern: Pattern
 
-    def validate(self, data: str) -> bool:
+    def validate(self, data: Any) -> bool:
         return self.pattern.match(data) is not None
 
 
@@ -105,7 +105,7 @@ class PatternConstraint(Constraint):
 class MinItemsConstraint(Constraint):
     min_items: int
 
-    def validate(self, data: list) -> bool:
+    def validate(self, data: Any) -> bool:
         return len(data) >= self.min_items
 
 
@@ -113,7 +113,7 @@ class MinItemsConstraint(Constraint):
 class MaxItemsConstraint(Constraint):
     max_items: int
 
-    def validate(self, data: list) -> bool:
+    def validate(self, data: Any) -> bool:
         return len(data) <= self.max_items
 
 
@@ -121,8 +121,8 @@ def to_hashable(data: Any) -> Any:
     if isinstance(data, list):
         return tuple(map(to_hashable, data))
     elif isinstance(data, dict):
-        # Cython doesn't support tuple comprehension yet -> intermediate list
-        return tuple([(k, to_hashable(data[k])) for k in sorted(data)])
+        sorted_keys = sorted(data)
+        return tuple(sorted_keys + [to_hashable(data[k]) for k in sorted_keys])
     else:
         return data
 
@@ -134,7 +134,7 @@ class UniqueItemsConstraint(Constraint):
     def __post_init__(self):
         assert self.unique
 
-    def validate(self, data: list) -> bool:
+    def validate(self, data: Any) -> bool:
         return len(set(map(to_hashable, data))) == len(data)
 
 
@@ -142,7 +142,7 @@ class UniqueItemsConstraint(Constraint):
 class MinPropertiesConstraint(Constraint):
     min_properties: int
 
-    def validate(self, data: dict) -> bool:
+    def validate(self, data: Any) -> bool:
         return len(data) >= self.min_properties
 
 
@@ -150,7 +150,7 @@ class MinPropertiesConstraint(Constraint):
 class MaxPropertiesConstraint(Constraint):
     max_properties: int
 
-    def validate(self, data: dict) -> bool:
+    def validate(self, data: Any) -> bool:
         return len(data) <= self.max_properties
 
 
@@ -158,13 +158,16 @@ def format_error(err: Union[str, Callable[[Any], str]], data: Any) -> str:
     return err if isinstance(err, str) else err(data)
 
 
+ErrorDict = Dict[ErrorKey, ValidationError]
+
+
 def validate_constraints(
-    data: Any, constraints: Tuple[Constraint, ...], children_errors: Optional[dict]
+    data: Any, constraints: Tuple[Constraint, ...], children_errors: Optional[ErrorDict]
 ) -> Any:
     for i in range(len(constraints)):
         constraint: Constraint = constraints[i]
         if not constraint.validate(data):
-            errors: list = [format_error(constraint.error, data)]
+            errors: List[str] = [format_error(constraint.error, data)]
             for j in range(i + 1, len(constraints)):
                 constraint = constraints[j]
                 if not constraint.validate(data):
@@ -176,10 +179,8 @@ def validate_constraints(
 
 
 def set_child_error(
-    errors: Optional[Dict[ErrorKey, ValidationError]],
-    key: ErrorKey,
-    error: ValidationError,
-):
+    errors: Optional[ErrorDict], key: ErrorKey, error: ValidationError
+) -> ErrorDict:
     if errors is None:
         return {key: error}
     else:
@@ -257,7 +258,7 @@ class ListCheckOnlyMethod(DeserializationMethod):
     def deserialize(self, data: Any) -> Any:
         if not isinstance(data, list):
             raise bad_type(data, list)
-        elt_errors = None
+        elt_errors: Optional[ErrorDict] = None
         for i, elt in enumerate(data):
             try:
                 self.value_method.deserialize(elt)
@@ -275,7 +276,7 @@ class ListMethod(DeserializationMethod):
     def deserialize(self, data: Any) -> Any:
         if not isinstance(data, list):
             raise bad_type(data, list)
-        elt_errors = None
+        elt_errors: Optional[ErrorDict] = None
         values: list = [None] * len(data)
         for i, elt in enumerate(data):
             try:
@@ -294,7 +295,7 @@ class SetMethod(DeserializationMethod):
     def deserialize(self, data: Any) -> Any:
         if not isinstance(data, list):
             raise bad_type(data, list)
-        elt_errors: dict = {}
+        elt_errors: ErrorDict = {}
         values: set = set()
         for i, elt in enumerate(data):
             try:
@@ -352,7 +353,7 @@ class MappingCheckOnly(DeserializationMethod):
     def deserialize(self, data: Any) -> Any:
         if not isinstance(data, dict):
             raise bad_type(data, dict)
-        item_errors = None
+        item_errors: Optional[ErrorDict] = None
         for key, value in data.items():
             try:
                 self.key_method.deserialize(key)
@@ -372,7 +373,7 @@ class MappingMethod(DeserializationMethod):
     def deserialize(self, data: Any) -> Any:
         if not isinstance(data, dict):
             raise bad_type(data, dict)
-        item_errors = None
+        item_errors: Optional[ErrorDict] = None
         items: dict = {}
         for key, value in data.items():
             try:
@@ -431,7 +432,16 @@ class NoConstructor(Constructor):
         return fields
 
 
+def PyObject_Call(obj, args, kwargs):
+    return obj(*args, **kwargs)
+
+
 class RawConstructor(Constructor):
+    def construct(self, fields: Dict[str, Any]) -> Any:
+        return PyObject_Call(self.cls, (), fields)
+
+
+class RawConstructorCopy(Constructor):
     def construct(self, fields: Dict[str, Any]) -> Any:
         return self.cls(**fields)
 
@@ -454,18 +464,16 @@ class FieldsConstructor(Constructor):
     default_fields: Tuple[DefaultField, ...]
     factory_fields: Tuple[FactoryField, ...]
 
-    def construct(self, fields: Dict[str, Any]) -> Any:
-        obj: object = object.__new__(self.cls)
+    def construct(self, fields: Any) -> Any:  # fields can be a dict subclass
+        obj = object.__new__(self.cls)
         obj_dict: dict = obj.__dict__
         obj_dict.update(fields)
         if len(fields) != self.nb_fields:
-            for i in range(len(self.default_fields)):
-                default_field: DefaultField = self.default_fields[i]
-                if default_field.name not in fields:
+            for default_field in self.default_fields:
+                if default_field.name not in obj_dict:
                     obj_dict[default_field.name] = default_field.default_value
-            for i in range(len(self.factory_fields)):
-                factory_field: FactoryField = self.factory_fields[i]
-                if factory_field.name not in fields:
+            for factory_field in self.factory_fields:
+                if factory_field.name not in obj_dict:
                     obj_dict[factory_field.name] = factory_field.factory()
         return obj
 
@@ -482,10 +490,9 @@ class SimpleObjectMethod(DeserializationMethod):
     def deserialize(self, data: Any) -> Any:
         if not isinstance(data, dict):
             raise bad_type(data, dict)
-        fields_count = 0
-        field_errors = None
-        for i in range(len(self.fields)):
-            field: Field = self.fields[i]
+        fields_count: int = 0
+        field_errors: Optional[dict] = None
+        for field in self.fields:
             if field.alias in data:
                 fields_count += 1
                 try:
@@ -559,47 +566,34 @@ class ObjectMethod(DeserializationMethod):
         if not isinstance(data, dict):
             raise bad_type(data, dict)
         values: dict = {}
-        fields_count = 0
-        errors = None
+        fields_count: int = 0
+        errors: Optional[list] = None
         try:
             validate_constraints(data, self.constraints, None)
         except ValidationError as err:
             errors = list(err.messages)
-        field_errors = None
-        for i in range(len(self.fields)):
-            field: Field = self.fields[i]
-            if field.required:
-                try:
-                    value: object = data[field.alias]
-                except KeyError:
-                    field_errors = set_child_error(
-                        field_errors, field.alias, ValidationError(self.missing)
-                    )
-                else:
-                    fields_count += 1
-                    try:
-                        values[field.name] = field.method.deserialize(value)
-                    except ValidationError as err:
-                        field_errors = set_child_error(field_errors, field.alias, err)
-            elif field.alias in data:
+        field_errors: Optional[dict] = None
+        for field in self.fields:
+            if field.alias in data:
                 fields_count += 1
                 try:
                     values[field.name] = field.method.deserialize(data[field.alias])
                 except ValidationError as err:
-                    if not field.fall_back_on_default:
+                    if field.required or not field.fall_back_on_default:
                         field_errors = set_child_error(field_errors, field.alias, err)
+            elif field.required:
+                field_errors = set_child_error(
+                    field_errors, field.alias, ValidationError(self.missing)
+                )
             elif field.required_by is not None and not field.required_by.isdisjoint(
                 data
             ):
-                requiring: list = sorted(field.required_by & data.keys())
-                msg: str = self.missing + f" (required by {requiring})"
-                field_errors = set_child_error(
-                    field_errors, field.alias, ValidationError([msg])
-                )
+                requiring = sorted(field.required_by & data.keys())
+                error = ValidationError([self.missing + f" (required by {requiring})"])
+                field_errors = set_child_error(field_errors, field.alias, error)
         if self.aggregate_fields:
             remain = data.keys() - self.all_aliases
-            for i in range(len(self.flattened_fields)):
-                flattened_field: FlattenedField = self.flattened_fields[i]
+            for flattened_field in self.flattened_fields:
                 flattened: dict = {
                     alias: data[alias]
                     for alias in flattened_field.aliases
@@ -616,8 +610,7 @@ class ObjectMethod(DeserializationMethod):
                         field_errors = update_children_errors(
                             field_errors, err.children
                         )
-            for i in range(len(self.pattern_fields)):
-                pattern_field: PatternField = self.pattern_fields[i]
+            for pattern_field in self.pattern_fields:
                 matched: dict = {
                     key: data[key] for key in remain if pattern_field.pattern.match(key)
                 }
@@ -683,16 +676,15 @@ class ObjectMethod(DeserializationMethod):
                 error = ValidationError(errors or [], field_errors or {})
                 invalid_fields = self.post_init_modified
                 if field_errors:
-                    invalid_fields |= field_errors.keys()
+                    invalid_fields = invalid_fields | field_errors.keys()
                 try:
-                    valid_validators = [
-                        v
-                        for v in validators
-                        if v.dependencies.isdisjoint(invalid_fields)
-                    ]
                     validate(
                         ValidatorMock(self.constructor.cls, values),
-                        valid_validators,
+                        [
+                            v
+                            for v in validators
+                            if v.dependencies.isdisjoint(invalid_fields)
+                        ],
                         init,
                         aliaser=self.aliaser,
                     )
@@ -795,14 +787,13 @@ class TupleMethod(DeserializationMethod):
                 raise ValidationError(format_error(self.max_len_error, data))
             else:
                 raise NotImplementedError
-        elt_errors: dict = {}
+        elt_errors: Optional[ErrorDict] = None
         elts: list = [None] * len(self.elt_methods)
-        for i in range(len(self.elt_methods)):
-            elt_method: DeserializationMethod = self.elt_methods[i]
+        for i, elt_method in enumerate(self.elt_methods):
             try:
                 elts[i] = elt_method.deserialize(data[i])
             except ValidationError as err:
-                elt_errors[i] = err
+                set_child_error(elt_errors, i, err)
         validate_constraints(data, self.constraints, elt_errors)
         return tuple(elts)
 
@@ -845,8 +836,7 @@ class UnionMethod(DeserializationMethod):
 
     def deserialize(self, data: Any) -> Any:
         error = None
-        for i in range(len(self.alt_methods)):
-            alt_method: DeserializationMethod = self.alt_methods[i]
+        for i, alt_method in enumerate(self.alt_methods):
             try:
                 return alt_method.deserialize(data)
             except ValidationError as err:
@@ -886,9 +876,8 @@ class ConversionUnionMethod(DeserializationMethod):
     alternatives: Tuple[ConversionAlternative, ...]
 
     def deserialize(self, data: Any) -> Any:
-        error: Optional[ValidationError] = None
-        for i in range(len(self.alternatives)):
-            alternative: ConversionAlternative = self.alternatives[i]
+        error = None
+        for alternative in self.alternatives:
             try:
                 value = alternative.method.deserialize(data)
             except ValidationError as err:
