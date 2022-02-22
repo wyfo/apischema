@@ -27,7 +27,7 @@ packages = [
 
 
 def time_it(func: Callable, arg: Any) -> float:
-    timer = timeit.Timer("func(arg)", globals=locals())
+    timer = timeit.Timer(lambda: func(arg))
     number, _ = timer.autorange()
     return min(timer.repeat(number=number)) / number
 
