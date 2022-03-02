@@ -35,7 +35,7 @@ class JsonType(str, Enum):
         return TYPE_TO_JSON_TYPE[cls]
 
     def __repr__(self):
-        return self.value
+        return f"'{self.value}'"
 
 
 class JsonTypes(Dict[type, JsonType]):
