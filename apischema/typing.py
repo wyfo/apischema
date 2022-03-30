@@ -99,16 +99,6 @@ if sys.version_info >= (3, 7):
 else:
     from typing import _type_vars as _collect_type_vars
 
-try:
-    from typing import _strip_annotations  # type: ignore
-except ImportError:
-    try:
-        from typing_extensions import _strip_annotations  # type: ignore
-    except ImportError:
-
-        def _strip_annotations(t):
-            return t
-
 
 def _generic_mro(result, tp):
     origin = get_origin(tp)
