@@ -72,6 +72,7 @@ from apischema.deserialization.methods import (
     OptionalMethod,
     PatternField,
     RawConstructor,
+    RawConstructorCopy,
     RecMethod,
     SetMethod,
     SimpleObjectMethod,
@@ -151,6 +152,26 @@ def check_only(method: DeserializationMethod) -> bool:
             and all(map(check_only, method.method_by_cls.values()))
         )
         or (isinstance(method, TypeCheckMethod) and check_only(method.fallback))
+    )
+
+
+def is_raw_dataclass(cls: type) -> bool:
+    return (
+        dataclasses.is_dataclass(cls)
+        and type(cls) == type  # no metaclass
+        and "__slots__" not in cls.__dict__
+        and not hasattr(cls, "__post_init__")
+        and all(f.init for f in dataclasses.fields(cls))
+        and cls.__new__ is object.__new__
+        and (
+            cls.__setattr__ is object.__setattr__
+            or getattr(cls, dataclasses._PARAMS).frozen  # type: ignore
+        )
+        and (
+            list(inspect.signature(cls.__init__, follow_wrapped=False).parameters)  # type: ignore
+            == ["__dataclass_self__" if "self" in dataclasses.fields(cls) else "self"]
+            + [f.name for f in dataclasses.fields(cls)]
+        )
     )
 
 
@@ -481,31 +502,12 @@ class DeserializationMethodVisitor(
                     )
             object_constraints = constraints_validators(constraints)[dict]
             all_alliases = set(alias_by_name.values())
-            constructor: Constructor
+            constructor: Optional[Constructor] = None
             if is_typed_dict(cls):
                 constructor = NoConstructor(cls)
             elif (
                 settings.deserialization.override_dataclass_constructors
-                and dataclasses.is_dataclass(cls)
-                and "__slots__" not in cls.__dict__
-                and not hasattr(cls, "__post_init__")
-                and all(f.init for f in dataclasses.fields(cls))
-                and cls.__new__ is object.__new__
-                and (
-                    cls.__setattr__ is object.__setattr__
-                    or getattr(cls, dataclasses._PARAMS).frozen  # type: ignore
-                )
-                and (
-                    list(
-                        inspect.signature(cls.__init__, follow_wrapped=False).parameters
-                    )
-                    == [
-                        "__dataclass_self__"
-                        if "self" in dataclasses.fields(cls)
-                        else "self"
-                    ]
-                    + [f.name for f in dataclasses.fields(cls)]
-                )
+                and is_raw_dataclass(cls)
             ):
                 constructor = FieldsConstructor(
                     cls,
@@ -521,8 +523,6 @@ class DeserializationMethodVisitor(
                         if f.default_factory is not dataclasses.MISSING
                     ),
                 )
-            else:
-                constructor = RawConstructor(cls)
             if (
                 not object_constraints
                 and not flattened_fields
@@ -545,7 +545,7 @@ class DeserializationMethodVisitor(
                 )
             ):
                 return SimpleObjectMethod(
-                    constructor,
+                    constructor or RawConstructorCopy(cls),
                     tuple(normal_fields),
                     all_alliases,
                     is_typed_dict(cls),
@@ -553,7 +553,7 @@ class DeserializationMethodVisitor(
                     settings.errors.unexpected_property,
                 )
             return ObjectMethod(
-                constructor,
+                constructor or RawConstructor(cls),
                 object_constraints,
                 tuple(normal_fields),
                 tuple(flattened_fields),
