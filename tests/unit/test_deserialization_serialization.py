@@ -56,6 +56,10 @@ class Dataclass:
     opt: Optional[int] = field(default=None, metadata=schema(min=100))
 
 
+def test_bool_as_int_error():
+    error(True, int)
+
+
 @pytest.mark.parametrize("data", ["", 0])
 def test_any(data):
     bijection(Any, data, data)
