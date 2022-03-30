@@ -34,11 +34,11 @@ class JsonType(str, Enum):
     def from_type(cls: Type) -> "JsonType":
         try:
             return TYPE_TO_JSON_TYPE[cls]
-        except KeyError:
+        except KeyError:  # pragma: no cover
             raise TypeError(f"Invalid JSON type {cls}")
 
     def __repr__(self):
-        return f"'{self.value}'"
+        return f"'{self.value}'"  # pragma: no cover
 
     def __str__(self):
         return self.value
