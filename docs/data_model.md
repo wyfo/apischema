@@ -22,7 +22,7 @@ With some teasing of features presented later:
 ```
 
 !!! note
-    Field's metadata are just an ordinary `dict`; *apischema* provides some functions to enrich these metadata with its own keys (`alias("foo_bar)` is roughly equivalent to `{"_apischema_alias": "foo_bar"}) and use them when the time comes, but metadata are not reserved to *apischema* and other keys can be added.
+    Field's metadata are just an ordinary `dict`; *apischema* provides some functions to enrich these metadata with its own keys (`alias("foo_bar")` is roughly equivalent to `{"_apischema_alias": "foo_bar"}) and use them when the time comes, but metadata are not reserved to *apischema* and other keys can be added.
    
     Because [PEP 584](https://www.python.org/dev/peps/pep-0584/) is painfully missing before Python 3.9, *apischema* metadata use their own subclass of `dict` just to add `|` operator for convenience in all Python versions.
     

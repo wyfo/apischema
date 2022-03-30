@@ -23,7 +23,7 @@ Conversion is registered using `apischema.deserializer`/`apischema.serializer` f
 
 When used as function decorator, the `Source`/`Target` types are directly extracted from the conversion function signature. 
 
-`serializer` can be called on methods/properties, in which case `Source` type is inferred to be th owning type.
+`serializer` can be called on methods/properties, in which case `Source` type is inferred to be the owning type.
 
 ```python
 {!conversions.py!}
