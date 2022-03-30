@@ -715,7 +715,7 @@ class NoneMethod(DeserializationMethod):
 
 class IntMethod(DeserializationMethod):
     def deserialize(self, data: Any) -> Any:
-        if not isinstance(data, int):
+        if not isinstance(data, int) or isinstance(data, bool):
             raise bad_type(data, int)
         return data
 
