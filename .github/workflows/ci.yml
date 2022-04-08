@@ -51,7 +51,7 @@ jobs:
       - uses: codecov/codecov-action@v2
         # https://github.community/t/run-step-if-file-exists/16445/3
         if: hashFiles('coverage.xml') != ''
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: hashFiles('coverage.xml') != ''
         with:
           name: coverage
