@@ -68,15 +68,15 @@ jobs:
             ${{ runner.os }}-pip-
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: benchmark_table
           path: examples
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: benchmark_chart_light
           path: docs
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: benchmark_chart_dark
           path: docs
@@ -101,15 +101,15 @@ jobs:
             ${{ runner.os }}-pip-
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: benchmark_table
           path: examples
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: benchmark_chart_light
           path: docs
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: benchmark_chart_dark
           path: docs
