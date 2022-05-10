@@ -6,4 +6,4 @@ pandas==1.4.1
 pydantic==1.9.0
 typedload==2.15
 typical==2.8.0
-pyserde==0.7.1
+pyserde==0.7.3
