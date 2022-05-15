@@ -217,8 +217,8 @@ class SchemaBuilder(
         with context_setter(self):
             self._ignore_first_ref = True
             key = self.visit(key_type)
-        if key["type"] != JsonType.STRING:
-            raise ValueError("Mapping types must string-convertible key")
+        if "type" not in key or key["type"] != JsonType.STRING:
+            raise ValueError("Mapping types must have string-convertible keys")
         value = self.visit(value_type)
         if "pattern" in key:
             return json_schema(
