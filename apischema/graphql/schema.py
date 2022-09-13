@@ -859,11 +859,13 @@ def operation_resolver(operation: Union[Callable, Op], op_class: Type[Op]) -> Re
     op = operation.function
     if iscoroutinefunction(op):
 
+        @wraps(op)
         async def wrapper(_, *args, **kwargs):
             return await op(*args, **kwargs)
 
     else:
 
+        @wraps(op)
         def wrapper(_, *args, **kwargs):
             return op(*args, **kwargs)
 
