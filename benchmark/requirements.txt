@@ -1,4 +1,4 @@
-cattrs==1.10.0
+cattrs==22.2.0
 marshmallow==3.15.0
 mashumaro==3.0
 matplotlib==3.5.1
