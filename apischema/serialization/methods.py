@@ -313,6 +313,10 @@ class TupleMethod(SerializationMethod):
 
     def serialize(self, obj: tuple, path: Union[int, str, None] = None) -> Any:
         elts: list = [None] * len(self.elt_methods)
+
+        if len(obj) != len(self.elt_methods):
+            raise ValueError("Inconsistent number of elements in tuple and specified element methods")
+
         for i in range(len(self.elt_methods)):
             method: SerializationMethod = self.elt_methods[i]
             elts[i] = method.serialize(obj[i], i)
