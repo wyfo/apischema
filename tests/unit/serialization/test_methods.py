@@ -1,6 +1,6 @@
 import pytest
 
-from apischema.serialization import TupleMethod, IntMethod
+from apischema.serialization import IntMethod, TupleMethod
 
 
 def test_tuple_conversion() -> None:
