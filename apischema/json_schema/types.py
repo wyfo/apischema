@@ -34,6 +34,9 @@ class JsonType(str, Enum):
     def from_type(cls: Type) -> "JsonType":
         return TYPE_TO_JSON_TYPE[cls]
 
+    def __str__(self) -> str:
+        return self.value
+
 
 class JsonTypes(Dict[type, JsonType]):
     def __missing__(self, key):

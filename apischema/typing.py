@@ -94,7 +94,9 @@ else:  # pragma: no cover
     except ImportError:
         pass
 
-if sys.version_info >= (3, 7):
+if sys.version_info >= (3, 11):
+    from typing import _collect_parameters as _collect_type_vars
+elif sys.version_info >= (3, 7):
     from typing import _collect_type_vars  # type: ignore
 else:
     from typing import _type_vars as _collect_type_vars
