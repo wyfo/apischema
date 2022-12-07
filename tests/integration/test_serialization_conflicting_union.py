@@ -10,9 +10,7 @@ class SomeTupleClass:
 
 
 def test_correct_serialization() -> None:
-    serialized_dict = {
-        "bar": [0, 0, 0]
-    }
+    serialized_dict = {"bar": [0, 0, 0]}
 
     as_python_object = apischema.deserialize(type=SomeTupleClass, data=serialized_dict)
 
