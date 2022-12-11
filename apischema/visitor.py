@@ -164,7 +164,7 @@ class Visitor(Generic[Result]):
                 return self.collection(origin, args[0])
             if origin in MAPPING_TYPES:
                 return self.mapping(origin, args[0], args[1])
-            if is_literal(tp):  # pragma: no cover py37+
+            if is_literal(tp):
                 return self.literal(args)
         if origin in PRIMITIVE_TYPES:
             return self.primitive(origin)
@@ -195,8 +195,6 @@ class Visitor(Generic[Result]):
                 return self.named_tuple(
                     origin, types, origin._field_defaults  # type: ignore
                 )
-        if is_literal(origin):  # pragma: no cover py36
-            return self.literal(origin.__values__)
         if is_typed_dict(origin):
             return self.typed_dict(
                 origin, resolve_type_hints(origin), required_keys(origin)
