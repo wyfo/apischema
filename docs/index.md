@@ -16,9 +16,7 @@ JSON (de)serialization, GraphQL and JSON schema generation using Python typing.
 ```shell
 pip install apischema
 ```
-It requires only Python 3.6+ (and dataclasses [official backport](https://pypi.org/project/dataclasses/) for version 3.6 only)
-
-*PyPy3* is fully supported.
+It requires only Python 3.7+. *PyPy3* is also fully supported.
 
 ## Why another library?
 

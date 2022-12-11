@@ -2,20 +2,8 @@
 __all__ = ["get_args", "get_origin", "get_type_hints"]
 
 import sys
-from contextlib import suppress
 from types import ModuleType, new_class
-from typing import (
-    Any,
-    Callable,
-    Collection,
-    Dict,
-    Generic,
-    Set,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import Any, Callable, Collection, Dict, Generic, Set, Type, TypeVar, Union
 
 
 class _FakeType:
@@ -53,20 +41,7 @@ else:  # pragma: no cover
         from typing_extensions import get_args, get_origin
     except ImportError:
 
-        def _assemble_tree(tree: Tuple[Any]) -> Any:
-            if not isinstance(tree, tuple):
-                return tree
-            else:
-                origin, *args = tree
-                with suppress(NameError):
-                    if origin is Annotated:
-                        return Annotated[(_assemble_tree(args[0]), *args[1])]
-                return origin[tuple(map(_assemble_tree, args))]
-
         def get_origin(tp):
-            # In Python 3.6: List[Collection[T]][int].__args__ == int != Collection[int]
-            if hasattr(tp, "_subs_tree"):
-                tp = _assemble_tree(tp._subs_tree())
             if isinstance(tp, _AnnotatedAlias):
                 return None if tp.__args__ is None else Annotated
             if tp is Generic:
@@ -74,13 +49,9 @@ else:  # pragma: no cover
             return getattr(tp, "__origin__", None)
 
         def get_args(tp):
-            # In Python 3.6: List[Collection[T]][int].__args__ == int != Collection[int]
-            if hasattr(tp, "_subs_tree"):
-                tp = _assemble_tree(tp._subs_tree())
             if isinstance(tp, _AnnotatedAlias):
                 return () if tp.__args__ is None else (tp.__args__[0], *tp.__metadata__)
-            # __args__ can be None in 3.6 inside __set_name__
-            res = getattr(tp, "__args__", ()) or ()
+            res = tp.__args__
             if get_origin(tp) is Callable and res[0] is not Ellipsis:
                 res = (list(res[:-1]), res[-1])
             return res
@@ -95,11 +66,11 @@ else:  # pragma: no cover
         pass
 
 if sys.version_info >= (3, 11):
-    from typing import _collect_parameters as _collect_type_vars
+    from typing import _collect_parameters
 elif sys.version_info >= (3, 7):
-    from typing import _collect_type_vars  # type: ignore
+    from typing import _collect_type_vars as _collect_parameters  # type: ignore
 else:
-    from typing import _type_vars as _collect_type_vars
+    from typing import _type_vars as _collect_parameters
 
 
 def _generic_mro(result, tp):
@@ -108,7 +79,7 @@ def _generic_mro(result, tp):
         origin = tp
     result[origin] = tp
     if hasattr(origin, "__orig_bases__"):
-        parameters = _collect_type_vars(origin.__orig_bases__)
+        parameters = _collect_parameters(origin.__orig_bases__)
         substitution = dict(zip(parameters, get_args(tp)))
         for base in origin.__orig_bases__:
             if get_origin(base) in result:
@@ -208,12 +179,12 @@ def is_literal(tp: Any) -> bool:
     try:
         from typing import Literal
 
-        return get_origin(tp) == Literal or isinstance(tp, type(Literal))  # py36
+        return get_origin(tp) == Literal
     except ImportError:
         try:
             from typing_extensions import Literal  # type: ignore
 
-            return get_origin(tp) == Literal or isinstance(tp, type(Literal))  # py36
+            return get_origin(tp) == Literal
         except ImportError:
             return False
 

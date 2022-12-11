@@ -100,8 +100,7 @@ setup(
     description="JSON (de)serialization, GraphQL and JSON schema generation using Python typing.",
     long_description=pathlib.Path("README.md").read_text(),
     long_description_content_type="text/markdown",
-    python_requires=">=3.6",
-    install_requires=["dataclasses>=0.7;python_version<'3.7'"],
+    python_requires=">=3.7",
     extras_require={
         "graphql": ["graphql-core>=3.0.0"],
         "examples": [
@@ -119,11 +118,11 @@ setup(
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     cmdclass={"build_ext": custom_build_ext},
