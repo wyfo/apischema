@@ -31,12 +31,15 @@ class User:
 
 
 user = User("Harry", "Potter", "London", date(1980, 7, 31))
-dump = """{
+dump = (
+    """{
     "trigram": "hpr",
     "firstname": "Harry",
     "lastname": "Potter",
-    "age": 41,
+    "age": %i,
     "birthdate": "1980-07-31",
     "address": "London"
 }"""
+    % user.age
+)
 assert json.dumps(serialize(User, user), indent=4) == dump

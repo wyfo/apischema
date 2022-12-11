@@ -40,7 +40,7 @@ if sys.version_info < (3, 9):
 class Wrapper:
     def __init__(self, cls):
         self.cls = cls
-        self.implem = cls.__origin__ or cls.__extra__  # extra in 3.6
+        self.implem = cls.__origin__
 
     def __getitem__(self, item):
         return self.cls[item]
