@@ -20,7 +20,7 @@ class RootJsonSchema:
     schema: str | UndefinedType = field(default=Undefined, metadata=alias("$schema"))
     defs: list[JsonSchema] = field(default_factory=list, metadata=alias("$defs"))
     # This field schema is flattened inside the owning one
-    json_schema: JsonSchema = field(default=JsonSchema(), metadata=flatten)
+    json_schema: JsonSchema = field(default_factory=JsonSchema, metadata=flatten)
 
 
 data = {
