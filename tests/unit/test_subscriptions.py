@@ -46,7 +46,6 @@ def hello() -> str:
 @pytest.mark.parametrize("conversion", [None, event_name])
 @pytest.mark.parametrize("error_handler", [Undefined, None])
 @pytest.mark.parametrize("resolver", [None, events2])
-@pytest.mark.asyncio
 async def test_subscription(alias, conversion, error_handler, resolver):
     if alias is not None:
         sub_name = alias
