@@ -76,5 +76,6 @@ def converter_types(
 def is_convertible(tp: AnyType) -> bool:
     origin = get_origin_or_type(tp)
     return is_new_type(tp) or (
-        is_type(origin) and not (is_literal(tp) or is_annotated(tp) or is_union(origin))
+        is_type(origin)
+        and not (tp is Any or is_literal(tp) or is_annotated(tp) or is_union(origin))
     )
