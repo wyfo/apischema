@@ -1,4 +1,4 @@
-graphql-core==3.2.0
+graphql-core==3.2.3
 attrs==21.4.0
 bson==0.5.10
 docstring-parser==0.13
