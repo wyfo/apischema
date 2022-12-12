@@ -647,7 +647,11 @@ class DeserializationMethodVisitor(
                     if fact.cls is not NoneType
                 )
                 return OptionalMethod(value_method, self.coercer)
-            elif len(method_by_cls) == len(alt_factories):
+            elif len(method_by_cls) == len(alt_factories) and not any(
+                isinstance(x, CoercerMethod) for x in alt_methods
+            ):
+                # Coercion induces a different type in data than type to deserialize.
+                # Prefer UnionMethod in this case.
                 return UnionByTypeMethod(method_by_cls)
             else:
                 return UnionMethod(alt_methods)
