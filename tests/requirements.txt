@@ -6,6 +6,6 @@ pydantic==1.9.0
 pytest==7.0.1
 pytest-cov==3.0.0
 pytest-asyncio==0.17.2
-SQLAlchemy==1.4.32
+SQLAlchemy==1.4.45
 typing-extensions==4.0.1
 Cython==0.29.32
