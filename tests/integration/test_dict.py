@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Any, Dict, Mapping
 
 import pytest
 
@@ -6,6 +7,20 @@ from apischema import ValidationError, deserialize, serialize
 from apischema.json_schema import deserialization_schema, serialization_schema
 from apischema.metadata import flatten
 from apischema.typing import Annotated, TypedDict
+
+
+class MyDict(dict):
+    pass
+
+
+@pytest.mark.parametrize(
+    "tp", [dict, Dict[int, Any], pytest.param(MyDict, marks=pytest.mark.xfail), Mapping]
+)
+def test_dict(tp):
+    with pytest.raises(ValueError, match="string-convertible keys"):
+        deserialization_schema(tp)
+    with pytest.raises(ValueError, match="string-convertible keys"):
+        serialization_schema(tp)
 
 
 class TD1(TypedDict, total=False):
