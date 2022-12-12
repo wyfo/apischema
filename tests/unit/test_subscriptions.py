@@ -1,5 +1,5 @@
 from dataclasses import dataclass, replace
-from typing import AsyncIterable, Mapping, Optional
+from typing import Any, AsyncIterable, Mapping, Optional
 
 import graphql
 import pytest
@@ -46,7 +46,6 @@ def hello() -> str:
 @pytest.mark.parametrize("conversion", [None, event_name])
 @pytest.mark.parametrize("error_handler", [Undefined, None])
 @pytest.mark.parametrize("resolver", [None, events2])
-@pytest.mark.asyncio
 async def test_subscription(alias, conversion, error_handler, resolver):
     if alias is not None:
         sub_name = alias
@@ -54,6 +53,7 @@ async def test_subscription(alias, conversion, error_handler, resolver):
         sub_name = resolver.__name__
     else:
         sub_name = events.__name__
+    sub_op: Any
     if (alias, conversion, error_handler, resolver) == (None, None, Undefined, None):
         sub_op = events
     else:
@@ -92,7 +92,7 @@ type Subscription {
     subscription = await graphql.subscribe(
         schema, graphql.parse("subscription {%s}" % sub_query)
     )
-    result = EVENTS
+    result: Any = EVENTS
     if resolver:
         result = [s.capitalize() for s in result]
     if not conversion:

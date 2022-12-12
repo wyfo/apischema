@@ -196,7 +196,7 @@ class TypeFactory(Generic[GraphQLTp]):
 
     @property
     def type(self) -> GraphQLTp:
-        return self.factory(self.name, self.description)  # type: ignore
+        return self.factory(self.name, self.description)
 
     @property
     def raw_type(self) -> GraphQLTp:
@@ -218,12 +218,12 @@ def cache_type(method: Method) -> Method:
     def wrapper(self: "SchemaBuilder", *args, **kwargs):
         factory = method(self, *args, **kwargs)
 
-        @wraps(factory.factory)  # type: ignore
+        @wraps(factory.factory)
         def name_cache(
             name: Optional[str], description: Optional[str]
         ) -> graphql.GraphQLNonNull:
             if name is None:
-                tp = factory.factory(name, description)  # type: ignore
+                tp = factory.factory(name, description)
                 return graphql.GraphQLNonNull(tp) if tp is not JSON_SCALAR else tp
             # Method is in cache key because scalar types will have the same method,
             # and then be shared by both visitors, while input/output types will have
@@ -232,7 +232,7 @@ def cache_type(method: Method) -> Method:
                 tp, cached_args = self._cache_by_name[(name, method, description)]
                 if cached_args == (args, kwargs):
                     return tp
-            tp = graphql.GraphQLNonNull(factory.factory(name, description))  # type: ignore
+            tp = graphql.GraphQLNonNull(factory.factory(name, description))
             # Don't put args in cache in order to avoid hashable issue
             self._cache_by_name[(name, method, description)] = (tp, (args, kwargs))
             return tp
@@ -273,7 +273,7 @@ class SchemaBuilder(
     ) -> TypeFactory[GraphQLTp]:
         def factory(name: Optional[str], description: Optional[str]) -> GraphQLTp:
             cached_fact = lazy()
-            return cached_fact.factory(  # type: ignore
+            return cached_fact.factory(
                 name or cached_fact.name, description or cached_fact.description
             )
 
@@ -395,7 +395,7 @@ class SchemaBuilder(
         if NoneType in types or UndefinedType in types:
 
             def nullable(name: Optional[str], description: Optional[str]) -> GraphQLTp:
-                res = factory.factory(name, description)  # type: ignore
+                res = factory.factory(name, description)
                 return res.of_type if isinstance(res, graphql.GraphQLNonNull) else res
 
             return replace(factory, factory=nullable)
@@ -928,7 +928,7 @@ def graphql_schema(
             fields.append(resolver_field)
     for sub_op in subscription:
         if not isinstance(sub_op, Subscription):
-            sub_op = Subscription(sub_op)  # type: ignore
+            sub_op = Subscription(sub_op)
         sub_parameters: Sequence[Parameter]
         if sub_op.resolver is not None:
             subscriber2 = operation_resolver(sub_op, Subscription)

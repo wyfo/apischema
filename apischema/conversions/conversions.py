@@ -46,7 +46,7 @@ class LazyConversion:
 
     @property
     def inherited(self) -> Optional[bool]:
-        conversion = self.get()  # type: ignore
+        conversion = self.get()
         return isinstance(conversion, Conversion) and conversion.inherited
 
 
@@ -60,7 +60,8 @@ ResolvedConversions = Tuple[ResolvedConversion, ...]  # Tuple in order to be has
 
 
 def resolve_conversion(
-    conversion: Union[Converter, property, Conversion], namespace: Dict[str, Any] = None
+    conversion: Union[Converter, property, Conversion],
+    namespace: Optional[Dict[str, Any]] = None,
 ) -> ResolvedConversion:
     if not isinstance(conversion, Conversion):
         conversion = Conversion(conversion)
@@ -81,7 +82,7 @@ def resolve_any_conversion(conversion: Optional[AnyConversion]) -> ResolvedConve
     result: List[ResolvedConversion] = []
     for conv in conversion if isinstance(conversion, Collection) else [conversion]:
         if isinstance(conv, LazyConversion):
-            result.extend(resolve_any_conversion(conv.get()))  # type: ignore
+            result.extend(resolve_any_conversion(conv.get()))
         else:
             result.append(resolve_conversion(conv))
     return tuple(result)

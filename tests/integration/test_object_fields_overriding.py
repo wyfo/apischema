@@ -15,7 +15,8 @@ class Foo:
 
 
 @pytest.mark.skipif(
-    sys.version_info < (3, 8), reason="dataclasses.replace bug with InitVar"
+    (sys.version_info < (3, 8) or ((3, 9) < sys.version_info < (3, 9, 5))),
+    reason="dataclasses.replace bug with InitVar",
 )
 def test_object_fields_overriding():
     set_object_fields(Foo, [])

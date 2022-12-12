@@ -24,11 +24,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10', 'pypy-3.9']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', 'pypy-3.9']
         include:
-          - python-version: '3.6'
-            pytest-args: --ignore=tests/__generated__/test_recursive_postponned.py
-          - python-version: '3.10'
+          - python-version: '3.11'
             pytest-args: --cov=apischema --cov-branch --cov-report=xml --cov-report=html
     steps:
       - uses: actions/cache@v3.0.1
@@ -60,13 +58,13 @@ jobs:
             htmlcov
       - name: Cythonize
         run: scripts/cythonize.sh
-        if: matrix.python-version != 'pypy3'
+        if: matrix.python-version != 'pypy-3.9'
       - name: Compile
         run: python setup.py build_ext --inplace
-        if: matrix.python-version != 'pypy3'
+        if: matrix.python-version != 'pypy-3.9'
       - name: Run tests (compiled)
         run: pytest tests ${{ matrix.pytest-args }}
-        if: matrix.python-version != 'pypy3'
+        if: matrix.python-version != 'pypy-3.9'
 
 concurrency:
   group: ci-${{ github.head_ref }}

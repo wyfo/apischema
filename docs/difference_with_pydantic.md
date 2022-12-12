@@ -34,9 +34,9 @@ While *pydantic* mixes up model constructor with deserializer, *apischema* uses 
 
 *pydantic* requires calling `update_forward_refs` method on recursive types, while *apischema* "just works".
 
-### *apischema* supports `Generic` in Python 3.6 and without requiring additional stuff
+### *apischema* supports `Generic` without requiring additional stuff
 
-*pydantic* `BaseModel` cannot be used with generic model, you have to use `GenericModel`, and it's not supported in Python 3.6.
+*pydantic* `BaseModel` cannot be used with generic model, you have to use `GenericModel`.
 
 With *apischema*, you just write your generic classes normally. 
 

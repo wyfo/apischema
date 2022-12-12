@@ -34,7 +34,7 @@ from typing import (
 
 from apischema.types import COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES, AnyType
 from apischema.typing import (
-    _collect_type_vars,
+    _collect_parameters,
     generic_mro,
     get_args,
     get_origin,
@@ -138,7 +138,7 @@ def get_parameters(tp: AnyType) -> Iterable[TV]:
     if hasattr(tp, "__parameters__"):
         return tp.__parameters__
     elif hasattr(tp, "__orig_bases__"):
-        return _collect_type_vars(tp.__orig_bases__)
+        return _collect_parameters(tp.__orig_bases__)
     elif is_type_var(tp):
         return (tp,)
     else:
@@ -297,7 +297,7 @@ awaitable_origin = get_origin(Awaitable[Any])
 def is_async(func: Callable, types: Optional[Mapping[str, AnyType]] = None) -> bool:
     wrapped_func = func
     while hasattr(wrapped_func, "__wrapped__"):
-        wrapped_func = wrapped_func.__wrapped__  # type: ignore
+        wrapped_func = wrapped_func.__wrapped__
     if inspect.iscoroutinefunction(wrapped_func):
         return True
     if types is None:

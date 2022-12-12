@@ -134,6 +134,7 @@ class ConversionsVisitor(Visitor[Result], Generic[Conv, Result]):
 def sub_conversion(
     conversion: ResolvedConversion, next_conversion: Optional[AnyConversion]
 ) -> Optional[AnyConversion]:
+    # TODO why did I use LazyConversion here?
     return (
         LazyConversion(lambda: conversion.sub_conversion),
         LazyConversion(lambda: next_conversion),

@@ -200,4 +200,4 @@ def validator(arg=None, *, field=None, discard=None, owner=None):
                 discard = [discard]
             for discarded in discard:
                 check_field_or_name(discarded)
-        return lambda func: validator(func, field=field, discard=discard, owner=owner)
+        return lambda func: validator(func, field=field, discard=discard, owner=owner)  # type: ignore

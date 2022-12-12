@@ -3,7 +3,7 @@ from dataclasses import *
 
 
 def _replace(__obj, **changes):
-    from dataclasses import _FIELD_INITVAR, _FIELDS
+    from dataclasses import _FIELD_INITVAR, _FIELDS  # type:ignore
     from dataclasses import replace as replace_
 
     from apischema.fields import FIELDS_SET_ATTR, fields_set, set_fields

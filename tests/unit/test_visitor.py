@@ -64,21 +64,6 @@ class MyInt(int):
     pass
 
 
-py36 = [
-    (List[int], Visitor.collection, [List, int]),
-    (Tuple[str, ...], Visitor.collection, [Tuple, str]),
-    (Collection[int], Visitor.collection, [Collection, int]),
-    (Mapping[str, int], Visitor.mapping, [Mapping, str, int]),
-    (Dict[str, int], Visitor.mapping, [Dict, str, int]),
-]
-py37 = [
-    (List[int], Visitor.collection, [list, int]),
-    (Tuple[str, ...], Visitor.collection, [tuple, str]),
-    (Collection[int], Visitor.collection, [collections.abc.Collection, int]),
-    (Mapping[str, int], Visitor.mapping, [collections.abc.Mapping, str, int]),
-    (Dict[str, int], Visitor.mapping, [dict, str, int]),
-]
-
 pep_585: list = []
 if sys.version_info >= (3, 9):
     pep_585 = [
@@ -105,7 +90,11 @@ if sys.version_info >= (3, 10):
 @pytest.mark.parametrize(
     "cls, method, args",
     [
-        *(py37 if sys.version_info >= (3, 7) else py36),
+        (List[int], Visitor.collection, [list, int]),
+        (Tuple[str, ...], Visitor.collection, [tuple, str]),
+        (Collection[int], Visitor.collection, [collections.abc.Collection, int]),
+        (Mapping[str, int], Visitor.mapping, [collections.abc.Mapping, str, int]),
+        (Dict[str, int], Visitor.mapping, [dict, str, int]),
         *pep_585,
         *py310,
         (Annotated[int, 42, "42"], Visitor.annotated, [int, (42, "42")]),
@@ -164,11 +153,11 @@ def test_default_implementations(visitor):
     visitor.reset_mock()
 
     with pytest.raises(Unsupported) as err:
-        Visitor.unsupported(..., Generic)
+        Visitor.unsupported(..., Generic)  # type: ignore
     assert err.value.type == Generic
     with pytest.raises(Unsupported) as err:
-        Visitor.unsupported(..., Generic[T])
+        Visitor.unsupported(..., Generic[T])  # type: ignore
     assert err.value.type == Generic[T]
 
     with pytest.raises(NotImplementedError):
-        Visitor.named_tuple(..., ..., ..., ...)
+        Visitor.named_tuple(..., ..., ..., ...)  # type: ignore

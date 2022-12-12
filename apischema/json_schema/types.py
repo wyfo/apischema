@@ -34,6 +34,9 @@ class JsonType(str, Enum):
     def from_type(cls: Type) -> "JsonType":
         return TYPE_TO_JSON_TYPE[cls]
 
+    def __str__(self):
+        return self.value
+
 
 class JsonTypes(Dict[type, JsonType]):
     def __missing__(self, key):
@@ -94,7 +97,7 @@ def json_schema_kwargs(func: Func) -> Func:
     return cast(Func, wrapper)
 
 
-@json_schema_kwargs
+@json_schema_kwargs  # type: ignore
 def json_schema(
     *,
     additionalProperties: Union[bool, JsonSchema] = True,

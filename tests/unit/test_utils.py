@@ -34,11 +34,11 @@ async def async_func():
     ...
 
 
-def func_not_returning_awaitable() -> int:
+def func_not_returning_awaitable() -> int:  # type: ignore
     ...
 
 
-def func_returning_awaitable() -> Awaitable[int]:
+def func_returning_awaitable() -> Awaitable[int]:  # type: ignore
     ...
 
 
@@ -132,8 +132,8 @@ else:
 @pytest.mark.parametrize("tp, expected", replace_builtins_cases)
 def test_replace_builtins(tp, expected, annotated, wrapped):
     if wrapped:
-        tp = Collection[tp]
-        expected = (list if sys.version_info >= (3, 9) else List)[expected]
+        tp = Collection[tp]  # type: ignore
+        expected = (list if sys.version_info >= (3, 9) else List)[expected]  # type: ignore
     if annotated:
         tp, expected = Annotated[tp, 0], Annotated[expected, 0]
     assert replace_builtins(tp) == expected

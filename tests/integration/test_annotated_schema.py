@@ -19,7 +19,7 @@ class A:
     ] = field(metadata=schema(min=0))
 
 
-def a() -> A:
+def a() -> A:  # type: ignore
     ...
 
 

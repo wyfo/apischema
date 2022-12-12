@@ -5,7 +5,7 @@ import sys
 from itertools import takewhile
 from pathlib import Path
 from shutil import rmtree
-from typing import Iterator, Tuple
+from typing import Iterable, Iterator, Tuple
 
 ROOT_DIR = Path(__file__).parent.parent
 
@@ -53,6 +53,7 @@ def main():
         rmtree(GENERATED_PATH)
     GENERATED_PATH.mkdir(parents=True)
     for example_path, test_path in iter_paths():
+        example: Iterable[str]
         with open(example_path) as example:
             with open(test_path, "w") as test:
                 if (

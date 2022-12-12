@@ -58,6 +58,8 @@ def test_invalid_flattened():
     with pytest.raises(TypeError):
         list(
             get_deserialization_flattened_aliases(
-                BadData, object_fields(BadData)["field"]
+                BadData,
+                object_fields(BadData)["field"],
+                settings.deserialization.default_conversion,
             )
         )

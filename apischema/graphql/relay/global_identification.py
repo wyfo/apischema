@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import (
     Awaitable,
-    ClassVar,
     Collection,
     Dict,
     Generic,
@@ -76,12 +75,12 @@ Id = TypeVar("Id")
 
 @type_name(graphql=lambda *_: "Node")
 @interface
-@dataclass  # type: ignore
+@dataclass
 class Node(Generic[Id], ABC):
     id: Id = field(metadata=skip)
-    global_id: ClassVar[property]
 
-    @property  # type: ignore
+    @resolver("id", order=order(-1))  # type: ignore
+    @property
     def global_id(self: Node_) -> GlobalId[Node_]:
         return self.id_to_global(self.id)
 
@@ -120,10 +119,6 @@ class Node(Generic[Id], ABC):
         if not not_a_node:
             _tmp_nodes.append(cls)
 
-
-resolver("id", order=order(-1))(
-    Node.global_id
-)  # cannot directly decorate property because py36
 
 _tmp_nodes: List[Type[Node]] = []
 _nodes: Dict[str, Type[Node]] = {}
