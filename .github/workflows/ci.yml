@@ -46,7 +46,7 @@ jobs:
         run: scripts/generate_tests_from_examples.py
       - name: Run tests
         run: pytest tests ${{ matrix.pytest-args }}
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
         # https://github.community/t/run-step-if-file-exists/16445/3
         if: hashFiles('coverage.xml') != ''
       - uses: actions/upload-artifact@v2
