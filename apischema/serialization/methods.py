@@ -298,6 +298,7 @@ class ObjectAdditionalMethod(ObjectMethod):
 
 @dataclass
 class TupleCheckOnlyMethod(SerializationMethod):
+    nb_elts: int
     elt_methods: Tuple[SerializationMethod, ...]
 
     def serialize(self, obj: tuple, path: Union[int, str, None] = None) -> Any:
@@ -309,6 +310,7 @@ class TupleCheckOnlyMethod(SerializationMethod):
 
 @dataclass
 class TupleMethod(SerializationMethod):
+    nb_elts: int
     elt_methods: Tuple[SerializationMethod, ...]
 
     def serialize(self, obj: tuple, path: Union[int, str, None] = None) -> Any:

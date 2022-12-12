@@ -446,12 +446,12 @@ class SerializationMethodVisitor(
 
     def tuple(self, types: Sequence[AnyType]) -> SerializationMethod:
         elt_methods = tuple(map(self.visit, types))
-        method: SerializationMethod = TupleMethod(elt_methods)
+        method: SerializationMethod = TupleMethod(len(types), elt_methods)
         if self.pass_through_options.tuple:
             if all(m is IDENTITY_METHOD for m in elt_methods):
                 method = IDENTITY_METHOD
             elif all(map(check_only, elt_methods)):
-                method = TupleCheckOnlyMethod(elt_methods)
+                method = TupleCheckOnlyMethod(len(types), elt_methods)
         if self.check_type:
             method = CheckedTupleMethod(len(types), method)
         return self._wrap(tuple, method)
@@ -463,12 +463,14 @@ class SerializationMethodVisitor(
         alternatives = []
         for tp in types:
             with suppress(Unsupported):
-                method = _method = self.visit(tp)
+                method = alt_method = self.visit(tp)
                 if isinstance(method, TypeCheckMethod):
-                    _method = method.method
+                    alt_method = method.method
                 elif isinstance(method, TypeCheckIdentityMethod):
-                    _method = IdentityMethod()
-                alt = UnionAlternative(expected_class(tp), _method)
+                    alt_method = IdentityMethod()
+                if isinstance(alt_method, (TupleMethod, TupleCheckOnlyMethod)):
+                    alt_method = CheckedTupleMethod(alt_method.nb_elts, method)
+                alt = UnionAlternative(expected_class(tp), alt_method)
                 alternatives.append((method, alt))
         if not alternatives:
             raise Unsupported(Union[tuple(types)])
