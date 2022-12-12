@@ -23,11 +23,7 @@ def test_coerce_json():
     key = "test"
     value = 2
     ret = deserialize(
-        MyClass,
-        {
-            "my_property": f'{{"{key}": {value}}}',
-        },
-        coerce=_coerce_json,
+        MyClass, {"my_property": f'{{"{key}": {value}}}'}, coerce=_coerce_json
     )
     assert isinstance(ret, MyClass)
     assert isinstance(ret.my_property, dict) and ret.my_property[key] == value
