@@ -7,9 +7,9 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    List,
     MutableMapping,
     Optional,
+    Tuple,
     Type,
     TypeVar,
     Union,
@@ -37,8 +37,8 @@ if TYPE_CHECKING:
     pass
 
 
-_deserializers: MutableMapping[AnyType, List[ConvOrFunc]] = CacheAwareDict(
-    defaultdict(list)
+_deserializers: MutableMapping[AnyType, Tuple[ConvOrFunc, ...]] = CacheAwareDict(
+    defaultdict(tuple)
 )
 _serializers: MutableMapping[AnyType, ConvOrFunc] = CacheAwareDict({})
 Deserializer = TypeVar(
@@ -54,7 +54,7 @@ if sys.version_info < (3, 8):
         return _deserializers.get(tp)
 
 else:
-    default_deserialization = _deserializers.get  # type: ignore
+    default_deserialization = _deserializers.get
 
 
 def default_serialization(tp: Type) -> Optional[AnyConversion]:
@@ -83,7 +83,7 @@ def check_converter_type(tp: AnyType) -> AnyType:
 def _add_deserializer(conversion: ConvOrFunc, target: AnyType):
     target = check_converter_type(target)
     if conversion not in _deserializers[target]:
-        _deserializers[target].append(conversion)
+        _deserializers[target] = *_deserializers[target], conversion
 
 
 class DeserializerDescriptor(MethodWrapper[staticmethod]):

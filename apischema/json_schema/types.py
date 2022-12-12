@@ -32,28 +32,27 @@ class JsonType(str, Enum):
 
     @staticmethod
     def from_type(cls: Type) -> "JsonType":
-        return TYPE_TO_JSON_TYPE[cls]
+        try:
+            return TYPE_TO_JSON_TYPE[cls]
+        except KeyError:  # pragma: no cover
+            raise TypeError(f"Invalid JSON type {cls}")
+
+    def __repr__(self):
+        return f"'{self.value}'"  # pragma: no cover
 
     def __str__(self):
         return self.value
 
 
-class JsonTypes(Dict[type, JsonType]):
-    def __missing__(self, key):
-        raise TypeError(f"Invalid JSON type {key}")
-
-
-TYPE_TO_JSON_TYPE = JsonTypes(
-    {
-        NoneType: JsonType.NULL,
-        bool: JsonType.BOOLEAN,
-        str: JsonType.STRING,
-        int: JsonType.INTEGER,
-        float: JsonType.NUMBER,
-        list: JsonType.ARRAY,
-        dict: JsonType.OBJECT,
-    }
-)
+TYPE_TO_JSON_TYPE = {
+    NoneType: JsonType.NULL,
+    bool: JsonType.BOOLEAN,
+    str: JsonType.STRING,
+    int: JsonType.INTEGER,
+    float: JsonType.NUMBER,
+    list: JsonType.ARRAY,
+    dict: JsonType.OBJECT,
+}
 
 
 def bad_type(data: Any, *expected: type) -> ValidationError:

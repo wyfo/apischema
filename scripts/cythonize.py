@@ -6,18 +6,21 @@ import inspect
 import re
 import sys
 from contextlib import contextmanager
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from types import FunctionType
 from typing import (
     AbstractSet,
     Any,
+    Callable,
     Iterable,
     List,
     Mapping,
     Match,
     NamedTuple,
     Optional,
+    Pattern,
     TextIO,
     Tuple,
     Type,
@@ -172,33 +175,72 @@ def module_methods(module: str) -> Mapping[str, Method]:
     return methods_by_name
 
 
+ReRepl = Callable[[Match], str]
+
+
+@dataclass
+class LineSubstitutor:
+    lines: Iterable[str]
+
+    def __call__(self, pattern: Pattern) -> Callable[[ReRepl], ReRepl]:
+        def decorator(repl: ReRepl) -> ReRepl:
+            self.lines = (re.sub(pattern, repl, l) for l in self.lines)
+            return repl
+
+        return decorator
+
+
 def get_body(func: FunctionType, cls: Optional[type] = None) -> Iterable[str]:
     lines, _ = inspect.getsourcelines(func)
     line_iter = iter(lines)
     for line in line_iter:
-        if line.rstrip().endswith(":"):
+        if line.split("#")[0].rstrip().endswith(":"):
             break
     else:
         raise NotImplementedError
+    substitutor = LineSubstitutor(line_iter)
     if cls is not None:
 
-        def replace_super(match: Match):
+        @substitutor(re.compile(r"super\(\)\.(\w+)\("))
+        def replace_super(match: Match) -> str:
             assert cls is not None
             super_cls = cls.__bases__[0].__name__
             return f"{super_cls}_{match.group(1)}(<{super_cls}>self, "
 
-        super_regex = re.compile(r"super\(\).(\w+)\(")
-        line_iter = (super_regex.sub(replace_super, line) for line in line_iter)
-    methods = module_methods(func.__module__)
+        @substitutor(
+            re.compile(
+                r"(\s+)for ((\w+) in self\.(\w+)|(\w+), (\w+) in enumerate\(self\.(\w+)\)):"
+            )
+        )
+        def replace_for_loop(match: Match) -> str:
+            assert cls is not None
+            tab = match.group(1)
+            index = match.group(5) or "__i"
+            elt = match.group(3) or match.group(6)
+            field = match.group(4) or match.group(7)
+            field_type = get_type_hints(cls)[field]
+            assert (
+                field_type.__origin__ in (Tuple, tuple)
+                and field_type.__args__[1] is ...
+            )
+            elt_type = cython_type(field_type.__args__[0], func.__module__)
+            return f"{tab}for {index} in range(len(self.{field})):\n{tab}    {elt}: {elt_type} = self.{field}[{index}]"
 
-    def replace_method(match: Match):
+    @substitutor(re.compile(r"^(\s+\w+:)([^#=]*)(?==)"))
+    def replace_variable_annotations(match: Match) -> str:
+        tp = eval(match.group(2), func.__globals__)
+        return match.group(1) + cython_type(tp, func.__module__)
+
+    methods = module_methods(func.__module__)
+    method_names = "|".join(methods)
+
+    @substitutor(re.compile(rf"([\w.]+)\.({method_names})\("))
+    def replace_method(match: Match) -> str:
         self, name = match.groups()
         cls, _ = methods[name]
         return f"{cls.__name__}_{name}({self}, "
 
-    method_names = "|".join(methods)
-    method_regex = re.compile(rf"([\w\.]+)\.({method_names})\(")
-    return (method_regex.sub(replace_method, line) for line in line_iter)
+    return substitutor.lines
 
 
 def import_lines(path: Union[str, Path]) -> Iterable[str]:
@@ -290,13 +332,15 @@ def generate(package: str) -> str:
     with open(pyx_file_name, "w") as pyx_file:
         pyx = IndentedWriter(pyx_file)
         pyx.writeln("cimport cython")
+        pyx.writeln("from cpython cimport *")
         pyx.writelines(import_lines(ROOT_DIR / "apischema" / package / "methods.py"))
         for cls in module_elements(module, type):
             write_class(pyx, cls)  # type: ignore
             pyx.writeln()
         for func in module_elements(module, FunctionType):
-            write_function(pyx, func)  # type: ignore
-            pyx.writeln()
+            if not func.__name__.startswith("Py"):
+                write_function(pyx, func)  # type: ignore
+                pyx.writeln()
         methods = module_methods(module)
         for method in methods.values():
             write_methods(pyx, method)
