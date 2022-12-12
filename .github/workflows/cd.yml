@@ -30,7 +30,7 @@ jobs:
       - uses: pypa/cibuildwheel@v2.11.3
         env:
           CIBW_SKIP: pp*
-          CIBW_TEST_COMMAND: pytest {project}/tests --ignore={project}/tests/__generated__/test_recursive_postponned.py
+          CIBW_TEST_COMMAND: pytest {project}/tests
           # TODO execute tests on Windows (https://github.com/wyfo/apischema/runs/4622330189)
           CIBW_TEST_COMMAND_WINDOWS: python -c "import apischema"
           CIBW_BEFORE_TEST: pip install -r tests/requirements.txt
