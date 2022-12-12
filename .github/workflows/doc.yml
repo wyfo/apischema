@@ -33,7 +33,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
       - name: Cythonize
@@ -67,7 +67,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
       - uses: actions/download-artifact@v3
         with:
           name: benchmark_table
@@ -100,7 +100,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
       - uses: actions/download-artifact@v3
         with:
           name: benchmark_table
