@@ -72,8 +72,8 @@ def module_elements(module: str, cls: Type[Elt]) -> Iterable[Elt]:
 def module_type_mapping(module: str) -> Mapping[type, str]:
     mapping = CYTHON_TYPES.copy()
     for cls in module_elements(module, type):
-        mapping[cls] = cls.__name__  # type: ignore
-        mapping[Optional[cls]] = cls.__name__  # type: ignore
+        mapping[cls] = cls.__name__
+        mapping[Optional[cls]] = cls.__name__
         if sys.version_info >= (3, 10):
             mapping[cls | None] = cls.__name__  # type: ignore
     return mapping  # type: ignore
@@ -161,7 +161,7 @@ def module_methods(module: str) -> Mapping[str, Method]:
     all_methods = [
         Method(cls, func)  # type: ignore
         for cls in module_elements(module, type)
-        if cls.__bases__ == (object,) and cls.__subclasses__()  # type: ignore
+        if cls.__bases__ == (object,) and cls.__subclasses__()
         for func in cls.__dict__.values()
         if isinstance(func, FunctionType) and not func.__name__.startswith("_")
     ]
@@ -252,7 +252,7 @@ def write_class(pyx: IndentedWriter, cls: type):
                 for name in init_fields:
                     pyx.writeln(f"self.{name} = {name}")
                 if hasattr(cls, "__post_init__"):
-                    lines, _ = inspect.getsourcelines(cls.__post_init__)  # type: ignore
+                    lines, _ = inspect.getsourcelines(cls.__post_init__)
                     pyx.writelines(lines[1:])
                 if dispatch is not None:
                     pyx.writeln(f"self.{DISPATCH_FIELD} = {dispatch}")

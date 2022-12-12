@@ -15,7 +15,7 @@ def _method_location(method: MethodOrProperty) -> Optional[Type]:
         assert method.fget is not None
         method = method.fget
     while hasattr(method, "__wrapped__"):
-        method = method.__wrapped__  # type: ignore
+        method = method.__wrapped__
     assert isinstance(method, FunctionType)
     global_name, *class_path = method.__qualname__.split(".")[:-1]
     if global_name not in method.__globals__:
@@ -58,6 +58,7 @@ def method_wrapper(method: MethodOrProperty, name: Optional[str] = None) -> Call
 
         @wraps(method.fget)
         def wrapper(self):
+            assert name is not None
             return getattr(self, name)
 
     else:
@@ -69,12 +70,14 @@ def method_wrapper(method: MethodOrProperty, name: Optional[str] = None) -> Call
 
             @wraps(method)
             def wrapper(self):
+                assert name is not None
                 return getattr(self, name)()
 
         else:
 
             @wraps(method)
             def wrapper(self, *args, **kwargs):
+                assert name is not None
                 return getattr(self, name)(*args, **kwargs)
 
     setattr(wrapper, METHOD_WRAPPER_ATTR, True)
@@ -85,16 +88,16 @@ class MethodWrapper(Generic[T]):
     def __init__(self, method: T):
         self._method = method
 
-    def getter(self, func):
-        self._method = self._method.getter(func)
+    def getter(self, func: Callable):
+        self._method = self._method.getter(func)  # type: ignore
         return self
 
-    def setter(self, func):
-        self._method = self._method.setter(func)
+    def setter(self, func: Callable):
+        self._method = self._method.setter(func)  # type: ignore
         return self
 
-    def deleter(self, func):
-        self._method = self._method.deleter(func)
+    def deleter(self, func: Callable):
+        self._method = self._method.deleter(func)  # type: ignore
         return self
 
     def __set_name__(self, owner, name):

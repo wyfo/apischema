@@ -147,7 +147,7 @@ def export_chart(
     # I've used pandas because I was not able to do what I wanted with matplotlib alone
     df = pandas.DataFrame(
         [
-            [res.library] + [min(r, CHART_TRUNCATE) for r in res.result]  # type: ignore
+            [res.library] + [min(r, CHART_TRUNCATE) for r in res.result]
             for res in results
         ],
         columns=["library"] + columns,

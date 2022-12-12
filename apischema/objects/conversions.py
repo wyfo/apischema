@@ -162,7 +162,7 @@ def object_serialization(
     def __init__(self, obj):
         _, new_init = _fields_and_init(cls, fields_and_methods)
         new_init.__annotations__ = {"obj": generic}
-        output_cls.__init__ = new_init
+        output_cls.__init__ = new_init  # type: ignore
         new_init(self, obj)
 
     __init__.__annotations__ = {"obj": generic}

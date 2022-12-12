@@ -148,7 +148,7 @@ def serialized(
             ):
                 raise TypeError("Serialized method cannot have required parameter")
         error_handler2 = error_handler
-        if error_handler is None:
+        if error_handler2 is None:
             error_handler2 = none_error_handler
         if error_handler2 is Undefined:
             error_handler2 = None
@@ -160,7 +160,10 @@ def serialized(
                 try:
                     return wrapped(self)
                 except Exception as error:
-                    return error_handler(error, self, alias2)
+                    assert (
+                        error_handler2 is not None and error_handler2 is not Undefined
+                    )
+                    return error_handler2(error, self, alias2)
 
         assert not isinstance(error_handler2, UndefinedType)
         _serialized_methods[owner][alias2] = SerializedMethod(

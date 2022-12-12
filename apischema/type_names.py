@@ -62,10 +62,10 @@ class TypeNameFactory:
 
 
 def type_name(
-    ref: NameOrFactory = None,
+    ref: Optional[NameOrFactory] = None,
     *,
-    json_schema: NameOrFactory = None,
-    graphql: NameOrFactory = None,
+    json_schema: Optional[NameOrFactory] = None,
+    graphql: Optional[NameOrFactory] = None,
 ) -> TypeNameFactory:
     return TypeNameFactory(json_schema or ref, graphql or ref)
 

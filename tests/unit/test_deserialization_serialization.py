@@ -134,7 +134,7 @@ def test_iterable_error(data):
     ],
 )
 def test_mapping(key_cls, data, expected):
-    bijection(Mapping[key_cls, Union[int, SimpleDataclass]], data, expected)
+    bijection(Mapping[key_cls, Union[int, SimpleDataclass]], data, expected)  # type: ignore
 
 
 @pytest.mark.parametrize("data", [[], {"key": ""}])

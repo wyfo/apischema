@@ -112,12 +112,12 @@ class WithConversionsResolver:
         Resolver: Type[ConversionsResolver]
         if issubclass(cls, DeserializationVisitor):
 
-            class Resolver(ConversionsResolver, DeserializationVisitor):
+            class Resolver(ConversionsResolver, DeserializationVisitor):  # type: ignore
                 pass
 
         elif issubclass(cls, SerializationVisitor):
 
-            class Resolver(ConversionsResolver, SerializationVisitor):
+            class Resolver(ConversionsResolver, SerializationVisitor):  # type: ignore
                 pass
 
         else:
@@ -131,4 +131,4 @@ class WithConversionsResolver:
             )
 
         assert issubclass(cls, WithConversionsResolver)
-        cls.resolve_conversion = resolve_conversion
+        cls.resolve_conversion = resolve_conversion  # type: ignore

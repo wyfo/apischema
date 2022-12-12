@@ -175,7 +175,7 @@ class DeserializationMethodFactory:
     # private intermediate method instead of decorated property because of mypy
     @lru_cache()
     def _method(self) -> DeserializationMethod:
-        return self.factory(self.constraints, self.validators)  # type: ignore
+        return self.factory(self.constraints, self.validators)
 
     @property
     def method(self) -> DeserializationMethod:

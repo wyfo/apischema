@@ -97,7 +97,7 @@ def json_schema_kwargs(func: Func) -> Func:
     return cast(Func, wrapper)
 
 
-@json_schema_kwargs
+@json_schema_kwargs  # type: ignore
 def json_schema(
     *,
     additionalProperties: Union[bool, JsonSchema] = True,

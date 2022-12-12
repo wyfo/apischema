@@ -223,7 +223,7 @@ class ComplexField(BaseField):
     skippable: bool = field(init=False)
 
     def __post_init__(self):
-        self.skippable = (
+        self.skippable = bool(
             self.skip_if or self.undefined or self.skip_none or self.skip_default
         )
 

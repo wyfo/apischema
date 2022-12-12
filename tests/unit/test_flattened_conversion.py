@@ -136,7 +136,7 @@ class Data3:
     )
 
 
-def get_data3() -> Data3:
+def get_data3() -> Data3:  # type: ignore
     ...
 
 

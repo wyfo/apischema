@@ -38,7 +38,7 @@ class Recursive:
 
 
 def test_find_refs():
-    refs = {}
+    refs: dict = {}
     DeserializationSchemaBuilder.RefsExtractor(
         settings.deserialization.default_conversion, refs
     ).visit(D)
@@ -111,7 +111,7 @@ class RecConv:
     pass
 
 
-def rec_converter(rec: RecConv) -> List[RecConv]:
+def rec_converter(rec: RecConv) -> List[RecConv]:  # type: ignore
     ...
 
 

@@ -13,7 +13,9 @@ USED_FILES = {str(path.relative_to(ROOT_DIR)) for path in (INDEX, SETUP, QUICKST
 
 
 def main():
-    version = re.search(r"version=\"(\d+\.\d+)", SETUP.read_text()).group(1)
+    version_match = re.search(r"version=\"(\d+\.\d+)", SETUP.read_text())
+    assert version_match is not None
+    version = version_match.group(1)
     content = INDEX.read_text()
     # Set title
     content = re.sub(r"# Overview\s*## apischema", "# apischema", content)

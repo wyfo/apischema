@@ -107,7 +107,7 @@ def deserializer(
 
 
 def deserializer(
-    deserializer: Deserializer = None,
+    deserializer: Optional[Deserializer] = None,
     *,
     lazy: Optional[Callable[[], Union[Converter, Conversion]]] = None,
     target: Optional[Type] = None,
