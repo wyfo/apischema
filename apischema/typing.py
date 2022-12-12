@@ -66,9 +66,9 @@ else:  # pragma: no cover
         pass
 
 if sys.version_info >= (3, 11):
-    from typing import _collect_parameters
+    from typing import _collect_parameters  # type: ignore
 elif sys.version_info >= (3, 7):
-    from typing import _collect_type_vars as _collect_parameters  # type: ignore
+    from typing import _collect_type_vars as _collect_parameters
 else:
     from typing import _type_vars as _collect_parameters
 

@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import (
     Awaitable,
-    ClassVar,
     Collection,
     Dict,
     Generic,
@@ -76,10 +75,9 @@ Id = TypeVar("Id")
 
 @type_name(graphql=lambda *_: "Node")
 @interface
-@dataclass  # type: ignore
+@dataclass
 class Node(Generic[Id], ABC):
     id: Id = field(metadata=skip)
-    global_id: ClassVar[property]
 
     @resolver("id", order=order(-1))  # type: ignore
     @property

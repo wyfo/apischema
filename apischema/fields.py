@@ -72,7 +72,7 @@ def with_fields_set(cls: Cls) -> Cls:
             self.__dict__[FIELDS_SET_ATTR].add(attr)
         except KeyError:
             raise RuntimeError(dataclass_before_error) from None
-        old_setattr(self, attr, value)
+        old_setattr(self, attr, value)  # type: ignore
 
     for attr, old, new in [
         ("__new__", old_new, new_new),

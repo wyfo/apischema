@@ -153,11 +153,11 @@ def test_default_implementations(visitor):
     visitor.reset_mock()
 
     with pytest.raises(Unsupported) as err:
-        Visitor.unsupported(..., Generic)
+        Visitor.unsupported(..., Generic)  # type: ignore
     assert err.value.type == Generic
     with pytest.raises(Unsupported) as err:
-        Visitor.unsupported(..., Generic[T])
+        Visitor.unsupported(..., Generic[T])  # type: ignore
     assert err.value.type == Generic[T]
 
     with pytest.raises(NotImplementedError):
-        Visitor.named_tuple(..., ..., ..., ...)
+        Visitor.named_tuple(..., ..., ..., ...)  # type: ignore

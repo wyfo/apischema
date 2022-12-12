@@ -297,7 +297,7 @@ awaitable_origin = get_origin(Awaitable[Any])
 def is_async(func: Callable, types: Optional[Mapping[str, AnyType]] = None) -> bool:
     wrapped_func = func
     while hasattr(wrapped_func, "__wrapped__"):
-        wrapped_func = wrapped_func.__wrapped__  # type: ignore
+        wrapped_func = wrapped_func.__wrapped__
     if inspect.iscoroutinefunction(wrapped_func):
         return True
     if types is None:

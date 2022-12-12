@@ -71,7 +71,7 @@ def dataclass_types_and_fields(
             if INIT_VAR_METADATA not in metadata:
                 raise TypeError("Before 3.8, InitVar requires init_var metadata")
             init_field = (PREFIX, metadata[INIT_VAR_METADATA], ...)
-            tmp_cls = make_dataclass("Tmp", [init_field], bases=(cls,))  # type: ignore
+            tmp_cls = make_dataclass("Tmp", [init_field], bases=(cls,))
             types[field.name] = get_type_hints(tmp_cls, include_extras=True)[PREFIX]
             if has_type_vars(types[field.name]):
                 raise TypeError("Generic InitVar are not supported before 3.8")
@@ -188,8 +188,9 @@ class Visitor(Generic[Result]):
             if is_named_tuple(origin):
                 if hasattr(origin, "__annotations__"):
                     types = resolve_type_hints(origin)
+                # TODO is __field_types for python 3.6 only?
                 elif hasattr(origin, "__field_types"):  # pragma: no cover
-                    types = origin.__field_types  # type: ignore
+                    types = origin.__field_types
                 else:  # pragma: no cover
                     types = OrderedDict((f, Any) for f in origin._fields)  # type: ignore  # noqa: E501
                 return self.named_tuple(

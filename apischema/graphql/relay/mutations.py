@@ -83,7 +83,8 @@ class Mutation:
                     ClientMutationId
                     if cls._client_mutation_id
                     else Optional[ClientMutationId],
-                    MISSING if cls._client_mutation_id else None,
+                    # TODO why missing here?
+                    MISSING if cls._client_mutation_id else None,  # type: ignore
                 )
             )
             cmi_param = CLIENT_MUTATION_ID
@@ -93,8 +94,9 @@ class Mutation:
             return mutate(**{name: getattr(input, name) for name in field_names})
 
         wrapper.__annotations__["input"] = input_cls
-        wrapper.__annotations__["return"] = Awaitable[cls] if async_mutate else cls
+        wrapper.__annotations__["return"] = Awaitable[cls] if async_mutate else cls  # type: ignore
         if cls._client_mutation_id is not False:
+            assert cmi_param is not None
             cls.__annotations__[CLIENT_MUTATION_ID] = input_cls.__annotations__[
                 cmi_param
             ]
@@ -104,6 +106,7 @@ class Mutation:
             if async_mutate:
 
                 async def wrapper(input):
+                    assert cmi_param is not None
                     result = await wrapped(input)
                     setattr(result, CLIENT_MUTATION_ID, getattr(input, cmi_param))
                     return result
@@ -111,6 +114,7 @@ class Mutation:
             else:
 
                 def wrapper(input):
+                    assert cmi_param is not None
                     result = wrapped(input)
                     setattr(result, CLIENT_MUTATION_ID, getattr(input, cmi_param))
                     return result

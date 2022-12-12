@@ -327,7 +327,8 @@ def resolver_resolve(
                 values[param_name] = None
 
         if errors:
-            raise ValueError(ValidationError(children=errors).errors)
+            # TODO raise a mypy issue
+            raise ValueError(ValidationError(children=errors).errors)  # type: ignore
         if info_parameter:
             values[info_parameter] = __info
         try:

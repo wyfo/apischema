@@ -28,7 +28,7 @@ def object_field_from_field(
         required,
         field.metadata,
         default=field.default,
-        default_factory=field.default_factory,
+        default_factory=field.default_factory,  # type: ignore
         kind=kind,
     )
 
