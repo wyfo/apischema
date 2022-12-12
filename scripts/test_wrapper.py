@@ -26,6 +26,13 @@ Union = Union  # to prevent import removal
 
 typing.get_origin, typing.get_args = get_origin, get_args
 typing.Annotated, typing.Literal, typing.TypedDict = Annotated, Literal, TypedDict
+if "include_extras" not in inspect.signature(typing.get_type_hints).parameters:
+    gth = typing.get_type_hints
+
+    def get_type_hints(*args, include_extras=False, **kwargs):
+        return gth(*args, **kwargs)
+
+    typing.get_type_hints = get_type_hints
 inspect.isclass = is_type
 if sys.version_info < (3, 9):
 
