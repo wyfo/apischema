@@ -44,15 +44,15 @@ jobs:
         run: pip install -r benchmark/requirements.txt
       - name: Run benchmark
         run: python benchmark/main.py
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: benchmark_table
           path: examples/benchmark_table.md
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: benchmark_chart_light
           path: docs/benchmark_chart_light.svg
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: benchmark_chart_dark
           path: docs/benchmark_chart_dark.svg
@@ -84,7 +84,7 @@ jobs:
         run: pip install -r docs/requirements.txt
       - name: Build documentation
         run: mkdocs build
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: documentation
           path: site/**
