@@ -338,7 +338,7 @@ def generate(package: str) -> str:
             write_class(pyx, cls)  # type: ignore
             pyx.writeln()
         for func in module_elements(module, FunctionType):
-            if not func.__name__.startswith("Py"):  # type: ignore
+            if not func.__name__.startswith("Py"):
                 write_function(pyx, func)  # type: ignore
                 pyx.writeln()
         methods = module_methods(module)
