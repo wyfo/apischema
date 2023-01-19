@@ -2,7 +2,7 @@ cattrs==22.2.0
 marshmallow==3.19.0
 mashumaro==3.2
 matplotlib==3.6.2
-pandas==1.5.2
+pandas==1.5.3
 pydantic==1.10.2
 typedload==2.20
 pyserde==0.9.6
