@@ -4,19 +4,34 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    groups:
+      actions:
+        patterns: ["*"]
   - package-ecosystem: "pip"
     directory: "tests"
     schedule:
       interval: "monthly"
+    groups:
+      tests:
+        patterns: ["*"]
   - package-ecosystem: "pip"
     directory: "docs"
     schedule:
       interval: "monthly"
+    groups:
+      docs:
+        patterns: ["*"]
   - package-ecosystem: "pip"
     directory: "benchmark"
     schedule:
-      interval: "daily"
+      interval: "monthly"
+    groups:
+      benchmark:
+        patterns: ["*"]
   - package-ecosystem: "pip"
     directory: "scripts"
     schedule:
-      interval: "daily"
+      interval: "monthly"
+    groups:
+      scripts:
+        patterns: ["*"]
