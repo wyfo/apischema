@@ -1,8 +1,8 @@
-cattrs==22.2.0
-marshmallow==3.19.0
-mashumaro==3.2
-matplotlib==3.6.2
-pandas==1.5.2
-pydantic==1.10.2
-typedload==2.20
-pyserde==0.9.6
+cattrs==23.1.2
+marshmallow==3.20.1
+mashumaro==3.8.1
+matplotlib==3.7.2
+pandas==2.0.3
+pydantic==2.1.1
+typedload==2.24
+pyserde==0.12.2
