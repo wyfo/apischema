@@ -42,11 +42,11 @@ class Receipt(CamelModel):
 def methods(model: Type[CamelModel]) -> Methods:
     def serialize_receipts(obj: Receipt):
         obj.date.isoformat()
-        return obj.dict()
+        return obj.model_dump()
 
     return Methods(
         lambda data: model(**data),
-        model.dict if model is Message else serialize_receipts,
+        model.model_dump if model is Message else serialize_receipts,
     )
 
 
