@@ -29,13 +29,13 @@ jobs:
           - python-version: '3.11'
             pytest-args: --cov=apischema --cov-branch --cov-report=xml --cov-report=html
     steps:
-      - uses: actions/cache@v3.0.11
+      - uses: actions/cache@v3.3.2
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('tests/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
