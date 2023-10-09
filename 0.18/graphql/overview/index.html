@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.10">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-8.5.10">
     
     
       
@@ -711,7 +711,7 @@
 <h1 id="graphql-overview">GraphQL Overview<a class="headerlink" href="#graphql-overview" title="Permanent link">&para;</a></h1>
 <p><em>apischema</em> supports GraphQL through the <a href="https://github.com/graphql-python/graphql-core"><em>graphql-core</em></a> library.</p>
 <p>You can install this dependency directly with <em>apischema</em> using the following extra requirement:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip install apischema<span class="o">[</span>graphql<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>apischema<span class="o">[</span>graphql<span class="o">]</span>
 </code></pre></div></p>
 <p>GraphQL supports consists of generating a GraphQL schema <code>graphql.GraphQLSchema</code> from your data model and endpoints (queries/mutations/subscribtions), in a similar way than the JSON schema generation. This schema can then be used through <em>graphql-core</em> library to query/mutate/subscribe.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
