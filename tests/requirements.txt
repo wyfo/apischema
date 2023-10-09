@@ -3,8 +3,9 @@ attrs==22.1.0
 bson==0.5.10
 docstring-parser==0.15
 pydantic==1.10.2
-pytest==7.2.0
+pytest==7.4.2
 pytest-cov==4.0.0
 pytest-asyncio==0.20.3
 SQLAlchemy==1.4.45
-typing-extensions==4.4.0
+typing-extensions==4.8.0;python_version>="3.8"
+typing-extensions==4.7.1;python_version<"3.8"
