@@ -144,7 +144,6 @@ def object_serialization(
     fields_and_methods: Union[Iterable[Any], Callable[[], Iterable[Any]]],
     *output_class_modifiers: Callable[[type], Any],
 ) -> Callable[[T], Any]:
-
     generic, bases = cls, ()
     if getattr(cls, "__parameters__", ()):
         generic = cls[cls.__parameters__]  # type: ignore

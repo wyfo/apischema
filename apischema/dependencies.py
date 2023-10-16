@@ -65,7 +65,6 @@ def dependent_required(*groups: Collection[Any], owner: Optional[type] = None): 
     if owner is None:
         return DependentRequiredDescriptor(fields, groups)
     else:
-
         dep_req = _dependent_requireds[owner]
         for field, required in fields.items():
             dep_req.append((field, required))

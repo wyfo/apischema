@@ -7,6 +7,7 @@ from apischema.conversions import Conversion
 
 Foo_ = TypeVar("Foo_", bound="Foo")
 
+
 # Use a dataclass in order to be easily testable with ==
 @dataclass
 class Foo:
@@ -47,6 +48,8 @@ class ForeignSubtype(ForeignType):
 
 
 T = TypeVar("T")
+
+
 # Recursive implementation of type.__subclasses__
 def rec_subclasses(cls: type[T]) -> Iterator[type[T]]:
     for sub_cls in cls.__subclasses__():
