@@ -126,7 +126,7 @@ def export_table(results: Sequence[LibraryBenchmarkResult]):
                 deserialization, serialization = "/", "/"
             else:
                 deserialization, serialization = [
-                    f"x{round(sum(res.result[index:index + 2])/2, 1)}"
+                    f"x{round(sum(res.result[index:index + 2]) / 2, 1)}"
                     f" ({round(res.result[index], 1)}/{round(res.result[index + 1], 1)})"
                     for index in (0, 2)
                 ]
