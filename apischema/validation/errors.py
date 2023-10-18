@@ -11,6 +11,7 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    TypedDict,
     TypeVar,
     Union,
     overload,
@@ -33,15 +34,10 @@ ErrorKey = Union[str, int]
 T = TypeVar("T")
 ValidatorResult = Generator[Error, None, T]
 
-try:
-    from apischema.typing import TypedDict
 
-    class LocalizedError(TypedDict):
-        loc: Sequence[ErrorKey]
-        err: ErrorMsg
-
-except ImportError:
-    LocalizedError = Mapping[str, Any]  # type: ignore
+class LocalizedError(TypedDict):
+    loc: Sequence[ErrorKey]
+    err: ErrorMsg
 
 
 class ValidationError(Exception):

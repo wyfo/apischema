@@ -3,6 +3,7 @@ from dataclasses import (  # type: ignore
     _FIELDS,
     Field,
     InitVar,
+    is_dataclass,
     make_dataclass,
 )
 from enum import Enum
@@ -19,13 +20,7 @@ from typing import (
     Union,
 )
 
-from apischema.types import (
-    COLLECTION_TYPES,
-    MAPPING_TYPES,
-    PRIMITIVE_TYPES,
-    AnyType,
-    OrderedDict,
-)
+from apischema.types import COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES, AnyType
 from apischema.typing import (
     get_args,
     get_origin,
@@ -39,7 +34,7 @@ from apischema.typing import (
     required_keys,
     resolve_type_hints,
 )
-from apischema.utils import PREFIX, get_origin_or_type, has_type_vars, is_dataclass
+from apischema.utils import PREFIX, get_origin_or_type, has_type_vars
 
 try:
     from apischema.typing import Annotated
@@ -192,10 +187,8 @@ class Visitor(Generic[Result]):
                 elif hasattr(origin, "__field_types"):  # pragma: no cover
                     types = origin.__field_types
                 else:  # pragma: no cover
-                    types = OrderedDict((f, Any) for f in origin._fields)  # type: ignore  # noqa: E501
-                return self.named_tuple(
-                    origin, types, origin._field_defaults  # type: ignore
-                )
+                    types = {f: Any for f in origin._fields}  # noqa: E501
+                return self.named_tuple(origin, types, origin._field_defaults)
         if is_typed_dict(origin):
             return self.typed_dict(
                 origin, resolve_type_hints(origin), required_keys(origin)

@@ -24,7 +24,7 @@ from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.type_names import type_name
 from apischema.types import AnyType, Undefined
 from apischema.typing import get_type_hints
-from apischema.utils import is_async, is_union_of, wrap_generic_init_subclass
+from apischema.utils import is_async, is_union_of
 
 ClientMutationId = NewType("ClientMutationId", str)
 type_name(None)(ClientMutationId)
@@ -41,7 +41,6 @@ class Mutation:
     # Mutate is not defined to prevent Mypy warning about signature of superclass
     mutate: ClassVar[Callable]
 
-    @wrap_generic_init_subclass
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if not hasattr(cls, "mutate"):

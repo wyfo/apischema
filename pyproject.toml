@@ -9,7 +9,7 @@ authors = [{ name = "Joseph Perez", email = "joperez@hotmail.fr" }]
 license = { text = "MIT" }
 description = "JSON (de)serialization, GraphQL and JSON schema generation using Python typing."
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 classifiers = [
     "Development Status == 4 - Beta",
     "Intended Audience == Developers",

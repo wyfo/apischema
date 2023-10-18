@@ -4,6 +4,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Literal,
     Mapping,
     Optional,
     Pattern,
@@ -22,12 +23,7 @@ T = TypeVar("T")
 Extra = Union[Mapping[str, Any], Callable[[Dict[str, Any]], None]]
 
 Deprecated = Union[bool, str]
-try:
-    from apischema.typing import Literal
-
-    ContentEncoding = Literal["7bit", "8bit", "binary", "quoted-printable", "base64"]
-except ImportError:
-    ContentEncoding = str  # type: ignore
+ContentEncoding = Literal["7bit", "8bit", "binary", "quoted-printable", "base64"]
 
 
 @dataclass(frozen=True)

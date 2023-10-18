@@ -62,7 +62,7 @@ from apischema.serialization.serialized_methods import (
     get_serialized_methods,
 )
 from apischema.type_names import TypeNameFactory, get_type_name
-from apischema.types import AnyType, OrderedDict, UndefinedType
+from apischema.types import AnyType, UndefinedType
 from apischema.typing import get_args, get_origin, is_typed_dict, is_union
 from apischema.utils import (
     context_setter,
@@ -318,8 +318,7 @@ class SchemaBuilder(
         alias_by_names = {f.name: f.alias for f in fields}.__getitem__
         dependent_required = get_dependent_required(cls)
         result = []
-        discriminator_parent = get_discriminated_parent(cls)
-        if discriminator_parent is not None:
+        if discriminator_parent := get_discriminated_parent(cls):
             discriminator_ref = self.ref_schema(
                 get_type_name(discriminator_parent).json_schema
             )
@@ -333,13 +332,12 @@ class SchemaBuilder(
                 required=[p.alias for p in properties if p.required],
                 additionalProperties=additional_properties,
                 patternProperties=pattern_properties,
-                dependentRequired=OrderedDict(
-                    (
-                        alias_by_names(f),
-                        sorted(map(alias_by_names, dependent_required[f])),
+                dependentRequired={
+                    alias_by_names(f): sorted(
+                        map(alias_by_names, dependent_required[f])
                     )
                     for f in sorted(dependent_required, key=alias_by_names)
-                ),
+                },
             )
         )
         if flattened_schemas:

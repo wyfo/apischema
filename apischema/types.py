@@ -1,7 +1,5 @@
 import collections.abc
-import sys
 from enum import Enum, auto
-from itertools import chain
 from types import MappingProxyType
 from typing import (
     TYPE_CHECKING,
@@ -56,17 +54,6 @@ MAPPING_TYPES = (
     dict,
     MappingProxyType,
 )
-
-
-if sys.version_info >= (3, 7):  # pragma: no cover
-    OrderedDict = dict
-    ChainMap = collections.ChainMap
-else:  # pragma: no cover
-    OrderedDict = collections.OrderedDict
-
-    class ChainMap(collections.ChainMap):
-        def __iter__(self):
-            return iter({k: None for k in chain.from_iterable(reversed(self.maps))})
 
 
 class Metadata(Mapping[str, Any]):

@@ -1,15 +1,10 @@
-from typing import Generic, TypeVar
+from types import new_class
+from typing import Generic, TypedDict, TypeVar
 from unittest.mock import Mock
 
 import pytest
 
-from apischema.typing import (
-    Annotated,
-    _TypedDictMeta,
-    generic_mro,
-    required_keys,
-    resolve_type_hints,
-)
+from apischema.typing import Annotated, generic_mro, required_keys, resolve_type_hints
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -35,9 +30,9 @@ class D(C):
 test_cases = [
     (A, [A], {"t": T, "u": U}),
     (A[int, str], [A[int, str]], {"t": int, "u": str}),
-    (A[int, T], [A[int, T]], {"t": int, "u": T}),
-    (B, [B, A[int, T]], {"t": int, "u": T, "v": T}),
-    (B[U], [B[U], A[int, U]], {"t": int, "u": U, "v": U}),
+    (A[int, T], [A[int, T]], {"t": int, "u": T}),  # type: ignore
+    (B, [B, A[int, T]], {"t": int, "u": T, "v": T}),  # type: ignore
+    (B[U], [B[U], A[int, U]], {"t": int, "u": U, "v": U}),  # type: ignore
     (B[str], [B[str], A[int, str]], {"t": int, "u": str, "v": str}),
     (C, [C, B[str], A[int, str]], {"t": int, "u": str, "v": str}),
     (
@@ -59,6 +54,7 @@ def test_resolve_type_hints(tp, _, result):
 
 
 def test_required_keys():
+    _TypedDictMeta = type(new_class("_TypedDictMeta", (TypedDict,)))
     td1, td2, td3 = Mock(_TypedDictMeta), Mock(_TypedDictMeta), Mock(_TypedDictMeta)
     td1.__annotations__ = {"key": str}
     td1.__total__ = False

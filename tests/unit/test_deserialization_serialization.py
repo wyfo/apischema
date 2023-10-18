@@ -6,6 +6,7 @@ from typing import (
     Any,
     FrozenSet,
     List,
+    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -22,7 +23,6 @@ from apischema.deserialization import deserialize
 from apischema.fields import with_fields_set
 from apischema.metadata import properties
 from apischema.serialization import serialize
-from apischema.typing import Literal
 from apischema.validation.errors import ValidationError
 
 uuid = str(uuid4())

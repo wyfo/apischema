@@ -23,7 +23,7 @@ from apischema.metadata import skip
 from apischema.ordering import order
 from apischema.type_names import get_type_name
 from apischema.typing import generic_mro, get_args, get_origin
-from apischema.utils import PREFIX, has_type_vars, wrap_generic_init_subclass
+from apischema.utils import PREFIX, has_type_vars
 
 ID_TYPE_ATTR = f"{PREFIX}id_type"
 
@@ -113,7 +113,6 @@ class Node(Generic[Id], ABC):
             raise TypeError(f"Node {cls} has no type_name registered")
         return node_name
 
-    @wrap_generic_init_subclass
     def __init_subclass__(cls, not_a_node: bool = False, **kwargs):
         super().__init_subclass__(**kwargs)
         if not not_a_node:

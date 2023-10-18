@@ -1,12 +1,12 @@
 from datetime import date
-from typing import Any, Dict, Mapping
+from typing import Any, Dict, Mapping, TypedDict
 
 import pytest
 
 from apischema import ValidationError, deserialize, serialize
 from apischema.json_schema import deserialization_schema, serialization_schema
 from apischema.metadata import flatten
-from apischema.typing import Annotated, TypedDict
+from apischema.typing import Annotated
 
 
 class MyDict(dict):

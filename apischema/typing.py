@@ -3,7 +3,18 @@ __all__ = ["get_args", "get_origin", "get_type_hints"]
 
 import sys
 from types import ModuleType, new_class
-from typing import Any, Callable, Collection, Dict, Generic, Set, Type, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Collection,
+    Dict,
+    Generic,
+    Protocol,
+    Set,
+    Type,
+    TypeVar,
+    Union,
+)
 
 
 class _FakeType:
@@ -11,13 +22,12 @@ class _FakeType:
 
 
 if sys.version_info >= (3, 9):  # pragma: no cover
-    from typing import Annotated, TypedDict, get_args, get_origin, get_type_hints
+    from typing import Annotated, get_args, get_origin, get_type_hints
 else:  # pragma: no cover
     try:
-        from typing_extensions import Annotated, TypedDict
+        from typing_extensions import Annotated
     except ImportError:
-        if sys.version_info >= (3, 8):
-            from typing import TypedDict
+        pass
     try:
         from typing_extensions import get_type_hints as gth
     except ImportError:
@@ -57,20 +67,10 @@ else:  # pragma: no cover
             return res
 
 
-if sys.version_info >= (3, 8):  # pragma: no cover
-    from typing import Literal, Protocol  # noqa: F401
-else:  # pragma: no cover
-    try:
-        from typing_extensions import Literal, Protocol  # noqa: F401
-    except ImportError:
-        pass
-
 if sys.version_info >= (3, 11):
     from typing import _collect_parameters  # type: ignore
-elif sys.version_info >= (3, 7):
-    from typing import _collect_type_vars as _collect_parameters
 else:
-    from typing import _type_vars as _collect_parameters
+    from typing import _collect_type_vars as _collect_parameters
 
 
 def _generic_mro(result, tp):
@@ -91,10 +91,7 @@ def _generic_mro(result, tp):
 
 
 # sentinel value to avoid to subscript Generic and Protocol
-try:
-    BASE_GENERIC_MRO = {Generic: Generic, Protocol: Protocol}
-except NameError:
-    BASE_GENERIC_MRO = {Generic: Generic}
+BASE_GENERIC_MRO = {Generic: Generic, Protocol: Protocol}
 
 
 def generic_mro(tp):
@@ -146,15 +143,6 @@ try:
     _AnnotatedAlias: Any = type(Annotated[_T, ...])
 except NameError:
     _AnnotatedAlias = _FakeType
-try:
-
-    class _TypedDictImplem(TypedDict):
-        pass
-
-    _LiteralMeta: Any = type(Literal)
-    _TypedDictMeta: Any = type(_TypedDictImplem)
-except NameError:
-    _LiteralMeta, _TypedDictMeta = _FakeType, _FakeType
 
 
 def is_new_type(tp: Any) -> bool:
@@ -176,17 +164,17 @@ def is_annotated(tp: Any) -> bool:
 
 
 def is_literal(tp: Any) -> bool:
+    from typing import Literal
+
+    origin = get_origin(tp)
+    if origin == Literal:
+        return True
     try:
-        from typing import Literal
+        from typing_extensions import Literal as Literal2
 
-        return get_origin(tp) == Literal
+        return get_origin(tp) == Literal2
     except ImportError:
-        try:
-            from typing_extensions import Literal  # type: ignore
-
-            return get_origin(tp) == Literal
-        except ImportError:
-            return False
+        return False
 
 
 def is_named_tuple(tp: Any) -> bool:
@@ -194,17 +182,16 @@ def is_named_tuple(tp: Any) -> bool:
 
 
 def is_typed_dict(tp: Any) -> bool:
+    from typing import TypedDict
+
+    if isinstance(tp, type(new_class("_TypedDictImplem", (TypedDict,)))):
+        return True
     try:
-        from typing import TypedDict
+        from typing_extensions import TypedDict as TypedDict2
 
-        return isinstance(tp, type(new_class("_TypedDictImplem", (TypedDict,))))
+        return isinstance(tp, type(new_class("_TypedDictImplem", (TypedDict2,))))
     except ImportError:
-        try:
-            from typing_extensions import TypedDict
-
-            return isinstance(tp, type(new_class("_TypedDictImplem", (TypedDict,))))
-        except ImportError:
-            return False
+        return False
 
 
 def is_type_var(tp: Any) -> bool:
@@ -220,7 +207,7 @@ def required_keys(typed_dict: Type) -> Collection[str]:
         required: Set[str] = set()
         bases_annotations: Set = set()
         for base in typed_dict.__bases__:
-            if not isinstance(base, _TypedDictMeta):
+            if not is_typed_dict(base):
                 continue
             bases_annotations.update(base.__annotations__)
             required.update(required_keys(base))
@@ -229,9 +216,9 @@ def required_keys(typed_dict: Type) -> Collection[str]:
         return required
 
 
-# py37/py38 get_origin of builtin wrapped generics return the unsubscriptable builtin
+# py38 get_origin of builtin wrapped generics return the unsubscriptable builtin
 # type.
-if (3, 7) <= sys.version_info < (3, 9):
+if (3, 8) <= sys.version_info < (3, 9):
     import typing
 
     TYPING_ALIASES = {
@@ -242,7 +229,7 @@ if (3, 7) <= sys.version_info < (3, 9):
         return TYPING_ALIASES.get(origin, origin)
 
 else:
-    typing_origin = lambda tp: tp
+    typing_origin = lambda tp: tp  # type: ignore
 
 
 def is_type(tp: Any) -> bool:

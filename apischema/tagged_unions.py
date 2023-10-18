@@ -16,7 +16,7 @@ from apischema.metadata.keys import (
 from apischema.schemas import schema
 from apischema.types import Metadata, MetadataImplem, Undefined, UndefinedType
 from apischema.typing import get_type_hints
-from apischema.utils import PREFIX, get_args2, get_origin2, wrap_generic_init_subclass
+from apischema.utils import PREFIX, get_args2, get_origin2
 
 TAGS_ATTR = f"{PREFIX}tags"
 
@@ -84,7 +84,6 @@ class TaggedUnion:
         tag, value = get_tagged(self)
         return f"{type(self).__name__}({tag}={value!r})"
 
-    @wrap_generic_init_subclass
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         tags = set(getattr(cls, TAGS_ATTR, ()))

@@ -20,7 +20,6 @@ from apischema.methods import is_method, method_wrapper
 from apischema.objects.fields import MISSING_DEFAULT, ObjectField, set_object_fields
 from apischema.objects.getters import object_fields, parameters_as_fields
 from apischema.type_names import type_name
-from apischema.types import OrderedDict
 from apischema.typing import get_type_hints
 from apischema.utils import (
     empty_dict,
@@ -85,7 +84,7 @@ def _fields_and_init(
     cls: type, fields_and_methods: Union[Iterable[Any], Callable[[], Iterable[Any]]]
 ) -> Tuple[Sequence[ObjectField], Callable[[Any, Any], None]]:
     fields = object_fields(cls, serialization=True)
-    output_fields: Dict[str, ObjectField] = OrderedDict()
+    output_fields: Dict[str, ObjectField] = {}
     methods = []
     if callable(fields_and_methods):
         fields_and_methods = fields_and_methods()
@@ -144,7 +143,6 @@ def object_serialization(
     fields_and_methods: Union[Iterable[Any], Callable[[], Iterable[Any]]],
     *output_class_modifiers: Callable[[type], Any],
 ) -> Callable[[T], Any]:
-
     generic, bases = cls, ()
     if getattr(cls, "__parameters__", ()):
         generic = cls[cls.__parameters__]  # type: ignore

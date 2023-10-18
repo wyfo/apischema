@@ -457,8 +457,7 @@ class SerializationMethodVisitor(
         return self._wrap(tuple, method)
 
     def union(self, types: Sequence[AnyType]) -> SerializationMethod:
-        discriminator = get_inherited_discriminator(types)
-        if discriminator is not None:
+        if discriminator := get_inherited_discriminator(types):
             return self.discriminate(discriminator, types)
         alternatives = []
         for tp in types:

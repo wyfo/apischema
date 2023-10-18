@@ -1,4 +1,4 @@
-import collections
+import collections.abc
 import sys
 from dataclasses import dataclass, fields
 from enum import Enum
@@ -8,11 +8,13 @@ from typing import (
     Dict,
     Generic,
     List,
+    Literal,
     Mapping,
     NamedTuple,
     NewType,
     Optional,
     Tuple,
+    TypedDict,
     TypeVar,
     Union,
 )
@@ -21,7 +23,7 @@ from unittest.mock import Mock
 import pytest
 
 from apischema.types import NoneType
-from apischema.typing import Annotated, Literal, TypedDict
+from apischema.typing import Annotated
 from apischema.visitor import Unsupported, Visitor
 
 ARG = object()

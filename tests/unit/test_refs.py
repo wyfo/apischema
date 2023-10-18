@@ -66,7 +66,7 @@ class DataGeneric(Generic[T]):
 type_name("StrData")(DataGeneric[str])
 
 
-@pytest.mark.parametrize("cls", [DataGeneric, DataGeneric[U]])
+@pytest.mark.parametrize("cls", [DataGeneric, DataGeneric[U]])  # type: ignore
 def test_generic_ref_error(cls):
     with raises(TypeError):
         type_name("Data")(cls)
