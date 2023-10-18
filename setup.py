@@ -1,7 +1,7 @@
+import importlib
 import os
 import platform
 import sys
-import importlib
 
 from setuptools import Extension, setup
 
