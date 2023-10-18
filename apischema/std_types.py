@@ -24,7 +24,7 @@ from pathlib import (
 from typing import Deque, List, TypeVar
 from uuid import UUID
 
-from apischema import deserializer, schema, serializer, type_name, ValidationError
+from apischema import ValidationError, deserializer, schema, serializer, type_name
 from apischema.conversions import Conversion, as_str, catch_value_error
 
 T = TypeVar("T")

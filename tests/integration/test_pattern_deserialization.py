@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from apischema import deserialize, ValidationError
+from apischema import ValidationError, deserialize
 
 
 def test_valid_pattern():
@@ -14,4 +14,3 @@ def test_valid_pattern():
 def test_invalid_pattern():
     with pytest.raises(ValidationError):
         deserialize(re.Pattern, "(a")
-
