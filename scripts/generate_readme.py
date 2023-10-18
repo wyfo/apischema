@@ -6,14 +6,14 @@ import sys
 ROOT_DIR = pathlib.Path(__file__).parent.parent
 README = ROOT_DIR / "README.md"
 INDEX = ROOT_DIR / "docs" / "index.md"
-SETUP = ROOT_DIR / "setup.py"
+PYPROJECT = ROOT_DIR / "pyproject.toml"
 QUICKSTART = ROOT_DIR / "examples" / "quickstart.py"
 
-USED_FILES = {str(path.relative_to(ROOT_DIR)) for path in (INDEX, SETUP, QUICKSTART)}
+USED_FILES = {str(path.relative_to(ROOT_DIR)) for path in (INDEX, PYPROJECT, QUICKSTART)}
 
 
 def main():
-    version_match = re.search(r"version=\"(\d+\.\d+)", SETUP.read_text())
+    version_match = re.search(r"version = \"(\d+\.\d+)", PYPROJECT.read_text())
     assert version_match is not None
     version = version_match.group(1)
     content = INDEX.read_text()
@@ -24,6 +24,7 @@ def main():
     # Remove admonitions
     content = re.sub(r"!!! note\n\s*(.*)\n", lambda m: f"> {m.group(1)}\n", content)
     # Add chart
+    # TODO remove this unused part?
     content = content.replace(
         r"<!--insert chart-->",
         "\n".join(
@@ -34,6 +35,7 @@ def main():
     )
     # Uncomment
     content = re.sub(r"<!--\n(\s*(.|\n)*?\s*)\n-->", lambda m: m.group(1), content)
+    # TODO remove this unused part?
     content = re.sub(
         r"(\d+\.\d+)/benchmark_chart\.svg", f"{version}/benchmark_chart.svg", content
     )
