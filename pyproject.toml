@@ -42,3 +42,4 @@ examples = [
 
 [tool.setuptools.package-data]
 apischema = ["py.typed"]
+scripts = ["cythonize.py"]

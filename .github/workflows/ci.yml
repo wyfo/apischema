@@ -57,7 +57,7 @@ jobs:
             coverage.xml
             htmlcov
       - name: Compile
-        run: python setup.py build_ext --inplace
+        run: pip install -e .
         if: matrix.python-version != 'pypy-3.9' && matrix.python-version != 'pypy-3.10'
       - name: Run tests (compiled)
         run: pytest tests ${{ matrix.pytest-args }}

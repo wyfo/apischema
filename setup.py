@@ -1,7 +1,10 @@
+import os
 import platform
+import sys
 
 from setuptools import Extension, setup
 
+sys.path.append(os.path.dirname(__file__))
 from scripts import cythonize
 
 cythonize.main()
