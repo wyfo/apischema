@@ -24,7 +24,7 @@ from pathlib import (
 from typing import Deque, List, TypeVar
 from uuid import UUID
 
-from apischema import deserializer, schema, serializer, type_name
+from apischema import deserializer, schema, serializer, type_name, ValidationError
 from apischema.conversions import Conversion, as_str, catch_value_error
 
 T = TypeVar("T")
@@ -88,10 +88,17 @@ for cls in (PurePath, PurePosixPath, PureWindowsPath, Path, PosixPath, WindowsPa
 
 # =================== pattern ===================
 
-Pattern = type(re.compile(r""))
-deserializer(Conversion(catch_value_error(re.compile), source=str, target=Pattern))
-serializer(Conversion(operator.attrgetter("pattern"), source=Pattern, target=str))
-type_name(None)(Pattern)
+
+@deserializer
+def _compile(pattern: str) -> re.Pattern:
+    try:
+        return re.compile(pattern)
+    except re.error as err:
+        raise ValidationError(str(err))
+
+
+serializer(Conversion(operator.attrgetter("pattern"), source=re.Pattern, target=str))
+type_name(None)(re.Pattern)
 
 # ==================== uuid =====================
 
