@@ -62,7 +62,6 @@ class ObjectVisitor(Visitor[Result]):
     def _override_fields(
         self, tp: AnyType, fields: Sequence[ObjectField]
     ) -> Sequence[ObjectField]:
-
         origin = get_origin_or_type(tp)
         if isinstance(origin, type):
             default_fields = self._default_fields(origin)
