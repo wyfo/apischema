@@ -1,13 +1,12 @@
 import os
 import platform
 import sys
+import importlib
 
 from setuptools import Extension, setup
 
 sys.path.append(os.path.dirname(__file__))
-from scripts import cythonize
-
-cythonize.main()
+importlib.import_module("scripts.cythonize").main()
 
 ext_modules = [
     Extension(
