@@ -9,7 +9,9 @@ INDEX = ROOT_DIR / "docs" / "index.md"
 PYPROJECT = ROOT_DIR / "pyproject.toml"
 QUICKSTART = ROOT_DIR / "examples" / "quickstart.py"
 
-USED_FILES = {str(path.relative_to(ROOT_DIR)) for path in (INDEX, PYPROJECT, QUICKSTART)}
+USED_FILES = {
+    str(path.relative_to(ROOT_DIR)) for path in (INDEX, PYPROJECT, QUICKSTART)
+}
 
 
 def main():
