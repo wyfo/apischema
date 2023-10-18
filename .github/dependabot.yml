@@ -8,6 +8,13 @@ updates:
       actions:
         patterns: ["*"]
   - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      build:
+        patterns: ["*"]
+  - package-ecosystem: "pip"
     directory: "tests"
     schedule:
       interval: "monthly"
