@@ -51,7 +51,7 @@ else:  # pragma: no cover
         def get_args(tp):
             if isinstance(tp, _AnnotatedAlias):
                 return () if tp.__args__ is None else (tp.__args__[0], *tp.__metadata__)
-            res = tp.__args__
+            res = getattr(tp, "__args__", ())
             if get_origin(tp) is Callable and res[0] is not Ellipsis:
                 res = (list(res[:-1]), res[-1])
             return res
