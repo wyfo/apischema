@@ -1,2 +1,0 @@
-Cython==3.0.3
-setuptools>=68.2; python_version>="3.12"

@@ -24,9 +24,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12', 'pypy-3.9']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', 'pypy-3.9', 'pypy-3.10']
         include:
-          - python-version: '3.11'
+          - python-version: '3.12'
             pytest-args: --cov=apischema --cov-branch --cov-report=xml --cov-report=html
     steps:
       - uses: actions/cache@v3.0.11
@@ -56,15 +56,12 @@ jobs:
           path: |
             coverage.xml
             htmlcov
-      - name: Cythonize
-        run: scripts/cythonize.sh
-        if: matrix.python-version != 'pypy-3.9'
       - name: Compile
-        run: python setup.py build_ext --inplace
-        if: matrix.python-version != 'pypy-3.9'
+        run: pip install -e .
+        if: matrix.python-version != 'pypy-3.9' && matrix.python-version != 'pypy-3.10'
       - name: Run tests (compiled)
-        run: pytest tests ${{ matrix.pytest-args }}
-        if: matrix.python-version != 'pypy-3.9'
+        run: pytest tests
+        if: matrix.python-version != 'pypy-3.9' && matrix.python-version != 'pypy-3.10'
 
 concurrency:
   group: ci-${{ github.head_ref }}

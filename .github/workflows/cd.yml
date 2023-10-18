@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - run: scripts/cythonize.sh
     - run: pipx run build --sdist
     - uses: actions/upload-artifact@v3
       with:
@@ -20,12 +19,10 @@ jobs:
     name: Wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v3
-      - run: scripts/cythonize.sh
       - run: scripts/generate_tests_from_examples.py
       - uses: pypa/cibuildwheel@v2.16.2
         env:
@@ -34,6 +31,7 @@ jobs:
           # TODO execute tests on Windows (https://github.com/wyfo/apischema/runs/4622330189)
           CIBW_TEST_COMMAND_WINDOWS: python -c "import apischema"
           CIBW_BEFORE_TEST: pip install -r tests/requirements.txt
+          # TODO is skipping still necessary?
           CIBW_TEST_SKIP: "*universal2:arm64"
       - uses: actions/upload-artifact@v3
         with:
