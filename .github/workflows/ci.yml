@@ -60,7 +60,7 @@ jobs:
         run: pip install -e .
         if: matrix.python-version != 'pypy-3.9' && matrix.python-version != 'pypy-3.10'
       - name: Run tests (compiled)
-        run: pytest tests ${{ matrix.pytest-args }}
+        run: pytest tests
         if: matrix.python-version != 'pypy-3.9' && matrix.python-version != 'pypy-3.10'
 
 concurrency:
