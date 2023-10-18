@@ -488,8 +488,15 @@ class SimpleObjectMethod(DeserializationMethod):
     unexpected: str
 
     def deserialize(self, data: Any) -> Any:
+        discriminator: Optional[str] = None
         if not isinstance(data, dict):
-            raise bad_type(data, dict)
+            if isinstance(data, Discriminated):
+                discriminator = data.discriminator
+                data = data.data
+                if not isinstance(data, dict):
+                    raise bad_type(data, dict)
+            else:
+                raise bad_type(data, dict)
         fields_count: int = 0
         field_errors: Optional[dict] = None
         for field in self.fields:
@@ -504,13 +511,20 @@ class SimpleObjectMethod(DeserializationMethod):
                 field_errors = set_child_error(
                     field_errors, field.alias, ValidationError(self.missing)
                 )
+        has_discriminator = False
         if len(data) != fields_count and not self.typed_dict:
             for key in data.keys() - self.all_aliases:
-                field_errors = set_child_error(
-                    field_errors, key, ValidationError(self.unexpected)
-                )
+                if key == discriminator:
+                    has_discriminator = True
+                else:
+                    field_errors = set_child_error(
+                        field_errors, key, ValidationError(self.unexpected)
+                    )
         if field_errors:
             raise ValidationError([], field_errors)
+        if has_discriminator:
+            data = data.copy()
+            del data[discriminator]
         return self.constructor.construct(data)
 
 
@@ -552,7 +566,6 @@ class ObjectMethod(DeserializationMethod):
     aliaser: Aliaser
     missing: str
     unexpected: str
-    discriminator: Optional[str]
     aggregate_fields: bool = field(init=False)
 
     def __post_init__(self):
@@ -563,8 +576,15 @@ class ObjectMethod(DeserializationMethod):
         )
 
     def deserialize(self, data: Any) -> Any:
+        discriminator: Optional[str] = None
         if not isinstance(data, dict):
-            raise bad_type(data, dict)
+            if isinstance(data, Discriminated):
+                discriminator = data.discriminator
+                data = data.data
+                if not isinstance(data, dict):
+                    raise bad_type(data, dict)
+            else:
+                raise bad_type(data, dict)
         values: dict = {}
         fields_count: int = 0
         errors: Optional[list] = None
@@ -640,7 +660,7 @@ class ObjectMethod(DeserializationMethod):
             elif remain:
                 if not self.additional_properties:
                     for key in remain:
-                        if key != self.discriminator:
+                        if key != discriminator:
                             field_errors = set_child_error(
                                 field_errors, key, ValidationError(self.unexpected)
                             )
@@ -650,7 +670,7 @@ class ObjectMethod(DeserializationMethod):
         elif len(data) != fields_count:
             if not self.additional_properties:
                 for key in data.keys() - self.all_aliases:
-                    if key != self.discriminator:
+                    if key != discriminator:
                         field_errors = set_child_error(
                             field_errors, key, ValidationError(self.unexpected)
                         )
@@ -896,6 +916,12 @@ class ConversionUnionMethod(DeserializationMethod):
 
 
 @dataclass
+class Discriminated:
+    discriminator: str
+    data: Any
+
+
+@dataclass
 class DiscriminatorMethod(DeserializationMethod):
     alias: str
     mapping: Dict[str, DeserializationMethod]
@@ -919,4 +945,4 @@ class DiscriminatorMethod(DeserializationMethod):
                 },
             )
         else:
-            return method.deserialize(data)
+            return method.deserialize(Discriminated(self.alias, data))
