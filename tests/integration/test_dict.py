@@ -10,7 +10,7 @@ from apischema.metadata import flatten
 from apischema.typing import Annotated
 
 if sys.version_info < (3, 9):
-    from typing_extensions import TypedDict  # type: ignore
+    from typing_extensions import TypedDict  # type: ignore # noqa
 
 
 class MyDict(dict):
