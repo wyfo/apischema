@@ -6,11 +6,11 @@ repos:
       - id: update_readme
         name: Update Readme
         entry: python scripts/generate_readme.py
-        language: python
+        language: system
       - id: sort_all
         name: Sort __all__
         entry: python scripts/sort_all.py
-        language: python
+        language: system
         types: [python]
   - repo: https://github.com/hadialqattan/pycln
     rev: v2.3.0
