@@ -1,13 +1,12 @@
 from datetime import datetime
 from typing import Optional, Type
 
-import pydantic.generics
+import pydantic
 from common import Benchmark, Methods, Payment, to_camel_case
 
 
 class CamelModel(pydantic.BaseModel):
-    class Config:
-        alias_generator = to_camel_case
+    model_config = pydantic.ConfigDict(alias_generator=to_camel_case)
 
 
 class Message(CamelModel):

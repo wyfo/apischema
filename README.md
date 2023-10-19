@@ -16,7 +16,7 @@ It requires only Python 3.8+. *PyPy3* is also fully supported.
 
 ## Why another library?
 
-(If you wonder how this differs from the *pydantic* library, see the [dedicated section of the documentation](https://wyfo.github.io/apischema/0.18/difference_with_pydantic) — there are many differences.)
+(If you wonder how this differs from the *pydantic* library, see the [dedicated section of the documentation](https://wyfo.github.io/apischema/dev/difference_with_pydantic) — there are many differences.)
 
 This library fulfills the following goals:
 
@@ -25,11 +25,11 @@ This library fulfills the following goals:
 - be adaptable, provide tools to support any types (ORM, etc.);
 - avoid dynamic things like using raw strings for attributes name - play nicely with your IDE.
 
-No known alternative achieves all of this, and apischema is also [(a lot) faster](https://wyfo.github.io/apischema/0.18/optimizations_and_benchmark#benchmark) than all of them.
+No known alternative achieves all of this, and apischema is also [(a lot) faster](https://wyfo.github.io/apischema/dev/optimizations_and_benchmark#benchmark) than all of them.
 
 On top of that, because APIs are not only JSON, *apischema* is also a complete GraphQL library
 
-> Actually, *apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code ([pydantic support example](https://wyfo.github.io/apischema/0.18/examples/pydantic_support) using [conversions feature](https://wyfo.github.io/apischema/0.18/conversions))
+> Actually, *apischema* is even adaptable enough to enable support of competitor libraries in a few dozens of line of code ([pydantic support example](https://wyfo.github.io/apischema/dev/examples/pydantic_support) using [conversions feature](https://wyfo.github.io/apischema/dev/conversions))
 
 ## Example
 

@@ -13,7 +13,7 @@ on:
       - docs/**
       - examples/**
       - mkdocs.yml
-      - setup.py
+      - pyproject.toml
   pull_request:
     paths:
       - apischema/**
@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.12'
       - name: Install apischema
         run: pip install -e .
       - name: Install requirements
@@ -66,6 +66,8 @@ jobs:
             ${{ runner.os }}-pip-
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
       - uses: actions/download-artifact@v3
         with:
           name: benchmark_table
@@ -99,6 +101,8 @@ jobs:
             ${{ runner.os }}-pip-
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
       - uses: actions/download-artifact@v3
         with:
           name: benchmark_table
@@ -119,13 +123,14 @@ jobs:
           git config user.email github-actions@github.com
           git fetch origin gh-pages --depth=1
       - name: Set environment variable
+        # TODO use a better thing that `python setup.py`
         run: |
           echo "version=$(python setup.py --version | cut -d. -f-2)" >> $GITHUB_ENV
           echo "revision=$(python setup.py --version | cut -d. -f3)" >> $GITHUB_ENV
           echo "latest=$(mike list latest -j | jq .version -r)" >> $GITHUB_ENV
       - name: Publish dev documentation
         if: github.event_name == 'push' && env.version != env.latest
-        run: mike deploy -p $version dev -t "$version (dev)" -u
+        run: mike deploy -p $version dev -t "dev" -u
       - name: Publish latest documentation
         if: github.event_name == 'release' && env.revision == '0'
         run: |

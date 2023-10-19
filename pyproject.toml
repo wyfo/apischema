@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "apischema"
-version = "0.18.1"
+version = "0.19.0"
 authors = [{ name = "Joseph Perez", email = "joperez@hotmail.fr" }]
 license = { text = "MIT" }
 description = "JSON (de)serialization, GraphQL and JSON schema generation using Python typing."
