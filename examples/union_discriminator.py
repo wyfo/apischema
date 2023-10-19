@@ -1,15 +1,9 @@
 from dataclasses import dataclass
-from typing import Annotated, Union
+from typing import Annotated
 
 import pytest
 
-from apischema import (
-    ValidationError,
-    deserialization_method,
-    deserialize,
-    discriminator,
-    serialize,
-)
+from apischema import ValidationError, deserialize, discriminator, serialize
 from apischema.json_schema import deserialization_schema
 
 
@@ -28,7 +22,7 @@ class Lizard:
     pass
 
 
-Pet = Annotated[Union[Cat, Dog, Lizard], discriminator("type", {"dog": Dog})]
+Pet = Annotated[Cat | Dog | Lizard, discriminator("type", {"dog": Dog})]
 
 assert deserialize(Pet, {"type": "dog"}) == Dog()
 assert deserialize(Pet, {"type": "Cat"}) == Cat()

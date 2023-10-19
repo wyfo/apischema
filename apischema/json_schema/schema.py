@@ -36,6 +36,7 @@ from apischema.discriminators import (
     Discriminator,
     get_discriminated_parent,
     get_discriminator,
+    get_inherited_discriminator,
     rec_subclasses,
 )
 from apischema.json_schema.conversions_resolver import WithConversionsResolver
@@ -392,6 +393,12 @@ class SchemaBuilder(
         else:
             return json_schema(anyOf=results)
 
+    def union(self, types: Sequence[AnyType]) -> JsonSchema:
+        result = super().union(types)
+        if get_inherited_discriminator(types) is not None:
+            result = json_schema(oneOf=result["anyOf"])
+        return result
+
     def visit_conversion(
         self,
         tp: AnyType,
@@ -404,13 +411,21 @@ class SchemaBuilder(
             for ref_tp in self.resolve_conversion(tp):
                 ref_schema = self.ref_schema(get_type_name(ref_tp).json_schema)
                 if ref_schema is not None:
+                    if (
+                        conversion is not None
+                        and is_hashable(tp)
+                        and get_discriminator(tp) is not None
+                    ):
+                        return self.visit(Union[tuple(rec_subclasses(tp))])
                     return ref_schema
             if get_args(tp):
                 schema = merge_schema(schema, get_schema(get_origin_or_type(tp)))
             schema = merge_schema(schema, get_schema(tp))
-            if conversion is not None and is_hashable(tp) and get_discriminator(tp):
-                discriminator = get_discriminator(tp)
-                assert discriminator is not None
+            if (
+                conversion is not None
+                and is_hashable(tp)
+                and (discriminator := get_discriminator(tp))
+            ):
                 discriminator_alias = AliasedStr(discriminator.alias)
                 try:
                     parent_schema = self.visit_with_conv(tp, conversion=identity)

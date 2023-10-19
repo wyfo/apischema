@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Union
 
 from apischema import serialize
 from apischema.conversions import Conversion, LazyConversion
@@ -7,7 +6,7 @@ from apischema.conversions import Conversion, LazyConversion
 
 @dataclass
 class Foo:
-    elements: list[Union[int, "Foo"]]
+    elements: list["int | Foo"]
 
 
 def foo_elements(foo: Foo) -> list[int | Foo]:

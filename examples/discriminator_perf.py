@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from timeit import timeit
-from typing import Annotated, Union
+from typing import Annotated
 
 from apischema import deserialization_method, discriminator
 
@@ -15,12 +15,9 @@ class Dog:
     love_cat: bool = False
 
 
-Pet = Union[Cat, Dog]
-DiscriminatedPet = Annotated[Pet, discriminator("type", {"dog": Dog})]
-
-deserialize_union = deserialization_method(Union[Cat, Dog])
+deserialize_union = deserialization_method(Cat | Dog)
 deserialize_discriminated = deserialization_method(
-    Annotated[Union[Cat, Dog], discriminator("type")]
+    Annotated[Cat | Dog, discriminator("type")]
 )
 ##### Without discrimininator
 print(timeit('deserialize_union({"love_dog": False})', globals=globals()))
