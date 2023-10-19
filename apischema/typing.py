@@ -198,24 +198,6 @@ def is_type_var(tp: Any) -> bool:
     return isinstance(tp, TypeVar)
 
 
-# Don't use sys.version_info because it can also depend of typing_extensions version
-def required_keys(typed_dict: Type) -> Collection[str]:
-    assert is_typed_dict(typed_dict)
-    if hasattr(typed_dict, "__required_keys__"):
-        return typed_dict.__required_keys__
-    else:
-        required: Set[str] = set()
-        bases_annotations: Set = set()
-        for base in typed_dict.__bases__:
-            if not is_typed_dict(base):
-                continue
-            bases_annotations.update(base.__annotations__)
-            required.update(required_keys(base))
-        if typed_dict.__total__:
-            required.update(typed_dict.__annotations__.keys() - bases_annotations)
-        return required
-
-
 # py38 get_origin of builtin wrapped generics return the unsubscriptable builtin
 # type.
 if (3, 8) <= sys.version_info < (3, 9):

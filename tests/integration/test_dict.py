@@ -1,3 +1,4 @@
+import sys
 from datetime import date
 from typing import Any, Dict, Mapping, TypedDict
 
@@ -7,6 +8,9 @@ from apischema import ValidationError, deserialize, serialize
 from apischema.json_schema import deserialization_schema, serialization_schema
 from apischema.metadata import flatten
 from apischema.typing import Annotated
+
+if sys.version_info < (3, 9):
+    from typing_extensions import TypedDict  # type: ignore
 
 
 class MyDict(dict):

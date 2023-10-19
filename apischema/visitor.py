@@ -31,7 +31,6 @@ from apischema.typing import (
     is_type_var,
     is_typed_dict,
     is_union,
-    required_keys,
     resolve_type_hints,
 )
 from apischema.utils import PREFIX, get_origin_or_type, has_type_vars
@@ -190,9 +189,8 @@ class Visitor(Generic[Result]):
                     types = {f: Any for f in origin._fields}  # noqa: E501
                 return self.named_tuple(origin, types, origin._field_defaults)
         if is_typed_dict(origin):
-            return self.typed_dict(
-                origin, resolve_type_hints(origin), required_keys(origin)
-            )
+            required_keys = getattr(origin, "__required_keys__", ())  # py38
+            return self.typed_dict(origin, resolve_type_hints(origin), required_keys)
         if is_type_var(origin):
             if origin.__constraints__:
                 return self.visit(Union[origin.__constraints__])
