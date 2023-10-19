@@ -3,18 +3,7 @@ __all__ = ["get_args", "get_origin", "get_type_hints"]
 
 import sys
 from types import ModuleType, new_class
-from typing import (
-    Any,
-    Callable,
-    Collection,
-    Dict,
-    Generic,
-    Protocol,
-    Set,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import Any, Callable, Dict, Generic, Protocol, TypeVar, Union
 
 
 class _FakeType:
