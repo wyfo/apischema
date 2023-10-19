@@ -126,7 +126,11 @@ if sys.version_info >= (3, 10):
         (
             TypedDictExample,
             Visitor.typed_dict,
-            (TypedDictExample, {"key1": str, "key2": List[int]}, {"key1", "key2"}),
+            (
+                TypedDictExample,
+                {"key1": str, "key2": List[int]},
+                {"key1", "key2"} if sys.version_info >= (3, 9) else set(),
+            ),
         ),
         (Optional[int], Visitor.union, [(int, NoneType)]),
         (Union[int, str], Visitor.union, [(int, str)]),
