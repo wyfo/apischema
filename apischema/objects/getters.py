@@ -16,7 +16,7 @@ from apischema.cache import cache
 from apischema.metadata import properties
 from apischema.objects.fields import ObjectField
 from apischema.objects.visitor import ObjectVisitor
-from apischema.types import AnyType, OrderedDict
+from apischema.types import AnyType
 from apischema.typing import _GenericAlias, get_type_hints
 from apischema.utils import empty_dict
 from apischema.visitor import Unsupported
@@ -47,7 +47,7 @@ def object_fields(
             return fields
 
     try:
-        return OrderedDict((f.name, f) for f in GetFields().visit(tp))
+        return {f.name: f for f in GetFields().visit(tp)}
     except (Unsupported, NotImplementedError):
         raise TypeError(f"{tp} doesn't have fields")
 

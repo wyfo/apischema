@@ -1,6 +1,5 @@
 # flake8: noqa
 # type: ignore
-import asyncio
 import inspect
 import json
 import sys
@@ -12,20 +11,10 @@ from unittest.mock import MagicMock
 import pytest
 
 from apischema import settings
-from apischema.typing import (
-    Annotated,
-    Literal,
-    TypedDict,
-    Union,
-    get_args,
-    get_origin,
-    is_type,
-)
-
-Union = Union  # to prevent import removal
+from apischema.typing import Annotated, get_args, get_origin, is_type
 
 typing.get_origin, typing.get_args = get_origin, get_args
-typing.Annotated, typing.Literal, typing.TypedDict = Annotated, Literal, TypedDict
+typing.Annotated = Annotated
 if "include_extras" not in inspect.signature(typing.get_type_hints).parameters:
     gth = typing.get_type_hints
 
@@ -62,16 +51,13 @@ class Wrapper:
         return issubclass(subclass, self.implem)
 
 
-for cls in (Dict, List, Set, FrozenSet, Tuple, Type):  # noqa
+for cls in (Dict, List, Set, FrozenSet, Tuple, Type):  # type: ignore # noqa
     wrapper = Wrapper(cls)
     globals()[wrapper.implem.__name__] = wrapper
 
 Set = AbstractSet
 
 del Wrapper
-
-if sys.version_info < (3, 7):
-    asyncio.run = lambda coro: asyncio.get_event_loop().run_until_complete(coro)
 
 __timeit = timeit.timeit
 timeit.timeit = lambda stmt, number=None, **kwargs: __timeit(stmt, number=1, **kwargs)
@@ -86,6 +72,7 @@ settings_classes = (
     settings.serialization,
 )
 settings_dicts = {cls: dict(cls.__dict__) for cls in settings_classes}
+
 
 ## test body
 

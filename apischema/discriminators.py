@@ -21,11 +21,6 @@ from apischema.types import AnyType, MetadataMixin
 from apischema.typing import get_args, is_literal, is_typed_dict
 from apischema.utils import get_origin_or_type2, identity, no_annotated
 
-try:
-    from apischema.typing import Literal
-except ImportError:
-    Literal = ...  # type: ignore
-
 Cls = TypeVar("Cls", bound=type)
 
 

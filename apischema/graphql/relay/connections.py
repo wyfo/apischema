@@ -4,7 +4,7 @@ from typing import Generic, Optional, Sequence, Type, TypeVar
 from apischema.type_names import get_type_name, type_name
 from apischema.types import NoneType
 from apischema.typing import generic_mro, get_args, get_origin
-from apischema.utils import get_args2, is_union_of, wrap_generic_init_subclass
+from apischema.utils import get_args2, is_union_of
 
 Cursor_ = TypeVar("Cursor_")
 Node_ = TypeVar("Node_")
@@ -34,7 +34,6 @@ class Edge(Generic[Node_, Cursor_]):
     node: Node_
     cursor: Cursor_
 
-    @wrap_generic_init_subclass
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         type_name(graphql=edge_name)(cls)
@@ -79,7 +78,6 @@ class Connection(Generic[Node_, Cursor_, Edge_]):
     edges: Optional[Sequence[Optional[Edge_]]]
     page_info: PageInfo[Cursor_]
 
-    @wrap_generic_init_subclass
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         type_name(graphql=connection_name)(cls)

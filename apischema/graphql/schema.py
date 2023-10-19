@@ -4,7 +4,6 @@ from dataclasses import replace
 from enum import Enum
 from functools import wraps
 from inspect import Parameter, iscoroutinefunction
-from itertools import chain
 from typing import (
     Any,
     AsyncIterable,
@@ -15,6 +14,7 @@ from typing import (
     Generic,
     Iterable,
     List,
+    Literal,
     Mapping,
     NewType,
     Optional,
@@ -61,7 +61,7 @@ from apischema.schemas import Schema, merge_schema
 from apischema.serialization import SerializationMethod, serialize
 from apischema.serialization.serialized_methods import ErrorHandler
 from apischema.type_names import TypeName, TypeNameFactory, get_type_name
-from apischema.types import AnyType, NoneType, OrderedDict, Undefined, UndefinedType
+from apischema.types import AnyType, NoneType, Undefined, UndefinedType
 from apischema.typing import get_args, get_origin, is_annotated
 from apischema.utils import (
     Lazy,
@@ -335,8 +335,6 @@ class SchemaBuilder(
 
     @cache_type
     def literal(self, values: Sequence[Any]) -> TypeFactory[GraphQLTp]:
-        from apischema.typing import Literal
-
         if not all(isinstance(v, str) for v in values):
             raise TypeError("apischema GraphQL only support Literal of strings")
 
@@ -476,7 +474,7 @@ def merge_fields(cls: type, fields: Sequence[BaseField]) -> Dict[str, FieldType]
             f"Flattened field {cls.__name__}.{err.field.name}"
             f" must have an object type"
         )
-    return OrderedDict(chain.from_iterable(map(lambda f: f.items(), sorted_fields)))
+    return {k: v for f in sorted_fields for k, v in f.items()}
 
 
 class InputSchemaBuilder(
@@ -760,7 +758,7 @@ class OutputSchemaBuilder(
         interfaces = list(map(self.visit, get_interfaces(cls)))
         if interfaces or flattened_factories:
 
-            def interface_thunk() -> Collection[graphql.GraphQLInterfaceType]:
+            def interface_thunk() -> Collection[graphql.GraphQLInterfaceType]:  # noqa
                 all_interfaces = {
                     cast(graphql.GraphQLInterfaceType, i.raw_type) for i in interfaces
                 }
@@ -1020,13 +1018,20 @@ def graphql_schema(
         if not fields:
             return None
         tp, type_name = type(name, (), {}), TypeName(graphql=name)
-        return output_builder.object(tp, (), fields).merge(type_name, None).raw_type
+        root = output_builder.object(tp, (), fields).merge(type_name, None).raw_type
+        assert isinstance(root, graphql.GraphQLObjectType)
+        return root
+
+    def check_named(tp: graphql.GraphQLType) -> graphql.GraphQLNamedType:
+        if not isinstance(tp, graphql.GraphQLNamedType):
+            raise TypeError(f"schema type {tp} is not named")
+        return tp
 
     return graphql.GraphQLSchema(
         query=root_type("Query", query_fields),
         mutation=root_type("Mutation", mutation_fields),
         subscription=root_type("Subscription", subscription_fields),
-        types=[output_builder.visit(cls).raw_type for cls in types],
+        types=[check_named(output_builder.visit(cls).raw_type) for cls in types],
         directives=directives,
         description=description,
         extensions=extensions,

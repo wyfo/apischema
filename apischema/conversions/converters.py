@@ -1,4 +1,3 @@
-import sys
 from collections import defaultdict
 from enum import Enum
 from functools import partial, wraps
@@ -46,15 +45,7 @@ Deserializer = TypeVar(
 )
 Serializer = TypeVar("Serializer", bound=Union[Callable, Conversion, property, type])
 
-default_deserialization: Callable[[type], Optional[AnyConversion]]
-# defaultdict.get is not hashable in 3.7
-if sys.version_info < (3, 8):
-
-    def default_deserialization(tp):
-        return _deserializers.get(tp)
-
-else:
-    default_deserialization = _deserializers.get
+default_deserialization: Callable[[type], Optional[AnyConversion]] = _deserializers.get
 
 
 def default_serialization(tp: Type) -> Optional[AnyConversion]:

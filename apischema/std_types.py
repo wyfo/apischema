@@ -21,14 +21,11 @@ from pathlib import (
     PureWindowsPath,
     WindowsPath,
 )
-from typing import Deque, List, TypeVar
+from typing import TypeVar
 from uuid import UUID
 
 from apischema import ValidationError, deserializer, schema, serializer, type_name
 from apischema.conversions import Conversion, as_str, catch_value_error
-
-T = TypeVar("T")
-
 
 # =================== bytes =====================
 
@@ -46,22 +43,25 @@ schema(encoding="base64")(bytes)
 
 # ================ collections ==================
 
-deserializer(Conversion(deque, source=List[T], target=Deque[T]))
-serializer(Conversion(list, source=Deque[T], target=List[T]))
-if sys.version_info < (3, 7):
-    deserializer(Conversion(catch_value_error(deque), source=List, target=deque))
-    serializer(Conversion(list, source=deque, target=List))
+T = TypeVar("T")
+if sys.version_info >= (3, 10):
+    deserializer(Conversion(deque, source=list[T], target=deque[T]))  # type: ignore
+    serializer(Conversion(list, source=deque[T], target=list[T]))  # type: ignore
+else:
+    from typing import Deque, List
+
+    deserializer(Conversion(deque, source=List[T], target=Deque[T]))
+    serializer(Conversion(list, source=Deque[T], target=List[T]))
 
 
 # ================== datetime ===================
 
-if sys.version_info >= (3, 7):  # pragma: no cover
-    for cls, format in [(date, "date"), (datetime, "date-time"), (time, "time")]:
-        fromisoformat = catch_value_error(cls.fromisoformat)  # type: ignore
-        deserializer(Conversion(fromisoformat, source=str, target=cls))
-        serializer(Conversion(cls.isoformat, source=cls, target=str))  # type: ignore
-        type_name(graphql=cls.__name__.capitalize())(cls)
-        schema(format=format)(cls)
+for cls, format in [(date, "date"), (datetime, "date-time"), (time, "time")]:
+    fromisoformat = catch_value_error(cls.fromisoformat)  # type: ignore
+    deserializer(Conversion(fromisoformat, source=str, target=cls))
+    serializer(Conversion(cls.isoformat, source=cls, target=str))  # type: ignore
+    type_name(graphql=cls.__name__.capitalize())(cls)
+    schema(format=format)(cls)
 
 # ================== decimal ====================
 

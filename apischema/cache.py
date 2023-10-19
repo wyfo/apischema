@@ -3,8 +3,6 @@ import sys
 from functools import lru_cache
 from typing import Callable, Iterator, MutableMapping, TypeVar, cast
 
-from apischema.utils import type_dict_wrapper
-
 _cached: list = []
 
 Func = TypeVar("Func", bound=Callable)
@@ -35,7 +33,7 @@ V = TypeVar("V")
 
 class CacheAwareDict(MutableMapping[K, V]):
     def __init__(self, wrapped: MutableMapping[K, V]):
-        self.wrapped = type_dict_wrapper(wrapped)
+        self.wrapped = wrapped
 
     def __getitem__(self, key: K) -> V:
         return self.wrapped[key]

@@ -157,7 +157,7 @@ def check_only(method: DeserializationMethod) -> bool:
 def is_raw_dataclass(cls: type) -> bool:
     return (
         dataclasses.is_dataclass(cls)
-        and type(cls) == type  # no metaclass
+        and type(cls) is type  # no metaclass
         and "__slots__" not in cls.__dict__
         and not hasattr(cls, "__post_init__")
         and all(f.init for f in dataclasses.fields(cls))
@@ -167,7 +167,7 @@ def is_raw_dataclass(cls: type) -> bool:
             or getattr(cls, dataclasses._PARAMS).frozen  # type: ignore
         )
         and (
-            list(inspect.signature(cls.__init__, follow_wrapped=False).parameters)  # type: ignore
+            list(inspect.signature(cls.__init__, follow_wrapped=False).parameters)
             == ["__dataclass_self__" if "self" in dataclasses.fields(cls) else "self"]
             + [f.name for f in dataclasses.fields(cls)]
         )
@@ -603,8 +603,7 @@ class DeserializationMethodVisitor(
         return self._factory(factory, list)
 
     def union(self, types: Sequence[AnyType]) -> DeserializationMethodFactory:
-        discriminator = get_inherited_discriminator(types)
-        if discriminator is not None:
+        if discriminator := get_inherited_discriminator(types):
             return self.discriminate(discriminator, types)
         alt_factories = self._union_results(types)
         if len(alt_factories) == 1:
@@ -743,7 +742,7 @@ def deserialization_method(
     no_copy: Optional[bool] = None,
     pass_through: Optional[CollectionOrPredicate[type]] = None,
     schema: Optional[Schema] = None,
-    validators: Collection[Callable] = ()
+    validators: Collection[Callable] = (),
 ) -> Callable[[Any], T]:
     ...
 
@@ -761,7 +760,7 @@ def deserialization_method(
     no_copy: Optional[bool] = None,
     pass_through: Optional[CollectionOrPredicate[type]] = None,
     schema: Optional[Schema] = None,
-    validators: Collection[Callable] = ()
+    validators: Collection[Callable] = (),
 ) -> Callable[[Any], Any]:
     ...
 
@@ -778,7 +777,7 @@ def deserialization_method(
     no_copy: Optional[bool] = None,
     pass_through: Optional[CollectionOrPredicate[type]] = None,
     schema: Optional[Schema] = None,
-    validators: Collection[Callable] = ()
+    validators: Collection[Callable] = (),
 ) -> Callable[[Any], Any]:
     from apischema import settings
 
@@ -821,7 +820,7 @@ def deserialize(
     no_copy: Optional[bool] = None,
     pass_through: Optional[CollectionOrPredicate[type]] = None,
     schema: Optional[Schema] = None,
-    validators: Collection[Callable] = ()
+    validators: Collection[Callable] = (),
 ) -> T:
     ...
 
@@ -840,7 +839,7 @@ def deserialize(
     no_copy: Optional[bool] = None,
     pass_through: Optional[CollectionOrPredicate[type]] = None,
     schema: Optional[Schema] = None,
-    validators: Collection[Callable] = ()
+    validators: Collection[Callable] = (),
 ) -> Any:
     ...
 
@@ -858,7 +857,7 @@ def deserialize(
     no_copy: Optional[bool] = None,
     pass_through: Optional[CollectionOrPredicate[type]] = None,
     schema: Optional[Schema] = None,
-    validators: Collection[Callable] = ()
+    validators: Collection[Callable] = (),
 ) -> Any:
     return deserialization_method(
         type,

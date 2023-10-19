@@ -35,15 +35,15 @@ def conv(source: AnyType, target: AnyType) -> ResolvedConversion:
 @pytest.mark.parametrize(
     "supertype, subtype, super_to_sub, sub_to_super",
     [
-        (A[U, T], A[int, str], {U: int, T: str}, {}),
+        (A[U, T], A[int, str], {U: int, T: str}, {}),  # type: ignore
         (A, A[str, int], {T: str, U: int}, {}),
-        (B[T], C, {T: int}, {}),
-        (Sequence[T], List[str], {T: str}, {}),
+        (B[T], C, {T: int}, {}),  # type: ignore
+        (Sequence[T], List[str], {T: str}, {}),  # type: ignore
         #
-        (B[str], B[T], {}, {T: str}),
+        (B[str], B[T], {}, {T: str}),  # type: ignore
         (B[int], B, {}, {V: int}),
-        (B[str], D[T], {}, {T: str}),
-        (Collection[str], Mapping[T, int], {}, {T: str}),
+        (B[str], D[T], {}, {T: str}),  # type: ignore
+        (Collection[str], Mapping[T, int], {}, {T: str}),  # type: ignore
     ],
 )
 def test_subtyping_substitution(supertype, subtype, super_to_sub, sub_to_super):

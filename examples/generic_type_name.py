@@ -7,6 +7,7 @@ from apischema.metadata import flatten
 
 T = TypeVar("T")
 
+
 # Type name factory takes the type and its arguments as (positional) parameters
 @type_name(lambda tp, arg: f"{arg.__name__}Resource")
 @dataclass

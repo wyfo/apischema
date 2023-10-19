@@ -77,7 +77,7 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
                 if not isinstance(ref, str):
                     continue
                 ref_annotations = annotations[: len(annotations) - i]
-                annotated = Annotated[(tp, *ref_annotations)]  # type: ignore
+                annotated = Annotated[(tp, *ref_annotations)]
                 if self._incr_ref(ref, annotated):
                     return
             if (
@@ -106,8 +106,7 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
         self.visit(value_type)
 
     def object(self, tp: AnyType, fields: Sequence[ObjectField]):
-        parent = get_discriminated_parent(get_origin_or_type(tp))
-        if parent is not None:
+        if parent := get_discriminated_parent(get_origin_or_type(tp)):
             self._incr_ref(get_type_name(parent).json_schema, parent)
         for field in fields:
             self.visit_with_conv(field.type, self._field_conversion(field))

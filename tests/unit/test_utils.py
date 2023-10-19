@@ -1,6 +1,5 @@
 import collections.abc
 import sys
-from collections import defaultdict
 from functools import lru_cache, wraps
 from itertools import repeat
 from typing import (
@@ -19,7 +18,7 @@ from typing import (
 import pytest
 
 from apischema.typing import Annotated, typing_origin
-from apischema.utils import is_async, replace_builtins, to_camel_case, type_dict_wrapper
+from apischema.utils import is_async, replace_builtins, to_camel_case
 
 
 def test_to_camel_case():
@@ -84,9 +83,7 @@ class GenericClass(Generic[T]):
     pass
 
 
-if sys.version_info < (3, 7):
-    typing_origin_cases = [(List, List), (Collection, Collection)]
-elif (3, 7) <= sys.version_info < (3, 9):
+if sys.version_info < (3, 9):
     typing_origin_cases = [(list, List), (collections.abc.Collection, Collection)]
 else:
     typing_origin_cases = [
@@ -137,30 +134,3 @@ def test_replace_builtins(tp, expected, annotated, wrapped):
     if annotated:
         tp, expected = Annotated[tp, 0], Annotated[expected, 0]
     assert replace_builtins(tp) == expected
-
-
-@pytest.mark.parametrize("wrapped", [{}, defaultdict(list)])
-def test_type_dict_wrapper(wrapped):
-    wrapper = type_dict_wrapper(wrapped)
-
-    class A:
-        def __init_subclass__(cls, **kwargs):
-            super().__init_subclass__(**kwargs)
-            if getattr(cls, "__origin__", None) is not None:
-                return
-            wrapper.setdefault(cls, []).append(cls)
-
-    class B(A):
-        pass
-
-    class C(A, Generic[T]):
-        pass
-
-    class D(C[int]):
-        pass
-
-    assert sorted(wrapper.items(), key=lambda i: i[0].__name__) == [
-        (B, [B]),
-        (C, [C]),
-        (D, [D]),
-    ]

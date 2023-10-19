@@ -1,3 +1,4 @@
+from collections import ChainMap
 from dataclasses import MISSING, Field, InitVar, dataclass, field
 from enum import Enum, auto
 from types import FunctionType
@@ -39,7 +40,7 @@ from apischema.metadata.keys import (
     SKIP_METADATA,
     VALIDATORS_METADATA,
 )
-from apischema.types import AnyType, ChainMap, NoneType, UndefinedType
+from apischema.types import AnyType, NoneType, UndefinedType
 from apischema.typing import get_args, is_annotated
 from apischema.utils import (
     LazyValue,

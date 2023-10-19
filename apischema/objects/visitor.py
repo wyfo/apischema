@@ -62,7 +62,6 @@ class ObjectVisitor(Visitor[Result]):
     def _override_fields(
         self, tp: AnyType, fields: Sequence[ObjectField]
     ) -> Sequence[ObjectField]:
-
         origin = get_origin_or_type(tp)
         if isinstance(origin, type):
             default_fields = self._default_fields(origin)
@@ -78,8 +77,7 @@ class ObjectVisitor(Visitor[Result]):
 
     def _object(self, tp: AnyType, fields: Sequence[ObjectField]) -> Result:
         fields = [f for f in fields if not self._skip_field(f)]
-        aliaser = get_class_aliaser(get_origin_or_type(tp))
-        if aliaser is not None:
+        if aliaser := get_class_aliaser(get_origin_or_type(tp)):
             fields = [_override_alias(f, aliaser) for f in fields]
         return self.object(tp, fields)
 

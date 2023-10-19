@@ -43,6 +43,6 @@ def test_mock():
     assert mock.classmethod(0) == 42
     assert mock.__class__ == Data
     assert isinstance(mock, Data)
-    assert type(mock) == ValidatorMock
+    assert type(mock) is ValidatorMock
     with pytest.raises(NonTrivialDependency):
         _ = mock.e

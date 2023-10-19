@@ -55,6 +55,7 @@ def default_schema(tp: Any) -> Schema | None:
 
 settings.base_schema.type = default_schema
 
+
 # No need to use settings.serialization because serializer is inherited
 @serializer
 def serialize_pydantic(obj: pydantic.BaseModel) -> Any:

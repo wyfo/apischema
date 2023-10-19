@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from typing import Annotated, Literal, Union
+from typing import Literal, TypedDict, Union
 
 import pytest
 
 from apischema import deserialize, discriminator, serialize
 from apischema.json_schema import deserialization_schema
-from apischema.typing import TypedDict
+from apischema.typing import Annotated
 
 
 class TypedDictWithoutField(TypedDict):

@@ -1,9 +1,8 @@
 import collections.abc
 import inspect
 import re
-import sys
 from contextlib import contextmanager, suppress
-from dataclasses import dataclass, is_dataclass
+from dataclasses import dataclass
 from enum import Enum
 from functools import wraps
 from types import MappingProxyType
@@ -14,17 +13,12 @@ from typing import (
     Callable,
     Collection,
     Container,
-    Dict,
     Generic,
     Iterable,
-    Iterator,
-    List,
     Mapping,
-    MutableMapping,
     NoReturn,
     Optional,
     Sequence,
-    Set,
     Tuple,
     Type,
     TypeVar,
@@ -69,13 +63,6 @@ class LazyValue(Generic[T]):
 
     def __call__(self) -> T:
         return self.default
-
-
-if sys.version_info <= (3, 7):  # pragma: no cover
-    is_dataclass_ = is_dataclass
-
-    def is_dataclass(obj) -> bool:
-        return is_dataclass_(obj) and getattr(obj, "__origin__", None) is None
 
 
 def is_hashable(obj: Any) -> bool:
@@ -183,7 +170,7 @@ def get_origin_or_type(tp: AnyType) -> AnyType:
 
 
 def get_origin2(tp: AnyType) -> Optional[Type]:
-    return get_origin(no_annotated(tp))
+    return get_origin(no_annotated(tp))  # type: ignore
 
 
 def get_args2(tp: AnyType) -> Tuple[AnyType, ...]:
@@ -208,16 +195,10 @@ def is_union_of(tp: AnyType, of: AnyType) -> bool:
     return tp == of or (is_union(get_origin_or_type2(tp)) and of in get_args2(tp))
 
 
-if sys.version_info < (3, 7):
-    LIST_ORIGIN = List
-    SET_ORIGIN = Set
-    TUPLE_ORIGIN = Tuple
-    DICT_ORIGIN = Dict
-else:
-    LIST_ORIGIN = typing_origin(list)
-    SET_ORIGIN = typing_origin(set)
-    TUPLE_ORIGIN = typing_origin(tuple)
-    DICT_ORIGIN = typing_origin(dict)
+LIST_ORIGIN = typing_origin(list)
+SET_ORIGIN = typing_origin(set)
+TUPLE_ORIGIN = typing_origin(tuple)
+DICT_ORIGIN = typing_origin(dict)
 
 
 def replace_builtins(tp: AnyType) -> AnyType:
@@ -316,67 +297,6 @@ def context_setter(obj: Any):
     finally:
         obj.__dict__.clear()
         obj.__dict__.update(dict_copy)
-
-
-def wrap_generic_init_subclass(init_subclass: Func) -> Func:
-    if sys.version_info >= (3, 7):
-        return init_subclass
-
-    @wraps(init_subclass)
-    def wrapper(cls, **kwargs):
-        if getattr(cls, "__origin__", None) is not None:
-            super(cls).__init_subclass__(**kwargs)
-            return
-        init_subclass(cls, **kwargs)
-
-    return wrapper
-
-
-# # Because hash of generic classes is changed by metaclass after __init_subclass__
-# # classes registered in global dictionaries are no more accessible. Here is a dictionary
-# # wrapper to fix this issue
-if sys.version_info < (3, 7):
-    K = TypeVar("K")
-    V = TypeVar("V")
-
-    class KeyWrapper:
-        def __init__(self, key):
-            self.key = key
-
-        def __eq__(self, other):
-            return self.key == self.key
-
-        def __hash__(self):
-            return hash(
-                id(self.key)
-                if getattr(self.key, "__origin__", ...) is None
-                else self.key
-            )
-
-    class type_dict_wrapper(MutableMapping[K, V]):
-        def __init__(self, wrapped: Dict[K, V]):
-            self.wrapped = cast(Dict[KeyWrapper, V], wrapped)
-
-        def __delitem__(self, key: K) -> None:
-            del self.wrapped[KeyWrapper(key)]
-
-        def __getitem__(self, key: K) -> V:
-            return self.wrapped[KeyWrapper(key)]
-
-        def __iter__(self) -> Iterator[K]:
-            return iter(wrapper.key for wrapper in list(self.wrapped))
-
-        def __len__(self) -> int:
-            return len(self.wrapped)
-
-        def __setitem__(self, key: K, value: V):
-            self.wrapped[KeyWrapper(key)] = value
-
-else:
-    M = TypeVar("M", bound=MutableMapping)
-
-    def type_dict_wrapper(wrapped: M) -> M:
-        return wrapped
 
 
 CollectionOrPredicate = Union[Collection[T], Callable[[T], bool]]
