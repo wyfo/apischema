@@ -88,6 +88,12 @@ py310: list = []
 if sys.version_info >= (3, 10):
     py310 = [(int | str, Visitor.union, [(int, str)])]
 
+py311: list = []
+if sys.version_info >= (3, 11):
+    from typing import LiteralString
+
+    py311 = [(LiteralString, Visitor.primitive, [str])]
+
 
 @pytest.mark.parametrize(
     "cls, method, args",
@@ -99,6 +105,7 @@ if sys.version_info >= (3, 10):
         (Dict[str, int], Visitor.mapping, [dict, str, int]),
         *pep_585,
         *py310,
+        *py311,
         (Annotated[int, 42, "42"], Visitor.annotated, [int, (42, "42")]),
         (Any, Visitor.any, []),
         (
