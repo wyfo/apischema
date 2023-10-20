@@ -24,6 +24,7 @@ packages = [
     for path in pathlib.Path(benchmarks.__file__).parent.iterdir()
     if not path.name.startswith("_")
 ]
+packages = ["pydantic"]
 
 
 def time_it(func: Callable, arg: Any) -> float:
