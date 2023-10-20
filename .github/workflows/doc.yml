@@ -123,15 +123,15 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git fetch origin gh-pages --depth=1
+      - name: Publish dev documentation
+        if: github.event_name == 'push'
+        run: mike deploy -p dev -u
       - name: Set environment variable
         # TODO use a better thing that `python setup.py`
         run: |
           echo "version=$(cat pyproject.toml | grep "version =" | cut -d' ' -f3 | cut -d'"' -f2 | cut -d. -f-2)" >> $GITHUB_ENV
           echo "revision=$(cat pyproject.toml | grep "version =" | cut -d' ' -f3 | cut -d'"' -f2 | cut -d. -f3)" >> $GITHUB_ENV
           echo "latest=$(mike list latest -j | jq .version -r)" >> $GITHUB_ENV
-      - name: Publish dev documentation
-        if: github.event_name == 'push' && env.version != env.latest
-        run: mike deploy -p $version dev -t "dev" -u
       - name: Publish latest documentation
         if: github.event_name == 'release' && env.revision == '0'
         run: |
