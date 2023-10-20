@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools==68.2.2", "wheel==0.41.2", "Cython==3.0.3"]
+requires = ["setuptools==68.2.2", "wheel==0.41.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -42,4 +42,5 @@ examples = [
 
 [tool.setuptools.package-data]
 apischema = ["py.typed"]
-scripts = ["cythonize.py"]
+"apischema.deserialization" = ["methods.c"]
+"apischema.serialization" = ["methods.c"]

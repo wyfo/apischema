@@ -56,6 +56,9 @@ jobs:
           path: |
             coverage.xml
             htmlcov
+      - name: Cythonize
+        run: scripts/cythonize.sh
+        if: matrix.python-version != 'pypy-3.9' && matrix.python-version != 'pypy-3.10'
       - name: Compile
         run: pip install -e .
         if: matrix.python-version != 'pypy-3.9' && matrix.python-version != 'pypy-3.10'
