@@ -91,11 +91,15 @@ They correpond to JSON *object* and are serialized to `dict`.
 
 - `typing.TypedDict`
 
-: Hanlded as an object type, but with a dictionary shape; fields metadata can be passed using `Annotated`
+: Handled as an object type, but with a dictionary shape; fields metadata can be passed using `Annotated`
 
 - `typing.Any`
 
 : Untouched by deserialization, serialized according to the object runtime class
+
+- `typing.LiteralString`
+
+: Handled as `str`
 
 #### Other standard library types
 

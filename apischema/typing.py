@@ -156,12 +156,28 @@ def is_literal(tp: Any) -> bool:
     from typing import Literal
 
     origin = get_origin(tp)
-    if origin == Literal:
+    if origin is Literal:
         return True
     try:
         from typing_extensions import Literal as Literal2
 
-        return get_origin(tp) == Literal2
+        return get_origin(tp) is Literal2
+    except ImportError:
+        return False
+
+
+def is_literal_string(tp: Any) -> bool:
+    try:
+        from typing import LiteralString
+
+        if tp is LiteralString:
+            return True
+    except ImportError:
+        pass
+    try:
+        from typing_extensions import LiteralString
+
+        return tp is LiteralString
     except ImportError:
         return False
 
@@ -171,6 +187,7 @@ def is_named_tuple(tp: Any) -> bool:
 
 
 def is_typed_dict(tp: Any) -> bool:
+    # TODO use python 3.10 typing.is_typeddict
     from typing import TypedDict
 
     if isinstance(tp, type(new_class("_TypedDictImplem", (TypedDict,)))):
@@ -189,7 +206,7 @@ def is_type_var(tp: Any) -> bool:
 
 # py38 get_origin of builtin wrapped generics return the unsubscriptable builtin
 # type.
-if (3, 8) <= sys.version_info < (3, 9):
+if sys.version_info < (3, 9):
     import typing
 
     TYPING_ALIASES = {
@@ -200,7 +217,7 @@ if (3, 8) <= sys.version_info < (3, 9):
         return TYPING_ALIASES.get(origin, origin)
 
 else:
-    typing_origin = lambda tp: tp  # type: ignore
+    typing_origin = lambda tp: tp
 
 
 def is_type(tp: Any) -> bool:

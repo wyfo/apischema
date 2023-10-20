@@ -247,7 +247,7 @@ It can be used for example to build a deserialization conversion from an alterna
 ```
 
 !!! note
-Parameters metadata can be specified using `typing.Annotated`, or be passed with `parameters_metadata` parameter, which is a mapping of parameter names as key and mapped metadata as value.
+    Parameters metadata can be specified using `typing.Annotated`, or be passed with `parameters_metadata` parameter, which is a mapping of parameter names as key and mapped metadata as value.
 
 ### Object serialization — select only a subset of fields
 

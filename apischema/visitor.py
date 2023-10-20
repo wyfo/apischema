@@ -27,6 +27,7 @@ from apischema.typing import (
     get_type_hints,
     is_annotated,
     is_literal,
+    is_literal_string,
     is_named_tuple,
     is_type_var,
     is_typed_dict,
@@ -191,6 +192,8 @@ class Visitor(Generic[Result]):
         if is_typed_dict(origin):
             required_keys = getattr(origin, "__required_keys__", ())  # py38
             return self.typed_dict(origin, resolve_type_hints(origin), required_keys)
+        if is_literal_string(origin):
+            return self.primitive(str)
         if is_type_var(origin):
             if origin.__constraints__:
                 return self.visit(Union[origin.__constraints__])
