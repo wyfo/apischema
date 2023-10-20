@@ -123,20 +123,28 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git fetch origin gh-pages --depth=1
-      - name: Publish dev documentation
-        if: github.event_name == 'push'
-        run: mike deploy -p dev -u
-      - name: Set environment variable
-        # TODO use a better thing that `python setup.py`
+      - name: Retrieve current version
+        # TODO use a better thing that parsing pyproject.toml
         run: |
           echo "version=$(cat pyproject.toml | grep "version =" | cut -d' ' -f3 | cut -d'"' -f2 | cut -d. -f-2)" >> $GITHUB_ENV
           echo "revision=$(cat pyproject.toml | grep "version =" | cut -d' ' -f3 | cut -d'"' -f2 | cut -d. -f3)" >> $GITHUB_ENV
-          echo "latest=$(mike list latest -j | jq .version -r)" >> $GITHUB_ENV
-      - name: Publish latest documentation
+      - name: Deploy latest documentation
         if: github.event_name == 'release' && env.revision == '0'
         run: |
-          mike retitle latest "$latest"
-          mike deploy -p $version latest -t "$version (latest)" -u
-      - name: Publish patch documentation
+          mike retitle latest "$(mike list latest -j | jq .version -r)"
+          mike deploy $version latest -t "$version (latest)" -u
+      - name: Deploy patch documentation
         if: github.event_name == 'release' && env.revision != '0'
-        run: mike deploy -p $version
+        run: mike deploy $version
+      - name: Deploy dev documentation
+        if: github.event_name == 'push'
+        run: mike deploy dev
+      - name: Publish documentation
+        if: github.event_name == 'push' || github.event_name == 'release'
+        run: |
+          git switch gh-pages
+          cat versions.json | jq '[.[-1], .[:-1][]]' -r | tee versions.json
+          git add versions.json
+          git commit -m "sort versions.json"
+          git push origin gh-pages
+
