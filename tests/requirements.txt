@@ -1,11 +1,11 @@
 graphql-core==3.2.3
-attrs==22.1.0
+attrs==23.1.0
 bson==0.5.10
 docstring-parser==0.15
-pydantic==1.10.2
-pytest==7.4.2
-pytest-cov==4.0.0
-pytest-asyncio==0.20.3
-SQLAlchemy==1.4.45
+pydantic==2.5.2
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-asyncio==0.21.1
+SQLAlchemy==2.0.23
 typing-extensions==4.8.0;python_version>="3.8"
 typing-extensions==4.7.1;python_version<"3.8"
