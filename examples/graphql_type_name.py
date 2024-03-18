@@ -12,8 +12,7 @@ class FooFoo:
     bar: int
 
 
-def foo() -> FooFoo | None:
-    ...
+def foo() -> FooFoo | None: ...
 
 
 schema = graphql_schema(query=[foo])

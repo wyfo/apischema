@@ -86,15 +86,13 @@ class DeserializerDescriptor(MethodWrapper[staticmethod]):
 
 
 @overload
-def deserializer(deserializer: Deserializer) -> Deserializer:
-    ...
+def deserializer(deserializer: Deserializer) -> Deserializer: ...
 
 
 @overload
 def deserializer(
     *, lazy: Callable[[], Union[Converter, Conversion]], target: Type
-) -> None:
-    ...
+) -> None: ...
 
 
 def deserializer(
@@ -130,15 +128,13 @@ class SerializerDescriptor(MethodWrapper[MethodOrProperty]):
 
 
 @overload
-def serializer(serializer: Serializer) -> Serializer:
-    ...
+def serializer(serializer: Serializer) -> Serializer: ...
 
 
 @overload
 def serializer(
     *, lazy: Callable[[], Union[Converter, Conversion]], source: Type
-) -> Callable[[Serializer], Serializer]:
-    ...
+) -> Callable[[Serializer], Serializer]: ...
 
 
 def serializer(
