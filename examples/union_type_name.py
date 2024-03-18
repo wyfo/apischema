@@ -15,8 +15,7 @@ class Bar:
     bar: int
 
 
-def foo_or_bar() -> Foo | Bar:
-    ...
+def foo_or_bar() -> Foo | Bar: ...
 
 
 # union_ref default value is made explicit here
