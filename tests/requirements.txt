@@ -2,7 +2,7 @@ graphql-core==3.2.3
 attrs==22.1.0
 bson==0.5.10
 docstring-parser==0.15
-pydantic==1.10.2
+pydantic==1.10.13
 pytest==7.4.2
 pytest-cov==4.0.0
 pytest-asyncio==0.20.3
