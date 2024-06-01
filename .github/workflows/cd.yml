@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: scripts/cythonize.sh
       - run: pipx run build --sdist
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/*.tar.gz
@@ -22,7 +22,7 @@ jobs:
     - uses: actions/checkout@v4
     - run: scripts/cythonize.sh
     - run: NO_EXTENSION=1 pipx run build
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: dist
         path: dist/*.whl
@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: scripts/cythonize.sh
       - run: scripts/generate_tests_from_examples.py
-      - uses: pypa/cibuildwheel@v2.16.2
+      - uses: pypa/cibuildwheel@v2.18.1
         env:
           CIBW_SKIP: pp*
           CIBW_TEST_COMMAND: pytest {project}/tests
@@ -45,7 +45,7 @@ jobs:
           CIBW_BEFORE_TEST: pip install -r tests/requirements.txt
           # TODO is skipping still necessary?
           CIBW_TEST_SKIP: "*universal2:arm64"
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: wheelhouse/*.whl
@@ -54,10 +54,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: dist
         path: dist
-    - uses: pypa/gh-action-pypi-publish@v1.8.10
+    - uses: pypa/gh-action-pypi-publish@v1.8.14
       with:
         password: ${{ secrets.PYPI_TOKEN }}
