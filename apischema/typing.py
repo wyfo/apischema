@@ -56,10 +56,12 @@ else:  # pragma: no cover
             return res
 
 
-if sys.version_info >= (3, 11):
-    from typing import _collect_parameters  # type: ignore
+if sys.version_info >= (3, 13):
+    from typing import _collect_type_parameters
+elif sys.version_info >= (3, 11):
+    from typing import _collect_parameters as _collect_type_parameters  # type: ignore
 else:
-    from typing import _collect_type_vars as _collect_parameters
+    from typing import _collect_type_vars as _collect_type_parameters
 
 
 def _generic_mro(result, tp):
@@ -68,7 +70,7 @@ def _generic_mro(result, tp):
         origin = tp
     result[origin] = tp
     if hasattr(origin, "__orig_bases__"):
-        parameters = _collect_parameters(origin.__orig_bases__)
+        parameters = _collect_type_parameters(origin.__orig_bases__)
         substitution = dict(zip(parameters, get_args(tp)))
         for base in origin.__orig_bases__:
             if get_origin(base) in result:

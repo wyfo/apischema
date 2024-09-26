@@ -28,7 +28,7 @@ from typing import (
 
 from apischema.types import COLLECTION_TYPES, MAPPING_TYPES, PRIMITIVE_TYPES, AnyType
 from apischema.typing import (
-    _collect_parameters,
+    _collect_type_parameters,
     generic_mro,
     get_args,
     get_origin,
@@ -125,7 +125,7 @@ def get_parameters(tp: AnyType) -> Iterable[TV]:
     if hasattr(tp, "__parameters__"):
         return tp.__parameters__
     elif hasattr(tp, "__orig_bases__"):
-        return _collect_parameters(tp.__orig_bases__)
+        return _collect_type_parameters(tp.__orig_bases__)
     elif is_type_var(tp):
         return (tp,)
     else:
