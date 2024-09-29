@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools==68.2.2", "wheel==0.41.2"]
+requires = ["setuptools==75.1.0", "wheel~=0.44.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language == Python == 3.10",
     "Programming Language == Python == 3.11",
     "Programming Language == Python == 3.12",
+    "Programming Language == Python == 3.13",
     "Topic == Software Development == Libraries == Python Modules",
 ]
 
@@ -39,6 +40,9 @@ examples = [
     "pytest",
     "sqlalchemy",
 ]
+
+[tool.setuptools.packages.find]
+include = ["apischema*"]
 
 [tool.setuptools.package-data]
 apischema = ["py.typed"]
