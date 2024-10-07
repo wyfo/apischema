@@ -79,9 +79,11 @@ class Mutation:
             fields.append(
                 (
                     CLIENT_MUTATION_ID,
-                    ClientMutationId
-                    if cls._client_mutation_id
-                    else Optional[ClientMutationId],
+                    (
+                        ClientMutationId
+                        if cls._client_mutation_id
+                        else Optional[ClientMutationId]
+                    ),
                     # TODO why missing here?
                     MISSING if cls._client_mutation_id else None,  # type: ignore
                 )

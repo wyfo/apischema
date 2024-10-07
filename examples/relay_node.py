@@ -12,8 +12,7 @@ class Ship(relay.Node[UUID]):  # Let's use an UUID for Ship id
     name: str
 
     @classmethod
-    async def get_by_id(cls, id: UUID, info: graphql.GraphQLResolveInfo = None):
-        ...
+    async def get_by_id(cls, id: UUID, info: graphql.GraphQLResolveInfo = None): ...
 
 
 @dataclass
@@ -21,8 +20,9 @@ class Faction(relay.Node[int]):  # Nodes can have different id types
     name: str
 
     @classmethod
-    def get_by_id(cls, id: int, info: graphql.GraphQLResolveInfo = None) -> "Faction":
-        ...
+    def get_by_id(
+        cls, id: int, info: graphql.GraphQLResolveInfo = None
+    ) -> "Faction": ...
 
 
 schema = graphql_schema(query=[relay.node], types=relay.nodes())
