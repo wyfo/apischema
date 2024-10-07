@@ -17,9 +17,9 @@ from typing import (
 from apischema.cache import CacheAwareDict
 from apischema.objects.fields import check_field_or_name, get_field_name
 
-_dependent_requireds: MutableMapping[
-    type, List[Tuple[Any, Collection[Any]]]
-] = CacheAwareDict(defaultdict(list))
+_dependent_requireds: MutableMapping[type, List[Tuple[Any, Collection[Any]]]] = (
+    CacheAwareDict(defaultdict(list))
+)
 
 DependentRequired = Mapping[str, AbstractSet[str]]
 
@@ -47,13 +47,11 @@ def dependent_required(
     fields: Mapping[Any, Collection[Any]],
     *groups: Collection[Any],
     owner: Optional[type] = None,
-):
-    ...
+): ...
 
 
 @overload
-def dependent_required(*groups: Collection[Any], owner: Optional[type] = None):
-    ...
+def dependent_required(*groups: Collection[Any], owner: Optional[type] = None): ...
 
 
 def dependent_required(*groups: Collection[Any], owner: Optional[type] = None):  # type: ignore
