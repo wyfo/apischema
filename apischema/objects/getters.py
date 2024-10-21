@@ -73,13 +73,11 @@ class FieldGetter:
 
 
 @overload
-def get_field(obj: Type[T]) -> T:
-    ...
+def get_field(obj: Type[T]) -> T: ...
 
 
 @overload
-def get_field(obj: T) -> T:
-    ...
+def get_field(obj: T) -> T: ...
 
 
 # Overload because of Mypy issue
@@ -104,13 +102,11 @@ class AliasGetter:
 
 
 @overload
-def get_alias(obj: Type[T]) -> T:
-    ...
+def get_alias(obj: Type[T]) -> T: ...
 
 
 @overload
-def get_alias(obj: T) -> T:
-    ...
+def get_alias(obj: T) -> T: ...
 
 
 def get_alias(obj: Union[Type[T], T]) -> T:

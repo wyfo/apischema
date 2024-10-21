@@ -43,18 +43,18 @@ ConstraintError = Union[str, Callable[[Any, Any], str]]
 class settings(metaclass=MetaSettings):
     additional_properties: bool = False
     aliaser: Aliaser = lambda s: s
-    default_object_fields: Callable[
-        [type], Optional[Sequence[ObjectField]]
-    ] = default_object_fields_
+    default_object_fields: Callable[[type], Optional[Sequence[ObjectField]]] = (
+        default_object_fields_
+    )
     default_type_name: Callable[[AnyType], Optional[TypeName]] = default_type_name_
     json_schema_version: JsonSchemaVersion = JsonSchemaVersion.DRAFT_2020_12
 
     class base_schema:
         field: Callable[[AnyType, str, str], Optional[Schema]] = lambda *_: None
         method: Callable[[AnyType, Callable, str], Optional[Schema]] = lambda *_: None
-        parameter: Callable[
-            [Callable, Parameter, str], Optional[Schema]
-        ] = lambda *_: None
+        parameter: Callable[[Callable, Parameter, str], Optional[Schema]] = (
+            lambda *_: None
+        )
         type: Callable[[AnyType], Optional[Schema]] = lambda *_: None
 
     class errors:

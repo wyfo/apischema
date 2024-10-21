@@ -6,13 +6,11 @@ from apischema.graphql import graphql_schema, relay
 
 
 @dataclass
-class Ship:
-    ...
+class Ship: ...
 
 
 @dataclass
-class Faction:
-    ...
+class Faction: ...
 
 
 @dataclass
@@ -21,8 +19,7 @@ class IntroduceShip(relay.Mutation):
     faction: Faction
 
     @staticmethod
-    def mutate(faction_id: str, ship_name: str) -> "IntroduceShip":
-        ...
+    def mutate(faction_id: str, ship_name: str) -> "IntroduceShip": ...
 
 
 def hello() -> str:

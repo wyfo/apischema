@@ -42,28 +42,23 @@ _order_overriding: MutableMapping[type, Mapping[Any, Ordering]] = CacheAwareDict
 
 
 @overload
-def order(__value: int) -> Ordering:
-    ...
+def order(__value: int) -> Ordering: ...
 
 
 @overload
-def order(*, after: Any) -> Ordering:
-    ...
+def order(*, after: Any) -> Ordering: ...
 
 
 @overload
-def order(*, before: Any) -> Ordering:
-    ...
+def order(*, before: Any) -> Ordering: ...
 
 
 @overload
-def order(__fields: Sequence[Any]) -> Callable[[Cls], Cls]:
-    ...
+def order(__fields: Sequence[Any]) -> Callable[[Cls], Cls]: ...
 
 
 @overload
-def order(__override: Mapping[Any, Ordering]) -> Callable[[Cls], Cls]:
-    ...
+def order(__override: Mapping[Any, Ordering]) -> Callable[[Cls], Cls]: ...
 
 
 def order(__arg=None, *, before=None, after=None):

@@ -7,16 +7,13 @@ from apischema.json_schema import serialization_schema
 T = TypeVar("T")
 
 
-class Query(Generic[T]):
-    ...
+class Query(Generic[T]): ...
 
 
-def query_to_list(q: Query[T]) -> list[T]:
-    ...
+def query_to_list(q: Query[T]) -> list[T]: ...
 
 
-def query_to_scalar(q: Query[T]) -> T | None:
-    ...
+def query_to_scalar(q: Query[T]) -> T | None: ...
 
 
 @dataclass
@@ -25,8 +22,7 @@ class FooModel:
 
 
 class Foo:
-    def serialize(self) -> FooModel:
-        ...
+    def serialize(self) -> FooModel: ...
 
 
 assert serialization_schema(

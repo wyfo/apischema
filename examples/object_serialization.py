@@ -15,8 +15,7 @@ class Data:
     def size(self) -> int:
         return len(self.content)
 
-    def get_details(self) -> Any:
-        ...
+    def get_details(self) -> Any: ...
 
 
 # Serialization fields can be a str/field or a function/method/property

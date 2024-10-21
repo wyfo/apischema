@@ -369,9 +369,11 @@ class SchemaBuilder(
             return JsonSchema()
         elif all(alt.keys() == {"type"} for alt in results):
             types: Any = chain.from_iterable(
-                [res["type"]]
-                if isinstance(res["type"], (str, JsonType))
-                else res["type"]
+                (
+                    [res["type"]]
+                    if isinstance(res["type"], (str, JsonType))
+                    else res["type"]
+                )
                 for res in results
             )
             return json_schema(type=list(types))
@@ -513,11 +515,13 @@ class SerializationSchemaBuilder(
             for field in fields
             if not field.is_aggregate
             for required in [
-                field.required
-                if is_typed_dict(get_origin_or_type(tp))
-                else not field.skippable(
-                    settings.serialization.exclude_defaults,
-                    settings.serialization.exclude_none,
+                (
+                    field.required
+                    if is_typed_dict(get_origin_or_type(tp))
+                    else not field.skippable(
+                        settings.serialization.exclude_defaults,
+                        settings.serialization.exclude_none,
+                    )
                 )
             ]
         ] + [
