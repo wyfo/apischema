@@ -648,9 +648,9 @@ class ObjectMethod(DeserializationMethod):
             if self.additional_field is not None:
                 additional: dict = {key: data[key] for key in remain}
                 try:
-                    values[
-                        self.additional_field.name
-                    ] = self.additional_field.method.deserialize(additional)
+                    values[self.additional_field.name] = (
+                        self.additional_field.method.deserialize(additional)
+                    )
                 except ValidationError as err:
                     if not self.additional_field.fall_back_on_default:
                         errors = extend_errors(errors, err.messages)
