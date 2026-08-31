@@ -652,9 +652,11 @@ class DeserializationMethodVisitor(
         def factory(constraints: Optional[Constraints], _) -> DeserializationMethod:
             conv_alternatives = tuple(
                 ConversionAlternative(
-                    conv.converter.func
-                    if isinstance(conv.converter, ValueErrorCatcher)
-                    else conv.converter,
+                    (
+                        conv.converter.func
+                        if isinstance(conv.converter, ValueErrorCatcher)
+                        else conv.converter
+                    ),
                     (fact if dynamic else fact.merge(constraints)).method,
                     isinstance(conv.converter, ValueErrorCatcher),
                 )
@@ -743,8 +745,7 @@ def deserialization_method(
     pass_through: Optional[CollectionOrPredicate[type]] = None,
     schema: Optional[Schema] = None,
     validators: Collection[Callable] = (),
-) -> Callable[[Any], T]:
-    ...
+) -> Callable[[Any], T]: ...
 
 
 @overload
@@ -761,8 +762,7 @@ def deserialization_method(
     pass_through: Optional[CollectionOrPredicate[type]] = None,
     schema: Optional[Schema] = None,
     validators: Collection[Callable] = (),
-) -> Callable[[Any], Any]:
-    ...
+) -> Callable[[Any], Any]: ...
 
 
 def deserialization_method(
@@ -821,8 +821,7 @@ def deserialize(
     pass_through: Optional[CollectionOrPredicate[type]] = None,
     schema: Optional[Schema] = None,
     validators: Collection[Callable] = (),
-) -> T:
-    ...
+) -> T: ...
 
 
 @overload
@@ -840,8 +839,7 @@ def deserialize(
     pass_through: Optional[CollectionOrPredicate[type]] = None,
     schema: Optional[Schema] = None,
     validators: Collection[Callable] = (),
-) -> Any:
-    ...
+) -> Any: ...
 
 
 def deserialize(

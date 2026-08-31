@@ -16,8 +16,7 @@ class Foo(Bar):
     baz: str
 
 
-def foo() -> Foo | None:
-    ...
+def foo() -> Foo | None: ...
 
 
 schema = graphql_schema(query=[foo])

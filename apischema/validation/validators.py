@@ -161,15 +161,13 @@ V = TypeVar("V", bound=Callable)
 
 
 @overload
-def validator(func: V) -> V:
-    ...
+def validator(func: V) -> V: ...
 
 
 @overload
 def validator(
     field: Any = None, *, discard: Any = None, owner: Optional[Type] = None
-) -> Callable[[V], V]:
-    ...
+) -> Callable[[V], V]: ...
 
 
 def validator(arg=None, *, field=None, discard=None, owner=None):

@@ -69,9 +69,7 @@ def test_annotated_schema():
             },
         }
     )
-    assert (
-        print_schema(graphql_schema(query=[a]))
-        == '''\
+    assert print_schema(graphql_schema(query=[a])) == '''\
 type Query {
   a: A!
 }
@@ -83,4 +81,3 @@ type A {
 
 """type description"""
 scalar someInt'''
-    )
