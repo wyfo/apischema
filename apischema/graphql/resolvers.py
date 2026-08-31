@@ -159,8 +159,7 @@ MethodOrProp = TypeVar("MethodOrProp", Callable, property)
 
 
 @overload
-def resolver(__method_or_property: MethodOrProp) -> MethodOrProp:
-    ...
+def resolver(__method_or_property: MethodOrProp) -> MethodOrProp: ...
 
 
 @overload
@@ -174,8 +173,7 @@ def resolver(
     parameters_metadata: Optional[Mapping[str, Mapping]] = None,
     serialized: bool = False,
     owner: Optional[Type] = None,
-) -> Callable[[MethodOrProp], MethodOrProp]:
-    ...
+) -> Callable[[MethodOrProp], MethodOrProp]: ...
 
 
 def resolver(

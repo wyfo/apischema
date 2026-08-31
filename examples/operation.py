@@ -8,12 +8,10 @@ from apischema.graphql import Query, graphql_schema, resolver
 @dataclass
 class Foo:
     @resolver
-    async def bar(self, arg: int = 0) -> str:
-        ...
+    async def bar(self, arg: int = 0) -> str: ...
 
 
-async def get_foo() -> Foo:
-    ...
+async def get_foo() -> Foo: ...
 
 
 schema = graphql_schema(query=[Query(get_foo, alias="foo", error_handler=None)])
