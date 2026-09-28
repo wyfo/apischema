@@ -25,12 +25,10 @@ def test_to_camel_case():
     assert to_camel_case("min_length") == "minLength"
 
 
-def sync_func():
-    ...
+def sync_func(): ...
 
 
-async def async_func():
-    ...
+async def async_func(): ...
 
 
 def func_not_returning_awaitable() -> int:  # type: ignore

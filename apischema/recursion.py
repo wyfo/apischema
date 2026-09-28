@@ -151,9 +151,11 @@ class RecursiveConversionsVisitor(ConversionsVisitor[Conv, Result]):
             tp,
             self._conversion,
             self.default_conversion,
-            DeserializationRecursiveChecker  # type: ignore
-            if isinstance(self, DeserializationVisitor)
-            else SerializationRecursiveChecker,
+            (
+                DeserializationRecursiveChecker  # type: ignore
+                if isinstance(self, DeserializationVisitor)
+                else SerializationRecursiveChecker
+            ),
         ):
             cache_key = tp, self._conversion
             if cache_key in self._cache:

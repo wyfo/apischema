@@ -29,13 +29,10 @@ def test_resolver_default_parameter_not_serializable(tp, default):
     # wraps in order to trigger the bug of get_type_hints with None default value
     resolver2 = wraps(resolver)(lambda arg=default: resolver(arg))
     schema = graphql_schema(query=[resolver2])
-    assert (
-        print_schema(schema)
-        == """\
+    assert print_schema(schema) == """\
 type Query {
   resolver(arg: Int): Boolean!
 }"""
-    )
     assert (
         graphql_sync(schema, "{resolver}").data
         == graphql_sync(schema, "{resolver(arg: null)}").data

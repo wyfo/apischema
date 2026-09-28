@@ -13,8 +13,7 @@ class Foo:
     content: Any
 
 
-def foo() -> Foo | None:
-    ...
+def foo() -> Foo | None: ...
 
 
 schema = graphql_schema(query=[foo])
