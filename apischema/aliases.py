@@ -12,18 +12,15 @@ get_class_aliaser = _class_aliasers.get
 
 
 @overload
-def alias(alias_: str, *, override: bool = True) -> Metadata:
-    ...
+def alias(alias_: str, *, override: bool = True) -> Metadata: ...
 
 
 @overload
-def alias(override: bool) -> Metadata:
-    ...
+def alias(override: bool) -> Metadata: ...
 
 
 @overload
-def alias(aliaser: Aliaser) -> Callable[[Cls], Cls]:
-    ...
+def alias(aliaser: Aliaser) -> Callable[[Cls], Cls]: ...
 
 
 def alias(arg=None, *, override: bool = True):  # type: ignore
