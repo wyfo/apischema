@@ -612,8 +612,7 @@ def serialize(
     fall_back_on_any: Optional[bool] = None,
     no_copy: Optional[bool] = None,
     pass_through: Optional[PassThroughOptions] = None,
-) -> Any:
-    ...
+) -> Any: ...
 
 
 @overload
@@ -631,8 +630,7 @@ def serialize(
     fall_back_on_any: bool = True,
     no_copy: Optional[bool] = None,
     pass_through: Optional[PassThroughOptions] = None,
-) -> Any:
-    ...
+) -> Any: ...
 
 
 def serialize(  # type: ignore

@@ -26,9 +26,7 @@ def b() -> B:
 
 
 def test_default_conversion_type_name():
-    assert (
-        print_schema(graphql_schema(query=[b]))
-        == """\
+    assert print_schema(graphql_schema(query=[b])) == """\
 type Query {
   b: B!
 }
@@ -36,7 +34,6 @@ type Query {
 type B {
   a: Int!
 }"""
-    )
     assert serialization_schema(B, all_refs=True) == {
         "$ref": "#/$defs/B",
         "$defs": {

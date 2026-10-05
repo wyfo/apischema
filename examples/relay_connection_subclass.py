@@ -33,8 +33,7 @@ class Faction:
     @resolver
     def ships(
         self, first: int | None, after: Cursor | None
-    ) -> Connection[Optional[Ship]] | None:
-        ...
+    ) -> Connection[Optional[Ship]] | None: ...
 
 
 def faction() -> Faction | None:

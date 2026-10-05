@@ -1,4 +1,5 @@
 """Kind of typing_extensions for this package"""
+
 __all__ = ["get_args", "get_origin", "get_type_hints"]
 
 import sys
