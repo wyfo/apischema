@@ -54,9 +54,9 @@ class RefsExtractor(ConversionsVisitor, ObjectVisitor, WithConversionsResolver):
     def __init__(self, default_conversion: DefaultConversion, refs: Refs):
         super().__init__(default_conversion)
         self.refs = refs
-        self._rec_guard: Dict[
-            Tuple[AnyType, Optional[AnyConversion]], int
-        ] = defaultdict(lambda: 0)
+        self._rec_guard: Dict[Tuple[AnyType, Optional[AnyConversion]], int] = (
+            defaultdict(lambda: 0)
+        )
 
     def _incr_ref(self, ref: Optional[str], tp: AnyType) -> bool:
         if ref is None:
