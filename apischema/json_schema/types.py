@@ -134,5 +134,4 @@ def json_schema(
     uniqueItems: bool = False,
     unevaluatedProperties: Union[bool, JsonSchema] = True,
     writeOnly: bool = False,
-) -> JsonSchema:
-    ...
+) -> JsonSchema: ...

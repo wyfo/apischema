@@ -11,8 +11,7 @@ class Foo:
     bar: UUID
 
 
-def foo() -> Foo | None:
-    ...
+def foo() -> Foo | None: ...
 
 
 # id_types={UUID} is equivalent to id_types=lambda t: t in {UUID}

@@ -57,12 +57,10 @@ class Tagged(Generic[V]):
             raise TypeError("Invalid metadata in a TaggedUnion field")
 
     @overload
-    def __get__(self, instance: None, owner: Type[T]) -> Tag[T, V]:
-        ...
+    def __get__(self, instance: None, owner: Type[T]) -> Tag[T, V]: ...
 
     @overload
-    def __get__(self, instance: Any, owner) -> Union[V, UndefinedType]:
-        ...
+    def __get__(self, instance: Any, owner) -> Union[V, UndefinedType]: ...
 
     def __get__(self, instance, owner):
         raise NotImplementedError

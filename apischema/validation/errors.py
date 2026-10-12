@@ -42,16 +42,14 @@ class LocalizedError(TypedDict):
 
 class ValidationError(Exception):
     @overload
-    def __init__(self, __message: str):
-        ...
+    def __init__(self, __message: str): ...
 
     @overload
     def __init__(
         self,
         messages: Optional[Sequence[ErrorMsg]] = None,
         children: Optional[Mapping[ErrorKey, "ValidationError"]] = None,
-    ):
-        ...
+    ): ...
 
     def __init__(
         self,
@@ -89,22 +87,19 @@ class ValidationError(Exception):
 @overload
 def merge_errors(
     err1: Optional[ValidationError], err2: ValidationError
-) -> ValidationError:
-    ...
+) -> ValidationError: ...
 
 
 @overload
 def merge_errors(
     err1: ValidationError, err2: Optional[ValidationError]
-) -> ValidationError:
-    ...
+) -> ValidationError: ...
 
 
 @overload
 def merge_errors(
     err1: Optional[ValidationError], err2: Optional[ValidationError]
-) -> Optional[ValidationError]:
-    ...
+) -> Optional[ValidationError]: ...
 
 
 @merge_opts  # type: ignore
