@@ -63,8 +63,7 @@ assert deserialization_schema(Foo) == {
 }
 
 
-def foos() -> Collection[Foo] | None:
-    ...
+def foos() -> Collection[Foo] | None: ...
 
 
 schema = graphql_schema(query=[foos])

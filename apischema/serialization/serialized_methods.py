@@ -111,8 +111,7 @@ MethodOrProp = TypeVar("MethodOrProp", Callable, property)
 
 
 @overload
-def serialized(__method_or_property: MethodOrProp) -> MethodOrProp:
-    ...
+def serialized(__method_or_property: MethodOrProp) -> MethodOrProp: ...
 
 
 @overload
@@ -124,8 +123,7 @@ def serialized(
     order: Optional[Ordering] = None,
     schema: Optional[Schema] = None,
     owner: Optional[Type] = None,
-) -> Callable[[MethodOrProp], MethodOrProp]:
-    ...
+) -> Callable[[MethodOrProp], MethodOrProp]: ...
 
 
 def serialized(

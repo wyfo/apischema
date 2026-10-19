@@ -50,9 +50,7 @@ def test_flattened_dataclass_model():
     )
     schema = graphql_schema(query=[get_data])
     assert graphql_sync(schema, "{getData{attr}}").data == {"getData": {"attr": 0}}
-    assert (
-        print_schema(schema)
-        == """\
+    assert print_schema(schema) == """\
 type Query {
   getData: Data!
 }
@@ -60,7 +58,6 @@ type Query {
 type Data {
   attr: Int!
 }"""
-    )
 
 
 class Field2:
@@ -116,9 +113,7 @@ def test_flattened_converted():
     )
     schema = graphql_schema(query=[get_data2])
     assert graphql_sync(schema, "{getData2{attr}}").data == {"getData2": {"attr": 0}}
-    assert (
-        print_schema(schema)
-        == """\
+    assert print_schema(schema) == """\
 type Query {
   getData2: Data2!
 }
@@ -126,7 +121,6 @@ type Query {
 type Data2 {
   attr: Int!
 }"""
-    )
 
 
 @dataclass
