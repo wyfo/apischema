@@ -123,9 +123,7 @@ def echo(drawing: Drawing = None) -> Drawing | None:
 
 
 drawing_schema = graphql_schema(query=[echo])
-assert (
-    graphql.utilities.print_schema(drawing_schema)
-    == """\
+assert graphql.utilities.print_schema(drawing_schema) == """\
 type Query {
   echo(drawing: DrawingInput): Drawing
 }
@@ -168,7 +166,6 @@ input ConcatInput {
   left: DrawingInput!
   right: DrawingInput!
 }"""
-)
 
 query = """\
 {

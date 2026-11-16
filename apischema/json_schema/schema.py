@@ -41,9 +41,12 @@ from apischema.discriminators import (
 )
 from apischema.json_schema.conversions_resolver import WithConversionsResolver
 from apischema.json_schema.patterns import infer_pattern
-from apischema.json_schema.refs import DeserializationRefsExtractor, Refs
+from apischema.json_schema.refs import (
+    DeserializationRefsExtractor,
+    Refs,
+    SerializationRefsExtractor,
+)
 from apischema.json_schema.refs import RefsExtractor as RefsExtractor_
-from apischema.json_schema.refs import SerializationRefsExtractor
 from apischema.json_schema.types import JsonSchema, JsonType, json_schema
 from apischema.json_schema.versions import JsonSchemaVersion, RefFactory
 from apischema.metadata.keys import DISCRIMINATOR_METADATA, SCHEMA_METADATA
@@ -54,9 +57,8 @@ from apischema.objects.visitor import (
     SerializationObjectVisitor,
 )
 from apischema.ordering import Ordering, sort_by_order
-from apischema.schemas import Schema
+from apischema.schemas import Schema, merge_schema
 from apischema.schemas import get_schema as _get_schema
-from apischema.schemas import merge_schema
 from apischema.serialization import serialize
 from apischema.serialization.serialized_methods import (
     SerializedMethod,
@@ -369,9 +371,11 @@ class SchemaBuilder(
             return JsonSchema()
         elif all(alt.keys() == {"type"} for alt in results):
             types: Any = chain.from_iterable(
-                [res["type"]]
-                if isinstance(res["type"], (str, JsonType))
-                else res["type"]
+                (
+                    [res["type"]]
+                    if isinstance(res["type"], (str, JsonType))
+                    else res["type"]
+                )
                 for res in results
             )
             return json_schema(type=list(types))
@@ -513,11 +517,13 @@ class SerializationSchemaBuilder(
             for field in fields
             if not field.is_aggregate
             for required in [
-                field.required
-                if is_typed_dict(get_origin_or_type(tp))
-                else not field.skippable(
-                    settings.serialization.exclude_defaults,
-                    settings.serialization.exclude_none,
+                (
+                    field.required
+                    if is_typed_dict(get_origin_or_type(tp))
+                    else not field.skippable(
+                        settings.serialization.exclude_defaults,
+                        settings.serialization.exclude_none,
+                    )
                 )
             ]
         ] + [

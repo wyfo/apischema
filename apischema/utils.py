@@ -91,7 +91,7 @@ def to_pascal_case(s: str) -> str:
 
 
 def merge_opts(
-    func: Callable[[T, T], T]
+    func: Callable[[T, T], T],
 ) -> Callable[[Optional[T], Optional[T]], Optional[T]]:
     def wrapper(opt1, opt2):
         if opt1 is None:

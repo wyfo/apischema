@@ -38,8 +38,7 @@ settings.base_schema.method = method_base_schema
 settings.base_schema.parameter = parameter_base_schema
 
 
-def foo() -> Foo:
-    ...
+def foo() -> Foo: ...
 
 
 schema_ = graphql_schema(query=[foo])

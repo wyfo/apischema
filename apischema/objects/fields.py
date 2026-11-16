@@ -240,9 +240,9 @@ def get_field_name(field_or_name: Any, *, methods: bool = False) -> str:
         _bad_field(field_or_name, methods)
 
 
-_class_fields: MutableMapping[
-    type, Callable[[], Sequence[ObjectField]]
-] = CacheAwareDict({})
+_class_fields: MutableMapping[type, Callable[[], Sequence[ObjectField]]] = (
+    CacheAwareDict({})
+)
 
 
 def set_object_fields(
