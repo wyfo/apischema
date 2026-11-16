@@ -13,12 +13,10 @@ class Bar:
 @dataclass
 class Foo:
     @resolver
-    async def bar(self, arg: int = 0) -> Bar:
-        ...
+    async def bar(self, arg: int = 0) -> Bar: ...
 
 
-async def foo() -> Foo | None:
-    ...
+async def foo() -> Foo | None: ...
 
 
 schema = graphql_schema(query=[foo])

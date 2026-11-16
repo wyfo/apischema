@@ -11,18 +11,15 @@ U = TypeVar("U")
 @dataclass
 class Foo(Generic[T]):
     @serialized
-    def bar(self) -> T:
-        ...
+    def bar(self) -> T: ...
 
 
 @serialized
-def baz(foo: Foo[U]) -> U:
-    ...
+def baz(foo: Foo[U]) -> U: ...
 
 
 @dataclass
-class FooInt(Foo[int]):
-    ...
+class FooInt(Foo[int]): ...
 
 
 assert (
