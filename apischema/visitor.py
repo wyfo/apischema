@@ -29,12 +29,18 @@ from apischema.typing import (
     is_literal,
     is_literal_string,
     is_named_tuple,
+    is_type_alias,
     is_type_var,
     is_typed_dict,
     is_union,
     resolve_type_hints,
 )
-from apischema.utils import PREFIX, get_origin_or_type, has_type_vars
+from apischema.utils import (
+    PREFIX,
+    get_origin_or_type,
+    has_type_vars,
+    substitute_type_vars,
+)
 
 try:
     from apischema.typing import Annotated
@@ -147,6 +153,11 @@ class Visitor(Generic[Result]):
 
     def visit(self, tp: AnyType) -> Result:
         origin, args = get_origin_or_type(tp), get_args(tp)
+        if is_type_alias(tp):
+            return self.visit(tp.__value__)
+        if args and is_type_alias(origin):
+            substitution = dict(zip(origin.__type_params__, args))
+            return self.visit(substitute_type_vars(origin.__value__, substitution))
         if args:
             if is_annotated(tp):
                 return self.annotated(args[0], args[1:])

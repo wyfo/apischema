@@ -56,6 +56,25 @@ else:  # pragma: no cover
             return res
 
 
+TYPE_ALIAS_TYPES = []
+if sys.version_info >= (3, 12):
+    from typing import TypeAliasType
+
+    TYPE_ALIAS_TYPES.append(TypeAliasType)
+try:
+    from typing_extensions import TypeAliasType as TypeAliasType2
+
+    if TypeAliasType2 not in TYPE_ALIAS_TYPES:
+        TYPE_ALIAS_TYPES.append(TypeAliasType2)
+except ImportError:
+    pass
+TYPE_ALIAS_TYPES = tuple(TYPE_ALIAS_TYPES)
+
+
+def is_type_alias(tp: Any) -> bool:
+    return isinstance(tp, TYPE_ALIAS_TYPES)
+
+
 if sys.version_info >= (3, 13):
     from typing import _collect_type_parameters
 elif sys.version_info >= (3, 11):
