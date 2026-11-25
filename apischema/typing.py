@@ -3,7 +3,7 @@ __all__ = ["get_args", "get_origin", "get_type_hints"]
 
 import sys
 from types import ModuleType, new_class
-from typing import Any, Callable, Dict, Generic, Protocol, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, Protocol, Tuple, TypeVar, Union
 
 
 class _FakeType:
@@ -56,19 +56,23 @@ else:  # pragma: no cover
             return res
 
 
-TYPE_ALIAS_TYPES = []
-if sys.version_info >= (3, 12):
-    from typing import TypeAliasType
+def _type_alias_types() -> Tuple[type, ...]:
+    res = []
+    if sys.version_info >= (3, 12):
+        from typing import TypeAliasType
 
-    TYPE_ALIAS_TYPES.append(TypeAliasType)
-try:
-    from typing_extensions import TypeAliasType as TypeAliasType2
+        res.append(TypeAliasType)
+    try:
+        from typing_extensions import TypeAliasType as TypeAliasType2
 
-    if TypeAliasType2 not in TYPE_ALIAS_TYPES:
-        TYPE_ALIAS_TYPES.append(TypeAliasType2)
-except ImportError:
-    pass
-TYPE_ALIAS_TYPES = tuple(TYPE_ALIAS_TYPES)
+        if TypeAliasType2 not in res:
+            res.append(TypeAliasType2)
+    except ImportError:
+        pass
+    return tuple(res)
+
+
+TYPE_ALIAS_TYPES = _type_alias_types()
 
 
 def is_type_alias(tp: Any) -> bool:

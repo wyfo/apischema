@@ -33,7 +33,7 @@ def test_nested_type_alias_in_union():
     @dataclass(kw_only=True)
     class Model:
         title: str
-        destination: Union[int, str, Destination]
+        destination: Union[int, str, Destination]  # type: ignore[valid-type]
 
     assert deserialize(Model, {"title": "int", "destination": 42}).destination == 42
     assert (
